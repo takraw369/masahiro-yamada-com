@@ -1,0 +1,14 @@
+name = "masahiro-yamada-com"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+main = "./dist/_worker.js/index.js"
+assets = { directory = "./dist/_astro", binding = "ASSETS" }
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sunlovesflow-db"
+database_id = "b3f9ad9b-3e6a-4a11-8059-b7997466db85"
+
+[vars]
+SITE_NAME = "masahiro-yamada.com"

@@ -1,0 +1,125 @@
+---
+const cookie = Astro.cookies.get('ace-dash-auth');
+if (cookie?.value === 'true') {
+  return Astro.redirect('/dashboard');
+}
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const password = formData.get('password') as string;
+  const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
+  const correctPassword = env?.DASHBOARD_PASSWORD ?? '';
+
+  if (password && password === correctPassword) {
+    Astro.cookies.set('ace-dash-auth', 'true', {
+      path: '/dashboard',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30,
+    });
+    return Astro.redirect('/dashboard');
+  } else {
+    error = 'パスワードが違います';
+  }
+}
+---
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACE Dashboard — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a1a;
+      --surface: #12121f;
+      --border: rgba(255,255,255,0.08);
+      --accent: #F59E0B;
+      --text: #e8e8f0;
+      --text-dim: #7070a0;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    .logo { font-size: 2.2rem; margin-bottom: 10px; }
+    .title { font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+    .subtitle { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 36px; letter-spacing: 0.04em; }
+    .form-group { margin-bottom: 20px; text-align: left; }
+    label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+    input[type="password"] {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="password"]:focus { border-color: var(--accent); }
+    .error {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+    }
+    button[type="submit"] {
+      width: 100%;
+      background: var(--accent);
+      color: #0a0a1a;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    button[type="submit"]:hover { opacity: 0.9; }
+    button[type="submit"]:active { transform: scale(0.98); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">☀️</div>
+    <div class="title">ACE Dashboard</div>
+    <div class="subtitle">masahiro-yamada.com — MASA's private zone</div>
+    {error && <div class="error">{error}</div>}
+    <form method="POST">
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" autofocus />
+      </div>
+      <button type="submit">入室する</button>
+    </form>
+  </div>
+</body>
+</html>
