@@ -1,3 +1,538 @@
 ---
-return Astro.redirect('/dashboard');
+import { ViewTransitions } from 'astro:transitions';
+
+const title = "ACE METHOD — 脳が変われば、すべてが変わる";
+const description = "元日本代表が脳科学で解き明かす、アスリートの認知変容メソッド";
+const ogUrl = "https://masahiro-yamada.com";
+const ogImage = "https://masahiro-yamada.com/og.png";
 ---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <!-- OGP -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={ogUrl} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImage} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <ViewTransitions />
+
+  <style>
+    :root {
+      --bg-void:        #0D0B08;
+      --bg-surface:     #1A1612;
+      --bg-elevated:    #241F1A;
+      --gold-pure:      #C9A96E;
+      --gold-muted:     #8B7355;
+      --gold-dim:       #5A4D3A;
+      --gold-glow:      rgba(201, 169, 110, 0.08);
+      --text-primary:   #D4C5A9;
+      --text-muted:     #7A6F5F;
+      --text-dim:       #4A4030;
+      --border-default: #2E2822;
+      --border-hover:   #8B7355;
+      --border-accent:  rgba(201, 169, 110, 0.2);
+      --accent-line:    #06C755;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg-void);
+      color: var(--text-primary);
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow */
+    .ambient {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(
+        ellipse at 30% 20%,
+        rgba(139, 115, 85, 0.04) 0%,
+        transparent 50%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Section label */
+    .section-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      color: var(--gold-muted);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 40px;
+    }
+
+    /* Divider */
+    .divider {
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-muted), transparent);
+      margin: 24px auto;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--gold-muted), var(--gold-dim));
+      color: var(--bg-void);
+      padding: 14px 48px;
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 3px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--gold-pure), var(--gold-muted));
+    }
+
+    .btn-secondary {
+      display: inline-block;
+      background: transparent;
+      border: 1px solid var(--border-default);
+      color: var(--text-muted);
+      padding: 12px 32px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      border-color: var(--border-hover);
+      color: var(--gold-pure);
+    }
+
+    .btn-line {
+      display: inline-block;
+      background: var(--accent-line);
+      color: #ffffff;
+      padding: 16px 44px;
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: 6px;
+      box-shadow: 0 4px 20px rgba(6, 199, 85, 0.25);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .btn-line:hover {
+      box-shadow: 0 6px 28px rgba(6, 199, 85, 0.35);
+    }
+
+    /* Card */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      padding: 28px 24px;
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      border-color: var(--border-hover);
+      background: var(--bg-elevated);
+    }
+
+    /* Reveal animation */
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .reveal { animation: reveal 0.5s ease forwards; }
+    .reveal-1 { animation-delay: 0ms; }
+    .reveal-2 { animation-delay: 200ms; }
+    .reveal-3 { animation-delay: 400ms; }
+    .reveal-4 { animation-delay: 600ms; }
+    .reveal-5 { animation-delay: 800ms; }
+
+    /* ========================
+       HERO
+    ======================== */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px 80px;
+      z-index: 1;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 8px;
+      color: var(--gold-muted);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(28px, 6vw, 48px);
+      font-weight: 300;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 24px;
+      max-width: 640px;
+    }
+
+    .hero-sub {
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1.9;
+      margin-bottom: 48px;
+      max-width: 440px;
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--text-dim);
+      font-size: 18px;
+      animation: scrollBob 2s ease-in-out infinite;
+    }
+    @keyframes scrollBob {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ========================
+       WHAT IS ACE
+    ======================== */
+    #what-is-ace {
+      position: relative;
+      z-index: 1;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .pillar-icon {
+      font-size: 22px;
+      color: var(--gold-muted);
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .pillar-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--gold-pure);
+      margin-bottom: 10px;
+    }
+
+    .pillar-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.9;
+    }
+
+    /* ========================
+       FOUNDER
+    ======================== */
+    #founder {
+      position: relative;
+      z-index: 1;
+      padding: 80px 20px;
+    }
+
+    .founder-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    .founder-image {
+      width: 200px;
+      height: 200px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      flex-shrink: 0;
+      margin: 0 auto;
+    }
+
+    .founder-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 300;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .founder-bio {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.9;
+      margin-bottom: 16px;
+    }
+
+    .brand-tag {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+    }
+
+    /* ========================
+       EXPERIENCE (Trinity CTA)
+    ======================== */
+    #experience {
+      position: relative;
+      z-index: 1;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .cta-card {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-accent);
+      padding: 48px 32px;
+    }
+
+    .cta-card-headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .cta-card-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 4px;
+      color: var(--gold-muted);
+      margin-bottom: 32px;
+    }
+
+    .cta-note {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 20px;
+      line-height: 1.7;
+    }
+
+    /* ========================
+       FOOTER
+    ======================== */
+    footer {
+      position: relative;
+      z-index: 1;
+      padding: 40px 20px;
+      border-top: 1px solid var(--border-default);
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .footer-links a:hover {
+      color: var(--text-muted);
+    }
+
+    .footer-copy {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    /* ========================
+       RESPONSIVE
+    ======================== */
+    @media (min-width: 768px) {
+      #what-is-ace { padding: 120px 40px; }
+      #founder     { padding: 120px 40px; }
+      #experience  { padding: 120px 40px; }
+
+      .pillars-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .founder-inner {
+        grid-template-columns: 200px 1fr;
+        gap: 48px;
+      }
+
+      .founder-image {
+        margin: 0;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      #what-is-ace .pillars-grid,
+      .cta-card,
+      .founder-inner {
+        max-width: 1100px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient glow overlay -->
+  <div class="ambient" aria-hidden="true"></div>
+
+  <!-- ========================
+       HERO
+  ======================== -->
+  <section id="hero">
+    <span class="hero-eyebrow reveal reveal-1">ACE METHOD</span>
+    <h1 class="hero-title reveal reveal-2">脳が変われば、すべてが変わる</h1>
+    <p class="hero-sub reveal reveal-3">
+      元日本代表が脳科学で解き明かす、<br />アスリートの認知変容メソッド
+    </p>
+    <div class="hero-cta reveal reveal-4">
+      <a href="/trinity" class="btn-primary">Trinity Diagnosisを受ける</a>
+      <a href="https://lin.ee/pcAHpTBy" target="_blank" rel="noopener noreferrer" class="btn-secondary">LINE登録</a>
+    </div>
+    <div class="scroll-hint reveal reveal-5" aria-hidden="true">↓</div>
+  </section>
+
+  <!-- ========================
+       WHAT IS ACE
+  ======================== -->
+  <section id="what-is-ace">
+    <span class="section-label">WHAT IS ACE</span>
+    <div class="pillars-grid">
+      <div class="card">
+        <span class="pillar-icon" aria-hidden="true">◈</span>
+        <h2 class="pillar-title">脳科学</h2>
+        <p class="pillar-desc">認知の書き換えで行動が変わる</p>
+      </div>
+      <div class="card">
+        <span class="pillar-icon" aria-hidden="true">◇</span>
+        <h2 class="pillar-title">身体性</h2>
+        <p class="pillar-desc">20年の競技経験から導いた体感メソッド</p>
+      </div>
+      <div class="card">
+        <span class="pillar-icon" aria-hidden="true">△</span>
+        <h2 class="pillar-title">教育</h2>
+        <p class="pillar-desc">惹き出す、押し込まない</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================
+       FOUNDER
+  ======================== -->
+  <section id="founder">
+    <span class="section-label" style="text-align:center; display:block;">FOUNDER</span>
+    <div class="founder-inner">
+      <div class="founder-image" aria-label="山田昌寛プロフィール画像（準備中）"></div>
+      <div>
+        <h2 class="founder-name">山田昌寛 / MASA</h2>
+        <div class="divider" style="margin: 0 0 20px 0;"></div>
+        <p class="founder-bio">
+          セパタクロー日本代表として全日本6連覇、アジア大会銅メダル、世界大会銀メダルを獲得。20年にわたる競技人生で培った「脳と身体の接続点」を体系化し、ACE METHOD（Athlete Cognitive Education）として確立。認知科学と身体感覚を軸に、アスリートと次世代を育てる教育者として活動する。
+        </p>
+        <span class="brand-tag">sun loves flow</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================
+       EXPERIENCE (Trinity CTA)
+  ======================== -->
+  <section id="experience">
+    <span class="section-label">EXPERIENCE</span>
+    <div class="cta-card">
+      <h2 class="cta-card-headline">あなたの認知構造を<br />3体系で解き明かす</h2>
+      <p class="cta-card-sub">MBTI × 数秘術 × エニアグラム</p>
+      <a href="/trinity" class="btn-primary">無料で診断する</a>
+      <p class="cta-note">LINE登録で深層分析が解放されます</p>
+    </div>
+  </section>
+
+  <!-- ========================
+       FOOTER
+  ======================== -->
+  <footer>
+    <nav class="footer-links" aria-label="フッターナビゲーション">
+      <a href="https://lin.ee/pcAHpTBy" target="_blank" rel="noopener noreferrer">LINE登録</a>
+      <a href="https://note.com" target="_blank" rel="noopener noreferrer">note</a>
+      <a href="https://x.com/kodomo_athlete" target="_blank" rel="noopener noreferrer">X @kodomo_athlete</a>
+      <a href="/dashboard">dashboard</a>
+    </nav>
+    <p class="footer-copy">© 2026 ACE METHOD / sun loves flow</p>
+  </footer>
+
+</body>
+</html>
