@@ -312,6 +312,7 @@ function EnneagramStep({ onComplete }) {
 
 function ResultScreen({ mbti, numerology, enneagram, unlocked, onReset }) {
   const [reveal, setReveal] = useState(0);
+  const [showModal, setShowModal] = useState(!unlocked);
   const mp = MBTI_PROFILES[mbti]; const ep = ENNEAGRAM_PROFILES[enneagram];
   const pastN = NUMEROLOGY_MEANINGS[numerology.past]; const destN = NUMEROLOGY_MEANINGS[numerology.destiny]; const futN = NUMEROLOGY_MEANINGS[numerology.future];
   const cross = useMemo(() => generateCrossAnalysis(mbti, enneagram, numerology.past, numerology.destiny, numerology.future), [mbti, enneagram, numerology]);
@@ -327,11 +328,12 @@ function ResultScreen({ mbti, numerology, enneagram, unlocked, onReset }) {
 
   const shareToX = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, "_blank");
   const copyLink = () => { navigator.clipboard?.writeText(shareUrl); alert("リンクをコピーしました"); };
+  const copyCode = () => { navigator.clipboard?.writeText(resultCode); alert("コードをコピーしました"); };
 
   const sec = (i) => ({ opacity: reveal>=i?1:0, transform: reveal>=i?"none":"translateY(16px)", transition: "all 0.5s ease", marginBottom: "24px" });
   const lbl = { fontSize: "9px", color: C.goldMuted, letterSpacing: "4px", marginBottom: "12px", fontFamily: fontDisplay };
   const crd = { background: C.bgCard, border: `1px solid ${C.border}`, padding: "20px" };
-  const blur = (locked) => locked ? { filter: "blur(7px)", userSelect: "none", pointerEvents: "none", WebkitUserSelect: "none" } : {};
+  const blur = (locked) => locked ? { filter: "blur(8px)", userSelect: "none", pointerEvents: "none", WebkitUserSelect: "none" } : {};
 
   return (
     <div style={{ padding: "24px 20px", position: "relative" }}>
@@ -405,7 +407,11 @@ function ResultScreen({ mbti, numerology, enneagram, unlocked, onReset }) {
             <a href={LINE_URL} target="_blank" rel="noopener noreferrer" style={{
               display: "inline-block", background: "#06C755", color: "#fff", padding: "16px 44px", fontSize: "15px", fontWeight: 700, textDecoration: "none", letterSpacing: "1px", borderRadius: "6px", transition: "opacity 0.3s", boxShadow: "0 4px 20px rgba(6,199,85,0.25)"
             }}>LINE登録で完全版を見る</a>
-            <p style={{ fontSize: "11px", color: C.textDim, marginTop: "16px", lineHeight: 1.7 }}>登録後、トーク画面に完全版URLが届きます</p>
+            <p style={{ fontSize: "12px", color: C.textMuted, marginTop: "16px", lineHeight: 2.2, textAlign: "left" }}>
+              ① 下のボタンでLINE友だち追加<br/>
+              ② トーク画面で「診断結果」と送信<br/>
+              ③ あなた専用の完全版URLが届きます
+            </p>
           </div>
         </div>
       )}
@@ -413,44 +419,68 @@ function ResultScreen({ mbti, numerology, enneagram, unlocked, onReset }) {
       {/* Cross Analysis */}
       <div style={sec(6)}>
         <div style={lbl}>CROSS ANALYSIS — 三体系の交差</div>
-        <div style={blur(!unlocked)}>
-          <div style={crd}>
-            <div style={{ fontSize: "11px", color: C.gold, marginBottom: "10px", letterSpacing: "2px" }}>◈ 共鳴ポイント</div>
-            {cross.synergies.map((s,i)=><p key={i} style={{ fontSize: "13px", color: C.textMuted, lineHeight: 1.8, margin: "0 0 8px" }}>{s}</p>)}
+        <div style={{ position: "relative" }}>
+          <div style={blur(!unlocked)}>
+            <div style={crd}>
+              <div style={{ fontSize: "11px", color: C.gold, marginBottom: "10px", letterSpacing: "2px" }}>◈ 共鳴ポイント</div>
+              {cross.synergies.map((s,i)=><p key={i} style={{ fontSize: "13px", color: C.textMuted, lineHeight: 1.8, margin: "0 0 8px" }}>{s}</p>)}
+            </div>
+            <div style={{ ...crd, marginTop: "8px" }}>
+              <div style={{ fontSize: "11px", color: C.accent, marginBottom: "10px", letterSpacing: "2px" }}>◇ 創造的緊張</div>
+              {cross.tensionPoints.map((t,i)=><p key={i} style={{ fontSize: "13px", color: C.textMuted, lineHeight: 1.8, margin: "0 0 8px" }}>{t}</p>)}
+            </div>
           </div>
-          <div style={{ ...crd, marginTop: "8px" }}>
-            <div style={{ fontSize: "11px", color: C.accent, marginBottom: "10px", letterSpacing: "2px" }}>◇ 創造的緊張</div>
-            {cross.tensionPoints.map((t,i)=><p key={i} style={{ fontSize: "13px", color: C.textMuted, lineHeight: 1.8, margin: "0 0 8px" }}>{t}</p>)}
-          </div>
+          {!unlocked && (
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", pointerEvents: "none" }}>
+              <div style={{ fontSize: "22px" }}>🔒</div>
+              <div style={{ color: C.gold, fontSize: "13px", letterSpacing: "2px" }}>LINE登録で解放</div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* ACE Insight */}
       <div style={sec(7)}>
         <div style={lbl}>ACE INSIGHT — 認知変容への示唆</div>
-        <div style={blur(!unlocked)}>
-          <div style={{ ...crd, borderColor: "#3D3325", background: "rgba(139,115,85,0.06)" }}>
-            {cross.aceInsights.map((a,i)=><p key={i} style={{ fontSize: "13px", color: C.text, lineHeight: 1.9, margin: "0 0 12px" }}>{a}</p>)}
+        <div style={{ position: "relative" }}>
+          <div style={blur(!unlocked)}>
+            <div style={{ ...crd, borderColor: "#3D3325", background: "rgba(139,115,85,0.06)" }}>
+              {cross.aceInsights.map((a,i)=><p key={i} style={{ fontSize: "13px", color: C.text, lineHeight: 1.9, margin: "0 0 12px" }}>{a}</p>)}
+            </div>
           </div>
+          {!unlocked && (
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", pointerEvents: "none" }}>
+              <div style={{ fontSize: "22px" }}>🔒</div>
+              <div style={{ color: C.gold, fontSize: "13px", letterSpacing: "2px" }}>LINE登録で解放</div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Shadow & Light */}
       <div style={sec(8)}>
         <div style={lbl}>SHADOW & LIGHT</div>
-        <div style={blur(!unlocked)}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-            <div style={crd}>
-              <div style={{ fontSize: "10px", color: C.textDim, marginBottom: "8px" }}>影の統合課題</div>
-              <p style={{ fontSize: "12px", color: C.textMuted, lineHeight: 1.6, margin: 0 }}>{pastN.shadow}</p>
-              <p style={{ fontSize: "12px", color: C.textMuted, lineHeight: 1.6, margin: "6px 0 0" }}>E{enneagram}: {ep.core}の裏返し</p>
-            </div>
-            <div style={crd}>
-              <div style={{ fontSize: "10px", color: C.goldMuted, marginBottom: "8px" }}>光の発現</div>
-              <p style={{ fontSize: "12px", color: C.text, lineHeight: 1.6, margin: 0 }}>{destN.essence}</p>
-              <p style={{ fontSize: "12px", color: C.text, lineHeight: 1.6, margin: "6px 0 0" }}>→ {ep.growth}</p>
+        <div style={{ position: "relative" }}>
+          <div style={blur(!unlocked)}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              <div style={crd}>
+                <div style={{ fontSize: "10px", color: C.textDim, marginBottom: "8px" }}>影の統合課題</div>
+                <p style={{ fontSize: "12px", color: C.textMuted, lineHeight: 1.6, margin: 0 }}>{pastN.shadow}</p>
+                <p style={{ fontSize: "12px", color: C.textMuted, lineHeight: 1.6, margin: "6px 0 0" }}>E{enneagram}: {ep.core}の裏返し</p>
+              </div>
+              <div style={crd}>
+                <div style={{ fontSize: "10px", color: C.goldMuted, marginBottom: "8px" }}>光の発現</div>
+                <p style={{ fontSize: "12px", color: C.text, lineHeight: 1.6, margin: 0 }}>{destN.essence}</p>
+                <p style={{ fontSize: "12px", color: C.text, lineHeight: 1.6, margin: "6px 0 0" }}>→ {ep.growth}</p>
+              </div>
             </div>
           </div>
+          {!unlocked && (
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", pointerEvents: "none" }}>
+              <div style={{ fontSize: "22px" }}>🔒</div>
+              <div style={{ color: C.gold, fontSize: "13px", letterSpacing: "2px" }}>LINE登録で解放</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -462,11 +492,46 @@ function ResultScreen({ mbti, numerology, enneagram, unlocked, onReset }) {
           hover={{ borderColor: C.goldMuted, color: C.gold }}>リンクをコピー</HoverBtn>
       </div>
 
+      {/* Diagnosis Code */}
+      <div style={{ ...sec(8), textAlign: "center" }}>
+        <div style={{ border: `1px solid ${C.border}`, padding: "16px 20px", display: "inline-block", minWidth: "220px" }}>
+          <div style={{ fontSize: "9px", color: C.textDim, letterSpacing: "3px", marginBottom: "6px" }}>あなたの診断コード</div>
+          <div style={{ fontFamily: fontDisplay, fontSize: "18px", color: C.gold, letterSpacing: "2px", marginBottom: "12px" }}>{resultCode}</div>
+          <HoverBtn onClick={copyCode} style={{ background: "transparent", border: `1px solid ${C.border}`, color: C.textMuted, padding: "6px 20px", fontSize: "11px", letterSpacing: "2px", cursor: "pointer", fontFamily: fontDisplay, transition: "all 0.3s" }}
+            hover={{ borderColor: C.goldMuted, color: C.gold }}>コピー</HoverBtn>
+        </div>
+      </div>
+
       {/* Retake */}
       <div style={{ textAlign: "center", marginTop: "8px", opacity: reveal>=5?1:0, transition: "opacity 0.5s" }}>
         <HoverBtn onClick={onReset} style={{ background: "transparent", border: `1px solid ${C.border}`, color: C.textDim, padding: "12px 32px", fontSize: "11px", letterSpacing: "3px", cursor: "pointer", fontFamily: fontDisplay, transition: "all 0.3s" }}
           hover={{ borderColor: C.goldMuted, color: C.goldMuted }}>もう一度診断する</HoverBtn>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.75)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", animation: "trinityFadeIn 0.4s ease" }}>
+          <style>{`@keyframes trinityFadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
+          <div style={{ background: "#1A1612", border: "1px solid #C9A96E33", maxWidth: "360px", width: "100%", padding: "32px 24px", textAlign: "center" }}>
+            <div style={{ fontSize: "9px", color: C.goldMuted, letterSpacing: "4px", marginBottom: "16px", fontFamily: fontDisplay }}>基本診断完了</div>
+            <div style={{ fontSize: "12px", color: C.textDim, marginBottom: "6px", letterSpacing: "1px" }}>あなたの Trinity Type</div>
+            <div style={{ fontFamily: fontDisplay, fontSize: "20px", color: C.text, marginBottom: "4px", fontWeight: 300 }}>{mbti} × {numerology.past}-{numerology.destiny}-{numerology.future} × Type{enneagram}</div>
+            <div style={{ width: "40px", height: "1px", background: `linear-gradient(90deg, transparent, ${C.goldMuted}, transparent)`, margin: "20px auto" }} />
+            <div style={{ fontSize: "12px", color: C.gold, letterSpacing: "2px", marginBottom: "16px", fontFamily: fontDisplay }}>▼ 深層分析を解放する</div>
+            <div style={{ fontSize: "12px", color: C.textMuted, lineHeight: 2.2, textAlign: "left", marginBottom: "24px" }}>
+              ① LINE友だち追加<br/>
+              ② トーク画面で「診断結果」と送信<br/>
+              ③ 届いたURLから完全版を確認
+            </div>
+            <a href={LINE_URL} target="_blank" rel="noopener noreferrer" style={{ display: "block", background: "#06C755", color: "#fff", padding: "16px 24px", fontSize: "15px", fontWeight: 700, textDecoration: "none", letterSpacing: "1px", borderRadius: "6px", boxShadow: "0 4px 20px rgba(6,199,85,0.25)", marginBottom: "16px" }}>
+              LINE友だち追加で深層分析を見る
+            </a>
+            <button onClick={() => setShowModal(false)} style={{ background: "none", border: "none", color: C.textDim, fontSize: "12px", cursor: "pointer", textDecoration: "underline", padding: "8px" }}>
+              基本診断だけ見る
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
