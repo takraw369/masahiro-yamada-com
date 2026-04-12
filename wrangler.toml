@@ -13,6 +13,5 @@ database_id = "b3f9ad9b-3e6a-4a11-8059-b7997466db85"
 [vars]
 SITE_NAME = "masahiro-yamada.com"
 X_HARNESS_URL = "https://x-harness-worker.takraw501.workers.dev"
-X_HARNESS_API_KEY = "takraw555"
 LINE_HARNESS_URL = "https://line-crm-worker.takraw501.workers.dev"
-LINE_HARNESS_API_KEY = "ace-project-2026-masa"
+# X_HARNESS_API_KEY and LINE_HARNESS_API_KEY are set as Cloudflare Worker Secrets
