@@ -114,14 +114,19 @@ function sumDigitsMaster(v) {
   while (s > 9 && s !== 11 && s !== 22 && s !== 33) s = String(s).split("").reduce((a, c) => a + Number(c), 0);
   return s;
 }
-function calcLifePath(y, m, d) { return reduceToSingle(sumDigitsMaster(y) + sumDigitsMaster(m) + sumDigitsMaster(d)); }
-function calcDestiny(name) {
-  const map = {a:1,b:2,c:3,d:4,e:5,f:6,g:7,h:8,i:9,j:1,k:2,l:3,m:4,n:5,o:6,p:7,q:8,r:9,s:1,t:2,u:3,v:4,w:5,x:6,y:7,z:8};
-  let sum = 0; name.toLowerCase().replace(/[^a-z]/g, "").split("").forEach(c => { sum += map[c] || 0; });
+// 過去数: 日のみ
+function calcPast(d) { return reduceToSingle(d); }
+// 運命数: 年+月+日の全桁
+function calcDestiny(y, m, d) {
+  const all = String(y) + String(m) + String(d);
+  let sum = all.split("").reduce((a, c) => a + Number(c), 0);
   return reduceToSingle(sum);
 }
-function calcFuture(y, m, d) {
-  return reduceToSingle(String(2026).split("").reduce((s, c) => s + Number(c), 0) + String(m).split("").reduce((s, c) => s + Number(c), 0) + String(d).split("").reduce((s, c) => s + Number(c), 0));
+// 未来数: 月+日
+function calcFuture(m, d) {
+  const all = String(m) + String(d);
+  let sum = all.split("").reduce((a, c) => a + Number(c), 0);
+  return reduceToSingle(sum);
 }
 
 // ━━━ Cross Analysis ━━━
@@ -247,24 +252,19 @@ function MBTIStep({ onComplete }) {
 }
 
 function NumerologyStep({ onComplete }) {
-  const [name, setName] = useState(""); const [year, setYear] = useState(""); const [month, setMonth] = useState(""); const [day, setDay] = useState(""); const [error, setError] = useState("");
+  const [year, setYear] = useState(""); const [month, setMonth] = useState(""); const [day, setDay] = useState(""); const [error, setError] = useState("");
   const submit = () => {
-    if (!name.trim()||!year||!month||!day) { setError("すべて入力してください"); return; }
+    if (!year||!month||!day) { setError("すべて入力してください"); return; }
     const y=parseInt(year),m=parseInt(month),d=parseInt(day);
     if (y<1900||y>2025||m<1||m>12||d<1||d>31) { setError("正しい日付を入力してください"); return; }
-    onComplete({ past: calcLifePath(y,m,d), destiny: calcDestiny(name), future: calcFuture(y,m,d) });
+    onComplete({ past: calcPast(d), destiny: calcDestiny(y,m,d), future: calcFuture(m,d) });
   };
   const iS = { background: "transparent", border: "none", borderBottom: `1px solid ${C.border}`, color: C.text, padding: "14px 4px", fontSize: "17px", outline: "none", width: "100%", transition: "border-color 0.3s", fontFamily: fonts };
   return (
     <div style={{ padding: "28px 20px" }}>
       <div style={{ fontSize: "10px", color: C.goldMuted, letterSpacing: "4px", fontFamily: fontDisplay, marginBottom: "36px" }}>NUMEROLOGY</div>
       <div style={{ marginBottom: "32px" }}>
-        <label style={{ fontSize: "10px", color: C.textDim, letterSpacing: "2px", display: "block", marginBottom: "10px" }}>NAME（ローマ字）</label>
-        <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="Masahiro Yamada" style={iS}
-          onFocus={e=>e.target.style.borderBottomColor=C.goldMuted} onBlur={e=>e.target.style.borderBottomColor=C.border} />
-      </div>
-      <div style={{ marginBottom: "32px" }}>
-        <label style={{ fontSize: "10px", color: C.textDim, letterSpacing: "2px", display: "block", marginBottom: "14px" }}>BIRTHDATE</label>
+        <label style={{ fontSize: "10px", color: C.textDim, letterSpacing: "2px", display: "block", marginBottom: "14px" }}>BIRTHDATE（生年月日）</label>
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "16px" }}>
           {[["年",year,setYear,"1985"],["月",month,setMonth,"01"],["日",day,setDay,"15"]].map(([l,v,fn,ph]) => (
             <div key={l}>
@@ -364,7 +364,7 @@ function ResultScreen({ mbti, numerology, enneagram, unlocked, onReset }) {
       <div style={sec(3)}>
         <div style={lbl}>NUMEROLOGY — 魂の軌道</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
-          {[["過去",numerology.past,pastN,"ライフパス"],["現在",numerology.destiny,destN,"運命数"],["未来",numerology.future,futN,"2026年"]].map(([l,n,d,sub]) => (
+          {[["過去",numerology.past,pastN,"誕生日数"],["現在",numerology.destiny,destN,"運命数"],["未来",numerology.future,futN,"未来数"]].map(([l,n,d,sub]) => (
             <div key={l} style={{ ...crd, textAlign: "center", padding: "16px 10px" }}>
               <div style={{ fontSize: "9px", color: C.textDim, marginBottom: "4px" }}>{l}</div>
               <div style={{ fontFamily: fontDisplay, fontSize: "30px", color: d.color, fontWeight: 300 }}>{n}</div>
