@@ -1,0 +1,58 @@
+---
+// Trinity Diagnosis — MBTI × 数秘術 × エニアグラム交差診断
+// Public page (no auth required)
+---
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trinity Diagnosis | ACE METHOD</title>
+  <meta name="description" content="MBTI × 数秘術 × エニアグラム — 3体系の交差があなたの認知構造を立体的に解き明かす" />
+  
+  <!-- OGP -->
+  <meta property="og:title" content="Trinity Diagnosis | ACE METHOD" />
+  <meta property="og:description" content="MBTI × 数秘術 × エニアグラム — 3体系の交差があなたの認知構造を立体的に解き明かす" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://masahiro-yamada.com/trinity" />
+  <meta property="og:site_name" content="ACE METHOD | 山田昌寛" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Trinity Diagnosis | ACE METHOD" />
+  <meta name="twitter:description" content="MBTI × 数秘術 × エニアグラム — 3体系の交差があなたの認知構造を立体的に解き明かす" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { 
+      background: #0D0B08; 
+      color: #D4C5A9; 
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    button { font-family: inherit; }
+  </style>
+</head>
+<body>
+  <div id="trinity-root"></div>
+
+  <script>
+    import { createElement } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import TrinityDiagnosis from '../components/TrinityDiagnosis';
+    
+    const root = createRoot(document.getElementById('trinity-root'));
+    root.render(createElement(TrinityDiagnosis));
+  </script>
+</body>
+</html>
