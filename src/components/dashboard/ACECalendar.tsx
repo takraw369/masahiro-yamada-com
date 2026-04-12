@@ -1,236 +1,353 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
-interface Slot {
+// ── Types ──────────────────────────────────────────────
+interface Task {
   id: string;
   label: string;
   xp: number;
+  done: boolean;
 }
-
-interface Week {
+interface Theme {
   id: string;
   label: string;
-  slots: Slot[];
+  color: string;
+  tasks: Task[];
 }
 
-interface CheckedState {
-  [slotId: string]: boolean;
-}
+// ── Defaults ──────────────────────────────────────────
+const COLORS = ['#3B82F6','#22c55e','#A78BFA','#F59E0B','#EC4899','#F97316'];
 
-const WEEKS: Week[] = [
-  {
-    id: 'w1',
-    label: 'Week 1 — 基礎調律',
-    slots: [
-      { id: 'w1s1', label: '朝の呼吸ルーティン', xp: 10 },
-      { id: 'w1s2', label: '神経系アクティベーション', xp: 15 },
-      { id: 'w1s3', label: 'ZONEジャーナル記入', xp: 10 },
-      { id: 'w1s4', label: '夜の振り返り', xp: 5 },
-    ],
-  },
-  {
-    id: 'w2',
-    label: 'Week 2 — 脳調律',
-    slots: [
-      { id: 'w2s1', label: '視覚フォーカストレーニング', xp: 15 },
-      { id: 'w2s2', label: '前庭覚エクサ', xp: 15 },
-      { id: 'w2s3', label: 'ノイズキャンセルセッション', xp: 10 },
-      { id: 'w2s4', label: '集中記録', xp: 5 },
-    ],
-  },
-  {
-    id: 'w3',
-    label: 'Week 3 — 体調律',
-    slots: [
-      { id: 'w3s1', label: 'バイオメカニクスチェック', xp: 15 },
-      { id: 'w3s2', label: '呼吸×姿勢リセット', xp: 10 },
-      { id: 'w3s3', label: 'パフォーマンス動作', xp: 20 },
-      { id: 'w3s4', label: 'コンディション記録', xp: 5 },
-    ],
-  },
-  {
-    id: 'w4',
-    label: 'Week 4 — 精神調律',
-    slots: [
-      { id: 'w4s1', label: 'Core Values接続', xp: 20 },
-      { id: 'w4s2', label: '儀式プロトコル設計', xp: 20 },
-      { id: 'w4s3', label: 'ビジョンボード更新', xp: 15 },
-      { id: 'w4s4', label: 'ZONE入室テスト', xp: 25 },
-    ],
-  },
-  {
-    id: 'w5',
-    label: 'Week 5 — 統合',
-    slots: [
-      { id: 'w5s1', label: '全調律レビュー', xp: 20 },
-      { id: 'w5s2', label: '本番シミュレーション', xp: 30 },
-      { id: 'w5s3', label: 'メンター報告', xp: 15 },
-      { id: 'w5s4', label: 'ACE証明書受領', xp: 50 },
-    ],
-  },
+const DEFAULT_6: Theme[] = [
+  { id:'t1', label:'🧠 脳', color:'#3B82F6', tasks:[
+    { id:'t1a', label:'前頭前野トレーニング', xp:15, done:false },
+    { id:'t1b', label:'集中セッション60分', xp:20, done:false },
+    { id:'t1c', label:'読書・インプット', xp:10, done:false },
+  ]},
+  { id:'t2', label:'💪 体', color:'#22c55e', tasks:[
+    { id:'t2a', label:'朝の呼吸ルーティン', xp:10, done:false },
+    { id:'t2b', label:'神経系アクティベーション', xp:15, done:false },
+    { id:'t2c', label:'コンディション記録', xp:5, done:false },
+  ]},
+  { id:'t3', label:'🔮 メンタル', color:'#A78BFA', tasks:[
+    { id:'t3a', label:'ZONEジャーナル', xp:10, done:false },
+    { id:'t3b', label:'Core Values接続', xp:20, done:false },
+    { id:'t3c', label:'夜の振り返り', xp:5, done:false },
+  ]},
+  { id:'t4', label:'⚡ 仕事', color:'#F59E0B', tasks:[
+    { id:'t4a', label:'ACEコンテンツ作成', xp:25, done:false },
+    { id:'t4b', label:'X投稿3本', xp:15, done:false },
+    { id:'t4c', label:'売上振り返り', xp:10, done:false },
+  ]},
+  { id:'t5', label:'💚 関係', color:'#EC4899', tasks:[
+    { id:'t5a', label:'リアンフォロー', xp:20, done:false },
+    { id:'t5b', label:'メンタリング記録', xp:15, done:false },
+    { id:'t5c', label:'コミュニティ投稿', xp:10, done:false },
+  ]},
+  { id:'t6', label:'🌀 習慣', color:'#F97316', tasks:[
+    { id:'t6a', label:'睡眠7h確保', xp:15, done:false },
+    { id:'t6b', label:'食事記録', xp:5, done:false },
+    { id:'t6c', label:'デジタルデトックス', xp:10, done:false },
+  ]},
 ];
 
-const TOTAL_XP = WEEKS.flatMap((w) => w.slots).reduce((a, s) => a + s.xp, 0);
-const ALL_SLOTS = WEEKS.flatMap((w) => w.slots);
+const DEFAULT_3: Theme[] = [
+  { id:'t1', label:'🧠 脳・体', color:'#3B82F6', tasks:[
+    { id:'t1a', label:'前頭前野トレーニング', xp:15, done:false },
+    { id:'t1b', label:'朝の呼吸ルーティン', xp:10, done:false },
+    { id:'t1c', label:'コンディション記録', xp:5, done:false },
+  ]},
+  { id:'t2', label:'⚡ メンタル・仕事', color:'#F59E0B', tasks:[
+    { id:'t2a', label:'ZONEジャーナル', xp:10, done:false },
+    { id:'t2b', label:'ACEコンテンツ作成', xp:25, done:false },
+    { id:'t2c', label:'X投稿3本', xp:15, done:false },
+  ]},
+  { id:'t3', label:'💚 関係・習慣', color:'#EC4899', tasks:[
+    { id:'t3a', label:'リアンフォロー', xp:20, done:false },
+    { id:'t3b', label:'睡眠7h確保', xp:15, done:false },
+    { id:'t3c', label:'夜の振り返り', xp:5, done:false },
+  ]},
+];
 
+function genId() { return Math.random().toString(36).slice(2,9); }
+function load(): { themes: Theme[]; cols: 3|6 } {
+  try {
+    const s = localStorage.getItem('ace-themes-v2');
+    if (s) return JSON.parse(s);
+  } catch {}
+  return { themes: DEFAULT_6, cols: 6 };
+}
+function save(themes: Theme[], cols: 3|6) {
+  localStorage.setItem('ace-themes-v2', JSON.stringify({ themes, cols }));
+}
+
+// ── Component ──────────────────────────────────────────
 export default function ACECalendar() {
-  const [checked, setChecked] = useState<CheckedState>({});
-  const [openWeek, setOpenWeek] = useState<string | null>('w1');
-  const [saving, setSaving] = useState(false);
+  const stored = load();
+  const [themes, setThemes] = useState<Theme[]>(stored.themes);
+  const [cols, setCols]     = useState<3|6>(stored.cols);
+  const [view, setView]     = useState<'grid'|'detail'>('grid');
+  const [activeId, setActiveId] = useState<string|null>(null);
+  const [editing, setEditing]   = useState(false);
+  const [editThemeId, setEditThemeId] = useState<string|null>(null);
+  // DnD
+  const dragTaskRef = useRef<{themeId:string;taskId:string}|null>(null);
+  const [dragOver, setDragOver] = useState<string|null>(null);
 
-  useEffect(() => {
-    fetch('/api/dashboard/state')
-      .then((r) => r.json())
-      .then((data: { checked: CheckedState }) => {
-        if (data.checked) setChecked(data.checked);
-      })
-      .catch(() => {
-        const saved = localStorage.getItem('ace-dashboard-state');
-        if (saved) setChecked(JSON.parse(saved));
-      });
-  }, []);
-
-  const toggleSlot = async (slotId: string, xp: number) => {
-    const next = { ...checked, [slotId]: !checked[slotId] };
-    setChecked(next);
-    localStorage.setItem('ace-dashboard-state', JSON.stringify(next));
-    setSaving(true);
-    try {
-      await fetch('/api/dashboard/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slotId, checked: next[slotId], xp }),
-      });
-    } finally {
-      setSaving(false);
-    }
+  const update = (t: Theme[], c?: 3|6) => {
+    const nc = c ?? cols;
+    setThemes(t); save(t, nc);
   };
 
-  const earnedXP = Object.entries(checked)
-    .filter(([, v]) => v)
-    .reduce((a, [id]) => a + (ALL_SLOTS.find((s) => s.id === id)?.xp ?? 0), 0);
+  // ── Total XP ──
+  const totalXP = themes.flatMap(t=>t.tasks).reduce((a,t)=>a+t.xp,0);
+  const earnedXP = themes.flatMap(t=>t.tasks).filter(t=>t.done).reduce((a,t)=>a+t.xp,0);
+  const pct = totalXP ? Math.round((earnedXP/totalXP)*100) : 0;
 
-  const progressPct = Math.round((earnedXP / TOTAL_XP) * 100);
+  // ── Task toggle ──
+  const toggleTask = (themeId:string, taskId:string) => {
+    const next = themes.map(th => th.id!==themeId ? th : {
+      ...th, tasks: th.tasks.map(t => t.id!==taskId ? t : {...t,done:!t.done})
+    });
+    update(next);
+  };
 
-  return (
-    <div style={{ paddingBottom: 40 }}>
-      {/* XP Header */}
-      <div style={{
-        background: 'rgba(245,158,11,0.08)',
-        border: '1px solid rgba(245,158,11,0.2)',
-        borderRadius: 14,
-        padding: '20px 20px 16px',
-        marginBottom: 24,
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-          <span style={{ fontSize: '0.72rem', color: '#7070a0', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-            Total XP
-          </span>
-          {saving && <span style={{ fontSize: '0.7rem', color: '#7070a0' }}>saving…</span>}
+  // ── DnD tasks within detail view ──
+  const onTaskDragStart = (themeId:string, taskId:string) => { dragTaskRef.current={themeId,taskId}; };
+  const onTaskDragOver  = (e:React.DragEvent, taskId:string) => { e.preventDefault(); setDragOver(taskId); };
+  const onTaskDrop      = (themeId:string, targetId:string) => {
+    const src = dragTaskRef.current;
+    if (!src||src.taskId===targetId) { dragTaskRef.current=null;setDragOver(null);return; }
+    const next = themes.map(th => {
+      if (th.id!==themeId) return th;
+      const tasks=[...th.tasks];
+      const fi=tasks.findIndex(t=>t.id===src.taskId);
+      const ti=tasks.findIndex(t=>t.id===targetId);
+      const [m]=tasks.splice(fi,1); tasks.splice(ti,0,m);
+      return {...th,tasks};
+    });
+    update(next); dragTaskRef.current=null; setDragOver(null);
+  };
+
+  // ── Edit helpers ──
+  const addTask = (themeId:string) => {
+    const next = themes.map(th => th.id!==themeId ? th : {
+      ...th, tasks:[...th.tasks,{id:genId(),label:'新しいタスク',xp:10,done:false}]
+    });
+    update(next);
+  };
+  const updateTask = (themeId:string, taskId:string, label:string, xp:number) => {
+    const next = themes.map(th => th.id!==themeId ? th : {
+      ...th, tasks:th.tasks.map(t=>t.id!==taskId?t:{...t,label,xp})
+    });
+    update(next);
+  };
+  const deleteTask = (themeId:string, taskId:string) => {
+    const next = themes.map(th => th.id!==themeId ? th : {...th,tasks:th.tasks.filter(t=>t.id!==taskId)});
+    update(next);
+  };
+  const updateTheme = (themeId:string, label:string, color:string) => {
+    update(themes.map(th=>th.id!==themeId?th:{...th,label,color}));
+  };
+  const addTheme = () => {
+    const idx = themes.length % COLORS.length;
+    update([...themes,{id:genId(),label:'新テーマ',color:COLORS[idx],tasks:[]}]);
+  };
+  const deleteTheme = (id:string) => { update(themes.filter(t=>t.id!==id)); };
+
+  const switchCols = (n:3|6) => {
+    const base = n===6 ? DEFAULT_6 : DEFAULT_3;
+    if (themes.length===0) { setThemes(base); save(base,n); }
+    setCols(n); save(themes,n); setView('grid');
+  };
+
+  const activeTheme = themes.find(t=>t.id===activeId);
+
+  // ── Styles ──
+  const S = {
+    wrap: { paddingBottom:40 } as React.CSSProperties,
+    xpBox: { background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:14, padding:'18px 20px 14px', marginBottom:20 },
+    xpNum: { fontSize:'2rem', fontWeight:800, color:'#F59E0B', lineHeight:1, marginBottom:8 },
+    bar: { background:'rgba(255,255,255,0.06)', borderRadius:99, height:6, overflow:'hidden', marginBottom:4 },
+    barFill: (p:number) => ({ background:'linear-gradient(90deg,#F59E0B,#D97706)', height:'100%', width:`${p}%`, borderRadius:99, transition:'width 0.4s ease' }),
+    toolbar: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16, gap:8 },
+    colBtns: { display:'flex', gap:6 },
+    colBtn: (active:boolean) => ({ padding:'6px 16px', borderRadius:8, border:`1.5px solid ${active?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`, background:active?'rgba(245,158,11,0.1)':'none', color:active?'#F59E0B':'#7070a0', cursor:'pointer', fontFamily:'inherit', fontSize:'0.88rem', fontWeight:700 }),
+    editBtn: (active:boolean) => ({ padding:'6px 14px', borderRadius:8, border:`1.5px solid ${active?'rgba(167,139,250,0.5)':'rgba(255,255,255,0.08)'}`, background:active?'rgba(167,139,250,0.1)':'none', color:active?'#A78BFA':'#7070a0', cursor:'pointer', fontFamily:'inherit', fontSize:'0.85rem', fontWeight:600 }),
+    grid: (c:number) => ({ display:'grid', gridTemplateColumns:`repeat(${c},1fr)`, gap:10 }) as React.CSSProperties,
+    themeCard: (t:Theme) => ({ background:'#12121f', border:`1.5px solid ${t.color}33`, borderRadius:14, padding:'14px 14px 12px', cursor:'pointer', transition:'border-color 0.2s, transform 0.15s', position:'relative' as const }),
+    themeCardHover: (t:Theme) => ({ ...{} , borderColor:t.color+'88' }),
+    themeName: { fontWeight:700, fontSize:'0.9rem', marginBottom:8 },
+    themeProgress: (t:Theme) => { const d=t.tasks.filter(tk=>tk.done).length; const tot=t.tasks.length||1; return { background:'rgba(255,255,255,0.06)', borderRadius:99, height:4, overflow:'hidden', marginBottom:6, position:'relative' as const }; },
+    themeBar: (t:Theme) => { const d=t.tasks.filter(tk=>tk.done).length; const tot=t.tasks.length||1; return { background:t.color, height:'100%', width:`${Math.round(d/tot*100)}%`, borderRadius:99, transition:'width 0.4s' }; },
+    themeMeta: { fontSize:'0.75rem', color:'#7070a0' },
+    // Detail view
+    detailWrap: { } as React.CSSProperties,
+    detailHeader: { display:'flex', alignItems:'center', gap:12, marginBottom:20 },
+    backBtn: { padding:'7px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'none', color:'#7070a0', cursor:'pointer', fontFamily:'inherit', fontSize:'0.88rem' },
+    detailTitle: { fontWeight:800, fontSize:'1.2rem', flex:1 },
+    taskRow: (done:boolean, isOver:boolean) => ({ display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:isOver?'rgba(255,255,255,0.06)':done?'rgba(245,158,11,0.05)':'rgba(255,255,255,0.02)', borderRadius:10, marginBottom:6, cursor:'grab', userSelect:'none' as const, transition:'background 0.15s' }),
+    check: (done:boolean, color:string) => ({ width:22, height:22, borderRadius:6, border:`2px solid ${done?color:'rgba(255,255,255,0.15)'}`, background:done?color:'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', color:done?'#0a0a1a':'transparent', flexShrink:0, transition:'all 0.15s', cursor:'pointer' }),
+    taskLabel: (done:boolean) => ({ flex:1, fontSize:'0.95rem', color:done?'#7070a0':'#e8e8f0', textDecoration:done?'line-through':'none' }),
+    taskXP: (done:boolean, color:string) => ({ fontSize:'0.78rem', fontWeight:700, color:done?color:'#7070a0', flexShrink:0 }),
+    addBtn: (color:string) => ({ width:'100%', marginTop:10, padding:'10px', borderRadius:10, border:`1.5px dashed ${color}55`, background:'none', color:color, cursor:'pointer', fontFamily:'inherit', fontSize:'0.88rem', fontWeight:600 }),
+    // Edit inputs
+    editInput: { background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:6, color:'#e8e8f0', fontFamily:'inherit', fontSize:'0.88rem', padding:'5px 8px', outline:'none' },
+    xpInput: { background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:6, color:'#e8e8f0', fontFamily:'inherit', fontSize:'0.85rem', padding:'5px 6px', outline:'none', width:52, textAlign:'right' as const },
+    delBtn: { padding:'4px 8px', borderRadius:6, border:'1px solid rgba(239,68,68,0.2)', background:'none', color:'#ef4444', cursor:'pointer', fontFamily:'inherit', fontSize:'0.8rem' },
+    slideWrap: { position:'relative' as const, overflow:'hidden' },
+    slideRow: (idx:number) => ({ display:'flex', transition:'transform 0.35s cubic-bezier(0.4,0,0.2,1)', transform:`translateX(-${idx*100}%)`, willChange:'transform' as const }),
+    slide: { minWidth:'100%', padding:'0 4px' },
+    slideNav: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 },
+    navBtn: { padding:'8px 18px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'none', color:'#e8e8f0', cursor:'pointer', fontFamily:'inherit', fontSize:'0.95rem' },
+    dots: { display:'flex', gap:6 },
+    dot: (active:boolean,color:string) => ({ width:active?20:8, height:8, borderRadius:99, background:active?color:'rgba(255,255,255,0.15)', transition:'all 0.2s' }),
+  };
+
+  const [slideIdx, setSlideIdx] = useState(0);
+
+  // ── Grid view ──
+  if (view==='grid') return (
+    <div style={S.wrap}>
+      {/* XP Bar */}
+      <div style={S.xpBox}>
+        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+          <span style={{ fontSize:'0.75rem', color:'#7070a0', fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase' }}>Total XP</span>
+          <span style={{ fontSize:'0.75rem', color:'#7070a0' }}>{pct}%</span>
         </div>
-        <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#F59E0B', lineHeight: 1, marginBottom: 10 }}>
-          {earnedXP}
-          <span style={{ fontSize: '1rem', fontWeight: 400, color: '#7070a0', marginLeft: 6 }}>
-            / {TOTAL_XP} XP
-          </span>
+        <div style={S.xpNum}>{earnedXP}<span style={{ fontSize:'1rem', fontWeight:400, color:'#7070a0', marginLeft:6 }}>/ {totalXP} XP</span></div>
+        <div style={S.bar}><div style={S.barFill(pct)} /></div>
+      </div>
+
+      {/* Toolbar */}
+      <div style={S.toolbar}>
+        <div style={S.colBtns}>
+          <button style={S.colBtn(cols===3)} onClick={()=>switchCols(3)}>3列</button>
+          <button style={S.colBtn(cols===6)} onClick={()=>switchCols(6)}>6列</button>
         </div>
-        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 99, height: 6, overflow: 'hidden' }}>
-          <div style={{
-            background: 'linear-gradient(90deg, #F59E0B, #D97706)',
-            height: '100%',
-            width: `${progressPct}%`,
-            borderRadius: 99,
-            transition: 'width 0.4s ease',
-          }} />
-        </div>
-        <div style={{ fontSize: '0.72rem', color: '#7070a0', marginTop: 6, textAlign: 'right' as const }}>
-          {progressPct}% complete
+        <div style={{ display:'flex', gap:8 }}>
+          {editing && <button style={S.editBtn(false)} onClick={addTheme}>＋ テーマ追加</button>}
+          <button style={S.editBtn(editing)} onClick={()=>setEditing(!editing)}>
+            {editing ? '✓ 完了' : '✎ 編集'}
+          </button>
         </div>
       </div>
 
-      {/* Weeks */}
-      {WEEKS.map((week) => {
-        const weekXP = week.slots.reduce((a, s) => a + s.xp, 0);
-        const weekEarned = week.slots.filter((s) => checked[s.id]).reduce((a, s) => a + s.xp, 0);
-        const weekDone = week.slots.filter((s) => checked[s.id]).length;
-        const isOpen = openWeek === week.id;
-        const allDone = weekDone === week.slots.length;
-
-        return (
-          <div key={week.id} style={{
-            background: '#12121f',
-            border: `1px solid ${isOpen ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.06)'}`,
-            borderRadius: 14,
-            marginBottom: 12,
-            overflow: 'hidden',
-          }}>
-            <button
-              onClick={() => setOpenWeek(isOpen ? null : week.id)}
-              style={{
-                width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-                padding: '16px 18px', display: 'flex', alignItems: 'center',
-                justifyContent: 'space-between', color: '#e8e8f0', fontFamily: 'inherit',
-              }}
+      {/* Theme Grid */}
+      <div style={S.grid(cols)}>
+        {themes.map(t => {
+          const done = t.tasks.filter(tk=>tk.done).length;
+          const tot  = t.tasks.length;
+          return (
+            <div key={t.id} style={S.themeCard(t)}
+              onClick={()=>{ if(!editing){ setActiveId(t.id); setSlideIdx(themes.findIndex(th=>th.id===t.id)); setView('detail'); }}}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: '1.1rem' }}>{allDone ? '✅' : '○'}</span>
-                <div style={{ textAlign: 'left' as const }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{week.label}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#7070a0', marginTop: 2 }}>
-                    {weekDone}/{week.slots.length} 完了 · {weekEarned}/{weekXP} XP
+              {editing ? (
+                <div onClick={e=>e.stopPropagation()}>
+                  <input style={{ ...S.editInput, width:'100%', marginBottom:6, fontSize:'0.85rem' }}
+                    value={t.label} onChange={e=>updateTheme(t.id,e.target.value,t.color)} />
+                  <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:6 }}>
+                    {COLORS.map(c=>(
+                      <button key={c} onClick={()=>updateTheme(t.id,t.label,c)}
+                        style={{ width:18, height:18, borderRadius:99, background:c, border:t.color===c?'2px solid #fff':'2px solid transparent', cursor:'pointer' }} />
+                    ))}
                   </div>
+                  <button style={S.delBtn} onClick={()=>deleteTheme(t.id)}>削除</button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ ...S.themeName, color:t.color }}>{t.label}</div>
+                  <div style={S.themeProgress(t)}><div style={S.themeBar(t)} /></div>
+                  <div style={S.themeMeta}>{done}/{tot} タスク · {t.tasks.filter(tk=>tk.done).reduce((a,tk)=>a+tk.xp,0)}/{t.tasks.reduce((a,tk)=>a+tk.xp,0)} XP</div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // ── Detail / Slide view ──
+  return (
+    <div style={S.wrap}>
+      <div style={S.detailHeader}>
+        <button style={S.backBtn} onClick={()=>setView('grid')}>← 一覧</button>
+        <span style={{ ...S.detailTitle, color:themes[slideIdx]?.color??'#F59E0B' }}>{themes[slideIdx]?.label}</span>
+        <button style={S.editBtn(editThemeId===themes[slideIdx]?.id)}
+          onClick={()=>setEditThemeId(editThemeId===themes[slideIdx]?.id?null:themes[slideIdx]?.id??null)}>
+          {editThemeId===themes[slideIdx]?.id?'✓ 完了':'✎ 編集'}
+        </button>
+      </div>
+
+      {/* Dot nav */}
+      <div style={S.slideNav}>
+        <button style={S.navBtn} onClick={()=>setSlideIdx(Math.max(0,slideIdx-1))} disabled={slideIdx===0}>‹</button>
+        <div style={S.dots}>
+          {themes.map((t,i)=>(
+            <div key={t.id} style={S.dot(i===slideIdx,t.color)} onClick={()=>setSlideIdx(i)} />
+          ))}
+        </div>
+        <button style={S.navBtn} onClick={()=>setSlideIdx(Math.min(themes.length-1,slideIdx+1))} disabled={slideIdx===themes.length-1}>›</button>
+      </div>
+
+      {/* Slide container */}
+      <div style={S.slideWrap}>
+        <div style={S.slideRow(slideIdx)}>
+          {themes.map(t => {
+            const isEditing = editThemeId===t.id;
+            return (
+              <div key={t.id} style={S.slide}>
+                {/* XP mini bar */}
+                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
+                  <span style={{ fontSize:'0.8rem', color:'#7070a0' }}>
+                    {t.tasks.filter(tk=>tk.done).length}/{t.tasks.length} 完了
+                  </span>
+                  <span style={{ fontSize:'0.8rem', color:t.color, fontWeight:700 }}>
+                    {t.tasks.filter(tk=>tk.done).reduce((a,tk)=>a+tk.xp,0)} XP
+                  </span>
+                </div>
+                <div style={S.bar}>
+                  <div style={{ ...S.barFill(t.tasks.length?Math.round(t.tasks.filter(tk=>tk.done).length/t.tasks.length*100):0), background:t.color }} />
+                </div>
+                <div style={{ marginTop:14 }}>
+                  {t.tasks.map(task => {
+                    const isOver = dragOver===task.id;
+                    return (
+                      <div key={task.id} style={S.taskRow(task.done,isOver)}
+                        draggable onDragStart={()=>onTaskDragStart(t.id,task.id)}
+                        onDragOver={e=>onTaskDragOver(e,task.id)}
+                        onDrop={()=>onTaskDrop(t.id,task.id)}
+                        onDragEnd={()=>{dragTaskRef.current=null;setDragOver(null);}}
+                      >
+                        <span style={{ opacity:0.3, fontSize:'0.85rem' }}>⠿</span>
+                        <div style={S.check(task.done,t.color)} onClick={()=>toggleTask(t.id,task.id)}>✓</div>
+                        {isEditing ? (
+                          <>
+                            <input style={{ ...S.editInput, flex:1 }} value={task.label}
+                              onChange={e=>updateTask(t.id,task.id,e.target.value,task.xp)} />
+                            <input type="number" style={S.xpInput} value={task.xp}
+                              onChange={e=>updateTask(t.id,task.id,task.label,Number(e.target.value))} />
+                            <span style={{ fontSize:'0.78rem', color:'#7070a0' }}>XP</span>
+                            <button style={S.delBtn} onClick={()=>deleteTask(t.id,task.id)}>✕</button>
+                          </>
+                        ) : (
+                          <>
+                            <span style={S.taskLabel(task.done)}>{task.label}</span>
+                            <span style={S.taskXP(task.done,t.color)}>+{task.xp} XP</span>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {isEditing && (
+                    <button style={S.addBtn(t.color)} onClick={()=>addTask(t.id)}>＋ タスクを追加</button>
+                  )}
                 </div>
               </div>
-              <span style={{
-                color: '#7070a0', fontSize: '0.8rem',
-                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s', display: 'inline-block',
-              }}>▼</span>
-            </button>
-
-            {isOpen && (
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '8px 0' }}>
-                {week.slots.map((slot) => {
-                  const done = !!checked[slot.id];
-                  return (
-                    <button
-                      key={slot.id}
-                      onClick={() => toggleSlot(slot.id, slot.xp)}
-                      style={{
-                        width: '100%', background: done ? 'rgba(245,158,11,0.06)' : 'none',
-                        border: 'none', cursor: 'pointer', padding: '13px 18px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        color: done ? '#F59E0B' : '#a0a0c0', fontFamily: 'inherit',
-                        transition: 'background 0.15s, color 0.15s',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <span style={{
-                          width: 22, height: 22, borderRadius: 6,
-                          border: `2px solid ${done ? '#F59E0B' : 'rgba(255,255,255,0.15)'}`,
-                          background: done ? '#F59E0B' : 'transparent',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.7rem', color: done ? '#0a0a1a' : 'transparent',
-                          flexShrink: 0, transition: 'all 0.15s',
-                        }}>✓</span>
-                        <span style={{
-                          fontSize: '0.9rem',
-                          textDecoration: done ? 'line-through' : 'none',
-                          textAlign: 'left' as const,
-                        }}>{slot.label}</span>
-                      </div>
-                      <span style={{
-                        fontSize: '0.75rem', fontWeight: 700,
-                        color: done ? '#F59E0B' : '#7070a0',
-                        flexShrink: 0, marginLeft: 8,
-                      }}>+{slot.xp} XP</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

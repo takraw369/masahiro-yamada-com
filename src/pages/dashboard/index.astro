@@ -19,6 +19,7 @@ import ACECalendar from '../../components/dashboard/ACECalendar';
       --text: #e8e8f0;
       --text-dim: #7070a0;
     }
+    html { font-size: 18px; }
     body {
       background: var(--bg);
       color: var(--text);
@@ -29,7 +30,7 @@ import ACECalendar from '../../components/dashboard/ACECalendar';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 20px;
+      padding: 16px 24px;
       border-bottom: 1px solid var(--border);
       background: var(--surface);
       position: sticky;
@@ -37,13 +38,13 @@ import ACECalendar from '../../components/dashboard/ACECalendar';
       z-index: 10;
     }
     .header-logo {
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 800;
       color: var(--accent);
       line-height: 1.2;
     }
     .header-logo span {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       font-weight: 400;
       color: var(--text-dim);
       display: block;
@@ -51,18 +52,43 @@ import ACECalendar from '../../components/dashboard/ACECalendar';
     .logout-link {
       color: var(--text-dim);
       text-decoration: none;
-      font-size: 0.78rem;
-      padding: 6px 12px;
+      font-size: 0.82rem;
+      padding: 7px 14px;
       border: 1px solid var(--border);
       border-radius: 6px;
       transition: color 0.2s;
     }
     .logout-link:hover { color: var(--text); }
     main {
-      padding: 20px;
-      max-width: 480px;
+      padding: 28px 24px;
+      max-width: 900px;
       margin: 0 auto;
     }
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .nav-card {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .nav-card:hover {
+      border-color: rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.03);
+    }
+    .nav-card-icon { font-size: 1.5rem; }
+    .nav-card-label { font-size: 0.95rem; font-weight: 700; margin-top: 2px; }
+    .nav-card-desc { font-size: 0.78rem; color: var(--text-dim); }
   </style>
 </head>
 <body>
@@ -74,7 +100,29 @@ import ACECalendar from '../../components/dashboard/ACECalendar';
     <a href="/dashboard/logout" class="logout-link">ログアウト</a>
   </header>
   <main>
-    <ACECalendar client:load />
+    <div class="nav-grid">
+      <a href="/dashboard/post" class="nav-card">
+        <span class="nav-card-icon">𝕏</span>
+        <span class="nav-card-label">X Post</span>
+        <span class="nav-card-desc">投稿・アカウント管理</span>
+      </a>
+      <a href="/dashboard/lian" class="nav-card">
+        <span class="nav-card-icon">💚</span>
+        <span class="nav-card-label">リアン</span>
+        <span class="nav-card-desc">LINE友だち管理</span>
+      </a>
+      <a href="/dashboard/schedule" class="nav-card">
+        <span class="nav-card-icon">📅</span>
+        <span class="nav-card-label">Schedule</span>
+        <span class="nav-card-desc">X/LINE 投稿スケジュール</span>
+      </a>
+      <a href="/dashboard/quest" class="nav-card">
+        <span class="nav-card-icon">⚔️</span>
+        <span class="nav-card-label">Quest</span>
+        <span class="nav-card-desc">学習・習慣クエスト</span>
+      </a>
+    </div>
+    <ACECalendar client:only="react" />
   </main>
 </body>
 </html>

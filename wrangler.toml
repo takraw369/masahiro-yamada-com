@@ -1,9 +1,9 @@
 name = "masahiro-yamada-com"
 compatibility_date = "2024-12-01"
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = ["nodejs_compat_v2"]
 
 main = "./dist/_worker.js/index.js"
-assets = { directory = "./dist/_astro", binding = "ASSETS" }
+assets = { directory = "./dist", binding = "ASSETS" }
 
 [[d1_databases]]
 binding = "DB"
@@ -12,3 +12,7 @@ database_id = "b3f9ad9b-3e6a-4a11-8059-b7997466db85"
 
 [vars]
 SITE_NAME = "masahiro-yamada.com"
+X_HARNESS_URL = "https://x-harness-worker.takraw501.workers.dev"
+X_HARNESS_API_KEY = "takraw555"
+LINE_HARNESS_URL = "https://line-crm-worker.takraw501.workers.dev"
+LINE_HARNESS_API_KEY = "ace-project-2026-masa"
