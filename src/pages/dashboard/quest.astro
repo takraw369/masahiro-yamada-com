@@ -1,37 +1,7 @@
 ---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import QuestBoard from '../../components/dashboard/QuestBoard';
 ---
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quest Board — ACE Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --bg: #0a0a1a; --surface: #12121f; --border: rgba(255,255,255,0.08); --accent: #F59E0B; --text: #e8e8f0; --text-dim: #7070a0; }
-    html { font-size: 18px; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter','Noto Sans JP',sans-serif; min-height: 100vh; }
-    header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 10; }
-    .header-left { display: flex; align-items: center; gap: 14px; }
-    .back-link { color: var(--text-dim); text-decoration: none; font-size: 0.88rem; }
-    .back-link:hover { color: var(--text); }
-    .header-logo { font-size: 1.05rem; font-weight: 800; color: var(--accent); }
-    .header-logo span { font-size: 0.72rem; font-weight: 400; color: var(--text-dim); display: block; }
-    main { padding: 28px 24px; max-width: 900px; margin: 0 auto; }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="header-left">
-      <a href="/dashboard" class="back-link">← ダッシュボード</a>
-      <div class="header-logo">Quest Board <span>masahiro-yamada.com</span></div>
-    </div>
-    <a href="/dashboard/logout" style="color:var(--text-dim);text-decoration:none;font-size:0.82rem;padding:7px 14px;border:1px solid var(--border);border-radius:6px;">ログアウト</a>
-  </header>
-  <main>
-    <QuestBoard client:only="react" />
-  </main>
-</body>
-</html>
+<DashboardLayout title="Quest">
+  <QuestBoard client:only="react" />
+</DashboardLayout>

@@ -1,4 +1,6 @@
 ---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
 interface Env {
   LINE_HARNESS_URL: string;
   LINE_HARNESS_API_KEY: string;
@@ -27,121 +29,114 @@ try {
   error = String(e);
 }
 ---
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>リアン — ACE Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+<DashboardLayout title="リアン">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0a0a1a;
-      --surface: #12121f;
-      --border: rgba(255,255,255,0.08);
-      --accent: #F59E0B;
-      --green: #22c55e;
-      --text: #e8e8f0;
-      --text-dim: #7070a0;
-    }
-    html { font-size: 18px; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', 'Noto Sans JP', sans-serif; min-height: 100vh; }
-    header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 20px; border-bottom: 1px solid var(--border);
-      background: var(--surface); position: sticky; top: 0; z-index: 10;
-    }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .back-link { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; }
-    .back-link:hover { color: var(--text); }
-    .header-logo { font-size: 1rem; font-weight: 800; color: var(--accent); }
-    .header-logo span { font-size: 0.7rem; font-weight: 400; color: var(--text-dim); display: block; }
-    main { padding: 28px 24px; max-width: 900px; margin: 0 auto; }
-    h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; }
-    h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: var(--text-dim); }
     .stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
     .stat-card {
-      flex: 1; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px; text-align: center;
+      flex: 1;
+      background: #1A1612;
+      border: 1px solid #2E2822;
+      padding: 16px;
+      text-align: center;
     }
-    .stat-num { font-size: 2rem; font-weight: 800; color: var(--green); }
-    .stat-label { font-size: 0.78rem; color: var(--text-dim); margin-top: 4px; }
+    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: #C9A96E; }
+    .stat-label { font-size: 0.75rem; color: #7A6F5F; margin-top: 4px; }
+    .section { margin-bottom: 28px; }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-weight: 300;
+      color: #8B7355;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2E2822;
+    }
     .account-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px; margin-bottom: 10px;
+      background: #1A1612;
+      border: 1px solid #2E2822;
+      padding: 14px 16px;
+      margin-bottom: 8px;
     }
-    .account-name { font-weight: 600; font-size: 0.9rem; }
-    .account-meta { font-size: 0.78rem; color: var(--text-dim); margin-top: 4px; }
+    .account-name { font-size: 0.9rem; color: #D4C5A9; }
+    .account-meta { font-size: 0.75rem; color: #7A6F5F; margin-top: 4px; }
     .friend-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 0; border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #2E2822;
       font-size: 0.85rem;
     }
     .friend-row:last-child { border-bottom: none; }
-    .friend-name { font-weight: 500; }
-    .friend-meta { font-size: 0.75rem; color: var(--text-dim); }
-    .section { margin-bottom: 28px; }
-    .error { color: #ef4444; font-size: 0.85rem; padding: 12px; background: rgba(239,68,68,0.1); border-radius: 8px; }
-    .empty { color: var(--text-dim); font-size: 0.9rem; }
+    .friend-name { color: #D4C5A9; font-size: 0.875rem; }
+    .friend-meta { font-size: 0.75rem; color: #7A6F5F; }
+    .error { color: #E85D4A; font-size: 0.85rem; padding: 12px 16px; background: rgba(232,92,82,0.08); border: 1px solid rgba(232,92,82,0.2); margin-bottom: 20px; }
+    .empty { color: #7A6F5F; font-size: 0.875rem; }
     .section-link {
-      display: block; text-align: center; margin-top: 24px;
-      color: var(--text-dim); font-size: 0.82rem; text-decoration: none;
-      border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      color: #7A6F5F;
+      font-size: 0.82rem;
+      text-decoration: none;
+      border: 1px solid #2E2822;
+      padding: 12px;
+      transition: color 0.2s, border-color 0.2s;
+      font-family: 'Zen Kaku Gothic New', sans-serif;
     }
-    .section-link:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .section-link:hover { color: #D4C5A9; border-color: #8B7355; }
+    .friends-list {
+      background: #1A1612;
+      border: 1px solid #2E2822;
+      padding: 0 16px;
+    }
   </style>
-</head>
-<body>
-  <header>
-    <div class="header-left">
-      <a href="/dashboard" class="back-link">← ダッシュボード</a>
-      <div class="header-logo">リアン <span>masahiro-yamada.com</span></div>
-    </div>
-    <a href="/dashboard/logout" style="color:var(--text-dim);text-decoration:none;font-size:0.78rem;padding:6px 12px;border:1px solid var(--border);border-radius:6px;">ログアウト</a>
-  </header>
-  <main>
-    {error && <p class="error">{error}</p>}
 
-    <div class="stat-row">
-      <div class="stat-card">
-        <div class="stat-num">{friendTotal}</div>
-        <div class="stat-label">友だち総数</div>
+  {error && <p class="error">{error}</p>}
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-num">{friendTotal}</div>
+      <div class="stat-label">友だち総数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{accounts.length}</div>
+      <div class="stat-label">LINEアカウント</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">LINEアカウント</div>
+    {accounts.length === 0 && <p class="empty">未登録</p>}
+    {accounts.map((a: any) => (
+      <div class="account-card">
+        <div class="account-name">{a.name ?? a.channelId}</div>
+        <div class="account-meta">Channel ID: {a.channelId}</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num">{accounts.length}</div>
-        <div class="stat-label">LINEアカウント</div>
-      </div>
-    </div>
+    ))}
+  </div>
 
-    <div class="section">
-      <h2>LINEアカウント</h2>
-      {accounts.length === 0 && <p class="empty">未登録</p>}
-      {accounts.map((a: any) => (
-        <div class="account-card">
-          <div class="account-name">{a.name ?? a.channelId}</div>
-          <div class="account-meta">Channel ID: {a.channelId}</div>
-        </div>
-      ))}
-    </div>
-
-    <div class="section">
-      <h2>最近の友だち（最新10件）</h2>
-      {friends.length === 0 && <p class="empty">まだ友だちがいません</p>}
-      {friends.map((f: any) => (
-        <div class="friend-row">
-          <div>
-            <div class="friend-name">{f.displayName ?? f.lineUserId}</div>
-            <div class="friend-meta">{f.lineUserId}</div>
+  <div class="section">
+    <div class="section-title">最近の友だち（最新10件）</div>
+    {friends.length === 0 && <p class="empty">まだ友だちがいません</p>}
+    {friends.length > 0 && (
+      <div class="friends-list">
+        {friends.map((f: any) => (
+          <div class="friend-row">
+            <div>
+              <div class="friend-name">{f.displayName ?? f.lineUserId}</div>
+              <div class="friend-meta">{f.lineUserId}</div>
+            </div>
+            <div class="friend-meta">{f.createdAt ? new Date(f.createdAt).toLocaleDateString('ja-JP') : ''}</div>
           </div>
-          <div class="friend-meta">{f.createdAt ? new Date(f.createdAt).toLocaleDateString('ja-JP') : ''}</div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    )}
+  </div>
 
-    <a href="https://line-harness-admin-bwj.pages.dev" target="_blank" rel="noopener" class="section-link">
-      LINE Harness 管理画面を開く →
-    </a>
-  </main>
-</body>
-</html>
+  <a href="https://line-harness-admin-bwj.pages.dev" target="_blank" rel="noopener" class="section-link">
+    LINE Harness 管理画面を開く →
+  </a>
+</DashboardLayout>

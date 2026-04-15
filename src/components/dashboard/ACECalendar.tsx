@@ -86,7 +86,6 @@ export default function ACECalendar() {
   const [themes, setThemes] = useState<Theme[]>(stored.themes);
   const [cols, setCols]     = useState<3|6>(stored.cols);
   const [view, setView]     = useState<'grid'|'detail'>('grid');
-  const [activeId, setActiveId] = useState<string|null>(null);
   const [editing, setEditing]   = useState(false);
   const [editThemeId, setEditThemeId] = useState<string|null>(null);
   // DnD
@@ -160,47 +159,174 @@ export default function ACECalendar() {
     setCols(n); save(themes,n); setView('grid');
   };
 
-  const activeTheme = themes.find(t=>t.id===activeId);
-
   // ── Styles ──
+  const gold = '#C9A96E';
+  const goldMuted = '#8B7355';
+  const bgVoid = '#0D0B08';
+  const bgSurface = '#1A1612';
+  const bgElevated = '#241F1A';
+  const textPrimary = '#D4C5A9';
+  const textMuted = '#7A6F5F';
+  const borderDefault = '#2E2822';
+
   const S = {
-    wrap: { paddingBottom:40 } as React.CSSProperties,
-    xpBox: { background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:14, padding:'18px 20px 14px', marginBottom:20 },
-    xpNum: { fontSize:'2rem', fontWeight:800, color:'#F59E0B', lineHeight:1, marginBottom:8 },
-    bar: { background:'rgba(255,255,255,0.06)', borderRadius:99, height:6, overflow:'hidden', marginBottom:4 },
-    barFill: (p:number) => ({ background:'linear-gradient(90deg,#F59E0B,#D97706)', height:'100%', width:`${p}%`, borderRadius:99, transition:'width 0.4s ease' }),
-    toolbar: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16, gap:8 },
-    colBtns: { display:'flex', gap:6 },
-    colBtn: (active:boolean) => ({ padding:'6px 16px', borderRadius:8, border:`1.5px solid ${active?'rgba(245,158,11,0.5)':'rgba(255,255,255,0.1)'}`, background:active?'rgba(245,158,11,0.1)':'none', color:active?'#F59E0B':'#7070a0', cursor:'pointer', fontFamily:'inherit', fontSize:'0.88rem', fontWeight:700 }),
-    editBtn: (active:boolean) => ({ padding:'6px 14px', borderRadius:8, border:`1.5px solid ${active?'rgba(167,139,250,0.5)':'rgba(255,255,255,0.08)'}`, background:active?'rgba(167,139,250,0.1)':'none', color:active?'#A78BFA':'#7070a0', cursor:'pointer', fontFamily:'inherit', fontSize:'0.85rem', fontWeight:600 }),
-    grid: (c:number) => ({ display:'grid', gridTemplateColumns:`repeat(${c},1fr)`, gap:10 }) as React.CSSProperties,
-    themeCard: (t:Theme) => ({ background:'#12121f', border:`1.5px solid ${t.color}33`, borderRadius:14, padding:'14px 14px 12px', cursor:'pointer', transition:'border-color 0.2s, transform 0.15s', position:'relative' as const }),
-    themeCardHover: (t:Theme) => ({ ...{} , borderColor:t.color+'88' }),
-    themeName: { fontWeight:700, fontSize:'0.9rem', marginBottom:8 },
-    themeProgress: (t:Theme) => { const d=t.tasks.filter(tk=>tk.done).length; const tot=t.tasks.length||1; return { background:'rgba(255,255,255,0.06)', borderRadius:99, height:4, overflow:'hidden', marginBottom:6, position:'relative' as const }; },
-    themeBar: (t:Theme) => { const d=t.tasks.filter(tk=>tk.done).length; const tot=t.tasks.length||1; return { background:t.color, height:'100%', width:`${Math.round(d/tot*100)}%`, borderRadius:99, transition:'width 0.4s' }; },
-    themeMeta: { fontSize:'0.75rem', color:'#7070a0' },
-    // Detail view
-    detailWrap: { } as React.CSSProperties,
-    detailHeader: { display:'flex', alignItems:'center', gap:12, marginBottom:20 },
-    backBtn: { padding:'7px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'none', color:'#7070a0', cursor:'pointer', fontFamily:'inherit', fontSize:'0.88rem' },
-    detailTitle: { fontWeight:800, fontSize:'1.2rem', flex:1 },
-    taskRow: (done:boolean, isOver:boolean) => ({ display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:isOver?'rgba(255,255,255,0.06)':done?'rgba(245,158,11,0.05)':'rgba(255,255,255,0.02)', borderRadius:10, marginBottom:6, cursor:'grab', userSelect:'none' as const, transition:'background 0.15s' }),
-    check: (done:boolean, color:string) => ({ width:22, height:22, borderRadius:6, border:`2px solid ${done?color:'rgba(255,255,255,0.15)'}`, background:done?color:'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', color:done?'#0a0a1a':'transparent', flexShrink:0, transition:'all 0.15s', cursor:'pointer' }),
-    taskLabel: (done:boolean) => ({ flex:1, fontSize:'0.95rem', color:done?'#7070a0':'#e8e8f0', textDecoration:done?'line-through':'none' }),
-    taskXP: (done:boolean, color:string) => ({ fontSize:'0.78rem', fontWeight:700, color:done?color:'#7070a0', flexShrink:0 }),
-    addBtn: (color:string) => ({ width:'100%', marginTop:10, padding:'10px', borderRadius:10, border:`1.5px dashed ${color}55`, background:'none', color:color, cursor:'pointer', fontFamily:'inherit', fontSize:'0.88rem', fontWeight:600 }),
+    wrap: { paddingBottom: 40, fontFamily: "'Zen Kaku Gothic New', sans-serif" } as React.CSSProperties,
+    xpBox: {
+      background: `rgba(201,169,110,0.06)`,
+      border: `1px solid rgba(201,169,110,0.2)`,
+      padding: '18px 20px 14px',
+      marginBottom: 20
+    },
+    xpNum: { fontSize: '2rem', fontWeight: 300, color: gold, lineHeight: 1, marginBottom: 8, fontFamily: "'Cormorant Garamond', serif" },
+    bar: { background: borderDefault, height: 2, overflow: 'hidden', marginBottom: 4 },
+    barFill: (p:number) => ({ background: `linear-gradient(90deg, ${goldMuted}, ${gold})`, height: '100%', width: `${p}%`, transition: 'width 0.4s ease' }),
+    toolbar: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 16, gap: 8 },
+    colBtns: { display:'flex', gap: 6 },
+    colBtn: (active:boolean) => ({
+      padding: '6px 16px',
+      border: `1px solid ${active ? 'rgba(201,169,110,0.5)' : borderDefault}`,
+      background: active ? 'rgba(201,169,110,0.08)' : 'none',
+      color: active ? gold : textMuted,
+      cursor: 'pointer',
+      fontFamily: "'Cormorant Garamond', serif",
+      fontSize: '0.9rem',
+      fontWeight: 400,
+      letterSpacing: '0.05em',
+    }),
+    editBtn: (active:boolean) => ({
+      padding: '6px 14px',
+      border: `1px solid ${active ? 'rgba(201,169,110,0.4)' : borderDefault}`,
+      background: active ? 'rgba(201,169,110,0.08)' : 'none',
+      color: active ? gold : textMuted,
+      cursor: 'pointer',
+      fontFamily: "'Zen Kaku Gothic New', sans-serif",
+      fontSize: '0.8rem',
+      fontWeight: 400,
+    }),
+    grid: (c:number) => ({ display:'grid', gridTemplateColumns:`repeat(${c},1fr)`, gap: 12 }) as React.CSSProperties,
+    themeCard: (t:Theme) => ({
+      background: bgSurface,
+      border: `1px solid ${borderDefault}`,
+      padding: '14px',
+      transition: 'border-color 0.2s',
+      position: 'relative' as const,
+    }),
+    themeName: {
+      fontFamily: "'Cormorant Garamond', serif",
+      fontWeight: 400,
+      fontSize: '1rem',
+      marginBottom: 8,
+    },
+    themeBar: (t:Theme) => {
+      const d = t.tasks.filter(tk=>tk.done).length;
+      const tot = t.tasks.length || 1;
+      return { background: t.color, height: '100%', width: `${Math.round(d/tot*100)}%`, transition: 'width 0.4s' };
+    },
+    themeMeta: { fontSize: '0.72rem', color: textMuted, marginTop: 4, marginBottom: 10 },
+    taskRow: (done:boolean) => ({
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      padding: '7px 0',
+      borderBottom: `1px solid ${borderDefault}`,
+    }),
+    check: (done:boolean, color:string) => ({
+      width: 18,
+      height: 18,
+      border: `1.5px solid ${done ? color : borderDefault}`,
+      background: done ? color : 'transparent',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '0.6rem',
+      color: done ? bgVoid : 'transparent',
+      flexShrink: 0,
+      transition: 'all 0.15s',
+      cursor: 'pointer',
+      minWidth: 18,
+      minHeight: 18,
+    }),
+    taskLabel: (done:boolean) => ({
+      flex: 1,
+      fontSize: '0.8rem',
+      color: done ? textMuted : textPrimary,
+      textDecoration: done ? 'line-through' : 'none',
+      lineHeight: 1.4,
+    }),
+    taskXP: (done:boolean, color:string) => ({
+      fontSize: '0.7rem',
+      color: done ? color : textMuted,
+      flexShrink: 0,
+    }),
+    addBtn: (color:string) => ({
+      width: '100%',
+      marginTop: 8,
+      padding: '8px',
+      border: `1px dashed ${color}44`,
+      background: 'none',
+      color: color,
+      cursor: 'pointer',
+      fontFamily: "'Zen Kaku Gothic New', sans-serif",
+      fontSize: '0.78rem',
+    }),
     // Edit inputs
-    editInput: { background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:6, color:'#e8e8f0', fontFamily:'inherit', fontSize:'0.88rem', padding:'5px 8px', outline:'none' },
-    xpInput: { background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:6, color:'#e8e8f0', fontFamily:'inherit', fontSize:'0.85rem', padding:'5px 6px', outline:'none', width:52, textAlign:'right' as const },
-    delBtn: { padding:'4px 8px', borderRadius:6, border:'1px solid rgba(239,68,68,0.2)', background:'none', color:'#ef4444', cursor:'pointer', fontFamily:'inherit', fontSize:'0.8rem' },
+    editInput: {
+      background: bgElevated,
+      border: `1px solid ${borderDefault}`,
+      color: textPrimary,
+      fontFamily: "'Zen Kaku Gothic New', sans-serif",
+      fontSize: '0.8rem',
+      padding: '4px 8px',
+      outline: 'none',
+    },
+    xpInput: {
+      background: bgElevated,
+      border: `1px solid ${borderDefault}`,
+      color: textPrimary,
+      fontFamily: "'Zen Kaku Gothic New', sans-serif",
+      fontSize: '0.78rem',
+      padding: '4px 6px',
+      outline: 'none',
+      width: 46,
+      textAlign: 'right' as const,
+    },
+    delBtn: {
+      padding: '3px 7px',
+      border: '1px solid rgba(232,92,82,0.3)',
+      background: 'none',
+      color: '#E85D4A',
+      cursor: 'pointer',
+      fontFamily: "'Zen Kaku Gothic New', sans-serif",
+      fontSize: '0.75rem',
+    },
+    // Detail view
+    detailWrap: {} as React.CSSProperties,
+    detailHeader: { display:'flex', alignItems:'center', gap:12, marginBottom:20 },
+    backBtn: {
+      padding: '7px 14px',
+      border: `1px solid ${borderDefault}`,
+      background: 'none',
+      color: textMuted,
+      cursor: 'pointer',
+      fontFamily: "'Zen Kaku Gothic New', sans-serif",
+      fontSize: '0.85rem',
+    },
+    detailTitle: { fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: '1.3rem', flex: 1 },
     slideWrap: { position:'relative' as const, overflow:'hidden' },
     slideRow: (idx:number) => ({ display:'flex', transition:'transform 0.35s cubic-bezier(0.4,0,0.2,1)', transform:`translateX(-${idx*100}%)`, willChange:'transform' as const }),
     slide: { minWidth:'100%', padding:'0 4px' },
     slideNav: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 },
-    navBtn: { padding:'8px 18px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'none', color:'#e8e8f0', cursor:'pointer', fontFamily:'inherit', fontSize:'0.95rem' },
+    navBtn: {
+      padding: '8px 18px',
+      border: `1px solid ${borderDefault}`,
+      background: 'none',
+      color: textPrimary,
+      cursor: 'pointer',
+      fontFamily: "'Zen Kaku Gothic New', sans-serif",
+      fontSize: '0.9rem',
+    },
     dots: { display:'flex', gap:6 },
-    dot: (active:boolean,color:string) => ({ width:active?20:8, height:8, borderRadius:99, background:active?color:'rgba(255,255,255,0.15)', transition:'all 0.2s' }),
+    dot: (active:boolean, color:string) => ({ width:active?20:8, height:8, background:active?color:borderDefault, transition:'all 0.2s' }),
   };
 
   const [slideIdx, setSlideIdx] = useState(0);
@@ -211,10 +337,10 @@ export default function ACECalendar() {
       {/* XP Bar */}
       <div style={S.xpBox}>
         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-          <span style={{ fontSize:'0.75rem', color:'#7070a0', fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase' }}>Total XP</span>
-          <span style={{ fontSize:'0.75rem', color:'#7070a0' }}>{pct}%</span>
+          <span style={{ fontSize:'0.7rem', color:textMuted, letterSpacing:'0.1em', textTransform:'uppercase' as const, fontFamily:"'Cormorant Garamond', serif" }}>Total XP</span>
+          <span style={{ fontSize:'0.7rem', color:textMuted }}>{pct}%</span>
         </div>
-        <div style={S.xpNum}>{earnedXP}<span style={{ fontSize:'1rem', fontWeight:400, color:'#7070a0', marginLeft:6 }}>/ {totalXP} XP</span></div>
+        <div style={S.xpNum}>{earnedXP}<span style={{ fontSize:'1rem', fontWeight:300, color:textMuted, marginLeft:6 }}>/ {totalXP} XP</span></div>
         <div style={S.bar}><div style={S.barFill(pct)} /></div>
       </div>
 
@@ -225,7 +351,7 @@ export default function ACECalendar() {
           <button style={S.colBtn(cols===6)} onClick={()=>switchCols(6)}>6列</button>
         </div>
         <div style={{ display:'flex', gap:8 }}>
-          {editing && <button style={S.editBtn(false)} onClick={addTheme}>＋ テーマ追加</button>}
+          {editing && <button style={S.editBtn(false)} onClick={addTheme}>＋ テーマ</button>}
           <button style={S.editBtn(editing)} onClick={()=>setEditing(!editing)}>
             {editing ? '✓ 完了' : '✎ 編集'}
           </button>
@@ -237,29 +363,75 @@ export default function ACECalendar() {
         {themes.map(t => {
           const done = t.tasks.filter(tk=>tk.done).length;
           const tot  = t.tasks.length;
+          const isEditing = editing && editThemeId === t.id;
           return (
-            <div key={t.id} style={S.themeCard(t)}
-              onClick={()=>{ if(!editing){ setActiveId(t.id); setSlideIdx(themes.findIndex(th=>th.id===t.id)); setView('detail'); }}}
-            >
+            <div key={t.id} style={S.themeCard(t)}>
+              {/* Theme header */}
               {editing ? (
-                <div onClick={e=>e.stopPropagation()}>
-                  <input style={{ ...S.editInput, width:'100%', marginBottom:6, fontSize:'0.85rem' }}
-                    value={t.label} onChange={e=>updateTheme(t.id,e.target.value,t.color)} />
-                  <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:6 }}>
+                <div>
+                  <input
+                    style={{ ...S.editInput, width:'100%', marginBottom:6 }}
+                    value={t.label}
+                    onChange={e=>updateTheme(t.id,e.target.value,t.color)}
+                  />
+                  <div style={{ display:'flex', gap:4, flexWrap:'wrap' as const, marginBottom:6 }}>
                     {COLORS.map(c=>(
                       <button key={c} onClick={()=>updateTheme(t.id,t.label,c)}
-                        style={{ width:18, height:18, borderRadius:99, background:c, border:t.color===c?'2px solid #fff':'2px solid transparent', cursor:'pointer' }} />
+                        style={{ width:16, height:16, background:c, border:t.color===c?`2px solid ${textPrimary}`:'2px solid transparent', cursor:'pointer' }} />
                     ))}
                   </div>
                   <button style={S.delBtn} onClick={()=>deleteTheme(t.id)}>削除</button>
                 </div>
               ) : (
-                <>
-                  <div style={{ ...S.themeName, color:t.color }}>{t.label}</div>
-                  <div style={S.themeProgress(t)}><div style={S.themeBar(t)} /></div>
-                  <div style={S.themeMeta}>{done}/{tot} タスク · {t.tasks.filter(tk=>tk.done).reduce((a,tk)=>a+tk.xp,0)}/{t.tasks.reduce((a,tk)=>a+tk.xp,0)} XP</div>
-                </>
+                <div style={{ ...S.themeName, color:t.color }}>{t.label}</div>
               )}
+
+              {/* Progress bar */}
+              <div style={{ ...S.bar, margin:'6px 0 4px' }}>
+                <div style={S.themeBar(t)} />
+              </div>
+              <div style={S.themeMeta}>{done}/{tot} · {t.tasks.filter(tk=>tk.done).reduce((a,tk)=>a+tk.xp,0)}/{t.tasks.reduce((a,tk)=>a+tk.xp,0)} XP</div>
+
+              {/* Task list — always visible */}
+              <div>
+                {t.tasks.map(task => (
+                  <div key={task.id} style={{ ...S.taskRow(task.done) }}>
+                    <div
+                      style={S.check(task.done, t.color)}
+                      onClick={()=>toggleTask(t.id, task.id)}
+                    >
+                      {task.done && '✓'}
+                    </div>
+                    {editing ? (
+                      <>
+                        <input
+                          style={{ ...S.editInput, flex:1 }}
+                          value={task.label}
+                          onChange={e=>updateTask(t.id,task.id,e.target.value,task.xp)}
+                        />
+                        <input
+                          type="number"
+                          style={S.xpInput}
+                          value={task.xp}
+                          onChange={e=>updateTask(t.id,task.id,task.label,Number(e.target.value))}
+                        />
+                        <span style={{ fontSize:'0.7rem', color:textMuted }}>XP</span>
+                        <button style={S.delBtn} onClick={()=>deleteTask(t.id,task.id)}>✕</button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={S.taskLabel(task.done)}>{task.label}</span>
+                        <span style={S.taskXP(task.done, t.color)}>+{task.xp}</span>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Add task button — always visible */}
+              <button style={S.addBtn(t.color)} onClick={()=>addTask(t.id)}>
+                ＋ タスク追加
+              </button>
             </div>
           );
         })}
@@ -272,7 +444,7 @@ export default function ACECalendar() {
     <div style={S.wrap}>
       <div style={S.detailHeader}>
         <button style={S.backBtn} onClick={()=>setView('grid')}>← 一覧</button>
-        <span style={{ ...S.detailTitle, color:themes[slideIdx]?.color??'#F59E0B' }}>{themes[slideIdx]?.label}</span>
+        <span style={{ ...S.detailTitle, color:themes[slideIdx]?.color??gold }}>{themes[slideIdx]?.label}</span>
         <button style={S.editBtn(editThemeId===themes[slideIdx]?.id)}
           onClick={()=>setEditThemeId(editThemeId===themes[slideIdx]?.id?null:themes[slideIdx]?.id??null)}>
           {editThemeId===themes[slideIdx]?.id?'✓ 完了':'✎ 編集'}
@@ -299,10 +471,10 @@ export default function ACECalendar() {
               <div key={t.id} style={S.slide}>
                 {/* XP mini bar */}
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
-                  <span style={{ fontSize:'0.8rem', color:'#7070a0' }}>
+                  <span style={{ fontSize:'0.8rem', color:textMuted }}>
                     {t.tasks.filter(tk=>tk.done).length}/{t.tasks.length} 完了
                   </span>
-                  <span style={{ fontSize:'0.8rem', color:t.color, fontWeight:700 }}>
+                  <span style={{ fontSize:'0.8rem', color:t.color }}>
                     {t.tasks.filter(tk=>tk.done).reduce((a,tk)=>a+tk.xp,0)} XP
                   </span>
                 </div>
@@ -313,21 +485,34 @@ export default function ACECalendar() {
                   {t.tasks.map(task => {
                     const isOver = dragOver===task.id;
                     return (
-                      <div key={task.id} style={S.taskRow(task.done,isOver)}
-                        draggable onDragStart={()=>onTaskDragStart(t.id,task.id)}
+                      <div key={task.id}
+                        style={{
+                          display:'flex', alignItems:'center', gap:10,
+                          padding:'11px 14px',
+                          background: isOver ? bgElevated : task.done ? `${t.color}08` : bgSurface,
+                          border: `1px solid ${borderDefault}`,
+                          marginBottom:6,
+                          cursor:'grab',
+                          userSelect:'none' as const,
+                          transition:'background 0.15s',
+                        }}
+                        draggable
+                        onDragStart={()=>onTaskDragStart(t.id,task.id)}
                         onDragOver={e=>onTaskDragOver(e,task.id)}
                         onDrop={()=>onTaskDrop(t.id,task.id)}
                         onDragEnd={()=>{dragTaskRef.current=null;setDragOver(null);}}
                       >
                         <span style={{ opacity:0.3, fontSize:'0.85rem' }}>⠿</span>
-                        <div style={S.check(task.done,t.color)} onClick={()=>toggleTask(t.id,task.id)}>✓</div>
+                        <div style={S.check(task.done,t.color)} onClick={()=>toggleTask(t.id,task.id)}>
+                          {task.done && '✓'}
+                        </div>
                         {isEditing ? (
                           <>
                             <input style={{ ...S.editInput, flex:1 }} value={task.label}
                               onChange={e=>updateTask(t.id,task.id,e.target.value,task.xp)} />
                             <input type="number" style={S.xpInput} value={task.xp}
                               onChange={e=>updateTask(t.id,task.id,task.label,Number(e.target.value))} />
-                            <span style={{ fontSize:'0.78rem', color:'#7070a0' }}>XP</span>
+                            <span style={{ fontSize:'0.78rem', color:textMuted }}>XP</span>
                             <button style={S.delBtn} onClick={()=>deleteTask(t.id,task.id)}>✕</button>
                           </>
                         ) : (
