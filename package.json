@@ -4,9 +4,9 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node ./scripts/patch-worker.mjs",
-    "preview": "wrangler pages dev ./dist",
-    "deploy": "astro build && node ./scripts/patch-worker.mjs && wrangler deploy",
+    "build": "astro build",
+    "preview": "wrangler dev",
+    "deploy": "astro build && wrangler deploy",
     "astro": "astro",
     "sync": "tsx scripts/sync-from-vault.ts",
     "predev": "npm run sync",
