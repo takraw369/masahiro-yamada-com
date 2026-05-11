@@ -1,0 +1,174 @@
+---
+import Public from '../../layouts/Public.astro';
+---
+
+<Public title="セグメント診断 — あなたに合う最初のステップ">
+  <section style="padding: 4rem 0 6rem; max-width: 640px;">
+    <p style="font-family: var(--font-display-en); font-size: 0.8rem; color: var(--pub-muted); letter-spacing: 0.15em; margin: 0 0 1rem;">SEGMENT DIAGNOSIS</p>
+    <h1 style="font-family: var(--font-display-jp); font-size: 1.8rem; font-weight: 500; line-height: 1.4; margin: 0 0 1rem;">
+      あなたに合う、<br>最初の一歩を見つける
+    </h1>
+    <p style="color: var(--pub-muted); font-size: 0.95rem; margin: 0 0 3rem; line-height: 1.7;">
+      5つの質問で、ACEへの最初のステップを提示します。所要時間 約2分。
+    </p>
+
+    <form id="diagnose-form" style="display: grid; gap: 3rem;">
+
+      <!-- Q1 -->
+      <fieldset style="border: none; padding: 0; margin: 0;">
+        <legend style="font-family: var(--font-display-jp); font-size: 1rem; font-weight: 500; margin-bottom: 1.2rem; display: block;">
+          <span style="color: var(--pub-accent); font-family: var(--font-display-en); font-size: 0.8rem; letter-spacing: 0.1em; display: block; margin-bottom: 0.4rem;">Q1</span>
+          初対面の場で、あなたはどちらに近いですか？
+        </legend>
+        <div style="display: grid; gap: 0.8rem;">
+          <label class="choice">
+            <input type="radio" name="q1" value="E" required>
+            <span>積極的に話しかける方だ</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="q1" value="I">
+            <span>相手から話しかけられるのを待つ方だ</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- Q2 -->
+      <fieldset style="border: none; padding: 0; margin: 0;">
+        <legend style="font-family: var(--font-display-jp); font-size: 1rem; font-weight: 500; margin-bottom: 1.2rem; display: block;">
+          <span style="color: var(--pub-accent); font-family: var(--font-display-en); font-size: 0.8rem; letter-spacing: 0.1em; display: block; margin-bottom: 0.4rem;">Q2</span>
+          新しいことを学ぶとき、どちらが好みですか？
+        </legend>
+        <div style="display: grid; gap: 0.8rem;">
+          <label class="choice">
+            <input type="radio" name="q2" value="N" required>
+            <span>全体像・概念から入る</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="q2" value="S">
+            <span>具体例・手順から入る</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- Q3 -->
+      <fieldset style="border: none; padding: 0; margin: 0;">
+        <legend style="font-family: var(--font-display-jp); font-size: 1rem; font-weight: 500; margin-bottom: 1.2rem; display: block;">
+          <span style="color: var(--pub-accent); font-family: var(--font-display-en); font-size: 0.8rem; letter-spacing: 0.1em; display: block; margin-bottom: 0.4rem;">Q3</span>
+          判断するとき、どちらを重視しますか？
+        </legend>
+        <div style="display: grid; gap: 0.8rem;">
+          <label class="choice">
+            <input type="radio" name="q3" value="T" required>
+            <span>論理・データ・一貫性</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="q3" value="F">
+            <span>感情・関係性・価値観</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- Q4 -->
+      <fieldset style="border: none; padding: 0; margin: 0;">
+        <legend style="font-family: var(--font-display-jp); font-size: 1rem; font-weight: 500; margin-bottom: 1.2rem; display: block;">
+          <span style="color: var(--pub-accent); font-family: var(--font-display-en); font-size: 0.8rem; letter-spacing: 0.1em; display: block; margin-bottom: 0.4rem;">Q4</span>
+          計画に対して、あなたはどちらですか？
+        </legend>
+        <div style="display: grid; gap: 0.8rem;">
+          <label class="choice">
+            <input type="radio" name="q4" value="J" required>
+            <span>決めたら変えたくない、計画通りが好き</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="q4" value="P">
+            <span>柔軟に変えていく方が動きやすい</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- Q5 -->
+      <fieldset style="border: none; padding: 0; margin: 0;">
+        <legend style="font-family: var(--font-display-jp); font-size: 1rem; font-weight: 500; margin-bottom: 1.2rem; display: block;">
+          <span style="color: var(--pub-accent); font-family: var(--font-display-en); font-size: 0.8rem; letter-spacing: 0.1em; display: block; margin-bottom: 0.4rem;">Q5</span>
+          あなたが一番「動ける」瞬間に近いのはどれですか？
+        </legend>
+        <div style="display: grid; gap: 0.8rem;">
+          <label class="choice">
+            <input type="radio" name="q5" value="compare" required>
+            <span>誰かと比べて「負けたくない」と感じたとき</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="q5" value="vision">
+            <span>理想の自分・未来が鮮明に浮かんだとき</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="q5" value="connect">
+            <span>誰かのために・一緒に動いているとき</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="q5" value="build">
+            <span>積み上げてきたものが形になったとき</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <button type="submit" style="
+        display: inline-block;
+        border: 1px solid var(--pub-text);
+        background: none;
+        color: var(--pub-text);
+        padding: 1rem 2.5rem;
+        font-family: var(--font-display-en);
+        letter-spacing: 0.2em;
+        font-size: 0.9rem;
+        cursor: pointer;
+        width: fit-content;
+        transition: all 0.2s;
+      ">DIAGNOSE →</button>
+    </form>
+  </section>
+</Public>
+
+<style>
+  .choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    cursor: pointer;
+    padding: 0.8rem 1rem;
+    border: 1px solid #e0dbd3;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .choice:hover {
+    border-color: var(--pub-accent);
+    background: rgba(139, 111, 71, 0.04);
+  }
+  .choice input[type="radio"] {
+    margin-top: 0.15rem;
+    accent-color: var(--pub-accent);
+    flex-shrink: 0;
+  }
+  .choice span {
+    font-family: var(--font-display-jp);
+    font-size: 0.95rem;
+    color: var(--pub-text);
+    line-height: 1.5;
+  }
+  button[type="submit"]:hover {
+    background: var(--pub-text);
+    color: var(--pub-bg);
+  }
+</style>
+
+<script>
+  const form = document.getElementById('diagnose-form') as HTMLFormElement;
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const params = new URLSearchParams();
+    for (const [k, v] of data.entries()) {
+      params.set(k, v as string);
+    }
+    window.location.href = `/people/result?${params.toString()}`;
+  });
+</script>
