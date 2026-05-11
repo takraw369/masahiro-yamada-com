@@ -4,6 +4,10 @@ import matter from 'gray-matter';
 
 const VAULT_PATH = process.env.ACE_VAULT_PATH || `${process.env.HOME}/ドキュメント/Obsidian/ace-vault`;
 const SYNC_DEST = path.join(process.cwd(), 'src/content/_publish_sync');
+const CONTENT_ROOT = path.join(process.cwd(), 'src/content');
+
+// Known collections that get synced directly into src/content/{name}/
+const DIRECT_COLLECTIONS = new Set(['thoughts', 'tips']);
 
 if (fs.existsSync(SYNC_DEST)) {
   fs.rmSync(SYNC_DEST, { recursive: true });
@@ -34,9 +38,11 @@ walk(VAULT_PATH, (filepath) => {
   }
   if (data.publish !== true) return;
 
-  const target = data.publish_to || 'thoughts';
+  const target = (data.publish_to as string) || 'thoughts';
   const filename = path.basename(filepath);
-  const destDir = path.join(SYNC_DEST, target);
+  const destDir = DIRECT_COLLECTIONS.has(target)
+    ? path.join(CONTENT_ROOT, target)
+    : path.join(SYNC_DEST, target);
   fs.mkdirSync(destDir, { recursive: true });
   fs.copyFileSync(filepath, path.join(destDir, filename));
   synced++;

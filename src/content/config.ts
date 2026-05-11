@@ -23,4 +23,18 @@ const curriculum = defineCollection({
   }),
 });
 
-export const collections = { thoughts, curriculum };
+const tips = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    slug: z.string().optional(),
+    publishedAt: z.coerce.date(),
+    category: z.enum(['比較三原則', '第0層', 'be-do-have', 'FLOW', 'フジサン', 'その他']),
+    length_short: z.number().optional(),
+    length_medium: z.number().optional(),
+    related_lp: z.string().optional(),
+    hero_image: z.string().optional(),
+  }),
+});
+
+export const collections = { thoughts, curriculum, tips };
