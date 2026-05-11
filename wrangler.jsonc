@@ -1,0 +1,8 @@
+{
+  "name": "masahiro-yamada-com",
+  "compatibility_date": "2026-05-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist"
+  }
+}

@@ -1,0 +1,30 @@
+---
+import Vault from '../../layouts/Vault.astro';
+---
+<Vault title="Dashboard">
+  <h1 style="font-family: var(--font-mono); font-size: 1.5rem; color: var(--vault-accent); margin-bottom: 2rem;">
+    MASA VAULT — 血流計
+  </h1>
+  <nav style="display: grid; gap: 1rem;">
+    <a href="/vault/curriculum" style="display: block; padding: 1rem; border: 1px solid var(--vault-line); color: var(--vault-text);">
+      <span style="font-family: var(--font-mono); color: var(--vault-accent);">curriculum</span>
+      <span style="margin-left: 1rem; color: var(--vault-muted); font-size: 0.9rem;">FLOW v2 12週カリキュラム</span>
+    </a>
+    <a href="/vault/funnel" style="display: block; padding: 1rem; border: 1px solid var(--vault-line); color: var(--vault-text);">
+      <span style="font-family: var(--font-mono); color: var(--vault-accent);">funnel</span>
+      <span style="margin-left: 1rem; color: var(--vault-muted); font-size: 0.9rem;">フジサンモデル可視化</span>
+    </a>
+    <a href="/vault/dag" style="display: block; padding: 1rem; border: 1px solid var(--vault-line); color: var(--vault-text);">
+      <span style="font-family: var(--font-mono); color: var(--vault-accent);">dag</span>
+      <span style="margin-left: 1rem; color: var(--vault-muted); font-size: 0.9rem;">ACE Research DAG</span>
+    </a>
+    <a href="/vault/pulse" style="display: block; padding: 1rem; border: 1px solid var(--vault-line); color: var(--vault-text);">
+      <span style="font-family: var(--font-mono); color: var(--vault-accent);">pulse</span>
+      <span style="margin-left: 1rem; color: var(--vault-muted); font-size: 0.9rem;">週次パルス</span>
+    </a>
+    <a href="/vault/inscription" style="display: block; padding: 1rem; border: 1px solid var(--vault-line); color: var(--vault-text);">
+      <span style="font-family: var(--font-mono); color: var(--vault-accent);">inscription</span>
+      <span style="margin-left: 1rem; color: var(--vault-muted); font-size: 0.9rem;">碑文</span>
+    </a>
+  </nav>
+</Vault>

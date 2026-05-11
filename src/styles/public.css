@@ -1,0 +1,14 @@
+@import './tokens.css';
+
+body {
+  background: var(--pub-bg);
+  color: var(--pub-text);
+  font-family: var(--font-body-jp), sans-serif;
+  margin: 0;
+  line-height: 1.7;
+}
+
+a { color: var(--pub-accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; }

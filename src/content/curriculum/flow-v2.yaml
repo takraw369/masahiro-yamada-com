@@ -1,0 +1,84 @@
+- week: 1
+  phase: F
+  title: 感じる — 身体に戻る
+  cognitive_load: 2
+  physical_load: 6
+  emotional_load: 4
+  key_question: 今、身体は何を訴えているか？
+- week: 2
+  phase: F
+  title: 感じる — 比較を発見する
+  cognitive_load: 4
+  physical_load: 5
+  emotional_load: 6
+  key_question: 誰と、何を比べているか？
+- week: 3
+  phase: F
+  title: 感じる — 抵抗の形を見る
+  cognitive_load: 5
+  physical_load: 4
+  emotional_load: 7
+  key_question: 今、何に抵抗しているか？
+- week: 4
+  phase: L
+  title: 生きた物語 — 原点を語る
+  cognitive_load: 6
+  physical_load: 3
+  emotional_load: 8
+  key_question: あの瞬間、自分は何者だったか？
+- week: 5
+  phase: L
+  title: 生きた物語 — 転換点を見つける
+  cognitive_load: 7
+  physical_load: 3
+  emotional_load: 7
+  key_question: 何が変わり、何が変わらなかったか？
+- week: 6
+  phase: L
+  title: 生きた物語 — 意味を再編する
+  cognitive_load: 8
+  physical_load: 2
+  emotional_load: 6
+  key_question: その経験に、今どんな意味を与えるか？
+- week: 7
+  phase: O
+  title: 上書き — 信念の地図を描く
+  cognitive_load: 7
+  physical_load: 4
+  emotional_load: 6
+  key_question: 今の自分を縛っている信念は何か？
+- week: 8
+  phase: O
+  title: 上書き — 新しい物語を宣言する
+  cognitive_load: 6
+  physical_load: 5
+  emotional_load: 7
+  key_question: 代わりに、どんな物語を生きるか？
+- week: 9
+  phase: O
+  title: 上書き — 行動で証明する
+  cognitive_load: 5
+  physical_load: 7
+  emotional_load: 5
+  key_question: この一週間、何で証明するか？
+- week: 10
+  phase: W
+  title: 迎え入れる — 不完全さを抱く
+  cognitive_load: 4
+  physical_load: 6
+  emotional_load: 8
+  key_question: 今の自分のどこを、まだ受け入れていないか？
+- week: 11
+  phase: W
+  title: 迎え入れる — 他者を鏡にする
+  cognitive_load: 5
+  physical_load: 5
+  emotional_load: 7
+  key_question: 誰の中に、自分を見るか？
+- week: 12
+  phase: W
+  title: 迎え入れる — 次の12週へ渡す
+  cognitive_load: 3
+  physical_load: 4
+  emotional_load: 6
+  key_question: 次のサイクルで、何を手放すか？
