@@ -1,6 +1,16 @@
 ---
-const cookie = Astro.cookies.get('ace-dash-auth');
-if (cookie?.value === 'true') {
+import {
+  createDashboardSession,
+  DASHBOARD_COOKIE_NAME,
+  DASHBOARD_SESSION_TTL_SECONDS,
+  verifyDashboardPassword,
+  verifyDashboardSession,
+} from '../../lib/dashboard-auth';
+
+const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
+const sessionSecret = env?.DASHBOARD_SESSION_SECRET ?? '';
+const cookie = Astro.cookies.get(DASHBOARD_COOKIE_NAME);
+if (await verifyDashboardSession(cookie?.value, sessionSecret)) {
   return Astro.redirect('/dashboard');
 }
 
@@ -9,16 +19,17 @@ let error = '';
 if (Astro.request.method === 'POST') {
   const formData = await Astro.request.formData();
   const password = formData.get('password') as string;
-  const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
   const correctPassword = env?.DASHBOARD_PASSWORD ?? '';
 
-  if (password && password === correctPassword) {
-    Astro.cookies.set('ace-dash-auth', 'true', {
-      path: '/dashboard',
+  if (!correctPassword || !sessionSecret) {
+    error = 'Dashboard authentication is not configured';
+  } else if (await verifyDashboardPassword(password, correctPassword, sessionSecret)) {
+    Astro.cookies.set(DASHBOARD_COOKIE_NAME, await createDashboardSession(sessionSecret), {
+      path: '/',
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: DASHBOARD_SESSION_TTL_SECONDS,
     });
     return Astro.redirect('/dashboard');
   } else {
@@ -31,6 +42,7 @@ if (Astro.request.method === 'POST') {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>ACE Dashboard — Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />

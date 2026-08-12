@@ -252,7 +252,7 @@ export default function ContentScheduler() {
     hourRow: (isOver:boolean) => ({ display:'flex', alignItems:'flex-start', gap:8, padding:'5px 0', borderBottom:`1px solid ${isOver?'rgba(245,158,11,0.3)':bord+'44'}`, background:isOver?'rgba(245,158,11,0.05)':'transparent', transition:'background 0.12s', minHeight:46 }) as React.CSSProperties,
     hourLabel: { width:44, flexShrink:0, fontSize:'0.8rem', color:dim, paddingTop:6, textAlign:'right' as const, paddingRight:8 },
     hourSlot: { flex:1, display:'flex', flexWrap:'wrap' as const, gap:6, padding:'4px 0', minHeight:36 },
-    schCard: (p:PostItem) => { const m=catOf(p.category); return { background:'#1a1a2e', border:`1px solid ${m?.color+'55'??bord}`, borderRadius:8, padding:'7px 10px', cursor:'grab', maxWidth:200, userSelect:'none' as const } as React.CSSProperties; },
+    schCard: (p:PostItem) => { const m=catOf(p.category); return { background:'#1a1a2e', border:`1px solid ${m ? `${m.color}55` : bord}`, borderRadius:8, padding:'7px 10px', cursor:'grab', maxWidth:200, userSelect:'none' as const } as React.CSSProperties; },
     schPf: (pl:'x'|'line') => ({ fontSize:'0.7rem', fontWeight:700, color:pl==='x'?'#1DA1F2':'#06c755', marginRight:4 }),
     schText: { fontSize:'0.78rem', color:'#c0c0d8', marginTop:3, lineHeight:1.3, overflow:'hidden', display:'-webkit-box' as const, WebkitLineClamp:2, WebkitBoxOrient:'vertical' as const } as React.CSSProperties,
     schBtns: { display:'flex', gap:4, marginTop:5 },
