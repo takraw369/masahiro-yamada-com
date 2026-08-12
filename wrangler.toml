@@ -16,3 +16,6 @@ X_HARNESS_URL = "https://x-harness-worker.takraw501.workers.dev"
 LINE_HARNESS_URL = "https://line-crm-worker.takraw501.workers.dev"
 # DASHBOARD_PASSWORD, DASHBOARD_SESSION_SECRET, X_HARNESS_API_KEY, and
 # LINE_HARNESS_API_KEY are set as Cloudflare Worker Secrets.
+
+[secrets]
+required = ["DASHBOARD_PASSWORD", "DASHBOARD_SESSION_SECRET"]
