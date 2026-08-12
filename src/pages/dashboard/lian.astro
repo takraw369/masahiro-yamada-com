@@ -1,14 +1,14 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import {
+  harnessProxyEnabled,
+  resolveHarnessApiKey,
+  resolveHarnessBaseUrl,
+} from '../../lib/security/harness-policy.mjs';
 
-interface Env {
-  LINE_HARNESS_URL: string;
-  LINE_HARNESS_API_KEY: string;
-}
-
-const env = Astro.locals.runtime?.env as Env | undefined;
-const baseUrl = env?.LINE_HARNESS_URL ?? 'https://line-crm-worker.takraw501.workers.dev';
-const apiKey = env?.LINE_HARNESS_API_KEY ?? '';
+const env = (Astro.locals as unknown as { securityEnv?: Cloudflare.Env }).securityEnv as Record<string, unknown> | undefined;
+const baseUrl = resolveHarnessBaseUrl(env, 'line');
+const apiKey = resolveHarnessApiKey(env, 'line');
 
 let accounts: any[] = [];
 let friends: any[] = [];
@@ -16,17 +16,21 @@ let friendTotal = 0;
 let error = '';
 
 try {
+  if (!harnessProxyEnabled(env) || !baseUrl || !apiKey) {
+    throw new Error('LINE integration unavailable');
+  }
   const [accRes, friendRes] = await Promise.all([
     fetch(`${baseUrl}/api/line-accounts`, { headers: { Authorization: `Bearer ${apiKey}` } }),
     fetch(`${baseUrl}/api/friends?limit=10`, { headers: { Authorization: `Bearer ${apiKey}` } }),
   ]);
+  if (!accRes.ok || !friendRes.ok) throw new Error('LINE upstream rejected request');
   const accJson = await accRes.json() as any;
   const friendJson = await friendRes.json() as any;
   accounts = accJson.data ?? [];
   friends = friendJson.data ?? [];
   friendTotal = friendJson.total ?? friends.length;
-} catch (e) {
-  error = String(e);
+} catch {
+  error = 'LINE連携を利用できません';
 }
 ---
 <DashboardLayout title="リアン">

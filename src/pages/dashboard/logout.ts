@@ -1,8 +1,18 @@
-export const GET = () =>
-  new Response(null, {
-    status: 302,
-    headers: {
-      Location: '/dashboard/login',
-      'Set-Cookie': 'ace-dash-auth=; Path=/dashboard; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
-    },
-  });
+import type { APIContext } from 'astro';
+import {
+  DEVELOPMENT_COOKIE_NAME,
+  LEGACY_COOKIE_NAME,
+  PRODUCTION_COOKIE_NAME,
+} from '../../lib/security/auth.mjs';
+
+export const GET = ({ cookies, redirect }: APIContext) => {
+  for (const cookieName of [
+    PRODUCTION_COOKIE_NAME,
+    DEVELOPMENT_COOKIE_NAME,
+    LEGACY_COOKIE_NAME,
+  ]) {
+    cookies.delete(cookieName, { path: '/' });
+  }
+  cookies.delete(LEGACY_COOKIE_NAME, { path: '/dashboard' });
+  return redirect('/dashboard/login', 302);
+};

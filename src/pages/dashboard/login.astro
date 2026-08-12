@@ -1,28 +1,94 @@
 ---
-const cookie = Astro.cookies.get('ace-dash-auth');
-if (cookie?.value === 'true') {
-  return Astro.redirect('/dashboard');
+import {
+  LEGACY_COOKIE_NAME,
+  basePermissions,
+  createSessionToken,
+  loadAuthConfig,
+  operatorPermissions,
+  sessionCookieOptions,
+  verifyPassword,
+  verifySessionToken,
+} from '../../lib/security/auth.mjs';
+import { clientIp, isSameOriginRequest } from '../../lib/security/request.mjs';
+import { consumeRateLimit } from '../../lib/security/rate-limit.mjs';
+
+const env = (Astro.locals as unknown as { securityEnv?: Cloudflare.Env }).securityEnv as Record<string, unknown> | undefined;
+const config = loadAuthConfig(env);
+
+// The legacy boolean cookie is never accepted and is actively removed.
+Astro.cookies.delete(LEGACY_COOKIE_NAME, { path: '/dashboard' });
+Astro.cookies.delete(LEGACY_COOKIE_NAME, { path: '/' });
+
+if (config) {
+  const existingToken = Astro.cookies.get(config.cookieName)?.value;
+  const existingSession = existingToken
+    ? await verifySessionToken(existingToken, config)
+    : null;
+  if (existingSession) return Astro.redirect('/dashboard');
+  if (existingToken) Astro.cookies.delete(config.cookieName, { path: '/' });
 }
 
 let error = '';
 
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  const password = formData.get('password') as string;
-  const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
-  const correctPassword = env?.DASHBOARD_PASSWORD ?? '';
-
-  if (password && password === correctPassword) {
-    Astro.cookies.set('ace-dash-auth', 'true', {
-      path: '/dashboard',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30,
-    });
-    return Astro.redirect('/dashboard');
+if (!['GET', 'POST'].includes(Astro.request.method)) {
+  Astro.response.status = 405;
+  Astro.response.headers.set('Allow', 'GET, POST');
+  error = '許可されていないリクエストです';
+} else if (Astro.request.method === 'POST') {
+  if (!config) {
+    Astro.response.status = 503;
+    error = '認証設定を利用できません';
   } else {
-    error = 'パスワードが違います';
+    const limit = await consumeRateLimit(
+      env?.AUTH_RATE_LIMITER,
+      `login:${clientIp(Astro.request)}`,
+      {
+        limit: 5,
+        windowMs: 60_000,
+        retryAfterSeconds: 60,
+        allowLocalFallback: config.mode !== 'production',
+      },
+    );
+
+    if (limit.unavailable) {
+      Astro.response.status = 503;
+      error = '認証保護を利用できません';
+    } else if (!limit.allowed) {
+      Astro.response.status = 429;
+      Astro.response.headers.set('Retry-After', String(limit.retryAfterSeconds));
+      error = 'しばらく待ってから再試行してください';
+    } else if (!isSameOriginRequest(Astro.request)) {
+      Astro.response.status = 403;
+      error = '認証リクエストを確認できません';
+    } else {
+      const formData = await Astro.request.formData();
+      const rawPassword = formData.get('password');
+      const password = typeof rawPassword === 'string' ? rawPassword : '';
+      const [baseMatch, operatorMatch] = await Promise.all([
+        verifyPassword(password, config.password),
+        config.operatorPassword
+          ? verifyPassword(password, config.operatorPassword)
+          : Promise.resolve(false),
+      ]);
+
+      if (baseMatch || operatorMatch) {
+        const permissions = operatorMatch ? operatorPermissions() : basePermissions();
+        const maxAge = operatorMatch ? config.operatorTtlSeconds : config.sessionTtlSeconds;
+        const token = await createSessionToken(config, {
+          permissions,
+          ttlSeconds: maxAge,
+        });
+        Astro.cookies.set(
+          config.cookieName,
+          token,
+          sessionCookieOptions(config, maxAge),
+        );
+        return Astro.redirect('/dashboard');
+      }
+
+      Astro.response.status = 401;
+      error = '認証に失敗しました';
+    }
   }
 }
 ---

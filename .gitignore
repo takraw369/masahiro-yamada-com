@@ -3,5 +3,28 @@ node_modules/
 dist/
 .astro/
 .wrangler/
+.env
+.env.*
+!.env.example
 .dev.vars
+.dev.vars.*
+!.dev.vars.example
 .claude/
+
+# Credentials and private key material
+.clasprc.json
+credentials*.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local databases, dumps, and personal exports
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.backup
+private-exports/
+personal-exports/

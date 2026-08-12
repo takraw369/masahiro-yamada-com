@@ -31,6 +31,7 @@ export default defineConfig({
   adapter: cloudflare({
     platformProxy: {
       enabled: true,
+      environment: 'development',
     },
   }),
   integrations: [react()],

@@ -1,0 +1,5 @@
+# Copy to .dev.vars.development and use development-only values.
+# Never reuse any production credential.
+DASHBOARD_DEV_PASSWORD=
+DASHBOARD_DEV_OPERATOR_PASSWORD=
+DASHBOARD_DEV_SESSION_SECRET=
