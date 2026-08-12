@@ -1,5 +1,6 @@
 {
   "name": "masahiro-yamada-com",
+  "main": "./dist/_worker.js/index.js",
   "compatibility_date": "2026-05-11",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
