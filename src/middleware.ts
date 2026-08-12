@@ -3,6 +3,8 @@ import { DASHBOARD_COOKIE_NAME, verifyDashboardSession } from './lib/dashboard-a
 
 const protectedApiPrefixes = [
   '/api/dashboard',
+  '/api/flashcards',
+  '/api/schedule',
   '/api/x-harness',
   '/api/line-harness',
 ];
