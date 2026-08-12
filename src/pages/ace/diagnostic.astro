@@ -1,0 +1,110 @@
+---
+import Ace from '../../layouts/Ace.astro';
+---
+
+<Ace title="認知特性レポート ─ あなたの脳は、どの神経伝達物質で動いているか">
+  <section class="hero">
+    <p class="kicker">COGNITIVE TRAITS REPORT</p>
+    <h1 class="display">
+      あなたの脳は、<br>
+      どの<span class="period">神経伝達物質</span>で<br>
+      動いているか
+    </h1>
+    <hr class="ornament">
+    <p class="sub">15問・3型診断で、自分の認知特性を知る</p>
+  </section>
+
+  <section class="why">
+    <h2>なぜ知る必要があるか</h2>
+    <p>自分が動きやすい構造を知らないまま「やる気を出そう」とすると、<br>
+      間違ったエンジンに無理矢理点火することになる。</p>
+    <p>ドーパミン型・セロトニン型・オキシトシン型。<br>
+      どの神経伝達物質が主軸かで、燃え方も、燃え尽き方も違う。</p>
+  </section>
+
+  <section class="what-you-get">
+    <h2>何が分かるか</h2>
+    <ul>
+      <li>あなたの主軸の神経伝達物質</li>
+      <li>動機づけが生まれる構造</li>
+      <li>比較に焼かれやすいか、燃料にしやすいか</li>
+      <li>ACEへの最初のステップ推奨</li>
+    </ul>
+  </section>
+
+  <section class="cta-section">
+    <h2>受講する</h2>
+    <p class="price-tag">準備中</p>
+    <p class="note">受講後、ACEの他の入口への推奨経路もセットで届きます。</p>
+    <a href="/ace/" class="cta-secondary">← ACE METHOD トップへ</a>
+  </section>
+</Ace>
+
+<style>
+  .why,
+  .what-you-get,
+  .cta-section {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 6rem 3rem;
+    border-top: 1px solid var(--ace-line);
+  }
+
+  .why h2,
+  .what-you-get h2,
+  .cta-section h2 {
+    font-family: var(--font-display-jp);
+    font-size: 1.6rem;
+    margin-bottom: 2rem;
+  }
+
+  .why p {
+    color: var(--ace-text-dim);
+    line-height: 1.9;
+    margin-bottom: 1.5rem;
+  }
+
+  .what-you-get ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1.2rem;
+  }
+
+  .what-you-get li {
+    color: var(--ace-text-dim);
+    padding-left: 1.5rem;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .what-you-get li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--ace-accent);
+  }
+
+  .price-tag {
+    font-family: var(--font-display-en);
+    font-size: 2rem;
+    color: var(--ace-accent);
+    margin-bottom: 1rem;
+  }
+
+  .note {
+    color: var(--ace-text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 700px) {
+    .why,
+    .what-you-get,
+    .cta-section {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+</style>

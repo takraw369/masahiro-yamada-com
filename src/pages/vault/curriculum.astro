@@ -1,0 +1,58 @@
+---
+import Vault from '../../layouts/Vault.astro';
+import { getCollection } from 'astro:content';
+
+const weeks = await getCollection('curriculum');
+weeks.sort((a, b) => a.data.week - b.data.week);
+---
+
+<Vault title="FLOW v2 / 12週カリキュラム">
+  <h1>FLOW v2 — 12週カリキュラム</h1>
+  <p class="caption">Feel → Lived story → Overwrite → Welcome in</p>
+
+  <table class="curriculum-grid">
+    <thead>
+      <tr>
+        <th>週</th><th>フェーズ</th><th>タイトル</th>
+        <th>認知</th><th>身体</th><th>感情</th>
+        <th>核となる問い</th>
+      </tr>
+    </thead>
+    <tbody>
+      {weeks.map(w => (
+        <tr data-phase={w.data.phase}>
+          <td>{w.data.week}</td>
+          <td class="phase">{w.data.phase}</td>
+          <td>{w.data.title}</td>
+          <td><div class="bar" style={`--v:${w.data.cognitive_load}`}></div></td>
+          <td><div class="bar" style={`--v:${w.data.physical_load}`}></div></td>
+          <td><div class="bar" style={`--v:${w.data.emotional_load}`}></div></td>
+          <td class="q">{w.data.key_question}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</Vault>
+
+<style>
+  h1 { font-family: var(--font-display-jp); color: var(--vault-text); margin-bottom: 0.5rem; }
+  .caption { color: var(--vault-muted); font-family: var(--font-display-en); font-style: italic; margin-bottom: 2rem; }
+  .curriculum-grid {
+    width: 100%; border-collapse: collapse;
+    color: var(--vault-text);
+  }
+  th, td { padding: 0.75rem; border-bottom: 1px solid var(--vault-line); text-align: left; }
+  th { color: var(--vault-muted); font-weight: normal; font-size: 0.85rem; font-family: var(--font-mono); }
+  .bar {
+    height: 8px;
+    width: calc(var(--v) * 10%);
+    background: var(--vault-accent);
+    opacity: 0.7;
+  }
+  .phase { font-family: var(--font-mono); }
+  tr[data-phase="F"] .phase { color: #6ec1c4; }
+  tr[data-phase="L"] .phase { color: #d4a943; }
+  tr[data-phase="O"] .phase { color: #d97757; }
+  tr[data-phase="W"] .phase { color: #8b6f47; }
+  .q { font-style: italic; color: var(--vault-muted); font-size: 0.9rem; }
+</style>

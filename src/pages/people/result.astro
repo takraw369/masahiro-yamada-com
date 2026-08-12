@@ -1,0 +1,66 @@
+---
+import Public from '../../layouts/Public.astro';
+import { diagnose, SEGMENTS, type DiagnoseAnswers } from '../../lib/segments';
+
+const url = new URL(Astro.request.url);
+const q1 = url.searchParams.get('q1') || '';
+const q2 = url.searchParams.get('q2') || '';
+const q3 = url.searchParams.get('q3') || '';
+const q4 = url.searchParams.get('q4') || '';
+const q5 = url.searchParams.get('q5') || '';
+
+// 未回答ならフォームに戻す
+if (!q1 || !q2 || !q3 || !q4 || !q5) {
+  return Astro.redirect('/people/diagnose', 302);
+}
+
+const answers: DiagnoseAnswers = { q1, q2, q3, q4, q5 };
+const type = diagnose(answers);
+const segment = SEGMENTS[type];
+---
+
+<Public title={`${segment.name} — あなたの認知特性`}>
+  <section style="padding: 4rem 0 6rem; max-width: 640px;">
+    <p style="font-family: var(--font-display-en); font-size: 0.8rem; color: var(--pub-muted); letter-spacing: 0.15em; margin: 0 0 1rem;">YOUR SEGMENT</p>
+
+    <div style={`border-left: 3px solid ${segment.color}; padding-left: 1.5rem; margin-bottom: 3rem;`}>
+      <h1 style="font-family: var(--font-display-jp); font-size: 2.2rem; font-weight: 700; margin: 0 0 0.5rem; line-height: 1.2;">
+        {segment.name}
+      </h1>
+      <p style={`font-family: var(--font-display-en); font-size: 0.8rem; letter-spacing: 0.15em; color: ${segment.color}; margin: 0;`}>
+        {segment.trait}
+      </p>
+    </div>
+
+    <p style="font-family: var(--font-display-jp); font-size: 1.05rem; line-height: 1.9; color: var(--pub-text); margin: 0 0 3rem;">
+      {segment.desc}
+    </p>
+
+    <div style="border: 1px solid #e0dbd3; padding: 2rem; margin-bottom: 3rem;">
+      <p style="font-family: var(--font-display-en); font-size: 0.75rem; letter-spacing: 0.15em; color: var(--pub-muted); margin: 0 0 0.8rem;">RECOMMENDED FIRST STEP</p>
+      <p style="font-family: var(--font-display-jp); font-size: 1rem; font-weight: 500; margin: 0 0 1.5rem; color: var(--pub-text);">
+        {segment.recommendLabel}
+      </p>
+      <a href={segment.recommend} style="
+        display: inline-block;
+        border: 1px solid var(--pub-text);
+        color: var(--pub-text);
+        padding: 0.8rem 2rem;
+        font-family: var(--font-display-en);
+        letter-spacing: 0.15em;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      ">詳しく見る →</a>
+    </div>
+
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+      <a href="/people/diagnose" style="font-family: var(--font-display-en); font-size: 0.85rem; color: var(--pub-muted); text-decoration: none; letter-spacing: 0.1em;">
+        ← もう一度診断する
+      </a>
+      <a href="/ace/" style="font-family: var(--font-display-en); font-size: 0.85rem; color: var(--pub-accent); text-decoration: none; letter-spacing: 0.1em;">
+        ACE METHOD →
+      </a>
+    </div>
+  </section>
+</Public>
