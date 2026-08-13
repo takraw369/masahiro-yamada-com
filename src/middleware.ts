@@ -49,7 +49,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!config) {
     return protectedApi
       ? jsonResponse({ error: 'service_unavailable' }, 503)
-      : context.redirect(DASHBOARD_LOGIN, 302);
+      : withPrivateHeaders(context.redirect(DASHBOARD_LOGIN, 302));
   }
 
   const token = context.cookies.get(config.cookieName)?.value;

@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "masahiro-yamada-com",
+  "preview_urls": true,
   "compatibility_date": "2026-08-11",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
@@ -24,6 +25,19 @@
     "HARNESS_SIDE_EFFECTS_ENABLED": "false",
     "X_HARNESS_URL": "https://x-harness-worker.takraw501.workers.dev",
     "LINE_HARNESS_URL": "https://line-crm-worker.takraw501.workers.dev"
+  },
+  "previews": {
+    "vars": {
+      "SITE_NAME": "preview.masahiro-yamada.com",
+      "APP_ENV": "preview",
+      "HARNESS_PROXY_ENABLED": "false",
+      "HARNESS_SIDE_EFFECTS_ENABLED": "false",
+      "X_HARNESS_URL": "https://example.invalid",
+      "LINE_HARNESS_URL": "https://example.invalid"
+    },
+    "kv_namespaces": [],
+    "d1_databases": [],
+    "ratelimits": []
   },
   "secrets": {
     "required": [

@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build && node ./scripts/patch-worker.mjs",
-    "test": "npm run test:security",
+    "test": "npm run test:security && npm run test:preview",
     "test:security": "node --test tests/*.test.mjs",
-    "preview": "wrangler pages dev ./dist",
+    "test:preview": "npm run build && node ./scripts/smoke-preview.mjs",
+    "preview": "npm run build && wrangler dev",
     "deploy": "astro build && node ./scripts/patch-worker.mjs && wrangler deploy",
     "astro": "astro"
   },

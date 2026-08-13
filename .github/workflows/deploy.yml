@@ -23,6 +23,13 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Verify production branch provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/master"
+          test "$GITHUB_SHA" = "$(git rev-parse HEAD)"
+
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
