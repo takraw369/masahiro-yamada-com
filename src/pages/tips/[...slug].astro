@@ -1,0 +1,54 @@
+---
+import { getCollection, render } from 'astro:content';
+import Public from '../../layouts/Public.astro';
+
+const { slug } = Astro.params;
+const tips = await getCollection('tips');
+const tip = tips.find((t) => t.data.slug === slug || t.id === slug);
+
+if (!tip) {
+  return Astro.redirect('/tips', 302);
+}
+
+const { Content } = await render(tip);
+---
+
+<Public title={tip.data.title}>
+  <article style="padding: 4rem 0; max-width: 680px;">
+    <header style="margin-bottom: 3rem;">
+      <p style="font-size: 0.8rem; color: var(--pub-muted); font-family: var(--font-display-en); letter-spacing: 0.1em; margin: 0 0 1rem;">
+        {tip.data.category} · {tip.data.publishedAt.toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' })}
+      </p>
+      <h1 style="font-family: var(--font-display-jp); font-size: 1.8rem; font-weight: 500; line-height: 1.4; margin: 0;">
+        {tip.data.title}
+      </h1>
+    </header>
+
+    <div class="tip-body">
+      <Content />
+    </div>
+
+    <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e0dbd3; display: flex; gap: 2rem; flex-wrap: wrap;">
+      <a href="/tips" style="font-family: var(--font-display-en); font-size: 0.85rem; color: var(--pub-muted); text-decoration: none; letter-spacing: 0.1em;">
+        ← ALL TIPS
+      </a>
+      {tip.data.related_lp && (
+        <a href={tip.data.related_lp} style="font-family: var(--font-display-en); font-size: 0.85rem; color: var(--pub-accent); text-decoration: none; letter-spacing: 0.1em;">
+          ACE METHOD →
+        </a>
+      )}
+    </footer>
+  </article>
+</Public>
+
+<style>
+  .tip-body {
+    font-family: var(--font-body-jp);
+    line-height: 1.9;
+    font-size: 1.05rem;
+  }
+  .tip-body p {
+    margin: 0 0 1.5rem;
+    color: var(--pub-text);
+  }
+</style>

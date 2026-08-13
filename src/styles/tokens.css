@@ -1,0 +1,20 @@
+:root {
+  --pub-bg: #f7f5f0;
+  --pub-text: #1a1a1a;
+  --pub-accent: #8b6f47;
+  --pub-muted: #6b6b6b;
+
+  --vault-bg: #0a0a0a;
+  --vault-surface: #141414;
+  --vault-text: #e8e3d8;
+  --vault-accent: #d4a943;
+  --vault-muted: #6b6b6b;
+  --vault-line: #2a2a2a;
+
+  --font-display-en: 'Cormorant Garamond', serif;
+  --font-display-jp: 'Zen Kaku Gothic New', sans-serif;
+  --font-body-jp: 'Zen Kaku Gothic New', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; }

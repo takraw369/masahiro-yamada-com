@@ -1,0 +1,337 @@
+@import './tokens.css';
+
+:root {
+  --ace-bg: #0a0e1f;
+  --ace-bg-soft: #0f1428;
+  --ace-text: #f5f1e8;
+  --ace-text-dim: #a89e8f;
+  --ace-accent: #d4a943;
+  --ace-accent-strong: #f5c560;
+  --ace-line: rgba(212, 169, 67, 0.2);
+}
+
+.ace-body {
+  background: var(--ace-bg);
+  color: var(--ace-text);
+  font-family: var(--font-body-jp);
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Nav */
+.ace-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid var(--ace-line);
+  position: sticky;
+  top: 0;
+  background: var(--ace-bg);
+  z-index: 100;
+}
+
+.ace-nav a {
+  color: var(--ace-text-dim);
+  text-decoration: none;
+  font-family: var(--font-display-en);
+  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.ace-nav a:hover {
+  color: var(--ace-accent);
+}
+
+.ace-nav .ace-mark {
+  font-family: var(--font-display-en);
+  color: var(--ace-accent);
+  letter-spacing: 0.2em;
+  font-size: 0.85rem;
+}
+
+/* Hero */
+.hero {
+  min-height: 80vh;
+  padding: 10vh 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.hero .brand-line {
+  font-family: var(--font-display-en);
+  font-size: 1rem;
+  color: var(--ace-accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 6rem;
+}
+
+.hero .brand-line em {
+  font-style: italic;
+}
+
+.hero .kicker {
+  font-family: var(--font-display-en);
+  font-size: 0.9rem;
+  color: var(--ace-accent);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+}
+
+.hero .display {
+  font-family: var(--font-display-jp);
+  font-weight: 700;
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0 0 2rem;
+}
+
+.hero .display .period {
+  color: var(--ace-accent);
+}
+
+.hero .ornament {
+  width: 60px;
+  border: none;
+  border-top: 1px solid var(--ace-accent);
+  margin: 2rem 0;
+}
+
+.hero .sub {
+  font-family: var(--font-display-en);
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--ace-text-dim);
+  margin-bottom: 3rem;
+}
+
+.hero .cta {
+  display: inline-block;
+  border: 1px solid var(--ace-accent);
+  color: var(--ace-accent);
+  padding: 1rem 2.5rem;
+  font-family: var(--font-display-en);
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  font-size: 0.95rem;
+  width: fit-content;
+  transition: all 0.3s;
+}
+
+.hero .cta:hover {
+  background: var(--ace-accent);
+  color: var(--ace-bg);
+}
+
+/* Changes section */
+.changes {
+  padding: 8rem 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.changes h2 {
+  font-family: var(--font-display-jp);
+  font-size: 2rem;
+  margin-bottom: 4rem;
+  text-align: center;
+}
+
+.changes-grid {
+  display: grid;
+  gap: 4rem;
+}
+
+.changes article {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 2rem;
+  padding-bottom: 4rem;
+  border-bottom: 1px solid var(--ace-line);
+}
+
+.changes article:last-child {
+  border-bottom: none;
+}
+
+.changes .num {
+  font-family: var(--font-display-en);
+  font-size: 2.5rem;
+  color: var(--ace-accent);
+  font-weight: 300;
+}
+
+.changes h3 {
+  font-family: var(--font-display-jp);
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.changes p {
+  color: var(--ace-text-dim);
+  line-height: 1.85;
+}
+
+/* Entries */
+.entries {
+  padding: 8rem 3rem;
+  background: var(--ace-bg-soft);
+}
+
+.entries h2 {
+  text-align: center;
+  font-family: var(--font-display-jp);
+  font-size: 1.8rem;
+  margin-bottom: 4rem;
+}
+
+.entries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.entry {
+  display: block;
+  border: 1px solid var(--ace-line);
+  padding: 2rem;
+  text-decoration: none;
+  color: var(--ace-text);
+  transition: all 0.3s;
+}
+
+.entry:hover {
+  border-color: var(--ace-accent);
+  background: rgba(212, 169, 67, 0.04);
+}
+
+.entry-peak {
+  border-color: var(--ace-accent);
+}
+
+.entry .tier {
+  font-family: var(--font-display-en);
+  font-size: 0.75rem;
+  color: var(--ace-accent);
+  letter-spacing: 0.15em;
+}
+
+.entry h3 {
+  font-family: var(--font-display-jp);
+  font-size: 1.1rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.entry .price {
+  font-family: var(--font-display-en);
+  color: var(--ace-text-dim);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.entry .desc {
+  font-size: 0.9rem;
+  color: var(--ace-text-dim);
+  line-height: 1.6;
+}
+
+/* Quote */
+.quote {
+  padding: 12rem 3rem;
+  text-align: center;
+}
+
+.quote blockquote {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.quote blockquote p {
+  font-family: var(--font-display-jp);
+  font-size: 2rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+.quote cite {
+  font-family: var(--font-display-en);
+  font-style: italic;
+  color: var(--ace-text-dim);
+  font-size: 0.9rem;
+}
+
+/* Diagnose CTA */
+.diagnose-cta {
+  padding: 6rem 3rem;
+  text-align: center;
+  border-top: 1px solid var(--ace-line);
+}
+
+.diagnose-cta h3 {
+  font-family: var(--font-display-jp);
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.diagnose-cta p {
+  color: var(--ace-text-dim);
+  margin-bottom: 2rem;
+}
+
+.cta-secondary {
+  display: inline-block;
+  border: 1px solid var(--ace-text-dim);
+  color: var(--ace-text-dim);
+  padding: 0.8rem 2rem;
+  text-decoration: none;
+  font-family: var(--font-display-en);
+  letter-spacing: 0.15em;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.cta-secondary:hover {
+  border-color: var(--ace-accent);
+  color: var(--ace-accent);
+}
+
+/* Footer */
+.ace-footer {
+  padding: 4rem 3rem 3rem;
+  text-align: center;
+  border-top: 1px solid var(--ace-line);
+}
+
+.ace-footer .brand-mark {
+  font-family: var(--font-display-en);
+  color: var(--ace-accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
+}
+
+.ace-footer .brand-mark em {
+  font-style: italic;
+}
+
+.ace-footer small {
+  color: var(--ace-text-dim);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 700px) {
+  .ace-nav { padding: 1rem 1.5rem; }
+  .hero,
+  .changes,
+  .entries,
+  .quote,
+  .diagnose-cta { padding-left: 1.5rem; padding-right: 1.5rem; }
+  .changes article { grid-template-columns: 60px 1fr; gap: 1rem; }
+}

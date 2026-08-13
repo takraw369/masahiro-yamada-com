@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import Public from '../../layouts/Public.astro';
+
+const tips = (await getCollection('tips')).sort(
+  (a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf()
+);
+---
+
+<Public title="Tips">
+  <section style="padding: 4rem 0 2rem;">
+    <h1 style="font-family: var(--font-display-en); font-size: 2rem; font-weight: 400; margin: 0 0 0.5rem;">
+      Tips
+    </h1>
+    <p style="color: var(--pub-muted); font-size: 0.95rem; margin: 0 0 3rem;">
+      脳と身体の使い方 — 短く、鋭く。
+    </p>
+
+    <div style="display: grid; gap: 2rem;">
+      {tips.map((tip) => (
+        <article style="border-top: 1px solid #e0dbd3; padding-top: 2rem;">
+          <p style="font-size: 0.8rem; color: var(--pub-muted); font-family: var(--font-display-en); letter-spacing: 0.1em; margin: 0 0 0.5rem;">
+            {tip.data.category} · {tip.data.publishedAt.toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' })}
+          </p>
+          <h2 style="font-family: var(--font-display-jp); font-size: 1.2rem; font-weight: 500; margin: 0 0 1rem;">
+            <a href={`/tips/${tip.data.slug ?? tip.id}`} style="text-decoration: none; color: var(--pub-text);">
+              {tip.data.title}
+            </a>
+          </h2>
+          {tip.data.related_lp && (
+            <a href={tip.data.related_lp} style="font-size: 0.8rem; color: var(--pub-accent); font-family: var(--font-display-en); text-decoration: none; letter-spacing: 0.1em;">
+              → ACE METHOD
+            </a>
+          )}
+        </article>
+      ))}
+    </div>
+  </section>
+</Public>

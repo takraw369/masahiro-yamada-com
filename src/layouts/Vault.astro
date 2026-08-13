@@ -1,0 +1,40 @@
+---
+import VaultNav from '../components/vault/VaultNav.astro';
+import '../styles/vault.css';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | MASA VAULT</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    </style>
+  </head>
+  <body>
+    <VaultNav />
+    <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+      <slot />
+    </main>
+    <div class="vault-badge">You are in MASA's vault</div>
+  </body>
+</html>
+
+<style>
+  .vault-badge {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--vault-muted);
+    opacity: 0.5;
+  }
+</style>
