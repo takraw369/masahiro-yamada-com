@@ -110,12 +110,13 @@
         ACEの体験セッションで一緒に整理します。
       </p>
       <a
+        id="trial-cta-link"
         href="https://lin.ee/pcAHpTBy"
         target="_blank"
         rel="noopener noreferrer"
         data-funnel-event="trinity_trial_click"
       >体験セッションを相談する</a>
-      <small>LINEで「体験」と送ってください。診断コードも一緒に送るとスムーズです。</small>
+      <small>ボタンを押すと「体験 + 診断コード」が入力されたLINEが開きます。そのまま送信してください。</small>
     </section>
   </div>
 
@@ -131,7 +132,13 @@
   <script>
     const FUNNEL_ENDPOINT = '/api/funnel/event';
     const SESSION_KEY = 'ace_trinity_session_id';
+    const LINE_ID = '%40ipl8686i';
+    const RESULT_CODE_RE = /([A-Z]{4}-\d+-\d+-\d+-\d+)/;
     const params = new URLSearchParams(window.location.search);
+
+    function lineMessageUrl(message) {
+      return `https://line.me/R/oaMessage/${LINE_ID}/?${encodeURIComponent(message)}`;
+    }
 
     function getSessionId() {
       try {
@@ -171,6 +178,8 @@
 
     track('trinity_view');
 
+    let currentResultCode = '';
+
     document.addEventListener('click', (event) => {
       const target = event.target instanceof Element ? event.target.closest('a,button') : null;
       if (!target) return;
@@ -184,6 +193,21 @@
       const text = (target.textContent || '').trim();
       const href = target instanceof HTMLAnchorElement ? target.href : '';
 
+      // The existing React component points to the friend-add URL. Once a result code
+      // exists, replace that click with an official LINE URL-scheme that prefills the
+      // exact unlock command. The user only needs to tap Send in LINE.
+      if (
+        currentResultCode &&
+        target instanceof HTMLAnchorElement &&
+        href.includes('lin.ee') &&
+        (text.includes('LINE') || text.includes('完全版') || text.includes('深層分析'))
+      ) {
+        event.preventDefault();
+        track('trinity_line_click');
+        window.location.href = lineMessageUrl(`診断結果 ${currentResultCode}`);
+        return;
+      }
+
       if (text.includes('診断を始める')) track('trinity_start');
       else if (href.includes('lin.ee') || text.includes('LINE友だち追加') || text.includes('LINE登録')) track('trinity_line_click');
       else if (text.includes('Xでシェア')) track('trinity_share_x');
@@ -193,10 +217,19 @@
     let completeTracked = false;
     let trialShown = false;
     const trialRoot = document.getElementById('trial-cta-root');
+    const trialLink = document.getElementById('trial-cta-link');
 
     function inspectResult() {
       const text = document.getElementById('trinity-root')?.textContent || '';
       const hasResult = text.includes('YOUR TRINITY') || text.includes('あなたの診断コード');
+      const resultMatch = text.match(RESULT_CODE_RE);
+
+      if (resultMatch?.[1]) {
+        currentResultCode = resultMatch[1];
+        if (trialLink instanceof HTMLAnchorElement) {
+          trialLink.href = lineMessageUrl(`体験 ${currentResultCode}`);
+        }
+      }
 
       if (hasResult && !completeTracked) {
         completeTracked = true;
