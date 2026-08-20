@@ -41,10 +41,83 @@
     }
     input[type="number"] { -moz-appearance: textfield; }
     button { font-family: inherit; }
+
+    #trial-cta-root {
+      display: none;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 20px 56px;
+      background: #0D0B08;
+    }
+    #trial-cta-root.is-visible { display: block; }
+    .trial-cta {
+      text-align: center;
+      padding: 34px 24px;
+      border: 1px solid rgba(201, 169, 110, 0.25);
+      background: linear-gradient(180deg, rgba(201,169,110,0.08) 0%, rgba(26,22,18,0.65) 100%);
+    }
+    .trial-cta-kicker {
+      display: block;
+      color: #8B7355;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+    }
+    .trial-cta h2 {
+      color: #D4C5A9;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 23px;
+      font-weight: 300;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .trial-cta p {
+      color: #7A6F5F;
+      font-size: 13px;
+      line-height: 1.9;
+      margin-bottom: 22px;
+    }
+    .trial-cta a {
+      display: block;
+      background: #06C755;
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(6,199,85,0.22);
+    }
+    .trial-cta small {
+      display: block;
+      color: #4A4030;
+      font-size: 10px;
+      line-height: 1.7;
+      margin-top: 12px;
+    }
   </style>
 </head>
 <body>
   <div id="trinity-root"></div>
+
+  <div id="trial-cta-root" aria-live="polite">
+    <section class="trial-cta">
+      <span class="trial-cta-kicker">NEXT STEP</span>
+      <h2>診断を、現実の一手に変える</h2>
+      <p>
+        結果を読むだけで終わらせず、今の課題・思考の癖・次に動く一手を、
+        ACEの体験セッションで一緒に整理します。
+      </p>
+      <a
+        href="https://lin.ee/pcAHpTBy"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-funnel-event="trinity_trial_click"
+      >体験セッションを相談する</a>
+      <small>LINEで「体験」と送ってください。診断コードも一緒に送るとスムーズです。</small>
+    </section>
+  </div>
 
   <script>
     import { createElement } from 'react';
@@ -53,6 +126,95 @@
     
     const root = createRoot(document.getElementById('trinity-root'));
     root.render(createElement(TrinityDiagnosis));
+  </script>
+
+  <script>
+    const FUNNEL_ENDPOINT = '/api/funnel/event';
+    const SESSION_KEY = 'ace_trinity_session_id';
+    const params = new URLSearchParams(window.location.search);
+
+    function getSessionId() {
+      try {
+        let id = localStorage.getItem(SESSION_KEY);
+        if (!id) {
+          id = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          localStorage.setItem(SESSION_KEY, id);
+        }
+        return id;
+      } catch {
+        return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
+    }
+
+    function referrerSource() {
+      if (!document.referrer) return 'direct';
+      try { return new URL(document.referrer).hostname || 'referral'; }
+      catch { return 'referral'; }
+    }
+
+    const context = {
+      sessionId: getSessionId(),
+      source: params.get('utm_source') || referrerSource(),
+      medium: params.get('utm_medium') || '',
+      campaign: params.get('utm_campaign') || '',
+      path: window.location.pathname,
+    };
+
+    function track(eventName) {
+      fetch(FUNNEL_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: eventName, ...context }),
+        keepalive: true,
+      }).catch(() => {});
+    }
+
+    track('trinity_view');
+
+    document.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target.closest('a,button') : null;
+      if (!target) return;
+
+      const explicitEvent = target.getAttribute('data-funnel-event');
+      if (explicitEvent) {
+        track(explicitEvent);
+        return;
+      }
+
+      const text = (target.textContent || '').trim();
+      const href = target instanceof HTMLAnchorElement ? target.href : '';
+
+      if (text.includes('診断を始める')) track('trinity_start');
+      else if (href.includes('lin.ee') || text.includes('LINE友だち追加') || text.includes('LINE登録')) track('trinity_line_click');
+      else if (text.includes('Xでシェア')) track('trinity_share_x');
+      else if (text.includes('リンクをコピー')) track('trinity_copy_link');
+    });
+
+    let completeTracked = false;
+    let trialShown = false;
+    const trialRoot = document.getElementById('trial-cta-root');
+
+    function inspectResult() {
+      const text = document.getElementById('trinity-root')?.textContent || '';
+      const hasResult = text.includes('YOUR TRINITY') || text.includes('あなたの診断コード');
+
+      if (hasResult && !completeTracked) {
+        completeTracked = true;
+        track('trinity_complete');
+      }
+
+      // u=1 is the existing LINE-unlocked result URL. Keep the acquisition gate intact:
+      // the trial-session CTA appears only after the user has reached the unlocked result.
+      if (hasResult && params.get('u') === '1' && !trialShown && trialRoot) {
+        trialShown = true;
+        trialRoot.classList.add('is-visible');
+      }
+    }
+
+    const observer = new MutationObserver(inspectResult);
+    const diagnosisRoot = document.getElementById('trinity-root');
+    if (diagnosisRoot) observer.observe(diagnosisRoot, { childList: true, subtree: true });
+    inspectResult();
   </script>
 </body>
 </html>
