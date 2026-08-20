@@ -203,9 +203,9 @@
         track('trinity_complete');
       }
 
-      // u=1 is the existing LINE-unlocked result URL. Keep the acquisition gate intact:
-      // the trial-session CTA appears only after the user has reached the unlocked result.
-      if (hasResult && params.get('u') === '1' && !trialShown && trialRoot) {
+      // The trial-session offer is a separate conversion path, not gated content.
+      // Show it after every completed diagnosis so revenue does not depend on LINE automation health.
+      if (hasResult && !trialShown && trialRoot) {
         trialShown = true;
         trialRoot.classList.add('is-visible');
       }
