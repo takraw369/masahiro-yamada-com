@@ -1,0 +1,50 @@
+name: Bootstrap ACE Quest Board Cloudflare
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/bootstrap-quest-board-cloudflare.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Verify Cloudflare credentials
+        shell: bash
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Missing Cloudflare credentials."
+            exit 1
+          fi
+
+      - name: Check out ACE Quest Board
+        uses: actions/checkout@v4
+        with:
+          repository: takraw369/ace-quest-board
+          ref: dev
+          path: quest-board
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build static export
+        working-directory: quest-board
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to Cloudflare Workers Static Assets
+        working-directory: quest-board
+        run: npx --yes wrangler@latest deploy --config wrangler.toml
