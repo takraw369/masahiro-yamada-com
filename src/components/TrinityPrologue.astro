@@ -1,0 +1,499 @@
+---
+interface Props {
+  gateId?: string;
+}
+
+const { gateId = 'trinity' } = Astro.props;
+---
+
+<section class="trinity-prologue" data-trinity-prologue data-gate-id={gateId} aria-hidden="true">
+  <div class="trinity-prologue__cosmos" aria-hidden="true"></div>
+  <div class="trinity-prologue__stars" aria-hidden="true"></div>
+  <div class="trinity-prologue__glow" aria-hidden="true"></div>
+
+  <div class="trinity-prologue__letter" role="dialog" aria-modal="true" aria-label="TRINITYへの案内">
+    <div class="trinity-prologue__paper">
+      <span class="trinity-prologue__wax" aria-hidden="true">A</span>
+
+      <div class="trinity-prologue__step is-active" data-story-step="0">
+        <span class="trinity-prologue__eyebrow">THE FIRST LETTER</span>
+        <h1>ようこそ。<br />扉は、もう開いています。</h1>
+        <p>
+          ただ、この先で答えを急ぐ必要はありません。<br />
+          最初に少しだけ、<strong>「なぜ問いに答えるのか」</strong>をお渡しします。
+        </p>
+        <blockquote>正解を探すためではなく、<br />自分の現在地を知るために。</blockquote>
+        <button type="button" data-story-next>手紙をひらく</button>
+      </div>
+
+      <div class="trinity-prologue__step" data-story-step="1">
+        <span class="trinity-prologue__eyebrow">THREE MIRRORS</span>
+        <h1>問いに答えるほど、<br />あなたの輪郭が立ち上がる。</h1>
+        <p>
+          TRINITYは、<strong>考え方</strong>・<strong>無意識の欲求</strong>・<strong>生まれ持ったリズム</strong>という
+          3つの方向から、今のあなたを眺めます。
+        </p>
+        <p class="trinity-prologue__subcopy">
+          診断名を貼るためではなく、<br />
+          「なぜそう感じ、どう動きやすいのか」を言葉にするためです。
+        </p>
+        <button type="button" data-story-next>もう少し読む</button>
+      </div>
+
+      <div class="trinity-prologue__step" data-story-step="2">
+        <span class="trinity-prologue__eyebrow">ACE METHOD</span>
+        <h1>知ることは、<br />次の一歩を選べること。</h1>
+        <p>
+          ACEでは、診断結果をゴールにしません。<br />
+          気づいたことを小さく試し、身体と現実で確かめる。
+        </p>
+        <p class="trinity-prologue__subcopy">
+          その反応から、あなたに合う<strong>次のQuestや扉</strong>が少しずつ変わっていきます。
+        </p>
+
+        <div class="trinity-prologue__flow" aria-label="ACEの体験フロー">
+          <span>知る</span><i>→</i><span>気づく</span><i>→</i><span>試す</span><i>→</i><span>変わる</span>
+        </div>
+
+        <button type="button" data-story-start>準備ができた。進む</button>
+        <small>直感で答えて大丈夫。正解はありません。</small>
+      </div>
+
+      <div class="trinity-prologue__progress" aria-hidden="true">
+        <span class="is-active" data-story-dot="0"></span>
+        <span data-story-dot="1"></span>
+        <span data-story-dot="2"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  html.trinity-gate-hold .ace-gate.is-finished {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* The Gate begins almost still, then accelerates toward the light. */
+  .ace-gate__stage {
+    transition-duration: 2.25s !important;
+    transition-timing-function: cubic-bezier(.70,.02,.92,.42) !important;
+  }
+
+  .ace-gate__door {
+    transition-duration: 2.2s !important;
+    transition-timing-function: cubic-bezier(.72,.015,.94,.40) !important;
+  }
+
+  .ace-gate__future-light {
+    transition-duration: 2.05s !important;
+    transition-timing-function: cubic-bezier(.68,.02,.92,.42) !important;
+  }
+
+  .ace-gate__floor-light {
+    transition-duration: 1.9s !important;
+    transition-timing-function: cubic-bezier(.68,.02,.94,.42) !important;
+  }
+
+  .ace-gate__whiteout {
+    transition-duration: 1.62s !important;
+    transition-timing-function: cubic-bezier(.72,.01,.96,.42) !important;
+  }
+
+  .ace-gate.is-unlocking .ace-gate__key {
+    animation: trinityKeyJourney 1.58s cubic-bezier(.68,.02,.90,.42) forwards !important;
+  }
+
+  @keyframes trinityKeyJourney {
+    0% {
+      transform: translate(0, 0) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    38% {
+      transform: translate(18px, -62px) scale(.92) rotate(-3deg);
+      opacity: 1;
+    }
+    72% {
+      transform: translate(64px, -226px) scale(.66) rotate(-10deg);
+      opacity: 1;
+    }
+    88% {
+      transform: translate(72px, -245px) scale(.62) rotate(18deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(72px, -245px) scale(.62) rotate(88deg);
+      opacity: 0;
+    }
+  }
+
+  .trinity-prologue {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: grid;
+    place-items: center;
+    min-height: 100svh;
+    overflow: hidden;
+    padding: max(22px, env(safe-area-inset-top)) 18px max(22px, env(safe-area-inset-bottom));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    color: #2b2419;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(255, 226, 164, .10), transparent 28%),
+      radial-gradient(circle at 50% 8%, rgba(70, 100, 160, .22), transparent 36%),
+      linear-gradient(180deg, #0b1a31 0%, #071321 50%, #030912 100%);
+    transition: opacity .85s ease, visibility .85s ease;
+    isolation: isolate;
+  }
+
+  .trinity-prologue.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .trinity-prologue.is-leaving {
+    opacity: 0;
+    transform: scale(1.018);
+    transition: opacity .72s ease, transform .72s ease;
+  }
+
+  .trinity-prologue__cosmos,
+  .trinity-prologue__stars,
+  .trinity-prologue__glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .trinity-prologue__cosmos {
+    background:
+      radial-gradient(circle at 16% 28%, rgba(84, 113, 174, .15), transparent 19%),
+      radial-gradient(circle at 83% 36%, rgba(97, 69, 144, .12), transparent 21%),
+      radial-gradient(circle at 48% 82%, rgba(26, 62, 108, .18), transparent 34%);
+  }
+
+  .trinity-prologue__stars {
+    opacity: .42;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,.78) 0 1px, transparent 1.35px),
+      radial-gradient(circle, rgba(188,214,255,.48) 0 1px, transparent 1.35px);
+    background-size: 92px 92px, 151px 151px;
+    background-position: 11px 23px, 71px 54px;
+    mask-image: linear-gradient(to bottom, #000, rgba(0,0,0,.72) 64%, transparent 98%);
+    animation: trinityStarDrift 22s ease-in-out infinite alternate;
+  }
+
+  .trinity-prologue__glow {
+    inset: auto 50% 7% auto;
+    width: min(84vw, 650px);
+    height: 34vh;
+    transform: translateX(50%);
+    background: radial-gradient(ellipse, rgba(247, 220, 156, .12), transparent 68%);
+    filter: blur(28px);
+  }
+
+  .trinity-prologue__letter {
+    position: relative;
+    z-index: 3;
+    width: min(92vw, 560px);
+    perspective: 1200px;
+  }
+
+  .trinity-prologue__paper {
+    position: relative;
+    min-height: min(70svh, 620px);
+    padding: clamp(56px, 9svh, 78px) clamp(24px, 7vw, 54px) 42px;
+    overflow: hidden;
+    border: 1px solid rgba(245, 222, 173, .52);
+    border-radius: 3px;
+    background:
+      linear-gradient(100deg, rgba(113,82,44,.04), transparent 19%, rgba(255,255,255,.18) 52%, transparent 80%),
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,.48), transparent 22%),
+      linear-gradient(180deg, #f4ead7 0%, #ebdcc0 58%, #e4d1aa 100%);
+    box-shadow:
+      0 34px 80px rgba(0,0,0,.48),
+      0 0 70px rgba(236, 203, 135, .08),
+      inset 0 0 80px rgba(119, 84, 39, .07);
+    transform: rotateX(.7deg) rotateY(-.5deg);
+  }
+
+  .trinity-prologue__paper::before,
+  .trinity-prologue__paper::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    pointer-events: none;
+    border: 1px solid rgba(100, 73, 39, .12);
+  }
+
+  .trinity-prologue__paper::after {
+    inset: 18px;
+    border-color: rgba(255,255,255,.22);
+  }
+
+  .trinity-prologue__wax {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    transform: translateX(-50%) rotate(-7deg);
+    border-radius: 46% 54% 49% 51%;
+    color: rgba(255,232,175,.78);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 19px;
+    font-weight: 600;
+    background: radial-gradient(circle at 35% 28%, #b86858, #803e3b 56%, #57282c 100%);
+    box-shadow: 0 5px 13px rgba(59, 30, 25, .32), inset 0 1px 2px rgba(255,255,255,.18);
+  }
+
+  .trinity-prologue__step {
+    position: absolute;
+    inset: clamp(56px, 9svh, 78px) clamp(24px, 7vw, 54px) 58px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(16px);
+    transition: opacity .55s ease, transform .55s ease, visibility .55s ease;
+  }
+
+  .trinity-prologue__step.is-active {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .trinity-prologue__eyebrow {
+    display: block;
+    margin-bottom: 20px;
+    color: #917044;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    letter-spacing: .42em;
+    text-align: center;
+  }
+
+  .trinity-prologue h1 {
+    margin: 0 0 25px;
+    color: #30271a;
+    font-family: 'Cormorant Garamond', 'Zen Kaku Gothic New', serif;
+    font-size: clamp(27px, 6vw, 38px);
+    font-weight: 400;
+    line-height: 1.46;
+    letter-spacing: .03em;
+    text-align: center;
+  }
+
+  .trinity-prologue p {
+    margin: 0 auto 18px;
+    max-width: 420px;
+    color: #574a37;
+    font-size: clamp(13px, 3.4vw, 15px);
+    line-height: 2.05;
+    text-align: center;
+  }
+
+  .trinity-prologue p strong {
+    color: #3e3020;
+    font-weight: 600;
+  }
+
+  .trinity-prologue__subcopy {
+    color: #71614b !important;
+    font-size: 12px !important;
+  }
+
+  .trinity-prologue blockquote {
+    margin: 7px auto 28px;
+    padding: 15px 19px;
+    max-width: 390px;
+    border-top: 1px solid rgba(130,94,45,.2);
+    border-bottom: 1px solid rgba(130,94,45,.2);
+    color: #80653f;
+    font-family: 'Cormorant Garamond', 'Zen Kaku Gothic New', serif;
+    font-size: 14px;
+    line-height: 1.8;
+    text-align: center;
+  }
+
+  .trinity-prologue button {
+    align-self: center;
+    min-width: 190px;
+    margin-top: 10px;
+    padding: 14px 24px;
+    border: 1px solid rgba(112,79,34,.48);
+    border-radius: 999px;
+    color: #f8eed9;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 12px;
+    letter-spacing: .16em;
+    cursor: pointer;
+    background: linear-gradient(135deg, #8e6b32, #5f451f);
+    box-shadow: 0 8px 20px rgba(81, 52, 22, .16), inset 0 1px 0 rgba(255,255,255,.22);
+    transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+  }
+
+  .trinity-prologue button:hover,
+  .trinity-prologue button:focus-visible {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow: 0 11px 24px rgba(81, 52, 22, .21), 0 0 18px rgba(184, 139, 65, .14);
+  }
+
+  .trinity-prologue small {
+    display: block;
+    margin-top: 13px;
+    color: #8a765a;
+    font-size: 10px;
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .trinity-prologue__flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 5px auto 16px;
+    color: #725732;
+    font-size: 11px;
+    letter-spacing: .08em;
+  }
+
+  .trinity-prologue__flow span {
+    padding: 5px 9px;
+    border: 1px solid rgba(116, 82, 36, .22);
+    border-radius: 999px;
+    background: rgba(255,255,255,.17);
+  }
+
+  .trinity-prologue__flow i {
+    opacity: .46;
+    font-style: normal;
+  }
+
+  .trinity-prologue__progress {
+    position: absolute;
+    left: 50%;
+    bottom: 27px;
+    z-index: 6;
+    display: flex;
+    gap: 9px;
+    transform: translateX(-50%);
+  }
+
+  .trinity-prologue__progress span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(110,79,39,.22);
+    transition: transform .3s ease, background .3s ease;
+  }
+
+  .trinity-prologue__progress span.is-active {
+    transform: scale(1.45);
+    background: #9d7943;
+  }
+
+  @keyframes trinityStarDrift {
+    from { transform: scale(1.06) translate3d(-.4%, -.3%, 0); }
+    to { transform: scale(1.12) translate3d(.5%, .4%, 0); }
+  }
+
+  @media (max-height: 700px) {
+    .trinity-prologue__paper {
+      min-height: 590px;
+      transform: scale(.91);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .trinity-prologue *,
+    .trinity-prologue *::before,
+    .trinity-prologue *::after {
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .12s !important;
+    }
+  }
+</style>
+
+<script>
+  const prologues = document.querySelectorAll<HTMLElement>('[data-trinity-prologue]');
+
+  prologues.forEach((prologue) => {
+    const expectedGateId = prologue.dataset.gateId || 'trinity';
+    const steps = Array.from(prologue.querySelectorAll<HTMLElement>('[data-story-step]'));
+    const dots = Array.from(prologue.querySelectorAll<HTMLElement>('[data-story-dot]'));
+    const nextButtons = Array.from(prologue.querySelectorAll<HTMLButtonElement>('[data-story-next]'));
+    const startButton = prologue.querySelector<HTMLButtonElement>('[data-story-start]');
+    const params = new URLSearchParams(window.location.search);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let index = 0;
+    let revealTimer = 0;
+
+    const dispatch = (name: string) => {
+      window.dispatchEvent(new CustomEvent(name, {
+        detail: { gateId: expectedGateId, storyStep: index }
+      }));
+    };
+
+    const setStep = (nextIndex: number) => {
+      index = Math.max(0, Math.min(nextIndex, steps.length - 1));
+      steps.forEach((step, stepIndex) => step.classList.toggle('is-active', stepIndex === index));
+      dots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === index));
+      dispatch('trinity:prologue-step');
+    };
+
+    const reveal = () => {
+      document.documentElement.classList.remove('trinity-gate-hold');
+      prologue.classList.add('is-visible');
+      prologue.setAttribute('aria-hidden', 'false');
+      dispatch('trinity:prologue-view');
+    };
+
+    document.documentElement.classList.add('trinity-gate-hold');
+
+    window.addEventListener('ace:gate-key-touch', (event) => {
+      if (!(event instanceof CustomEvent) || event.detail?.gateId !== expectedGateId) return;
+      window.clearTimeout(revealTimer);
+      revealTimer = window.setTimeout(reveal, reducedMotion ? 180 : 3450);
+    });
+
+    if (params.get('skip_gate') === '1') {
+      window.setTimeout(reveal, reducedMotion ? 20 : 180);
+    }
+
+    nextButtons.forEach((button) => {
+      button.addEventListener('click', () => setStep(index + 1));
+    });
+
+    startButton?.addEventListener('click', () => {
+      dispatch('trinity:prologue-complete');
+      prologue.classList.add('is-leaving');
+      window.setTimeout(() => {
+        prologue.classList.remove('is-visible');
+        prologue.setAttribute('aria-hidden', 'true');
+      }, reducedMotion ? 120 : 720);
+    });
+
+    if (params.get('skip_story') === '1') {
+      window.addEventListener('ace:gate-opened', (event) => {
+        if (!(event instanceof CustomEvent) || event.detail?.gateId !== expectedGateId) return;
+        document.documentElement.classList.remove('trinity-gate-hold');
+        dispatch('trinity:prologue-complete');
+      }, { once: true });
+    }
+  });
+</script>
