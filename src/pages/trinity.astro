@@ -1,4 +1,6 @@
 ---
+import ACEGate from '../components/ACEGate.astro';
+
 // Trinity Diagnosis — MBTI × 数秘術 × エニアグラム交差診断
 // Public page (no auth required)
 ---
@@ -99,6 +101,14 @@
   </style>
 </head>
 <body>
+  <ACEGate
+    gateId="trinity"
+    destination="inline"
+    label="TRINITY"
+    kicker="ACE METHOD"
+    hint="鍵を差し込む"
+  />
+
   <div id="trinity-root"></div>
 
   <div id="trial-cta-root" aria-live="polite">
@@ -127,6 +137,29 @@
     
     const root = createRoot(document.getElementById('trinity-root'));
     root.render(createElement(TrinityDiagnosis));
+
+    function startTrinityAfterGate() {
+      let attempts = 0;
+      const timer = window.setInterval(() => {
+        attempts += 1;
+        const startButton = Array.from(document.querySelectorAll('#trinity-root button'))
+          .find((button) => (button.textContent || '').includes('診断を始める'));
+
+        if (startButton instanceof HTMLButtonElement) {
+          window.clearInterval(timer);
+          startButton.click();
+          return;
+        }
+
+        if (attempts >= 30) window.clearInterval(timer);
+      }, 50);
+    }
+
+    window.addEventListener('ace:gate-opened', (event) => {
+      if (event instanceof CustomEvent && event.detail?.gateId === 'trinity') {
+        startTrinityAfterGate();
+      }
+    });
   </script>
 
   <script>
