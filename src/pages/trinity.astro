@@ -1,5 +1,6 @@
 ---
 import ACEGate from '../components/ACEGate.astro';
+import TrinityPrologue from '../components/TrinityPrologue.astro';
 
 // Trinity Diagnosis — MBTI × 数秘術 × エニアグラム交差診断
 // Public page (no auth required)
@@ -10,15 +11,13 @@ import ACEGate from '../components/ACEGate.astro';
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trinity Diagnosis | ACE METHOD</title>
   <meta name="description" content="MBTI × 数秘術 × エニアグラム — 3体系の交差があなたの認知構造を立体的に解き明かす" />
-  
-  <!-- OGP -->
+
   <meta property="og:title" content="Trinity Diagnosis | ACE METHOD" />
   <meta property="og:description" content="MBTI × 数秘術 × エニアグラム — 3体系の交差があなたの認知構造を立体的に解き明かす" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://masahiro-yamada.com/trinity" />
   <meta property="og:site_name" content="ACE METHOD | 山田昌寛" />
-  
-  <!-- Twitter Card -->
+
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Trinity Diagnosis | ACE METHOD" />
   <meta name="twitter:description" content="MBTI × 数秘術 × エニアグラム — 3体系の交差があなたの認知構造を立体的に解き明かす" />
@@ -29,20 +28,40 @@ import ACEGate from '../components/ACEGate.astro';
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { 
-      background: #0D0B08; 
-      color: #D4C5A9; 
+
+    html, body {
+      min-height: 100%;
+      background: #0D0B08;
+      color: #D4C5A9;
       font-family: 'Zen Kaku Gothic New', sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
+
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
+
     input[type="number"] { -moz-appearance: textfield; }
     button { font-family: inherit; }
+
+    /* Keep the questionnaire completely out of sight until the story grants entry. */
+    #trinity-root {
+      display: none;
+      opacity: 0;
+    }
+
+    body.trinity-diagnosis-active #trinity-root {
+      display: block;
+      animation: trinityQuestionArrival .9s ease forwards;
+    }
+
+    @keyframes trinityQuestionArrival {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     #trial-cta-root {
       display: none;
@@ -51,13 +70,16 @@ import ACEGate from '../components/ACEGate.astro';
       padding: 0 20px 56px;
       background: #0D0B08;
     }
+
     #trial-cta-root.is-visible { display: block; }
+
     .trial-cta {
       text-align: center;
       padding: 34px 24px;
       border: 1px solid rgba(201, 169, 110, 0.25);
       background: linear-gradient(180deg, rgba(201,169,110,0.08) 0%, rgba(26,22,18,0.65) 100%);
     }
+
     .trial-cta-kicker {
       display: block;
       color: #8B7355;
@@ -66,6 +88,7 @@ import ACEGate from '../components/ACEGate.astro';
       letter-spacing: 4px;
       margin-bottom: 14px;
     }
+
     .trial-cta h2 {
       color: #D4C5A9;
       font-family: 'Cormorant Garamond', serif;
@@ -74,12 +97,14 @@ import ACEGate from '../components/ACEGate.astro';
       line-height: 1.5;
       margin-bottom: 14px;
     }
+
     .trial-cta p {
       color: #7A6F5F;
       font-size: 13px;
       line-height: 1.9;
       margin-bottom: 22px;
     }
+
     .trial-cta a {
       display: block;
       background: #06C755;
@@ -91,12 +116,19 @@ import ACEGate from '../components/ACEGate.astro';
       font-weight: 700;
       box-shadow: 0 4px 20px rgba(6,199,85,0.22);
     }
+
     .trial-cta small {
       display: block;
       color: #4A4030;
       font-size: 10px;
       line-height: 1.7;
       margin-top: 12px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.trinity-diagnosis-active #trinity-root {
+        animation-duration: .12s;
+      }
     }
   </style>
 </head>
@@ -108,6 +140,8 @@ import ACEGate from '../components/ACEGate.astro';
     kicker="ACE METHOD"
     hint="鍵を差し込む"
   />
+
+  <TrinityPrologue gateId="trinity" />
 
   <div id="trinity-root"></div>
 
@@ -134,11 +168,14 @@ import ACEGate from '../components/ACEGate.astro';
     import { createElement } from 'react';
     import { createRoot } from 'react-dom/client';
     import TrinityDiagnosis from '../components/TrinityDiagnosis';
-    
-    const root = createRoot(document.getElementById('trinity-root'));
-    root.render(createElement(TrinityDiagnosis));
 
-    function startTrinityAfterGate() {
+    const rootElement = document.getElementById('trinity-root');
+    if (rootElement) {
+      const root = createRoot(rootElement);
+      root.render(createElement(TrinityDiagnosis));
+    }
+
+    function startTrinityFromIntro() {
       let attempts = 0;
       const timer = window.setInterval(() => {
         attempts += 1;
@@ -151,14 +188,19 @@ import ACEGate from '../components/ACEGate.astro';
           return;
         }
 
-        if (attempts >= 30) window.clearInterval(timer);
+        if (attempts >= 40) window.clearInterval(timer);
       }, 50);
     }
 
-    window.addEventListener('ace:gate-opened', (event) => {
-      if (event instanceof CustomEvent && event.detail?.gateId === 'trinity') {
-        startTrinityAfterGate();
-      }
+    window.addEventListener('trinity:prologue-complete', (event) => {
+      if (!(event instanceof CustomEvent) || event.detail?.gateId !== 'trinity') return;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      window.setTimeout(() => {
+        document.body.classList.add('trinity-diagnosis-active');
+        startTrinityFromIntro();
+        window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+      }, reducedMotion ? 40 : 610);
     });
   </script>
 
@@ -200,16 +242,23 @@ import ACEGate from '../components/ACEGate.astro';
       path: window.location.pathname,
     };
 
-    function track(eventName) {
+    function track(eventName, extra = {}) {
       fetch(FUNNEL_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event: eventName, ...context }),
+        body: JSON.stringify({ event: eventName, ...context, ...extra }),
         keepalive: true,
       }).catch(() => {});
     }
 
     track('trinity_view');
+
+    window.addEventListener('trinity:prologue-view', () => track('trinity_prologue_view'));
+    window.addEventListener('trinity:prologue-step', (event) => {
+      const storyStep = event instanceof CustomEvent ? event.detail?.storyStep : undefined;
+      track('trinity_prologue_step', { storyStep });
+    });
+    window.addEventListener('trinity:prologue-complete', () => track('trinity_prologue_complete'));
 
     let currentResultCode = '';
 
@@ -226,9 +275,6 @@ import ACEGate from '../components/ACEGate.astro';
       const text = (target.textContent || '').trim();
       const href = target instanceof HTMLAnchorElement ? target.href : '';
 
-      // The existing React component points to the friend-add URL. Once a result code
-      // exists, replace that click with an official LINE URL-scheme that prefills the
-      // exact unlock command. The user only needs to tap Send in LINE.
       if (
         currentResultCode &&
         target instanceof HTMLAnchorElement &&
@@ -269,8 +315,6 @@ import ACEGate from '../components/ACEGate.astro';
         track('trinity_complete');
       }
 
-      // The trial-session offer is a separate conversion path, not gated content.
-      // Show it after every completed diagnosis so revenue does not depend on LINE automation health.
       if (hasResult && !trialShown && trialRoot) {
         trialShown = true;
         trialRoot.classList.add('is-visible');
