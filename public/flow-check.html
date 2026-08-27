@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Flow Check | Sun Loves Flow</title>
+  <style>
+    :root {
+      --bg: #080a12;
+      --panel: rgba(19, 22, 38, 0.88);
+      --panel-2: rgba(28, 31, 50, 0.92);
+      --text: #f4f4f8;
+      --muted: #aaaec0;
+      --line: rgba(255,255,255,.10);
+      --indigo: #7d83ff;
+      --violet: #b987ff;
+      --good: #89e5c6;
+      --danger: #ff9caa;
+      --shadow: 0 24px 60px rgba(0,0,0,.30);
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body { margin: 0; min-height: 100vh; color: var(--text); background: radial-gradient(800px 520px at 15% -10%, rgba(125,131,255,.20), transparent 62%), radial-gradient(700px 520px at 100% 0%, rgba(185,135,255,.13), transparent 62%), var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; line-height: 1.7; }
+    .wrap { width: min(760px, calc(100% - 28px)); margin: 0 auto; padding: 42px 0 64px; }
+    .eyebrow { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--indigo); font-weight: 700; }
+    h1 { margin: 8px 0 8px; font-size: clamp(32px, 8vw, 54px); line-height: 1.08; letter-spacing: -.03em; }
+    .lead { margin: 0; color: var(--muted); font-size: 15px; }
+    .meta { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 30px; }
+    .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; color: var(--muted); font-size: 12px; }
+    .panel { background: linear-gradient(180deg, var(--panel), rgba(14,16,28,.92)); border: 1px solid var(--line); border-radius: 20px; padding: 22px; box-shadow: var(--shadow); backdrop-filter: blur(16px); }
+    .intro strong { color: var(--text); }
+    .notice { margin-top: 15px; padding: 12px 14px; border-left: 3px solid var(--indigo); background: rgba(125,131,255,.08); color: var(--muted); font-size: 12px; }
+    .section { margin-top: 28px; }
+    .section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .section-title h2 { font-size: 19px; margin: 0; }
+    .section-title span { color: var(--muted); font-size: 11px; }
+    .question { padding: 18px 0; border-top: 1px solid var(--line); }
+    .question:first-of-type { border-top: 0; }
+    .qtext { margin-bottom: 11px; font-weight: 650; font-size: 15px; }
+    .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+    .scale input { position: absolute; opacity: 0; pointer-events: none; }
+    .scale label { min-height: 48px; border: 1px solid var(--line); border-radius: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,.025); transition: .15s ease; user-select: none; }
+    .scale label b { font-size: 15px; line-height: 1.1; }
+    .scale label small { margin-top: 3px; font-size: 9px; color: var(--muted); }
+    .scale input:checked + label { border-color: var(--indigo); background: rgba(125,131,255,.16); box-shadow: 0 0 0 1px rgba(125,131,255,.15) inset; }
+    .actions { margin-top: 28px; }
+    button { width: 100%; border: 0; border-radius: 14px; padding: 15px 18px; font-size: 16px; font-weight: 800; color: #0a0b12; background: linear-gradient(135deg, var(--good), #c9f4d9); cursor: pointer; box-shadow: 0 14px 30px rgba(137,229,198,.14); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    #error { display: none; margin-top: 12px; color: var(--danger); font-size: 13px; }
+    #result { display: none; }
+    .result-head { margin-bottom: 22px; }
+    .result-head h2 { font-size: 29px; line-height: 1.25; margin: 8px 0; }
+    .result-summary { color: var(--muted); }
+    .bars { display: grid; gap: 13px; margin: 24px 0; }
+    .bar-row { display: grid; grid-template-columns: 72px 1fr 42px; align-items: center; gap: 10px; font-size: 13px; }
+    .bar-track { height: 9px; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; }
+    .bar-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--indigo), var(--violet)); transition: width .6s ease; }
+    .next { padding: 17px; border: 1px solid rgba(137,229,198,.22); background: rgba(137,229,198,.07); border-radius: 14px; }
+    .next .label { color: var(--good); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+    .next p { margin: 6px 0 0; }
+    .foot { margin-top: 24px; color: var(--muted); font-size: 11px; text-align: center; }
+    .invalid { display: none; text-align: center; padding: 44px 20px; }
+    @media (max-width: 520px) { .wrap { width: min(100% - 20px, 760px); padding-top: 28px; } .panel { padding: 17px; border-radius: 17px; } .scale { gap: 5px; } .scale label { min-height: 46px; border-radius: 9px; } .scale label small { display: none; } .bar-row { grid-template-columns: 62px 1fr 35px; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div id="app">
+      <div class="eyebrow">Sun Loves Flow</div>
+      <h1>Flow Check</h1>
+      <p class="lead">変える前に、いまの流れを知る。心・身体・環境・行動の4方向から現在地を3分で可視化します。</p>
+      <div class="meta"><span class="chip">12問</span><span class="chip">約3分</span><span class="chip">正解・不正解なし</span></div>
+      <section id="formPanel" class="panel">
+        <div class="intro"><strong>「理想の自分」ではなく、直近7日間の自分</strong>に最も近いものを選んでください。<div class="notice">このチェックは自己観察・学習のためのもので、医学的・心理学的な診断ではありません。</div></div>
+        <form id="checkForm"></form>
+        <div class="actions"><button id="submitBtn" type="button" disabled>結果を見る</button><div id="error"></div></div>
+      </section>
+      <section id="result" class="panel"><div class="result-head"><div class="eyebrow">Your Current Flow</div><h2 id="resultTitle"></h2><div id="resultSummary" class="result-summary"></div></div><div id="bars" class="bars"></div><div class="next"><div class="label">NEXT ONE ACTION</div><p id="nextAction"></p></div><p class="foot">結果はLINEでの今後の案内を、あなたの現在地に合わせるためにも使われます。</p></section>
+    </div>
+    <section id="invalid" class="panel invalid"><div class="eyebrow">Sun Loves Flow</div><h2>専用リンクから開いてください</h2><p class="lead">このFlow Checkは、LINE登録後に発行される個別リンクから利用できます。</p></section>
+  </main>
+  <script>
+    const ENDPOINT = 'https://qydbtholbwbuwiswmqsr.supabase.co/functions/v1/flow-check-submit';
+    const token = new URLSearchParams(location.search).get('t');
+    const groups = [
+      { key: 'body', name: '身体', questions: ['朝から身体に重さを引きずらず、動き出せている','呼吸・姿勢・睡眠など、自分の身体状態に気づけている','疲れたとき、無理に押し切る以外の整え方を持っている']},
+      { key: 'mind', name: '心・認知', questions: ['頭の中に余白があり、今やることに注意を向けられている','不安や焦りが出ても、それに飲み込まれず観察できている','自分が何を大切にしたいかを、言葉か感覚でつかめている']},
+      { key: 'environment', name: '環境', questions: ['集中したいときに集中しやすい場所・道具・時間がある','通知・人間関係・物の配置など、不要な刺激を減らせている','自分が自然に良い行動を選びやすい環境を作れている']},
+      { key: 'action', name: '行動', questions: ['考えるだけで終わらず、小さく着手できている','やることを増やすより、今必要な一手を選べている','行動した結果を見て、やり方を柔軟に変えられている']}
+    ];
+    const scaleWords = ['ほぼない','少ない','半々','多い','かなりある'];
+    const labels = { body:'身体', mind:'心・認知', environment:'環境', action:'行動' };
+    const app = document.getElementById('app'); const invalid = document.getElementById('invalid'); const form = document.getElementById('checkForm'); const submit = document.getElementById('submitBtn'); const errorBox = document.getElementById('error');
+    if (!token) { app.style.display = 'none'; invalid.style.display = 'block'; } else {
+      let idx = 0;
+      groups.forEach(group => { const section = document.createElement('section'); section.className = 'section'; section.innerHTML = `<div class="section-title"><h2>${group.name}</h2><span>0 = ほぼない / 4 = かなりある</span></div>`; group.questions.forEach(q => { const qIndex = idx++; const block = document.createElement('div'); block.className = 'question'; block.innerHTML = `<div class="qtext">${qIndex + 1}. ${q}</div><div class="scale">${[0,1,2,3,4].map(v => `<input id="q${qIndex}_${v}" type="radio" name="q${qIndex}" value="${v}"><label for="q${qIndex}_${v}"><b>${v}</b><small>${scaleWords[v]}</small></label>`).join('')}</div>`; section.appendChild(block); }); form.appendChild(section); });
+      form.addEventListener('change', () => { const answered = new FormData(form); submit.disabled = [...Array(12)].some((_, i) => !answered.has(`q${i}`)); });
+      submit.addEventListener('click', async () => { errorBox.style.display = 'none'; const data = new FormData(form); const answers = [...Array(12)].map((_, i) => Number(data.get(`q${i}`))); submit.disabled = true; submit.textContent = '集計中…'; try { const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, answers }) }); const json = await res.json(); if (!res.ok || !json.ok) throw new Error(json.error || 'submit_failed'); renderResult(json); } catch (err) { console.error(err); errorBox.textContent = '結果を保存できませんでした。LINEから専用リンクを開き直して、もう一度お試しください。'; errorBox.style.display = 'block'; submit.disabled = false; submit.textContent = '結果を見る'; } });
+    }
+    function renderResult(r) { document.getElementById('formPanel').style.display = 'none'; const result = document.getElementById('result'); result.style.display = 'block'; document.getElementById('resultTitle').textContent = r.level_label; document.getElementById('resultSummary').textContent = r.summary; document.getElementById('nextAction').textContent = r.next_action; const bars = document.getElementById('bars'); bars.innerHTML = ''; ['body','mind','environment','action'].forEach(key => { const score = Number(r.scores[key] || 0); const row = document.createElement('div'); row.className = 'bar-row'; row.innerHTML = `<div>${labels[key]}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(score / 12 * 100)}%"></div></div><div>${score}/12</div>`; bars.appendChild(row); }); result.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  </script>
+</body>
+</html>
