@@ -1,5 +1,6 @@
 name: Bootstrap ACE Quest Board Cloudflare
 
+# Re-bootstrap after FLOW OS PWA foundation / LIFF entry updates.
 on:
   push:
     branches: [master]
