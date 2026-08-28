@@ -13,7 +13,7 @@ const vaultPath = candidates.find((candidate) => fs.existsSync(candidate));
 const destDir = path.join(process.cwd(), 'src', 'content', 'tips');
 
 if (!vaultPath) {
-  console.log('[ACE Tips] ace-vault not found. Keeping mirrored Tips already in the site repository.');
+  console.log('[ACE Tips] ace-vault not found. Keeping mirrored public Tips already in the site repository.');
   process.exit(0);
 }
 
@@ -31,10 +31,19 @@ function frontmatter(raw) {
   return end === -1 ? '' : raw.slice(3, end);
 }
 
-function isPublishedTip(raw) {
+function isPublicPublishedTip(raw) {
   const fm = frontmatter(raw);
-  return /^publish:\s*true\s*$/m.test(fm) && /^publish_to:\s*tips\s*$/m.test(fm);
+  return (
+    /^publish:\s*true\s*$/m.test(fm) &&
+    /^publish_to:\s*tips\s*$/m.test(fm) &&
+    /^access:\s*public\s*$/m.test(fm)
+  );
 }
+
+// Security boundary:
+// Only content explicitly marked `access: public` may ever enter this public repository.
+// LINE-gated, paid, or private content must stay in private storage (ace-vault/Supabase/etc.).
+// Missing `access` is treated as NOT public.
 
 // Remove only files previously mirrored from the Vault. Site-native Tips stay untouched.
 for (const name of fs.readdirSync(destDir)) {
@@ -47,13 +56,17 @@ for (const name of fs.readdirSync(destDir)) {
 }
 
 let synced = 0;
+let skipped = 0;
 for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
   if (!entry.isFile() || !entry.name.endsWith('.md') || entry.name.startsWith('_')) continue;
   const source = path.join(sourceDir, entry.name);
   const raw = fs.readFileSync(source, 'utf8');
-  if (!isPublishedTip(raw)) continue;
+  if (!isPublicPublishedTip(raw)) {
+    skipped += 1;
+    continue;
+  }
   fs.copyFileSync(source, path.join(destDir, entry.name));
   synced += 1;
 }
 
-console.log(`[ACE Tips] Synced ${synced} published Tips from ${sourceDir}`);
+console.log(`[ACE Tips] Synced ${synced} explicitly public Tips; skipped ${skipped} non-public/unclassified files.`);
