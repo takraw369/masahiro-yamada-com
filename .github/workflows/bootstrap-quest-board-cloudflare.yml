@@ -1,6 +1,6 @@
 name: Bootstrap ACE Quest Board Cloudflare
 
-# Re-bootstrap after live LIFF configuration update.
+# Re-bootstrap after Quest experiment-loop update.
 on:
   push:
     branches: [master]
