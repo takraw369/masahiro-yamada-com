@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import TipsLayout from '../../layouts/TipsLayout.astro';
+
+const { slug } = Astro.params;
+const tips = await getCollection('tips', ({ data }) => data.publish !== false);
+const tip = tips.find((item) => {
+  const itemSlug = item.data.slug ?? item.id.replace(/\.md$/, '');
+  return itemSlug === slug;
+});
+
+if (!tip) return Astro.redirect('/tips/', 302);
+const { Content } = await tip.render();
+---
+
+<TipsLayout title={tip.data.title} description={`${tip.data.title} — ACE Tips`}>
+  <article class="article">
+    <a class="back" href="/tips/">← ALL TIPS</a>
+    <header>
+      <div class="meta">
+        <span>{tip.data.category}</span>
+        <time datetime={tip.data.publishedAt.toISOString()}>{tip.data.publishedAt.toLocaleDateString('ja-JP')}</time>
+      </div>
+      <h1>{tip.data.title}</h1>
+    </header>
+    <div class="body"><Content /></div>
+    <footer class="article-footer">
+      <a href="/tips/">← Tips一覧へ</a>
+      {tip.data.related_lp && <a href={tip.data.related_lp}>ACE METHOD →</a>}
+    </footer>
+  </article>
+
+  <style is:global>
+    .article { max-width: 720px; padding: 56px 0 0; }
+    .back { display: inline-block; margin-bottom: 34px; color: var(--muted); text-decoration: none; font-size: 12px; letter-spacing: .12em; }
+    .article header { border: 0; }
+    .article .meta { display: flex; gap: 12px; color: var(--muted); font-size: 12px; }
+    .article h1 { margin: 12px 0 34px; font-size: clamp(30px, 5vw, 46px); line-height: 1.35; letter-spacing: -.025em; }
+    .body { font-size: 16px; line-height: 2; }
+    .body h2 { margin: 2.8em 0 .8em; font-size: 24px; line-height: 1.5; }
+    .body h3 { margin: 2.2em 0 .7em; font-size: 19px; }
+    .body p { margin: 0 0 1.45em; }
+    .body ul, .body ol { padding-left: 1.4em; margin: 0 0 1.5em; }
+    .body li { margin: .45em 0; }
+    .body blockquote { margin: 2em 0; padding: 2px 0 2px 18px; border-left: 3px solid var(--accent); color: var(--muted); }
+    .body strong { color: var(--accent); }
+    .article-footer { display: flex; justify-content: space-between; gap: 20px; margin-top: 56px; padding: 24px 0 0; border-top: 1px solid var(--line); }
+    .article-footer a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  </style>
+</TipsLayout>

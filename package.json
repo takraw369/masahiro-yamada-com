@@ -3,7 +3,9 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "predev": "node ./scripts/sync-from-vault.mjs",
     "dev": "astro dev",
+    "prebuild": "node ./scripts/sync-from-vault.mjs",
     "build": "astro build && node ./scripts/patch-worker.mjs",
     "preview": "wrangler pages dev ./dist",
     "deploy": "astro build && node ./scripts/patch-worker.mjs && wrangler deploy",

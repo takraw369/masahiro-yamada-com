@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import TipsLayout from '../../layouts/TipsLayout.astro';
+
+const tips = (await getCollection('tips', ({ data }) => data.publish !== false))
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+---
+
+<TipsLayout title="Tips" description="ACEの実践知を短く、使える形で。身体・FLOW・be-do-have・比較三原則など。">
+  <section class="hero">
+    <p class="eyebrow">ACE KNOWLEDGE</p>
+    <h1>Tips</h1>
+    <p class="lead">心と身体、競技と人生を整える。短く読めて、すぐ試せる実践知。</p>
+  </section>
+
+  <section class="list" aria-label="Tips list">
+    {tips.map((tip) => {
+      const slug = tip.data.slug ?? tip.id.replace(/\.md$/, '');
+      return (
+        <article class="card">
+          <div class="meta">
+            <span>{tip.data.category}</span>
+            <time datetime={tip.data.publishedAt.toISOString()}>{tip.data.publishedAt.toLocaleDateString('ja-JP')}</time>
+          </div>
+          <h2><a href={`/tips/${slug}`}>{tip.data.title}</a></h2>
+        </article>
+      );
+    })}
+  </section>
+
+  <style>
+    .hero { padding: 72px 0 44px; border-bottom: 1px solid var(--line); }
+    .eyebrow { margin: 0 0 10px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .16em; }
+    h1 { margin: 0; font-size: clamp(42px, 8vw, 72px); line-height: 1; letter-spacing: -.04em; }
+    .lead { max-width: 620px; margin: 22px 0 0; color: var(--muted); font-size: 16px; line-height: 1.9; }
+    .list { display: grid; }
+    .card { padding: 28px 0 30px; border-bottom: 1px solid var(--line); }
+    .meta { display: flex; gap: 12px; color: var(--muted); font-size: 12px; }
+    h2 { margin: 10px 0 0; font-size: clamp(20px, 3vw, 27px); line-height: 1.5; }
+    h2 a { text-decoration: none; }
+    h2 a:hover { color: var(--accent); }
+  </style>
+</TipsLayout>
