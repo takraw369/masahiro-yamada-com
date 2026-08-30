@@ -1,5 +1,10 @@
 import type { APIContext } from 'astro';
-import { getSiteStorageEnv, migrateLegacyD1, supabaseRpc } from '../../../lib/siteStorage';
+import {
+  getDashboardOwnerKey,
+  getSiteStorageEnv,
+  migrateLegacyD1,
+  supabaseRpc,
+} from '../../../lib/siteStorage';
 
 export const GET = async ({ locals }: APIContext) => {
   const env = getSiteStorageEnv(locals);
@@ -11,9 +16,11 @@ export const GET = async ({ locals }: APIContext) => {
   }
 
   try {
+    const ownerKey = await getDashboardOwnerKey(env);
     const rows = await supabaseRpc<Array<{ slot_id: string }>>(
       env,
-      'masa_dashboard_state_get',
+      'masa_dashboard_state_get_v2',
+      { p_owner_key: ownerKey },
     );
     const checked: Record<string, boolean> = {};
     for (const row of rows || []) checked[row.slot_id] = true;
@@ -64,7 +71,9 @@ export const POST = async ({ request, locals }: APIContext) => {
   }
 
   try {
-    await supabaseRpc<boolean>(env, 'masa_dashboard_state_set', {
+    const ownerKey = await getDashboardOwnerKey(env);
+    await supabaseRpc<boolean>(env, 'masa_dashboard_state_set_v2', {
+      p_owner_key: ownerKey,
       p_slot_id: slotId,
       p_checked: checked,
       p_xp: xp,

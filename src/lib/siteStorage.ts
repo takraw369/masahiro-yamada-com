@@ -1,6 +1,9 @@
+import { dashboardOwnerKey } from './dashboardAuth';
+
 export interface SiteStorageEnv {
   SUPABASE_URL?: string;
   SUPABASE_PUBLISHABLE_KEY?: string;
+  DASHBOARD_PASSWORD?: string;
   DB?: D1Database;
 }
 
@@ -15,6 +18,11 @@ export function getSiteStorageEnv(locals: any): SiteStorageEnv {
 
 export function hasSupabase(env: SiteStorageEnv) {
   return Boolean(env.SUPABASE_URL && env.SUPABASE_PUBLISHABLE_KEY);
+}
+
+export async function getDashboardOwnerKey(env: SiteStorageEnv) {
+  if (!env.DASHBOARD_PASSWORD) throw new Error('dashboard_secret_missing');
+  return dashboardOwnerKey(env.DASHBOARD_PASSWORD);
 }
 
 export async function supabaseRpc<T>(
@@ -61,7 +69,10 @@ export async function migrateLegacyD1(env: SiteStorageEnv): Promise<MigrationSta
     return { ...stats, skipped: true };
   }
 
-  const alreadyMigrated = await supabaseRpc<boolean>(env, 'masa_legacy_d1_migrated');
+  const ownerKey = await getDashboardOwnerKey(env);
+  const alreadyMigrated = await supabaseRpc<boolean>(env, 'masa_legacy_d1_migrated_v2', {
+    p_owner_key: ownerKey,
+  });
   if (alreadyMigrated) {
     return { ...stats, skipped: true };
   }
@@ -74,7 +85,8 @@ export async function migrateLegacyD1(env: SiteStorageEnv): Promise<MigrationSta
     ).bind('masa').all<{ slot_id: string; xp: number; checked_at: string }>();
 
     for (const row of rows.results || []) {
-      await supabaseRpc<boolean>(env, 'masa_dashboard_state_set', {
+      await supabaseRpc<boolean>(env, 'masa_dashboard_state_set_v2', {
+        p_owner_key: ownerKey,
         p_slot_id: row.slot_id,
         p_checked: true,
         p_xp: row.xp || 0,
@@ -102,7 +114,8 @@ export async function migrateLegacyD1(env: SiteStorageEnv): Promise<MigrationSta
     }>();
 
     for (const row of rows.results || []) {
-      await supabaseRpc<string>(env, 'masa_dashboard_feedback_import', {
+      await supabaseRpc<string>(env, 'masa_dashboard_feedback_import_v2', {
+        p_owner_key: ownerKey,
         p_legacy_id: row.id,
         p_page: row.page,
         p_message: row.message,
@@ -150,7 +163,9 @@ export async function migrateLegacyD1(env: SiteStorageEnv): Promise<MigrationSta
   }
 
   if (!hadUnexpectedError) {
-    await supabaseRpc<boolean>(env, 'masa_legacy_d1_mark_migrated');
+    await supabaseRpc<boolean>(env, 'masa_legacy_d1_mark_migrated_v2', {
+      p_owner_key: ownerKey,
+    });
   }
 
   return stats;

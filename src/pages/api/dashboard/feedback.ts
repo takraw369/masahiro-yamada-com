@@ -1,5 +1,10 @@
 import type { APIContext } from 'astro';
-import { getSiteStorageEnv, migrateLegacyD1, supabaseRpc } from '../../../lib/siteStorage';
+import {
+  getDashboardOwnerKey,
+  getSiteStorageEnv,
+  migrateLegacyD1,
+  supabaseRpc,
+} from '../../../lib/siteStorage';
 
 async function ensureD1Table(db: D1Database) {
   await db.prepare(`
@@ -25,6 +30,7 @@ export const GET = async ({ locals }: APIContext) => {
   }
 
   try {
+    const ownerKey = await getDashboardOwnerKey(env);
     const rows = await supabaseRpc<Array<{
       id: string;
       page: string;
@@ -32,7 +38,10 @@ export const GET = async ({ locals }: APIContext) => {
       context: string | null;
       status: string;
       created_at: string;
-    }>>(env, 'masa_dashboard_feedback_list', { p_limit: 20 });
+    }>>(env, 'masa_dashboard_feedback_list_v2', {
+      p_owner_key: ownerKey,
+      p_limit: 20,
+    });
 
     const items = (rows || []).map((row) => ({
       ...row,
@@ -90,7 +99,9 @@ export const POST = async ({ request, locals }: APIContext) => {
   }
 
   try {
-    const id = await supabaseRpc<string>(env, 'masa_dashboard_feedback_add', {
+    const ownerKey = await getDashboardOwnerKey(env);
+    const id = await supabaseRpc<string>(env, 'masa_dashboard_feedback_add_v2', {
+      p_owner_key: ownerKey,
       p_page: page,
       p_message: message,
       p_context: context,
