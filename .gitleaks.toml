@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Supabase publishable key is intentionally public and safe to ship client-side"
+regexes = [
+  '''sb_publishable_mv8O-7lEXnuubYLVzXIJnA_A1irQJB9'''
+]
