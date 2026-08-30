@@ -1,10 +1,11 @@
 ---
 import { dashboardAuthToken, safeTokenEqual } from '../../lib/dashboardAuth';
+import { getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
 
 const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
-const correctPassword = env?.DASHBOARD_PASSWORD ?? '';
+const signingSecret = env?.DASHBOARD_PASSWORD ?? '';
 const cookie = Astro.cookies.get('ace-dash-auth')?.value;
-const expectedToken = correctPassword ? await dashboardAuthToken(correctPassword) : '';
+const expectedToken = signingSecret ? await dashboardAuthToken(signingSecret) : '';
 
 if (safeTokenEqual(cookie, expectedToken)) {
   return Astro.redirect('/dashboard');
@@ -14,10 +15,23 @@ let error = '';
 
 if (Astro.request.method === 'POST') {
   const formData = await Astro.request.formData();
-  const password = formData.get('password') as string;
+  const password = String(formData.get('password') ?? '');
+  let valid = false;
 
-  if (password && correctPassword && password === correctPassword) {
-    const token = await dashboardAuthToken(correctPassword);
+  if (password) {
+    try {
+      valid = await supabaseRpc<boolean>(
+        getSiteStorageEnv(Astro.locals),
+        'verify_dashboard_login_password',
+        { p_password: password },
+      );
+    } catch {
+      error = 'ログイン認証に接続できません。少し待って再試行してください。';
+    }
+  }
+
+  if (valid && signingSecret) {
+    const token = await dashboardAuthToken(signingSecret);
     Astro.cookies.set('ace-dash-auth', token, {
       path: '/',
       httpOnly: true,
@@ -26,9 +40,9 @@ if (Astro.request.method === 'POST') {
       maxAge: 60 * 60 * 24 * 30,
     });
     return Astro.redirect('/dashboard');
-  } else {
-    error = 'パスワードが違います';
   }
+
+  if (!error) error = 'パスワードが違います';
 }
 ---
 <!DOCTYPE html>
