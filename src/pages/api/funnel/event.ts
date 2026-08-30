@@ -1,8 +1,5 @@
 import type { APIContext } from 'astro';
-
-interface Env {
-  DB: D1Database;
-}
+import { getSiteStorageEnv, supabaseRpc } from '../../../lib/siteStorage';
 
 const ALLOWED_EVENTS = new Set([
   'trinity_view',
@@ -18,7 +15,7 @@ const clean = (value: unknown, max = 120) =>
   typeof value === 'string' ? value.trim().slice(0, max) : null;
 
 export const POST = async ({ request, locals }: APIContext) => {
-  const env = locals.runtime?.env as Env | undefined;
+  const env = getSiteStorageEnv(locals);
 
   let body: Record<string, unknown>;
   try {
@@ -44,30 +41,48 @@ export const POST = async ({ request, locals }: APIContext) => {
     });
   }
 
-  // Tracking must never block the diagnosis UX. Before the migration is applied,
-  // accept the event but report that it was not stored.
-  if (!env?.DB) {
-    return new Response(JSON.stringify({ ok: true, stored: false }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
-    await env.DB.prepare(
-      `INSERT INTO trinity_funnel_events
-        (session_id, event_name, source, medium, campaign, path)
-       VALUES (?, ?, ?, ?, ?, ?)`
-    )
-      .bind(sessionId, eventName, source, medium, campaign, path)
-      .run();
+    const id = await supabaseRpc<number>(env, 'trinity_funnel_event_add', {
+      p_session_id: sessionId,
+      p_event_name: eventName,
+      p_source: source,
+      p_medium: medium,
+      p_campaign: campaign,
+      p_path: path,
+    });
 
-    return new Response(JSON.stringify({ ok: true, stored: true }), {
+    return new Response(JSON.stringify({ ok: true, stored: true, id, storage: 'supabase' }), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch {
-    // A missing migration should not make the public diagnosis fail.
-    return new Response(JSON.stringify({ ok: true, stored: false }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (supabaseError) {
+    // Public diagnosis must remain usable even if analytics storage is unavailable.
+    if (!env.DB) {
+      return new Response(JSON.stringify({ ok: true, stored: false, storage: 'unavailable' }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    try {
+      await env.DB.prepare(
+        `INSERT INTO trinity_funnel_events
+          (session_id, event_name, source, medium, campaign, path)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      )
+        .bind(sessionId, eventName, source, medium, campaign, path)
+        .run();
+
+      return new Response(JSON.stringify({ ok: true, stored: true, storage: 'd1-fallback' }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch {
+      return new Response(JSON.stringify({
+        ok: true,
+        stored: false,
+        storage: 'unavailable',
+        fallback: String(supabaseError),
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
   }
 };
