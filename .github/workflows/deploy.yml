@@ -30,16 +30,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      # D1 permissions are managed separately from Workers deploy permissions.
-      # Keep the error visible, but do not block the site while the D1 token scope
-      # is repaired or D1 is consolidated into the long-term data architecture.
-      - name: Apply D1 migrations
-        continue-on-error: true
-        run: npx --yes wrangler@latest d1 migrations apply sunlovesflow-db --remote
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Deploy to Cloudflare Workers
         run: npx --yes wrangler@latest deploy
         env:
