@@ -5,6 +5,8 @@ compatibility_flags = ["nodejs_compat_v2"]
 main = "./dist/_worker.js/index.js"
 assets = { directory = "./dist", binding = "ASSETS" }
 
+# Temporary cutover binding: Supabase is now primary storage, while D1 remains
+# available only for one-time legacy import and emergency fallback.
 [[d1_databases]]
 binding = "DB"
 database_name = "sunlovesflow-db"
@@ -14,4 +16,8 @@ database_id = "b3f9ad9b-3e6a-4a11-8059-b7997466db85"
 SITE_NAME = "masahiro-yamada.com"
 X_HARNESS_URL = "https://x-harness-worker.takraw501.workers.dev"
 LINE_HARNESS_URL = "https://line-crm-worker.takraw501.workers.dev"
+SUPABASE_URL = "https://qydbtholbwbuwiswmqsr.supabase.co"
+# Publishable keys are intentionally public and are protected by least-privilege
+# Postgres function grants. Never put a Supabase secret/service-role key here.
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_mv8O-7lEXnuubYLVzXIJnA_A1irQJB9"
 # X_HARNESS_API_KEY and LINE_HARNESS_API_KEY are set as Cloudflare Worker Secrets
