@@ -9,6 +9,7 @@ const tips = defineCollection({
     category: z.enum(['比較三原則', '第0層', 'be-do-have', 'FLOW', 'フジサン', 'その他']),
     publish: z.boolean().optional(),
     publish_to: z.string().optional(),
+    access: z.literal('public'),
     related_lp: z.string().optional(),
   }),
 });
