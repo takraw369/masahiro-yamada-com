@@ -4,6 +4,7 @@ import { getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
 
 const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
 const signingSecret = env?.DASHBOARD_PASSWORD ?? '';
+const supabaseUrl = env?.SUPABASE_URL ?? '';
 const cookie = Astro.cookies.get('ace-dash-auth')?.value;
 const expectedToken = signingSecret ? await dashboardAuthToken(signingSecret) : '';
 
@@ -50,18 +51,19 @@ if (Astro.request.method === 'POST') {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ACE Dashboard — Login</title>
+  <title>MASA OS — Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg: #0a0a1a;
       --surface: #12121f;
-      --border: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.09);
       --accent: #F59E0B;
       --text: #e8e8f0;
-      --text-dim: #7070a0;
+      --text-dim: #80809c;
+      --google: #ffffff;
     }
     body {
       background: var(--bg);
@@ -76,20 +78,51 @@ if (Astro.request.method === 'POST') {
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 48px 40px;
+      border-radius: 22px;
+      padding: 42px 36px;
       width: 100%;
-      max-width: 380px;
+      max-width: 410px;
       text-align: center;
+      box-shadow: 0 30px 80px rgba(0,0,0,.28);
     }
     .logo { font-size: 2.2rem; margin-bottom: 10px; }
-    .title { font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
-    .subtitle { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 36px; letter-spacing: 0.04em; }
-    .form-group { margin-bottom: 20px; text-align: left; }
-    label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+    .title { font-size: 1.55rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+    .subtitle { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 28px; letter-spacing: 0.03em; }
+    .message, .error {
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 0.84rem;
+      margin-bottom: 18px;
+      text-align: left;
+      line-height: 1.55;
+    }
+    .error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+    .message { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #fcd58b; }
+    .google-button, button[type="submit"] {
+      width: 100%;
+      border: 0;
+      border-radius: 11px;
+      padding: 14px 16px;
+      font-size: .95rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      min-height: 50px;
+    }
+    .google-button { background: var(--google); color: #202124; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .google-mark { color: #4285F4; font-weight: 800; font-size: 1.05rem; }
+    button[type="submit"] { background: var(--accent); color: #0a0a1a; }
+    button:hover { opacity: .92; }
+    button:active { transform: scale(.985); }
+    button:disabled { opacity: .55; cursor: wait; }
+    .divider { display: flex; align-items: center; gap: 12px; color: var(--text-dim); font-size: .72rem; margin: 22px 0; }
+    .divider::before, .divider::after { content: ''; height: 1px; background: var(--border); flex: 1; }
+    .form-group { margin-bottom: 16px; text-align: left; }
+    label { display: block; font-size: .72rem; color: var(--text-dim); margin-bottom: 7px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
     input[type="password"] {
       width: 100%;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,.05);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 14px 16px;
@@ -97,48 +130,183 @@ if (Astro.request.method === 'POST') {
       font-size: 1rem;
       font-family: inherit;
       outline: none;
-      transition: border-color 0.2s;
     }
     input[type="password"]:focus { border-color: var(--accent); }
-    .error {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: #f87171;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      margin-bottom: 20px;
-    }
-    button[type="submit"] {
-      width: 100%;
-      background: var(--accent);
-      color: #0a0a1a;
-      border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: 700;
-      font-family: inherit;
+    .recovery-link {
+      margin-top: 14px;
+      background: transparent;
+      border: 0;
+      color: #d5ad67;
+      font: inherit;
+      font-size: .82rem;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
-    button[type="submit"]:hover { opacity: 0.9; }
-    button[type="submit"]:active { transform: scale(0.98); }
+    .note { margin-top: 22px; font-size: .72rem; color: var(--text-dim); line-height: 1.65; }
+    #reset-panel[hidden], #oauth-message[hidden] { display: none; }
+    #reset-panel { text-align: left; }
+    #reset-panel h2 { font-size: 1rem; margin-bottom: 8px; color: #f6d89c; }
+    #reset-panel p { font-size: .78rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 18px; }
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="card" id="auth-card" data-supabase-url={supabaseUrl}>
     <div class="logo">☀️</div>
-    <div class="title">ACE Dashboard</div>
-    <div class="subtitle">masahiro-yamada.com — MASA's private zone</div>
+    <div class="title">MASA OS</div>
+    <div class="subtitle">private dashboard / admin access</div>
+
     {error && <div class="error">{error}</div>}
-    <form method="POST">
+    <div id="oauth-message" class="message" hidden></div>
+
+    <div id="login-panel">
+      <button type="button" class="google-button" id="google-login">
+        <span class="google-mark">G</span>
+        <span>Googleでログイン</span>
+      </button>
+
+      <div class="divider">または</div>
+
+      <form method="POST">
+        <div class="form-group">
+          <label for="password">Dashboard Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" />
+        </div>
+        <button type="submit">パスワードで入る</button>
+      </form>
+
+      <button type="button" class="recovery-link" id="password-recovery">パスワードを忘れた / 再設定する</button>
+      <div class="note">GoogleログインはACEと同じSupabaseアカウントを使用し、admin権限だけDashboardへ入れます。</div>
+    </div>
+
+    <form id="reset-panel" hidden>
+      <h2>新しいDashboardパスワード</h2>
+      <p>Googleで本人確認できました。12文字以上の新しいパスワードを設定してください。</p>
       <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" autocomplete="current-password" autofocus />
+        <label for="new-password">New Password</label>
+        <input type="password" id="new-password" autocomplete="new-password" minlength="12" maxlength="128" required />
       </div>
-      <button type="submit">入室する</button>
+      <div class="form-group">
+        <label for="confirm-password">Confirm Password</label>
+        <input type="password" id="confirm-password" autocomplete="new-password" minlength="12" maxlength="128" required />
+      </div>
+      <button type="submit" id="reset-submit">再設定してDashboardへ</button>
     </form>
   </div>
+
+  <script>
+    const card = document.getElementById('auth-card');
+    const supabaseUrl = card?.dataset.supabaseUrl || '';
+    const googleButton = document.getElementById('google-login');
+    const recoveryButton = document.getElementById('password-recovery');
+    const loginPanel = document.getElementById('login-panel');
+    const resetPanel = document.getElementById('reset-panel');
+    const message = document.getElementById('oauth-message');
+    const resetSubmit = document.getElementById('reset-submit');
+    const INTENT_KEY = 'masa.dashboard.oauth.intent';
+    let recoveryAccessToken = '';
+
+    function showMessage(text, isError = false) {
+      if (!message) return;
+      message.textContent = text;
+      message.className = isError ? 'error' : 'message';
+      message.hidden = false;
+    }
+
+    function beginGoogle(intent) {
+      if (!supabaseUrl) {
+        showMessage('Googleログイン設定を読み込めませんでした。', true);
+        return;
+      }
+      sessionStorage.setItem(INTENT_KEY, intent);
+      const authorize = new URL(`${supabaseUrl.replace(/\/$/, '')}/auth/v1/authorize`);
+      authorize.searchParams.set('provider', 'google');
+      authorize.searchParams.set('redirect_to', `${window.location.origin}/dashboard/login`);
+      window.location.assign(authorize.toString());
+    }
+
+    googleButton?.addEventListener('click', () => beginGoogle('login'));
+    recoveryButton?.addEventListener('click', () => beginGoogle('reset'));
+
+    async function processGoogleCallback() {
+      if (!window.location.hash) return;
+      const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const accessToken = params.get('access_token') || '';
+      const oauthError = params.get('error_description') || params.get('error') || '';
+      if (!accessToken && !oauthError) return;
+
+      window.history.replaceState({}, '', window.location.pathname);
+      const intent = sessionStorage.getItem(INTENT_KEY) || 'login';
+      sessionStorage.removeItem(INTENT_KEY);
+
+      if (oauthError) {
+        showMessage(`Googleログインに失敗しました: ${oauthError}`, true);
+        return;
+      }
+
+      if (intent === 'reset') {
+        recoveryAccessToken = accessToken;
+        if (loginPanel) loginPanel.hidden = true;
+        if (resetPanel) resetPanel.hidden = false;
+        showMessage('Googleでadmin本人確認ができました。新しいパスワードを設定できます。');
+        return;
+      }
+
+      showMessage('Googleアカウントを確認しています…');
+      const response = await fetch('/api/dashboard/google-login', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.ok) {
+        window.location.replace('/dashboard');
+        return;
+      }
+      showMessage('このGoogleアカウントにはDashboard admin権限がありません。', true);
+    }
+
+    resetPanel?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = document.getElementById('new-password')?.value || '';
+      const confirm = document.getElementById('confirm-password')?.value || '';
+
+      if (!recoveryAccessToken) {
+        showMessage('Google本人確認の有効時間が切れました。もう一度「再設定する」から進んでください。', true);
+        return;
+      }
+      if (password.length < 12) {
+        showMessage('パスワードは12文字以上にしてください。', true);
+        return;
+      }
+      if (password !== confirm) {
+        showMessage('確認用パスワードが一致していません。', true);
+        return;
+      }
+
+      if (resetSubmit) resetSubmit.disabled = true;
+      showMessage('新しいパスワードを保存しています…');
+      const response = await fetch('/api/dashboard/reset-password', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${recoveryAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+      const result = await response.json().catch(() => ({}));
+      recoveryAccessToken = '';
+
+      if (response.ok && result.ok) {
+        showMessage('再設定しました。Dashboardへ移動します。');
+        window.location.replace('/dashboard');
+        return;
+      }
+
+      if (resetSubmit) resetSubmit.disabled = false;
+      showMessage('再設定できませんでした。Google本人確認からもう一度やり直してください。', true);
+    });
+
+    void processGoogleCallback();
+  </script>
 </body>
 </html>
