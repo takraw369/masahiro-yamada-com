@@ -1,8 +1,26 @@
 import { defineMiddleware } from 'astro:middleware';
 import { dashboardAuthToken, safeTokenEqual } from './lib/dashboardAuth';
 
+const CANONICAL_HOST = 'masahiroyamada.com';
+const REDIRECT_HOSTS = new Set([
+  'www.masahiroyamada.com',
+  'masahiroyamada.jp',
+  'www.masahiroyamada.jp',
+  'masahiro-yamada.com',
+  'www.masahiro-yamada.com',
+]);
+
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { pathname } = new URL(context.request.url);
+  const url = new URL(context.request.url);
+
+  if (REDIRECT_HOSTS.has(url.hostname)) {
+    url.protocol = 'https:';
+    url.hostname = CANONICAL_HOST;
+    url.port = '';
+    return Response.redirect(url.toString(), 301);
+  }
+
+  const { pathname } = url;
   const isDashboardPage =
     pathname.startsWith('/dashboard') &&
     pathname !== '/dashboard/login' &&
