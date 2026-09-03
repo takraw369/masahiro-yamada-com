@@ -9,6 +9,26 @@ assets = { directory = "./dist", binding = "ASSETS" }
 pattern = "masahiroyamada.com"
 custom_domain = true
 
+[[routes]]
+pattern = "www.masahiroyamada.com"
+custom_domain = true
+
+[[routes]]
+pattern = "masahiroyamada.jp"
+custom_domain = true
+
+[[routes]]
+pattern = "www.masahiroyamada.jp"
+custom_domain = true
+
+[[routes]]
+pattern = "masahiro-yamada.com"
+custom_domain = true
+
+[[routes]]
+pattern = "www.masahiro-yamada.com"
+custom_domain = true
+
 # Temporary cutover binding: Supabase is now primary storage, while D1 remains
 # available only for one-time legacy import and emergency fallback.
 [[d1_databases]]
