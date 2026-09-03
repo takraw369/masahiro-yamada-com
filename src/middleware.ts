@@ -8,6 +8,8 @@ const REDIRECT_HOSTS = new Set([
   'www.masahiroyamada.jp',
   'masahiro-yamada.com',
   'www.masahiro-yamada.com',
+  'yamadamasahiro.com',
+  'www.yamadamasahiro.com',
 ]);
 
 export const onRequest = defineMiddleware(async (context, next) => {
