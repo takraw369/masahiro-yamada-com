@@ -5,12 +5,27 @@ compatibility_flags = ["nodejs_compat_v2"]
 main = "./dist/_worker.js/index.js"
 assets = { directory = "./dist", binding = "ASSETS" }
 
+# Canonical personal site.
+[[routes]]
+pattern = "masahiro-yamada.com"
+custom_domain = true
+
+# Defensive / legacy root domains. The Worker returns a host-based 301 to the
+# canonical domain while preserving the path and query string.
 [[routes]]
 pattern = "masahiroyamada.com"
 custom_domain = true
 
 [[routes]]
 pattern = "masahiroyamada.jp"
+custom_domain = true
+
+[[routes]]
+pattern = "yamadamasahiro.com"
+custom_domain = true
+
+[[routes]]
+pattern = "yamadamasahiro.jp"
 custom_domain = true
 
 # Add www / legacy host custom domains after their registrar nameserver cutover.
@@ -24,7 +39,7 @@ database_name = "sunlovesflow-db"
 database_id = "b3f9ad9b-3e6a-4a11-8059-b7997466db85"
 
 [vars]
-SITE_NAME = "masahiroyamada.com"
+SITE_NAME = "masahiro-yamada.com"
 X_HARNESS_URL = "https://x-harness-worker.takraw501.workers.dev"
 LINE_HARNESS_URL = "https://line-crm-worker.takraw501.workers.dev"
 SUPABASE_URL = "https://qydbtholbwbuwiswmqsr.supabase.co"
