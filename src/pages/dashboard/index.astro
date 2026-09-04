@@ -1,183 +1,30 @@
 ---
-import DashboardLayout from '../../layouts/DashboardLayout.astro';
-
-const focusItems = [
-  {
-    rank: '01',
-    title: 'Social Growth Sprint 30D',
-    status: 'NOW',
-    centerPin: '適合する実在見込み客を発生させる',
-    tippingPoint: '本番有償顧客1名が生まれ、購入 / 非購入理由を学習データとして取得する',
-    nextTask: '既存素材を1本公開 → 3〜5会話 → 適合者1名へ勝ち筋OSを具体提案',
-  },
-  {
-    rank: '02',
-    title: 'ACE｜実利用 E2E',
-    status: 'NOW',
-    centerPin: 'ログイン後に「1回使って変化が記録される」ループを通す',
-    tippingPoint: '実ユーザーが開発者介入なしで My ACE → Action / Quest → 進捗反映 → 次の行動まで完走する',
-    nextTask: 'Google Login → My ACE → Action / Quest → progress → next を1本だけ通す',
-  },
-  {
-    rank: '∞',
-    title: 'Idea → Asset → Reuse',
-    status: 'ALWAYS',
-    centerPin: '湧いたものを新規ファイル化せず、既存の正本へ接続して出口を1つ付ける',
-    tippingPoint: '同じ素材が SNS / note / Quest / Product のどれかで1回以上再利用される',
-    nextTask: '思いつく → Chat / Inbox → 既存正本へ統合 → 使える出口を1つ決める',
-  },
-];
-
-const media = [
-  { platform: 'X', account: '@MASAHIRO_501', role: '個人メイン｜仮説・会話', href: 'https://x.com/MASAHIRO_501', status: 'ACTIVE' },
-  { platform: 'X', account: '@kodomo_athlete', role: '子ども×アスリート教育', href: 'https://x.com/kodomo_athlete', status: 'ACTIVE' },
-  { platform: 'Instagram', account: '@kodomo_athlete', role: 'Reels・視覚・信頼', href: 'https://www.instagram.com/kodomo_athlete/', status: 'ACTIVE' },
-  { platform: 'Instagram', account: '@sunlovesflow', role: 'SLF世界観', href: 'https://www.instagram.com/sunlovesflow/', status: 'VERIFY' },
-  { platform: 'note', account: 'masahiroyamada', role: '個人長文・信頼資産', href: 'https://note.com/masahiroyamada', status: 'VERIFY' },
-  { platform: 'note', account: 'sunlovesflow', role: 'SLF思想資産', href: 'https://note.com/sunlovesflow', status: 'VERIFY' },
-  { platform: 'Website', account: 'masahiro-yamada.com', role: '個人の城・Authority', href: 'https://masahiro-yamada.com/', status: 'OWNED' },
-  { platform: 'Website', account: 'sunlovesflow.com', role: 'ブランドの城', href: 'https://sunlovesflow.com/', status: 'OWNED' },
-  { platform: 'note', account: 'takraw501', role: 'Legacy・セパタクロー', href: 'https://note.com/takraw501', status: 'ARCHIVE' },
-  { platform: 'X', account: '@somehowanyways', role: '政治・社会｜別レーン', href: 'https://x.com/somehowanyways', status: 'VERIFY' },
-];
-
-const pendingMedia = [
-  { platform: 'Threads', note: '公開URL未登録' },
-  { platform: 'TikTok', note: '公開URL未登録' },
-];
+const masaOsUrl = 'https://masa-os-dashboard.pages.dev/';
 ---
 
-<DashboardLayout title="Dashboard">
-  <div class="dash-shell">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">MASA OS · CURRENT STATE</p>
-        <h1>予定ではなく、<span>今どこを動かすか。</span></h1>
-        <p class="lead">PROJECT → Center Pin → Tipping Point → Next Task。予定通り進むことではなく、センターピンが動いたかで判断する。</p>
-      </div>
-      <a class="calendar-link" href="/dashboard/schedule">固定予定を見る →</a>
-    </header>
-
-    <section class="section">
-      <div class="section-head">
-        <div>
-          <p class="section-kicker">NOW</p>
-          <h2>Center Pins</h2>
-        </div>
-        <p class="section-note">Taskは増やさない。各PROJECTの「次の1個」だけ。</p>
-      </div>
-
-      <div class="focus-grid">
-        {focusItems.map(item => (
-          <article class="focus-card">
-            <div class="focus-top">
-              <span class="rank">{item.rank}</span>
-              <span class:list={['status', item.status === 'NOW' ? 'status-now' : 'status-always']}>{item.status}</span>
-            </div>
-            <h3>{item.title}</h3>
-            <dl>
-              <div>
-                <dt>Center Pin</dt>
-                <dd>{item.centerPin}</dd>
-              </div>
-              <div>
-                <dt>Tipping Point</dt>
-                <dd>{item.tippingPoint}</dd>
-              </div>
-              <div class="next">
-                <dt>Next Task</dt>
-                <dd>{item.nextTask}</dd>
-              </div>
-            </dl>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <section class="section media-section">
-      <div class="section-head">
-        <div>
-          <p class="section-kicker">DISTRIBUTION</p>
-          <h2>発信媒体 Hub</h2>
-        </div>
-        <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1429YnqTU2-WOjX-EALGo6DSeNdHjqBGDsx8HgBVhsH4/edit" target="_blank" rel="noopener noreferrer">Distribution OS ↗</a>
-      </div>
-
-      <div class="media-grid">
-        {media.map(item => (
-          <a class="media-card" href={item.href} target="_blank" rel="noopener noreferrer">
-            <div class="media-meta">
-              <span class="platform">{item.platform}</span>
-              <span class="media-status">{item.status}</span>
-            </div>
-            <strong>{item.account}</strong>
-            <span class="media-role">{item.role}</span>
-            <span class="open">開く ↗</span>
-          </a>
-        ))}
-        {pendingMedia.map(item => (
-          <div class="media-card media-pending">
-            <div class="media-meta">
-              <span class="platform">{item.platform}</span>
-              <span class="media-status">PENDING</span>
-            </div>
-            <strong>URL未登録</strong>
-            <span class="media-role">{item.note}</span>
-            <span class="open">登録後にリンク化</span>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <section class="rule-box">
-      <div>
-        <p class="section-kicker">RULE</p>
-        <h2>Calendarは「制約」。Task表ではない。</h2>
-      </div>
-      <p>仕事・家族・移動・締切など動かせない予定だけ確認する。空いている時間へTaskを詰め込まない。湧いたものは止めずに資産化し、SNSだけは市場との接点としてコツコツ継続する。</p>
-    </section>
-  </div>
-</DashboardLayout>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta http-equiv="refresh" content={`0;url=${masaOsUrl}`} />
+    <title>MASA OSへ移動します</title>
+  </head>
+  <body>
+    <main>
+      <p>MASA OSへ統合しました。</p>
+      <a href={masaOsUrl}>MASA OSを開く →</a>
+    </main>
+    <script is:inline define:vars={{ masaOsUrl }}>
+      window.location.replace(masaOsUrl);
+    </script>
+  </body>
+</html>
 
 <style>
-  .dash-shell { max-width: 1320px; margin: 0 auto; padding-bottom: 64px; }
-  .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; padding: 14px 0 38px; border-bottom: 1px solid var(--border-default); }
-  .eyebrow, .section-kicker { color: var(--gold-muted); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
-  h1 { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(2.3rem, 5vw, 4.5rem); line-height: .98; color: var(--text-primary); }
-  h1 span { color: var(--gold-pure); }
-  .lead { max-width: 780px; margin-top: 18px; color: var(--text-muted); font-size: .94rem; line-height: 1.9; }
-  .calendar-link, .sheet-link { flex-shrink: 0; color: var(--gold-pure); text-decoration: none; border: 1px solid var(--border-accent); padding: 11px 16px; font-size: .78rem; transition: border-color .2s, background .2s; }
-  .calendar-link:hover, .sheet-link:hover { border-color: var(--gold-muted); background: var(--gold-glow); }
-  .section { margin-top: 44px; }
-  .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
-  .section h2, .rule-box h2 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--text-primary); }
-  .section-note { color: var(--text-dim); font-size: .78rem; }
-  .focus-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-  .focus-card { background: var(--bg-surface); border: 1px solid var(--border-default); padding: 22px; min-height: 390px; }
-  .focus-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-  .rank { font-family: 'Cormorant Garamond', serif; color: var(--gold-dim); font-size: 1.2rem; }
-  .status { font-size: .62rem; letter-spacing: .12em; padding: 4px 8px; border: 1px solid var(--border-default); }
-  .status-now { color: var(--gold-pure); border-color: var(--border-accent); }
-  .status-always { color: var(--text-muted); }
-  .focus-card h3 { font-size: 1rem; font-weight: 500; color: var(--text-primary); margin-bottom: 20px; }
-  dl { display: grid; gap: 18px; }
-  dt { color: var(--gold-muted); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
-  dd { color: var(--text-muted); font-size: .85rem; line-height: 1.75; }
-  .next { padding-top: 16px; border-top: 1px solid var(--border-default); }
-  .next dd { color: var(--text-primary); }
-  .media-section { margin-top: 54px; }
-  .media-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-  .media-card { display: flex; flex-direction: column; min-height: 150px; padding: 16px; background: var(--bg-surface); border: 1px solid var(--border-default); color: inherit; text-decoration: none; transition: transform .18s, border-color .18s, background .18s; }
-  a.media-card:hover { transform: translateY(-2px); border-color: var(--border-hover); background: var(--bg-elevated); }
-  .media-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
-  .platform { color: var(--gold-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; }
-  .media-status { color: var(--text-dim); font-size: .56rem; letter-spacing: .08em; }
-  .media-card strong { font-size: .88rem; color: var(--text-primary); font-weight: 500; overflow-wrap: anywhere; }
-  .media-role { margin-top: 7px; color: var(--text-muted); font-size: .72rem; line-height: 1.55; }
-  .open { margin-top: auto; padding-top: 14px; color: var(--gold-pure); font-size: .68rem; }
-  .media-pending { opacity: .55; border-style: dashed; }
-  .rule-box { margin-top: 54px; padding: 24px; display: grid; grid-template-columns: minmax(230px, .7fr) 1.3fr; gap: 30px; border: 1px solid var(--border-accent); background: var(--gold-glow); }
-  .rule-box p:last-child { color: var(--text-muted); line-height: 1.9; font-size: .84rem; align-self: end; }
-  @media (max-width: 1080px) { .focus-grid { grid-template-columns: 1fr; } .focus-card { min-height: 0; } .media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .hero { align-items: flex-start; flex-direction: column; padding-top: 4px; } .calendar-link { width: 100%; text-align: center; } .section-head { align-items: flex-start; flex-direction: column; } .media-grid { grid-template-columns: 1fr; } .rule-box { grid-template-columns: 1fr; } }
+  :global(html) { background:#0f0d0b; color:#f2e8da; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; }
+  main { text-align:center; padding:32px; }
+  p { color:#a89c90; }
+  a { display:inline-block; margin-top:12px; color:#d3b88d; text-decoration:none; border:1px solid rgba(211,184,141,.25); border-radius:999px; padding:12px 18px; }
 </style>
