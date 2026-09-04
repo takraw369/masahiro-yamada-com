@@ -1,0 +1,43 @@
+---
+import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
+---
+<PublicPageLayout title="特定商取引法に基づく表記" description="MASA / Sun Loves Flowがオンラインで提供する商品・講座・コーチング等に関する特定商取引法上の表示です。" eyebrow="COMMERCE">
+  <p slot="lead" class="public-lead">オンラインで提供する商品・講座・コーチング・セッション・デジタルコンテンツ等に関する表示です。個別の商品ページに本ページと異なる条件が明示されている場合は、当該個別条件が優先されます。</p>
+
+  <section class="public-section">
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><th>販売業者・役務提供事業者</th><td>山田 昌寛</td></tr>
+          <tr><th>運営ブランド</th><td>Sun Loves Flow / MASA</td></tr>
+          <tr><th>所在地</th><td>請求があった場合、法令に従い遅滞なく開示します。開示をご希望の方は<a href="/contact">お問い合わせ窓口</a>からご請求ください。</td></tr>
+          <tr><th>電話番号</th><td>請求があった場合、法令に従い遅滞なく開示します。開示をご希望の方は<a href="/contact">お問い合わせ窓口</a>からご請求ください。</td></tr>
+          <tr><th>お問い合わせ</th><td><a href="/contact">お問い合わせページ</a>または各サービスの案内ページに記載された連絡先よりご連絡ください。</td></tr>
+          <tr><th>販売価格・役務の対価</th><td>各商品・サービスの案内ページまたは申込画面に税込価格を表示します。</td></tr>
+          <tr><th>商品代金以外の必要料金</th><td>インターネット接続料金、通信料金、銀行振込を利用する場合の振込手数料その他、利用者側で発生する費用は利用者の負担となります。別途費用が発生する場合は個別ページに表示します。</td></tr>
+          <tr><th>支払方法</th><td>クレジットカード決済その他、各商品・サービスの申込画面に表示する方法。</td></tr>
+          <tr><th>支払時期</th><td>クレジットカード決済は原則として申込時に決済されます。その他の方法は各商品・サービスの案内ページまたは申込画面に表示します。</td></tr>
+          <tr><th>提供時期</th><td>デジタルコンテンツは決済完了後、案内された方法により提供します。セッション、コーチング、講座等は予約日時・開催日または個別に案内した日程で提供します。</td></tr>
+          <tr><th>申込の有効期限</th><td>申込期限を設ける場合は各商品・サービスの案内ページまたは申込画面に表示します。</td></tr>
+          <tr><th>キャンセル・解約・返金</th><td><a href="/legal/refund">キャンセル・返金ポリシー</a>および各商品・サービスの案内ページに表示します。法令上認められる権利を妨げるものではありません。</td></tr>
+          <tr><th>表現・成果に関する注意</th><td>教育、コーチング等は、特定の競技成績、収益、健康状態、能力向上その他の成果を保証するものではありません。詳細は<a href="/legal/disclaimer">免責事項</a>をご確認ください。</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="public-section">
+    <p class="public-callout">所在地・電話番号の表示を省略する場合、開示請求に対して申込みの意思決定前に遅滞なく提供できる運用を前提とします。</p>
+    <p class="public-muted">制定日：2026年9月4日</p>
+  </section>
+</PublicPageLayout>
+
+<style>
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border-default); background: var(--bg-surface); }
+  table { width: 100%; border-collapse: collapse; min-width: 620px; }
+  th, td { padding: 16px 18px; border-bottom: 1px solid var(--border-default); text-align: left; vertical-align: top; font-size: .88rem; line-height: 1.8; }
+  th { width: 30%; color: var(--gold-muted); font-weight: 500; background: var(--gold-glow); }
+  td { color: var(--text-muted); }
+  td a { color: var(--gold-pure); }
+  tr:last-child th, tr:last-child td { border-bottom: 0; }
+</style>

@@ -1,0 +1,170 @@
+---
+import PublicPageLayout from '../layouts/PublicPageLayout.astro';
+---
+<PublicPageLayout
+  title="お問い合わせ"
+  description="MASA / ACE METHODへのお問い合わせ。FAQ、正式な問い合わせフォーム、公式LINEを用途別にご案内します。"
+  eyebrow="CONTACT"
+>
+  <p slot="lead" class="public-lead">
+    まず「よくある質問」を確認し、解決しない内容はフォームへ。ACEやサービスについて人と相談したい場合は公式LINEをご利用ください。
+  </p>
+
+  <section class="public-section public-grid" aria-label="問い合わせ方法">
+    <article class="public-card route-card">
+      <p class="route-no">01</p>
+      <h2>まずFAQ</h2>
+      <p>料金、キャンセル、個人情報、ACEの位置づけなど、よくある内容をまとめています。</p>
+      <a class="public-btn" href="/faq">よくある質問を見る</a>
+    </article>
+    <article class="public-card route-card">
+      <p class="route-no">02</p>
+      <h2>個別相談はLINE</h2>
+      <p>ACEやコーチングについて「自分の場合はどうか」を相談したい方はこちら。正式な契約・返金・法務連絡は下のフォームをご利用ください。</p>
+      <a class="public-btn public-btn-line" href="https://lin.ee/pcAHpTBy" target="_blank" rel="noopener noreferrer">公式LINEで相談する</a>
+    </article>
+  </section>
+
+  <section class="public-section">
+    <h2>正式なお問い合わせフォーム</h2>
+    <p class="public-callout">お支払い・キャンセル、サイト不具合、取材・企業連携、個人情報・法務など、記録を残して対応したい内容はこちらへ。</p>
+
+    <form id="contact-form" class="contact-form" novalidate>
+      <div class="field">
+        <label for="category">お問い合わせ種別 <span>必須</span></label>
+        <select id="category" name="category" required>
+          <option value="">選択してください</option>
+          <option value="service">ACE・サービスについて</option>
+          <option value="payment">お支払い・キャンセルについて</option>
+          <option value="technical">サイト・システムの不具合</option>
+          <option value="business">取材・企業・提携について</option>
+          <option value="privacy">個人情報・法務について</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="name">お名前</label>
+        <input id="name" name="name" type="text" maxlength="100" autocomplete="name" />
+      </div>
+
+      <div class="field">
+        <label for="email">返信先メールアドレス <span>必須</span></label>
+        <input id="email" name="email" type="email" maxlength="254" autocomplete="email" required />
+      </div>
+
+      <div class="field">
+        <label for="message">お問い合わせ内容 <span>必須</span></label>
+        <textarea id="message" name="message" minlength="10" maxlength="5000" rows="9" required></textarea>
+        <small>10〜5,000文字</small>
+      </div>
+
+      <div class="hp-field" aria-hidden="true">
+        <label for="website">Website</label>
+        <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <label class="consent-row">
+        <input id="consent" name="consent" type="checkbox" required />
+        <span><a href="/legal/privacy" target="_blank">プライバシーポリシー</a>を確認し、問い合わせ対応のために情報を利用することに同意します。</span>
+      </label>
+
+      <div class="submit-row">
+        <button class="public-btn submit-btn" type="submit">送信する</button>
+        <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+  </section>
+
+  <section class="public-section">
+    <h2>窓口の使い分け</h2>
+    <div class="public-card">
+      <ul>
+        <li><strong>FAQ：</strong>その場で確認できる一般的な質問</li>
+        <li><strong>フォーム：</strong>支払い、キャンセル、不具合、企業案件、個人情報・法務など正式な連絡</li>
+        <li><strong>LINE：</strong>ACEやサービスについての個別相談、体験への入口</li>
+      </ul>
+      <p class="public-muted">将来的にはFAQを知識ベースにした案内チャットへ拡張できる設計にしています。</p>
+    </div>
+  </section>
+</PublicPageLayout>
+
+<style>
+  .route-card { display: flex; flex-direction: column; align-items: flex-start; }
+  .route-card h2 { margin-top: 0; }
+  .route-card .public-btn { margin-top: auto; }
+  .route-no { margin: 0 0 12px; color: var(--gold-dim); font-family: 'Cormorant Garamond', serif; letter-spacing: .18em; }
+  .contact-form { margin-top: 22px; display: grid; gap: 18px; padding: 28px; background: var(--bg-surface); border: 1px solid var(--border-default); }
+  .field { display: grid; gap: 8px; }
+  .field label { color: var(--text-primary); font-size: .86rem; }
+  .field label span { margin-left: 6px; color: var(--gold-muted); font-size: .7rem; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    border: 1px solid var(--border-default);
+    background: var(--bg-void);
+    color: var(--text-primary);
+    padding: 12px 13px;
+    outline: none;
+    border-radius: 0;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold-muted); }
+  .field small { color: var(--text-dim); }
+  .consent-row { display: flex; align-items: flex-start; gap: 10px; color: var(--text-muted); font-size: .82rem; cursor: pointer; }
+  .consent-row input { margin-top: 6px; }
+  .consent-row a { color: var(--gold-pure); }
+  .submit-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .submit-btn { min-width: 160px; }
+  .submit-btn:disabled { opacity: .45; cursor: wait; transform: none; }
+  .form-status { margin: 0; color: var(--text-muted); font-size: .84rem; }
+  .form-status.success { color: var(--success); }
+  .form-status.error { color: var(--danger); }
+  .hp-field { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+  @media (max-width: 640px) { .contact-form { padding: 20px; } .submit-row, .submit-btn { width: 100%; } }
+</style>
+
+<script>
+  const form = document.getElementById('contact-form');
+  const statusEl = document.getElementById('form-status');
+
+  if (form instanceof HTMLFormElement && statusEl) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      statusEl.className = 'form-status';
+
+      if (!form.reportValidity()) return;
+
+      const button = form.querySelector('button[type="submit"]');
+      if (button instanceof HTMLButtonElement) button.disabled = true;
+      statusEl.textContent = '送信しています…';
+
+      const data = new FormData(form);
+      const payload = {
+        category: String(data.get('category') || ''),
+        name: String(data.get('name') || ''),
+        email: String(data.get('email') || ''),
+        message: String(data.get('message') || ''),
+        website: String(data.get('website') || ''),
+        consent: data.get('consent') === 'on',
+      };
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) throw new Error(result.error || 'submit_failed');
+
+        form.reset();
+        statusEl.textContent = '送信しました。内容を確認のうえ、必要に応じて返信します。';
+        statusEl.classList.add('success');
+      } catch {
+        statusEl.textContent = '送信できませんでした。時間をおいて再度お試しください。お急ぎのサービス相談は公式LINEをご利用ください。';
+        statusEl.classList.add('error');
+      } finally {
+        if (button instanceof HTMLButtonElement) button.disabled = false;
+      }
+    });
+  }
+</script>
