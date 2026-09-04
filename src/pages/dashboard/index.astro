@@ -12,6 +12,15 @@ const focusItems = [
   },
   {
     rank: '02',
+    title: 'Dashboard｜ログイン・復旧導線',
+    status: 'NOW',
+    centerPin: 'Googleログインとパスワード再設定を迷わず見つけて使える状態にする',
+    tippingPoint: '正しいURLからGoogleログイン、または本人確認→新PW設定まで自力で完走できる',
+    nextTask: 'ログイン / 再設定を実機E2E確認 → 詰まりがあれば入口だけ直す',
+    href: '/dashboard/login',
+  },
+  {
+    rank: '03',
     title: 'ACE｜実利用 E2E',
     status: 'NOW',
     centerPin: 'ログイン後に「1回使って変化が記録される」ループを通す',
@@ -35,7 +44,7 @@ const media = [
   { platform: 'Instagram', account: '@sunlovesflow', role: 'SLF世界観', href: 'https://www.instagram.com/sunlovesflow/', status: 'VERIFY' },
   { platform: 'note', account: 'masahiroyamada', role: '個人長文・信頼資産', href: 'https://note.com/masahiroyamada', status: 'VERIFY' },
   { platform: 'note', account: 'sunlovesflow', role: 'SLF思想資産', href: 'https://note.com/sunlovesflow', status: 'VERIFY' },
-  { platform: 'Website', account: 'masahiro-yamada.com', role: '個人の城・Authority', href: 'https://masahiro-yamada.com/', status: 'OWNED' },
+  { platform: 'Website', account: 'masahiroyamada.com', role: '個人の城・Authority', href: 'https://masahiroyamada.com/', status: 'OWNED' },
   { platform: 'Website', account: 'sunlovesflow.com', role: 'ブランドの城', href: 'https://sunlovesflow.com/', status: 'OWNED' },
   { platform: 'note', account: 'takraw501', role: 'Legacy・セパタクロー', href: 'https://note.com/takraw501', status: 'ARCHIVE' },
   { platform: 'X', account: '@somehowanyways', role: '政治・社会｜別レーン', href: 'https://x.com/somehowanyways', status: 'VERIFY' },
@@ -89,6 +98,7 @@ const pendingMedia = [
                 <dd>{item.nextTask}</dd>
               </div>
             </dl>
+            {item.href && <a class="focus-link" href={item.href}>ログイン / 再設定を開く →</a>}
           </article>
         ))}
       </div>
@@ -146,14 +156,14 @@ const pendingMedia = [
   h1 { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(2.3rem, 5vw, 4.5rem); line-height: .98; color: var(--text-primary); }
   h1 span { color: var(--gold-pure); }
   .lead { max-width: 780px; margin-top: 18px; color: var(--text-muted); font-size: .94rem; line-height: 1.9; }
-  .calendar-link, .sheet-link { flex-shrink: 0; color: var(--gold-pure); text-decoration: none; border: 1px solid var(--border-accent); padding: 11px 16px; font-size: .78rem; transition: border-color .2s, background .2s; }
-  .calendar-link:hover, .sheet-link:hover { border-color: var(--gold-muted); background: var(--gold-glow); }
+  .calendar-link, .sheet-link, .focus-link { flex-shrink: 0; color: var(--gold-pure); text-decoration: none; border: 1px solid var(--border-accent); padding: 11px 16px; font-size: .78rem; transition: border-color .2s, background .2s; }
+  .calendar-link:hover, .sheet-link:hover, .focus-link:hover { border-color: var(--gold-muted); background: var(--gold-glow); }
   .section { margin-top: 44px; }
   .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
   .section h2, .rule-box h2 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--text-primary); }
   .section-note { color: var(--text-dim); font-size: .78rem; }
-  .focus-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-  .focus-card { background: var(--bg-surface); border: 1px solid var(--border-default); padding: 22px; min-height: 390px; }
+  .focus-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .focus-card { background: var(--bg-surface); border: 1px solid var(--border-default); padding: 22px; min-height: 390px; display: flex; flex-direction: column; }
   .focus-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
   .rank { font-family: 'Cormorant Garamond', serif; color: var(--gold-dim); font-size: 1.2rem; }
   .status { font-size: .62rem; letter-spacing: .12em; padding: 4px 8px; border: 1px solid var(--border-default); }
@@ -165,6 +175,7 @@ const pendingMedia = [
   dd { color: var(--text-muted); font-size: .85rem; line-height: 1.75; }
   .next { padding-top: 16px; border-top: 1px solid var(--border-default); }
   .next dd { color: var(--text-primary); }
+  .focus-link { margin-top: auto; text-align: center; display: block; }
   .media-section { margin-top: 54px; }
   .media-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   .media-card { display: flex; flex-direction: column; min-height: 150px; padding: 16px; background: var(--bg-surface); border: 1px solid var(--border-default); color: inherit; text-decoration: none; transition: transform .18s, border-color .18s, background .18s; }
