@@ -13,6 +13,14 @@ custom_domain = true
 pattern = "masahiroyamada.jp"
 custom_domain = true
 
+[[routes]]
+pattern = "yamadamasahiro.com"
+custom_domain = true
+
+[[routes]]
+pattern = "yamadamasahiro.jp"
+custom_domain = true
+
 # Add www / legacy host custom domains after their registrar nameserver cutover.
 # Host-based 301 logic is already implemented in src/middleware.ts.
 
