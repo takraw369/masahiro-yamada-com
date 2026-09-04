@@ -1,0 +1,47 @@
+---
+import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
+
+const pages = [
+  { href: '/legal/tokushoho', en: 'Commerce', title: '特定商取引法に基づく表記', desc: '販売条件、支払方法、提供時期、事業者情報など。' },
+  { href: '/legal/privacy', en: 'Privacy', title: 'プライバシーポリシー', desc: '個人情報の取得、利用目的、外部委託、安全管理など。' },
+  { href: '/legal/terms', en: 'Terms', title: '利用規約', desc: 'サービス利用時の共通ルール、知的財産、禁止事項など。' },
+  { href: '/legal/refund', en: 'Refund', title: 'キャンセル・返金ポリシー', desc: '予約型サービス、デジタル商品等のキャンセル・返金方針。' },
+  { href: '/legal/confidentiality', en: 'Trust', title: '秘密保持・相談情報の取扱い', desc: '相談内容、非公開教材、参加者情報などの扱い。' },
+  { href: '/legal/disclaimer', en: 'Safety', title: '免責事項・健康上の注意', desc: '成果非保証、医療行為ではないこと、身体ワークの安全配慮など。' },
+];
+---
+<PublicPageLayout title="法務・ポリシー" description="MASA / ACE METHODの利用規約、特商法表記、プライバシー、返金、秘密保持、免責事項をまとめています。" eyebrow="LEGAL & POLICY">
+  <p slot="lead" class="public-lead">
+    サービスを安心して利用できるよう、販売・個人情報・利用条件・安全に関する共通ルールをここに集約しています。商品ごとの案内に個別条件がある場合は、その条件が優先されます。
+  </p>
+
+  <section class="public-section legal-grid">
+    {pages.map(page => (
+      <a class="legal-card" href={page.href}>
+        <span>{page.en}</span>
+        <strong>{page.title}</strong>
+        <p>{page.desc}</p>
+        <em>読む →</em>
+      </a>
+    ))}
+  </section>
+
+  <section class="public-section">
+    <div class="public-card">
+      <strong>契約書・同意書について</strong>
+      <p>ACE、講座、コミュニティ、業務提携などでは、必要に応じてこのWeb上の共通ポリシーとは別に、参加同意書、秘密保持契約書（NDA）、個別契約書等を使用します。</p>
+      <a class="public-btn" href="/contact">法務・契約に関する問い合わせ</a>
+    </div>
+  </section>
+</PublicPageLayout>
+
+<style>
+  .legal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .legal-card { min-height: 190px; display: flex; flex-direction: column; padding: 24px; text-decoration: none; background: var(--bg-surface); border: 1px solid var(--border-default); }
+  .legal-card:hover { border-color: var(--gold-muted); background: var(--bg-elevated); }
+  .legal-card span { color: var(--gold-muted); font-family: 'Cormorant Garamond', serif; letter-spacing: .14em; text-transform: uppercase; font-size: .72rem; }
+  .legal-card strong { margin-top: 8px; color: var(--text-primary); font-weight: 500; }
+  .legal-card p { margin: 10px 0 0; color: var(--text-muted); font-size: .84rem; }
+  .legal-card em { margin-top: auto; padding-top: 18px; color: var(--gold-pure); font-size: .72rem; font-style: normal; }
+  @media (max-width: 700px) { .legal-grid { grid-template-columns: 1fr; } }
+</style>
