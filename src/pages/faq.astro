@@ -1,0 +1,142 @@
+---
+import PublicPageLayout from '../layouts/PublicPageLayout.astro';
+
+const faqs = [
+  {
+    category: 'ACE / サービス',
+    question: 'ACE METHODとは何ですか？',
+    answer: 'ACE METHOD（Athlete Cognitive Education）は、認知・身体感覚・学習をつなぎ、自分の状態を観察し、より良い選択と行動をつくるための教育・コーチングの枠組みです。医療行為や治療の代替ではありません。',
+  },
+  {
+    category: 'ACE / サービス',
+    question: 'アスリート以外でも利用できますか？',
+    answer: 'サービスごとに対象は異なりますが、競技者だけでなく、仕事・学習・生活のパフォーマンスや自己理解を整えたい方を対象とする内容もあります。個別に合うか迷う場合は公式LINEからご相談ください。',
+  },
+  {
+    category: 'ACE / サービス',
+    question: 'どのサービスを選べばよいか分かりません。',
+    answer: 'まず無料コンテンツや診断で現在地を確認し、そのうえで必要なら公式LINEで状況をお聞きします。最初から高額・長期のサービスを選ぶ必要はありません。',
+  },
+  {
+    category: '料金・申込み',
+    question: '料金はどこで確認できますか？',
+    answer: '販売中の商品・サービスは、各案内ページまたは申込み画面に税込価格と条件を表示します。個別ページの記載が共通案内と異なる場合は、申込み時に表示される条件が優先されます。',
+  },
+  {
+    category: '料金・申込み',
+    question: 'キャンセルや返金はできますか？',
+    answer: '商品・サービスの性質、提供開始前後、予約日時などによって条件が異なります。申込み前に各商品ページの条件と「キャンセル・返金ポリシー」をご確認ください。',
+  },
+  {
+    category: '料金・申込み',
+    question: '正式な契約・支払いについて相談したいです。',
+    answer: '支払い、キャンセル、契約条件など記録を残して対応したい内容は、お問い合わせフォームをご利用ください。ACEの内容や自分に合うかという相談は公式LINEが適しています。',
+  },
+  {
+    category: '個人情報・秘密保持',
+    question: '相談内容や個人情報はどのように扱われますか？',
+    answer: 'お問い合わせやサービス提供に必要な範囲で取り扱い、法令上必要な場合などを除き、目的外で第三者へ提供しません。詳しくはプライバシーポリシーと秘密保持・相談情報の取扱いをご確認ください。',
+  },
+  {
+    category: '個人情報・秘密保持',
+    question: '講座やコミュニティの内容をSNSで紹介してもよいですか？',
+    answer: 'ご自身の感想や一般化した学びを自分の言葉で発信することは基本的に妨げません。一方、非公開教材・参加者の相談内容・講義の実質的な再現などは、著作権・秘密保持の観点から公開しないでください。',
+  },
+  {
+    category: '健康・安全',
+    question: '医療、治療、心理療法のサービスですか？',
+    answer: 'いいえ。ACEや関連サービスは教育・コーチング・自己探究・心身の調整を目的とするもので、診断・治療・心理療法その他の資格を要する専門行為の代替ではありません。症状や治療に関する判断は医療専門職へご相談ください。',
+  },
+  {
+    category: '健康・安全',
+    question: '身体ワークは誰でもできますか？',
+    answer: '内容によって負荷が異なります。痛み、既往歴、治療中の事項、妊娠その他安全上の懸念がある場合は、無理に実施せず、必要に応じて医師などの専門家へ確認してください。',
+  },
+  {
+    category: '未成年',
+    question: '未成年でも参加できますか？',
+    answer: 'サービスによっては参加できます。ただし、有料契約や継続サービスでは、年齢や内容に応じて保護者・親権者の同意をお願いする場合があります。',
+  },
+  {
+    category: 'お問い合わせ',
+    question: 'FAQで解決しない場合はどうすればよいですか？',
+    answer: '支払い・キャンセル・不具合・企業案件・個人情報や法務の連絡はお問い合わせフォームへ。ACEやサービスについて個別に相談したい場合は公式LINEへお進みください。',
+  },
+];
+---
+<PublicPageLayout
+  title="よくある質問"
+  description="ACE METHOD、料金・申込み、キャンセル、個人情報、健康・安全、お問い合わせに関するFAQです。"
+  eyebrow="FAQ"
+>
+  <p slot="lead" class="public-lead">
+    まずここで自己解決できるよう、サービス・契約・安全・個人情報の基本的な質問をまとめています。解決しない場合はお問い合わせへお進みください。
+  </p>
+
+  <section class="public-section faq-toolbar" aria-label="FAQ案内">
+    <div class="public-card toolbar-card">
+      <div>
+        <strong>解決しなかった場合</strong>
+        <p>正式な連絡はフォーム、個別のサービス相談はLINEへ。</p>
+      </div>
+      <div class="toolbar-actions">
+        <a class="public-btn" href="/contact">お問い合わせ</a>
+        <a class="public-btn public-btn-line" href="https://lin.ee/pcAHpTBy" target="_blank" rel="noopener noreferrer">LINEで相談</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-section faq-list" aria-label="よくある質問一覧">
+    {faqs.map((faq, index) => (
+      <details class="faq-item" open={index === 0}>
+        <summary>
+          <span class="faq-category">{faq.category}</span>
+          <span class="faq-question">{faq.question}</span>
+          <span class="faq-icon" aria-hidden="true">＋</span>
+        </summary>
+        <div class="faq-answer"><p>{faq.answer}</p></div>
+      </details>
+    ))}
+  </section>
+
+  <section class="public-section">
+    <h2>関連ポリシー</h2>
+    <div class="public-grid">
+      <a class="policy-card" href="/legal/privacy"><span>Privacy</span><strong>プライバシーポリシー</strong></a>
+      <a class="policy-card" href="/legal/refund"><span>Payment</span><strong>キャンセル・返金ポリシー</strong></a>
+      <a class="policy-card" href="/legal/confidentiality"><span>Trust</span><strong>秘密保持・相談情報の取扱い</strong></a>
+      <a class="policy-card" href="/legal/disclaimer"><span>Safety</span><strong>免責・健康上の注意</strong></a>
+    </div>
+  </section>
+</PublicPageLayout>
+
+<style>
+  .toolbar-card { display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+  .toolbar-card p { margin: 6px 0 0; color: var(--text-muted); }
+  .toolbar-actions { display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+  .faq-list { display: grid; gap: 10px; }
+  .faq-item { border: 1px solid var(--border-default); background: var(--bg-surface); }
+  .faq-item[open] { border-color: var(--border-accent); }
+  .faq-item summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 140px 1fr 28px; gap: 16px; align-items: center; padding: 20px 22px; }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-category { color: var(--gold-muted); font-size: .68rem; letter-spacing: .08em; }
+  .faq-question { color: var(--text-primary); font-size: .92rem; font-weight: 500; }
+  .faq-icon { color: var(--gold-dim); font-size: 1.2rem; transition: transform .2s; text-align: right; }
+  .faq-item[open] .faq-icon { transform: rotate(45deg); }
+  .faq-answer { padding: 0 22px 20px 178px; }
+  .faq-answer p { margin: 0; color: var(--text-muted); }
+  .policy-card { display: flex; flex-direction: column; gap: 5px; padding: 20px; text-decoration: none; background: var(--bg-surface); border: 1px solid var(--border-default); }
+  .policy-card:hover { border-color: var(--gold-muted); }
+  .policy-card span { color: var(--gold-muted); font-family: 'Cormorant Garamond', serif; letter-spacing: .12em; font-size: .72rem; text-transform: uppercase; }
+  .policy-card strong { color: var(--text-primary); font-size: .86rem; }
+  @media (max-width: 720px) {
+    .toolbar-card { align-items: flex-start; flex-direction: column; }
+    .toolbar-actions { width: 100%; }
+    .toolbar-actions .public-btn { flex: 1; }
+    .faq-item summary { grid-template-columns: 1fr 26px; gap: 6px 12px; }
+    .faq-category { grid-column: 1; }
+    .faq-question { grid-column: 1; }
+    .faq-icon { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+    .faq-answer { padding: 0 20px 20px; }
+  }
+</style>
