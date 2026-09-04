@@ -1,13 +1,13 @@
 import { defineMiddleware } from 'astro:middleware';
 import { dashboardAuthToken, safeTokenEqual } from './lib/dashboardAuth';
 
-const CANONICAL_HOST = 'masahiroyamada.com';
+const CANONICAL_HOST = 'masahiro-yamada.com';
 const REDIRECT_HOSTS = new Set([
+  'www.masahiro-yamada.com',
+  'masahiroyamada.com',
   'www.masahiroyamada.com',
   'masahiroyamada.jp',
   'www.masahiroyamada.jp',
-  'masahiro-yamada.com',
-  'www.masahiro-yamada.com',
   'yamadamasahiro.com',
   'www.yamadamasahiro.com',
   'yamadamasahiro.jp',
