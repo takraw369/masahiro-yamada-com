@@ -1,0 +1,715 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const nodes = [
+  { id: 'N025', label: 'MASTER DASHBOARD', fullLabel: 'MASA_OS｜MASTER_DASHBOARD', kind: 'CONTROL', role: 'Human Surface', status: 'CANONICAL', note: 'MASA OS全体の現在地・優先順位・次Actionを俯瞰する操作面。', href: 'https://docs.google.com/spreadsheets/d/1GgtaSO9pU25p8TvsCQ_HzBzL6GzbSucwqEyDLZRlsLU/edit' },
+  { id: 'N017', label: 'KNOWLEDGE FACTORY', fullLabel: 'KNOWLEDGE_FACTORY｜FLOW Pilot', kind: 'KNOWLEDGE', role: 'Graph Hub', status: 'CANONICAL', note: 'SourceをNodeへ分解し、既存Canonと接続して再利用可能な知識へ変換する。', href: 'https://docs.google.com/spreadsheets/d/1C4QoQMneCmQ4rVAWAXWX5L18hzmwJRGitS4UdOSz6QM/edit' },
+  { id: 'N018', label: 'HUMAN FLOW GRAPH', fullLabel: 'Human Flow Graph / Education Flow Biotope', kind: 'HUMAN', role: 'Human Graph', status: 'CANONICAL', note: '人・状態・学び・縁・行動を意味付きEdgeで接続し、Next Experienceへつなぐ。', href: 'https://docs.google.com/document/d/1QjII1jKwce6oBp3-Za8IQVq37LTuxbBvVyubRKk885I/edit' },
+  { id: 'N019', label: 'ACE BRAIN', fullLabel: 'ACE BRAIN｜Living Cognition OS', kind: 'HUMAN', role: 'Interaction Layer', status: 'DESIGN', note: '過去の知識・状態・関係を再発見し、今の自分から次の良い経験へ進める認知OS。' },
+  { id: 'N020', label: 'CONTENT OS', fullLabel: 'CONTENT_OS｜コンテンツ資産・商品化台帳', kind: 'OUTPUT', role: 'Output Hub', status: 'CANONICAL', note: 'Knowledge NodeをSNS・note・Quest・Productへ届く表現に変換する。', href: 'https://docs.google.com/spreadsheets/d/1mB9ZodA700hd3IRnV2Ijp-4tQ3_Y1tg_ZwGKOq_DWA8/edit' },
+  { id: 'N021', label: 'PRODUCT OS', fullLabel: 'PRODUCT_OS｜商品マスター・価格設計', kind: 'BUSINESS', role: 'Offer Hub', status: 'CANONICAL', note: 'Sellable資産をOffer・Naming・価格へ変換し、実際に売れる商品仕様へ落とす。', href: 'https://docs.google.com/spreadsheets/d/1pBMLShY2rdlKiGgtKUiXgQqykk_ViGdF4R-r0fYir5E/edit' },
+  { id: 'N022', label: 'QUEST MASTER', fullLabel: 'CORE QUEST MASTER BANK', kind: 'ACTION', role: 'Action Bridge', status: 'CANONICAL', note: 'Knowledgeを問い・実践へ変え、行動・Reflection・Evidenceを残す。', href: 'https://docs.google.com/spreadsheets/d/1qxKqUEzNDfug-of7sRBzC6FeCJrFSSFT6kBZtfLta5Q/edit' },
+  { id: 'N023', label: 'DISTRIBUTION OS', fullLabel: 'DISTRIBUTION_OS｜発信・配信・KPI', kind: 'OUTPUT', role: 'Market Sensor', status: 'CANONICAL', note: 'Contentを市場へ出し、反応をEvidenceとしてKnowledgeへ戻す。', href: 'https://docs.google.com/spreadsheets/d/1429YnqTU2-WOjX-EALGo6DSeNdHjqBGDsx8HgBVhsH4/edit' },
+  { id: 'N024', label: 'CRM OS', fullLabel: 'CRM_OS｜見込み客・顧客管理', kind: 'BUSINESS', role: 'Customer Sensor', status: 'CANONICAL', note: '実在する見込み客・顧客との接点、反応、Caseを商品とKnowledgeへ戻す。', href: 'https://docs.google.com/spreadsheets/d/18qJHe5qW5QWm_-d6nglNLYEM-gqIWw2NnW3aXwxtcAE/edit' },
+  { id: 'N026', label: 'DRIVE INDEX', fullLabel: 'DRIVE_INDEX｜MASA_OS 資産台帳', kind: 'CONTROL', role: 'Asset Discovery', status: 'CANONICAL', note: 'Drive全体を発見・分類し、正本・重複・Factory投入対象を判断する索引。', href: 'https://docs.google.com/spreadsheets/d/1QowD5lrOUqkc8kEZH4Hy3wfIQlkwqQzoFzGsohEzEWA/edit' },
+  { id: 'N027', label: 'ASSET FLOW', fullLabel: 'ASSET FLOW OS｜Capture→Forge→Package→Monetize', kind: 'OUTPUT', role: 'Transformation Flow', status: 'CANONICAL', note: 'RAW→SIGNAL→IP→CONTENT→OFFER→REVENUEへ価値を変換する流れ。' },
+  { id: 'N028', label: 'WANT TO', fullLabel: 'MASA Want to Master｜センターピンMAP', kind: 'LIFE', role: 'Intent Source', status: 'CANONICAL', note: 'Want toとPurposeをProject・Taskへ接続し、実践Evidenceで更新する。', href: 'https://docs.google.com/spreadsheets/d/1gkYpIk28ScWY5xlFfkjyyBVa0Cmx3pl_oQuJ5sC8ij4/edit' },
+  { id: 'N029', label: 'CAPITAL OS', fullLabel: 'MASA CAPITAL OS｜資本形成ダッシュボード', kind: 'BUSINESS', role: 'Capital Sensor', status: 'CANONICAL', note: 'RevenueをRunway・自由・資本形成へ接続する。', href: 'https://docs.google.com/spreadsheets/d/1pBrX1n7KbEugByoHjmIQaAj_jgrOpWD6qSvKletVkuc/edit' },
+  { id: 'N030', label: 'REVENUE IDEAS', fullLabel: 'MASA_OS｜収益アイデア全件台帳', kind: 'BUSINESS', role: 'Opportunity Map', status: 'CANONICAL', note: '収益候補を資産性・反復性・波及で比較し、Product / Projectへ昇格する。', href: 'https://docs.google.com/spreadsheets/d/1_Z_EmfRaIN5iW8mCBj5PF1Yn8D-zFFQbfw_ko45zVV0/edit' },
+  { id: 'N031', label: 'SHEET HUB', fullLabel: 'MASA｜SPREADSHEET HUB｜BOOKMARK｜正本', kind: 'CONTROL', role: 'Navigation Hub', status: 'CANONICAL', note: '重要Spreadsheetへ迷わず到達する人間向け入口。', href: 'https://docs.google.com/spreadsheets/d/1LlwRYxf-6XfzUkYmmPcJgTtiSpqCee51N9HfEgfOc-0/edit' },
+  { id: 'N003', label: 'PREDICTION GAP', fullLabel: '予測と結果のギャップを記録する', kind: 'PRINCIPLE', role: 'Learning Principle', status: 'MAPPED', note: '予測→実測→誤差→更新。学習だけでなく市場検証にも転用可能な構造。' },
+  { id: 'N013', label: 'LIFE HIERARCHY', fullLabel: 'Source→Being→Purpose→Vision→Want to→Project→Task', kind: 'PRINCIPLE', role: 'Life Design', status: 'MAPPED', note: '人生設計の階層と、現実のProject / Taskをつなぐ内部構造。' },
+  { id: 'N016', label: 'RETURN', fullLabel: '乱れても戻り、再選択できる', kind: 'PRINCIPLE', role: 'Performance Principle', status: 'MAPPED', note: '強さを「乱れない」ではなく「戻り、再選択できる能力」と捉える。' },
+  { id: 'N011', label: 'EN FLOW', fullLabel: '縁は状態・環境・接触・信頼・交換・タイミング・継続で育つFlow', kind: 'PRINCIPLE', role: 'Relation Model', status: 'VERIFY', note: '関係を静的な線ではなく、時間と経験によって育つEdgeとして捉える。' },
+];
+
+const edges = [
+  { id: 'E001', source: 'N026', target: 'N017', relation: 'feeds', state: 'CONFIRMED', note: 'Drive資産を発見しKnowledge Factoryへ送る' },
+  { id: 'E002', source: 'N017', target: 'N020', relation: 'produces', state: 'CONFIRMED', note: '検証・統合したKnowledgeをContentへ送る' },
+  { id: 'E003', source: 'N017', target: 'N018', relation: 'feeds', state: 'CONFIRMED', note: 'Knowledge NodeをHuman Flowへ供給' },
+  { id: 'E004', source: 'N018', target: 'N022', relation: 'routes_to', state: 'CONFIRMED', note: '状態とGoalに応じてNext Questへ' },
+  { id: 'E005', source: 'N022', target: 'N018', relation: 'evidence_for', state: 'CONFIRMED', note: 'Questの実践EvidenceがHuman Flowを更新' },
+  { id: 'E006', source: 'N020', target: 'N021', relation: 'feeds', state: 'CONFIRMED', note: 'Sellable ContentをOfferへ変換' },
+  { id: 'E007', source: 'N020', target: 'N023', relation: 'distributed_by', state: 'CONFIRMED', note: 'Contentを市場へ配信' },
+  { id: 'E008', source: 'N023', target: 'N017', relation: 'evidence_for', state: 'CONFIRMED', note: '市場反応をKnowledgeへ戻す' },
+  { id: 'E009', source: 'N024', target: 'N017', relation: 'evidence_for', state: 'CONFIRMED', note: '顧客反応・CaseをKnowledgeへ戻す' },
+  { id: 'E010', source: 'N024', target: 'N021', relation: 'informs', state: 'CONFIRMED', note: '顧客EvidenceがOffer改善へ' },
+  { id: 'E012', source: 'N027', target: 'N020', relation: 'transforms', state: 'CONFIRMED', note: 'AssetをContentへ変換' },
+  { id: 'E013', source: 'N027', target: 'N021', relation: 'transforms', state: 'CONFIRMED', note: 'AssetをOfferへ変換' },
+  { id: 'E014', source: 'N028', target: 'N018', relation: 'informs', state: 'CONFIRMED', note: 'Intent / Want toをRoutingへ' },
+  { id: 'E015', source: 'N018', target: 'N019', relation: 'informs', state: 'CONFIRMED', note: 'Human Flowの現在地をACE BRAINへ' },
+  { id: 'E016', source: 'N017', target: 'N019', relation: 'feeds', state: 'CONFIRMED', note: '関連KnowledgeをCognition UIへ' },
+  { id: 'E017', source: 'N025', target: 'N017', relation: 'surfaces', state: 'CONFIRMED', note: 'DashboardからKnowledge Factoryを操作・参照' },
+  { id: 'E018', source: 'N025', target: 'N021', relation: 'surfaces', state: 'CONFIRMED', note: 'DashboardからProduct OSを参照' },
+  { id: 'E019', source: 'N031', target: 'N025', relation: 'surfaces', state: 'CONFIRMED', note: 'Sheet HubからDashboardへ到達' },
+  { id: 'E020', source: 'N031', target: 'N017', relation: 'surfaces', state: 'CONFIRMED', note: 'Sheet HubからKnowledge Factoryへ到達' },
+  { id: 'E021', source: 'N030', target: 'N021', relation: 'informs', state: 'CONFIRMED', note: 'Revenue候補をProduct化へ' },
+  { id: 'E022', source: 'N021', target: 'N029', relation: 'feeds', state: 'CONFIRMED', note: '商品収益をCapital判断へ' },
+  { id: 'E023', source: 'N016', target: 'N021', relation: 'supports', state: 'CONFIRMED', note: 'RETURN原理がOfferの核を支える' },
+  { id: 'E025', source: 'N011', target: 'N018', relation: 'supports', state: 'CONFIRMED', note: '縁を動的Relationship Graphへ拡張' },
+  { id: 'E027', source: 'N013', target: 'N028', relation: 'supports', state: 'CONFIRMED', note: 'Life hierarchyがWant to Masterを支える' },
+  { id: 'E035', source: 'N003', target: 'N023', relation: 'supports', state: 'CANDIDATE', note: '予測→実測→誤差更新は投稿仮説→反応→改善にも転用できる？' },
+  { id: 'E036', source: 'N013', target: 'N030', relation: 'informs', state: 'CANDIDATE', note: 'Want to階層×Revenueで「稼げるが未来を削る案」を見つけられる？' },
+  { id: 'E038', source: 'N025', target: 'N026', relation: 'surfaces', state: 'CONFIRMED', note: 'DashboardからDrive Indexへ' },
+];
+---
+
+<DashboardLayout title="MASA Brain Graph" fullHeight={true}>
+  <div class="graph-app" id="graph-app">
+    <header class="graph-toolbar">
+      <div class="brand-block">
+        <p>MASA BRAIN · GRAPH v0.1</p>
+        <h1>知識の地図を、<span>触って考える。</span></h1>
+      </div>
+      <div class="toolbar-actions">
+        <label class="search-box">
+          <span>⌕</span>
+          <input id="graph-search" type="search" placeholder="Nodeを検索…" autocomplete="off" />
+        </label>
+        <button class="tool-button" id="fit-button" type="button">全体表示</button>
+        <button class="tool-button discovery" id="discovery-button" type="button">✦ AI Discovery</button>
+      </div>
+    </header>
+
+    <div class="graph-body">
+      <aside class="graph-filters" aria-label="Graph filters">
+        <p class="mini-label">VIEW</p>
+        <button class="filter active" data-kind="ALL" type="button"><span class="filter-dot all"></span>ALL</button>
+        <button class="filter" data-kind="CONTROL" type="button"><span class="filter-dot control"></span>Control</button>
+        <button class="filter" data-kind="KNOWLEDGE" type="button"><span class="filter-dot knowledge"></span>Knowledge</button>
+        <button class="filter" data-kind="HUMAN" type="button"><span class="filter-dot human"></span>Human</button>
+        <button class="filter" data-kind="OUTPUT" type="button"><span class="filter-dot output"></span>Output</button>
+        <button class="filter" data-kind="BUSINESS" type="button"><span class="filter-dot business"></span>Business</button>
+        <button class="filter" data-kind="ACTION" type="button"><span class="filter-dot action"></span>Action</button>
+        <button class="filter" data-kind="LIFE" type="button"><span class="filter-dot life"></span>Life</button>
+        <button class="filter" data-kind="PRINCIPLE" type="button"><span class="filter-dot principle"></span>Principle</button>
+        <div class="filter-divider"></div>
+        <label class="candidate-toggle">
+          <input id="candidate-toggle" type="checkbox" checked />
+          <span class="fake-check"></span>
+          <span>AI候補線</span>
+        </label>
+        <div class="legend">
+          <div><span class="line solid"></span>確認済み</div>
+          <div><span class="line dashed"></span>AI候補</div>
+        </div>
+      </aside>
+
+      <section class="graph-stage" id="graph-stage" aria-label="Interactive knowledge graph">
+        <svg id="graph-svg" role="img" aria-label="MASA OS knowledge graph">
+          <defs>
+            <filter id="node-glow" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <marker id="arrow-confirmed" markerWidth="8" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,8 L8,4 z" fill="rgba(201,169,110,.44)" />
+            </marker>
+            <marker id="arrow-candidate" markerWidth="8" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,8 L8,4 z" fill="rgba(217,193,255,.6)" />
+            </marker>
+          </defs>
+          <g id="viewport">
+            <g id="edge-layer"></g>
+            <g id="node-layer"></g>
+          </g>
+        </svg>
+
+        <div class="stage-hint" id="stage-hint">
+          <span>drag</span> Nodeを動かす　·　<span>wheel</span> zoom　·　<span>click</span> 周辺を見る
+        </div>
+
+        <div class="discovery-toast" id="discovery-toast" aria-live="polite">
+          <p class="mini-label">AI DISCOVERY</p>
+          <strong id="discovery-title">意外な接続を探す</strong>
+          <p id="discovery-copy">点線はGPTが見つけた未確定の関連候補。クリックして前後のNodeを見られます。</p>
+        </div>
+      </section>
+
+      <aside class="node-panel" id="node-panel">
+        <div class="panel-empty" id="panel-empty">
+          <div class="empty-orbit"><span></span></div>
+          <p class="mini-label">SELECT A NODE</p>
+          <h2>点を選ぶと、<br />関係が見える。</h2>
+          <p>Nodeをクリックすると、そのNodeの意味・接続先・Edgeの理由だけにFocusします。</p>
+        </div>
+        <div class="panel-content" id="panel-content" hidden>
+          <div class="panel-topline">
+            <span class="kind-badge" id="panel-kind">TYPE</span>
+            <button class="panel-close" id="panel-close" type="button" aria-label="選択を解除">×</button>
+          </div>
+          <p class="node-id" id="panel-id"></p>
+          <h2 id="panel-title"></h2>
+          <p class="panel-role" id="panel-role"></p>
+          <p class="panel-note" id="panel-note"></p>
+
+          <div class="panel-connections">
+            <p class="mini-label">CONNECTIONS</p>
+            <div id="panel-edges"></div>
+          </div>
+
+          <a class="open-source" id="panel-link" href="#" target="_blank" rel="noopener noreferrer">正本を開く ↗</a>
+        </div>
+      </aside>
+    </div>
+
+    <script type="application/json" id="graph-nodes" set:html={JSON.stringify(nodes)}></script>
+    <script type="application/json" id="graph-edges" set:html={JSON.stringify(edges)}></script>
+  </div>
+</DashboardLayout>
+
+<script is:inline>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const nodeData = JSON.parse(document.getElementById('graph-nodes')?.textContent || '[]');
+  const edgeData = JSON.parse(document.getElementById('graph-edges')?.textContent || '[]');
+  const svg = document.getElementById('graph-svg');
+  const viewport = document.getElementById('viewport');
+  const edgeLayer = document.getElementById('edge-layer');
+  const nodeLayer = document.getElementById('node-layer');
+  const stage = document.getElementById('graph-stage');
+  const search = document.getElementById('graph-search');
+  const candidateToggle = document.getElementById('candidate-toggle');
+  const fitButton = document.getElementById('fit-button');
+  const discoveryButton = document.getElementById('discovery-button');
+  const discoveryToast = document.getElementById('discovery-toast');
+  const discoveryTitle = document.getElementById('discovery-title');
+  const discoveryCopy = document.getElementById('discovery-copy');
+  const panelEmpty = document.getElementById('panel-empty');
+  const panelContent = document.getElementById('panel-content');
+  const panelClose = document.getElementById('panel-close');
+  const panelKind = document.getElementById('panel-kind');
+  const panelId = document.getElementById('panel-id');
+  const panelTitle = document.getElementById('panel-title');
+  const panelRole = document.getElementById('panel-role');
+  const panelNote = document.getElementById('panel-note');
+  const panelEdges = document.getElementById('panel-edges');
+  const panelLink = document.getElementById('panel-link');
+
+  if (!svg || !viewport || !edgeLayer || !nodeLayer || !stage) return;
+
+  const kindClass = {
+    CONTROL: 'control', KNOWLEDGE: 'knowledge', HUMAN: 'human', OUTPUT: 'output',
+    BUSINESS: 'business', ACTION: 'action', LIFE: 'life', PRINCIPLE: 'principle'
+  };
+
+  const nodeById = new Map(nodeData.map((node) => [node.id, node]));
+  const nodeState = new Map();
+  let selectedId = null;
+  let activeKind = 'ALL';
+  let query = '';
+  let showCandidates = true;
+  let zoom = 1;
+  let panX = 0;
+  let panY = 0;
+  let isPanning = false;
+  let panStart = null;
+  let dragged = null;
+  let discoveryIndex = -1;
+  let initialized = false;
+
+  function layoutNodes() {
+    const rect = stage.getBoundingClientRect();
+    const w = Math.max(760, rect.width);
+    const h = Math.max(560, rect.height);
+    const cx = w * 0.5;
+    const cy = h * 0.5;
+    const systemNodes = nodeData.filter((n) => n.kind !== 'PRINCIPLE');
+    const principles = nodeData.filter((n) => n.kind === 'PRINCIPLE');
+    systemNodes.forEach((node, i) => {
+      const angle = (Math.PI * 2 * i / systemNodes.length) - Math.PI / 2;
+      const radiusX = Math.min(w * 0.34, 390) + ((i % 3) - 1) * 24;
+      const radiusY = Math.min(h * 0.34, 300) + ((i % 2) * 24);
+      let x = cx + Math.cos(angle) * radiusX;
+      let y = cy + Math.sin(angle) * radiusY;
+      if (node.id === 'N017') { x = cx - 40; y = cy - 40; }
+      if (node.id === 'N025') { x = cx - 220; y = cy + 70; }
+      if (node.id === 'N018') { x = cx + 185; y = cy + 20; }
+      if (node.id === 'N021') { x = cx + 80; y = cy + 205; }
+      nodeState.set(node.id, { x, y, vx: 0, vy: 0, fixed: false });
+    });
+    principles.forEach((node, i) => {
+      const angle = -Math.PI * 0.85 + (Math.PI * 1.7 * i / Math.max(1, principles.length - 1));
+      const x = cx + Math.cos(angle) * Math.min(w * .43, 500);
+      const y = cy + Math.sin(angle) * Math.min(h * .43, 350);
+      nodeState.set(node.id, { x, y, vx: 0, vy: 0, fixed: false });
+    });
+  }
+
+  function createSvg(tag, attrs = {}) {
+    const el = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, String(value)));
+    return el;
+  }
+
+  function truncateLabel(label) {
+    return label.length > 20 ? `${label.slice(0, 19)}…` : label;
+  }
+
+  const edgeEls = new Map();
+  edgeData.forEach((edge) => {
+    const group = createSvg('g', { class: `graph-edge ${edge.state === 'CANDIDATE' ? 'candidate' : 'confirmed'}`, 'data-edge': edge.id });
+    const hit = createSvg('line', { class: 'edge-hit' });
+    const line = createSvg('line', { class: 'edge-line', 'marker-end': edge.state === 'CANDIDATE' ? 'url(#arrow-candidate)' : 'url(#arrow-confirmed)' });
+    group.append(hit, line);
+    group.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const source = nodeById.get(edge.source);
+      const target = nodeById.get(edge.target);
+      discoveryToast?.classList.add('visible');
+      if (discoveryTitle) discoveryTitle.textContent = `${source?.label || edge.source} → ${target?.label || edge.target}`;
+      if (discoveryCopy) discoveryCopy.textContent = `${edge.relation}｜${edge.note}`;
+      highlightEdge(edge.id);
+    });
+    edgeLayer.appendChild(group);
+    edgeEls.set(edge.id, { group, hit, line });
+  });
+
+  const nodeEls = new Map();
+  nodeData.forEach((node) => {
+    const group = createSvg('g', { class: `graph-node ${kindClass[node.kind] || 'control'}`, tabindex: '0', role: 'button', 'aria-label': node.fullLabel, 'data-node': node.id });
+    const halo = createSvg('circle', { class: 'node-halo', r: '29' });
+    const circle = createSvg('circle', { class: 'node-circle', r: node.kind === 'PRINCIPLE' ? '10' : node.id === 'N017' ? '18' : '14' });
+    const text = createSvg('text', { class: 'node-label', y: node.kind === 'PRINCIPLE' ? '28' : '31', 'text-anchor': 'middle' });
+    text.textContent = truncateLabel(node.label);
+    const sub = createSvg('text', { class: 'node-sub', y: node.kind === 'PRINCIPLE' ? '42' : '45', 'text-anchor': 'middle' });
+    sub.textContent = node.kind;
+    group.append(halo, circle, text, sub);
+
+    const activate = (event) => {
+      event.stopPropagation();
+      selectNode(node.id);
+    };
+    group.addEventListener('click', activate);
+    group.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') activate(event);
+    });
+    group.addEventListener('pointerdown', (event) => {
+      event.stopPropagation();
+      const state = nodeState.get(node.id);
+      if (!state) return;
+      dragged = { id: node.id, pointerId: event.pointerId };
+      state.fixed = true;
+      group.setPointerCapture?.(event.pointerId);
+      group.classList.add('dragging');
+    });
+    group.addEventListener('pointermove', (event) => {
+      if (!dragged || dragged.id !== node.id) return;
+      const point = clientToGraph(event.clientX, event.clientY);
+      const state = nodeState.get(node.id);
+      if (state) { state.x = point.x; state.y = point.y; }
+      renderPositions();
+    });
+    group.addEventListener('pointerup', (event) => {
+      if (!dragged || dragged.id !== node.id) return;
+      group.releasePointerCapture?.(event.pointerId);
+      group.classList.remove('dragging');
+      dragged = null;
+    });
+    nodeLayer.appendChild(group);
+    nodeEls.set(node.id, group);
+  });
+
+  function connectedIds(id) {
+    const ids = new Set([id]);
+    edgeData.forEach((edge) => {
+      if (!showCandidates && edge.state === 'CANDIDATE') return;
+      if (edge.source === id) ids.add(edge.target);
+      if (edge.target === id) ids.add(edge.source);
+    });
+    return ids;
+  }
+
+  function visibleByFilter(node) {
+    if (activeKind !== 'ALL' && node.kind !== activeKind) return false;
+    if (query && !(node.label + ' ' + node.fullLabel + ' ' + node.role + ' ' + node.note).toLowerCase().includes(query)) return false;
+    return true;
+  }
+
+  function refreshVisibility() {
+    const neighborhood = selectedId ? connectedIds(selectedId) : null;
+    nodeData.forEach((node) => {
+      const el = nodeEls.get(node.id);
+      if (!el) return;
+      const baseVisible = visibleByFilter(node);
+      const inNeighborhood = !neighborhood || neighborhood.has(node.id);
+      el.classList.toggle('hidden-node', !baseVisible);
+      el.classList.toggle('dimmed', baseVisible && !inNeighborhood);
+      el.classList.toggle('selected', node.id === selectedId);
+    });
+    edgeData.forEach((edge) => {
+      const els = edgeEls.get(edge.id);
+      if (!els) return;
+      const sourceVisible = visibleByFilter(nodeById.get(edge.source));
+      const targetVisible = visibleByFilter(nodeById.get(edge.target));
+      const candidateHidden = edge.state === 'CANDIDATE' && !showCandidates;
+      const touchesSelection = !selectedId || edge.source === selectedId || edge.target === selectedId;
+      els.group.classList.toggle('hidden-edge', !sourceVisible || !targetVisible || candidateHidden);
+      els.group.classList.toggle('dimmed', !!selectedId && !touchesSelection);
+      els.group.classList.toggle('active-edge', !!selectedId && touchesSelection);
+    });
+  }
+
+  function selectNode(id) {
+    selectedId = id;
+    const node = nodeById.get(id);
+    if (!node) return;
+    refreshVisibility();
+    if (panelEmpty) panelEmpty.hidden = true;
+    if (panelContent) panelContent.hidden = false;
+    if (panelKind) panelKind.textContent = node.kind;
+    if (panelId) panelId.textContent = `${node.id} · ${node.status}`;
+    if (panelTitle) panelTitle.textContent = node.fullLabel;
+    if (panelRole) panelRole.textContent = node.role;
+    if (panelNote) panelNote.textContent = node.note;
+    if (panelLink) {
+      if (node.href) {
+        panelLink.href = node.href;
+        panelLink.hidden = false;
+      } else {
+        panelLink.hidden = true;
+      }
+    }
+    if (panelEdges) {
+      panelEdges.innerHTML = '';
+      const linked = edgeData.filter((edge) => (edge.source === id || edge.target === id) && (showCandidates || edge.state !== 'CANDIDATE'));
+      linked.forEach((edge) => {
+        const outgoing = edge.source === id;
+        const other = nodeById.get(outgoing ? edge.target : edge.source);
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `connection-row ${edge.state === 'CANDIDATE' ? 'candidate' : ''}`;
+        button.innerHTML = `<span class="edge-dir">${outgoing ? '→' : '←'}</span><span><strong>${edge.relation}</strong><small>${other?.label || ''}</small></span><em>${edge.state === 'CANDIDATE' ? 'AI?' : ''}</em>`;
+        button.addEventListener('click', () => other && selectNode(other.id));
+        panelEdges.appendChild(button);
+      });
+    }
+  }
+
+  function clearSelection() {
+    selectedId = null;
+    if (panelEmpty) panelEmpty.hidden = false;
+    if (panelContent) panelContent.hidden = true;
+    refreshVisibility();
+  }
+
+  function highlightEdge(edgeId) {
+    edgeEls.forEach((els, id) => els.group.classList.toggle('edge-flash', id === edgeId));
+    const edge = edgeData.find((item) => item.id === edgeId);
+    if (!edge) return;
+    selectedId = null;
+    const relevant = new Set([edge.source, edge.target]);
+    nodeEls.forEach((el, id) => {
+      el.classList.toggle('dimmed', !relevant.has(id));
+      el.classList.toggle('selected', relevant.has(id));
+    });
+    edgeEls.forEach((els, id) => els.group.classList.toggle('dimmed', id !== edgeId));
+  }
+
+  function renderPositions() {
+    edgeData.forEach((edge) => {
+      const a = nodeState.get(edge.source);
+      const b = nodeState.get(edge.target);
+      const els = edgeEls.get(edge.id);
+      if (!a || !b || !els) return;
+      ['hit', 'line'].forEach((key) => {
+        els[key].setAttribute('x1', a.x);
+        els[key].setAttribute('y1', a.y);
+        els[key].setAttribute('x2', b.x);
+        els[key].setAttribute('y2', b.y);
+      });
+    });
+    nodeData.forEach((node) => {
+      const state = nodeState.get(node.id);
+      const el = nodeEls.get(node.id);
+      if (state && el) el.setAttribute('transform', `translate(${state.x} ${state.y})`);
+    });
+    viewport.setAttribute('transform', `translate(${panX} ${panY}) scale(${zoom})`);
+  }
+
+  function settleLayout(iterations = 150) {
+    const rect = stage.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    for (let step = 0; step < iterations; step++) {
+      const states = [...nodeState.entries()];
+      states.forEach(([idA, a], i) => {
+        if (a.fixed) return;
+        for (let j = i + 1; j < states.length; j++) {
+          const [, b] = states[j];
+          let dx = a.x - b.x;
+          let dy = a.y - b.y;
+          const d2 = Math.max(900, dx * dx + dy * dy);
+          const force = 2600 / d2;
+          const d = Math.sqrt(d2);
+          dx /= d; dy /= d;
+          a.vx += dx * force; a.vy += dy * force;
+          b.vx -= dx * force; b.vy -= dy * force;
+        }
+        a.vx += (cx - a.x) * 0.00055;
+        a.vy += (cy - a.y) * 0.00055;
+      });
+      edgeData.forEach((edge) => {
+        const a = nodeState.get(edge.source);
+        const b = nodeState.get(edge.target);
+        if (!a || !b) return;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+        const ideal = edge.state === 'CANDIDATE' ? 190 : 150;
+        const spring = (dist - ideal) * 0.0018;
+        const ux = dx / dist, uy = dy / dist;
+        if (!a.fixed) { a.vx += ux * spring; a.vy += uy * spring; }
+        if (!b.fixed) { b.vx -= ux * spring; b.vy -= uy * spring; }
+      });
+      nodeState.forEach((s) => {
+        if (s.fixed) return;
+        s.vx *= .82; s.vy *= .82;
+        s.x += s.vx; s.y += s.vy;
+        s.x = Math.max(70, Math.min(rect.width - 70, s.x));
+        s.y = Math.max(70, Math.min(rect.height - 70, s.y));
+      });
+    }
+  }
+
+  function clientToGraph(clientX, clientY) {
+    const rect = svg.getBoundingClientRect();
+    return { x: (clientX - rect.left - panX) / zoom, y: (clientY - rect.top - panY) / zoom };
+  }
+
+  function fitGraph() {
+    zoom = 1;
+    panX = 0;
+    panY = 0;
+    renderPositions();
+  }
+
+  svg.addEventListener('pointerdown', (event) => {
+    if (event.target !== svg && event.target !== viewport) return;
+    isPanning = true;
+    panStart = { x: event.clientX - panX, y: event.clientY - panY, pointerId: event.pointerId };
+    svg.setPointerCapture?.(event.pointerId);
+    clearSelection();
+  });
+  svg.addEventListener('pointermove', (event) => {
+    if (!isPanning || !panStart) return;
+    panX = event.clientX - panStart.x;
+    panY = event.clientY - panStart.y;
+    renderPositions();
+  });
+  svg.addEventListener('pointerup', (event) => {
+    if (!isPanning) return;
+    svg.releasePointerCapture?.(event.pointerId);
+    isPanning = false;
+    panStart = null;
+  });
+  svg.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    const rect = svg.getBoundingClientRect();
+    const before = { x: (event.clientX - rect.left - panX) / zoom, y: (event.clientY - rect.top - panY) / zoom };
+    const factor = event.deltaY < 0 ? 1.1 : .9;
+    zoom = Math.max(.45, Math.min(2.3, zoom * factor));
+    panX = event.clientX - rect.left - before.x * zoom;
+    panY = event.clientY - rect.top - before.y * zoom;
+    renderPositions();
+  }, { passive: false });
+
+  document.querySelectorAll('.filter').forEach((button) => {
+    button.addEventListener('click', () => {
+      activeKind = button.dataset.kind || 'ALL';
+      document.querySelectorAll('.filter').forEach((b) => b.classList.toggle('active', b === button));
+      clearSelection();
+    });
+  });
+
+  search?.addEventListener('input', () => {
+    query = search.value.trim().toLowerCase();
+    selectedId = null;
+    refreshVisibility();
+  });
+
+  candidateToggle?.addEventListener('change', () => {
+    showCandidates = candidateToggle.checked;
+    refreshVisibility();
+    if (selectedId) selectNode(selectedId);
+  });
+
+  fitButton?.addEventListener('click', fitGraph);
+  panelClose?.addEventListener('click', clearSelection);
+
+  const discoveries = edgeData.filter((edge) => edge.state === 'CANDIDATE');
+  discoveryButton?.addEventListener('click', () => {
+    if (!discoveries.length) return;
+    showCandidates = true;
+    if (candidateToggle) candidateToggle.checked = true;
+    discoveryIndex = (discoveryIndex + 1) % discoveries.length;
+    const edge = discoveries[discoveryIndex];
+    const source = nodeById.get(edge.source);
+    const target = nodeById.get(edge.target);
+    if (discoveryTitle) discoveryTitle.textContent = `${source?.label} × ${target?.label}`;
+    if (discoveryCopy) discoveryCopy.textContent = edge.note;
+    discoveryToast?.classList.add('visible');
+    highlightEdge(edge.id);
+  });
+
+  function init() {
+    if (initialized) return;
+    const rect = stage.getBoundingClientRect();
+    if (rect.width < 10 || rect.height < 10) return;
+    initialized = true;
+    svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+    layoutNodes();
+    settleLayout();
+    renderPositions();
+    refreshVisibility();
+  }
+
+  const ro = new ResizeObserver(() => {
+    const rect = stage.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+    if (!initialized) init();
+  });
+  ro.observe(stage);
+  requestAnimationFrame(init);
+})();
+</script>
+
+<style>
+  .graph-app { height: 100vh; min-height: 650px; display: flex; flex-direction: column; background: var(--bg-void); overflow: hidden; }
+  .graph-toolbar { height: 92px; flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 24px 16px; border-bottom: 1px solid var(--border-default); background: rgba(13,11,8,.96); }
+  .brand-block p, .mini-label { color: var(--gold-muted); font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
+  .brand-block h1 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(1.45rem, 2.2vw, 2.25rem); line-height: 1; color: var(--text-primary); }
+  .brand-block h1 span { color: var(--gold-pure); }
+  .toolbar-actions { display: flex; align-items: center; gap: 8px; }
+  .search-box { width: min(320px, 28vw); height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--border-default); background: var(--bg-surface); color: var(--text-muted); }
+  .search-box:focus-within { border-color: var(--gold-muted); }
+  .search-box input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: .78rem; }
+  .search-box input::placeholder { color: var(--text-dim); }
+  .tool-button { height: 40px; padding: 0 14px; border: 1px solid var(--border-default); background: var(--bg-surface); color: var(--text-muted); font: inherit; font-size: .7rem; cursor: pointer; transition: .18s; white-space: nowrap; }
+  .tool-button:hover { color: var(--text-primary); border-color: var(--gold-muted); background: var(--bg-elevated); }
+  .tool-button.discovery { color: var(--gold-pure); border-color: var(--border-accent); background: var(--gold-glow); }
+
+  .graph-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 126px minmax(0, 1fr) 290px; }
+  .graph-filters { padding: 18px 12px; border-right: 1px solid var(--border-default); background: var(--bg-surface); overflow-y: auto; }
+  .filter { width: 100%; display: flex; align-items: center; gap: 8px; margin-top: 6px; padding: 8px 7px; border: 0; background: transparent; color: var(--text-muted); font: inherit; font-size: .64rem; text-align: left; cursor: pointer; border-radius: 2px; }
+  .filter:hover, .filter.active { color: var(--text-primary); background: var(--gold-glow); }
+  .filter-dot { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; flex: 0 0 auto; }
+  .filter-dot.all { background: #d4c5a9; color: #d4c5a9; }
+  .filter-dot.control { background: #c9a96e; color: #c9a96e; }
+  .filter-dot.knowledge { background: #e3c77e; color: #e3c77e; }
+  .filter-dot.human { background: #9fb6cf; color: #9fb6cf; }
+  .filter-dot.output { background: #a7b993; color: #a7b993; }
+  .filter-dot.business { background: #c18f73; color: #c18f73; }
+  .filter-dot.action { background: #d0a9a9; color: #d0a9a9; }
+  .filter-dot.life { background: #9c8cb8; color: #9c8cb8; }
+  .filter-dot.principle { background: #8d8579; color: #8d8579; }
+  .filter-divider { height: 1px; margin: 16px 0; background: var(--border-default); }
+  .candidate-toggle { display: flex; align-items: center; gap: 7px; color: var(--text-muted); font-size: .64rem; cursor: pointer; }
+  .candidate-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .fake-check { width: 13px; height: 13px; border: 1px solid var(--gold-dim); position: relative; }
+  .candidate-toggle input:checked + .fake-check::after { content: ''; position: absolute; inset: 3px; background: #b79bd8; }
+  .legend { margin-top: 18px; display: grid; gap: 8px; color: var(--text-dim); font-size: .58rem; }
+  .legend > div { display: flex; align-items: center; gap: 7px; }
+  .line { width: 22px; height: 1px; background: var(--gold-dim); }
+  .line.dashed { height: 0; background: transparent; border-top: 1px dashed #9c8cb8; }
+
+  .graph-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; background:
+    radial-gradient(circle at 50% 48%, rgba(201,169,110,.055), transparent 34%),
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    var(--bg-void); background-size: auto, 32px 32px, 32px 32px, auto; }
+  #graph-svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+  #graph-svg:active { cursor: grabbing; }
+  :global(.graph-edge) { transition: opacity .2s; cursor: pointer; }
+  :global(.edge-line) { stroke: rgba(201,169,110,.27); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  :global(.graph-edge.candidate .edge-line) { stroke: rgba(183,155,216,.55); stroke-dasharray: 6 7; }
+  :global(.edge-hit) { stroke: transparent; stroke-width: 14; vector-effect: non-scaling-stroke; }
+  :global(.graph-edge.dimmed) { opacity: .08; }
+  :global(.graph-edge.active-edge .edge-line) { stroke: rgba(201,169,110,.72); stroke-width: 1.5; }
+  :global(.graph-edge.candidate.active-edge .edge-line) { stroke: rgba(207,177,242,.88); }
+  :global(.graph-edge.edge-flash .edge-line) { stroke-width: 2.2; filter: url(#node-glow); opacity: 1; }
+  :global(.graph-edge.hidden-edge) { display: none; }
+
+  :global(.graph-node) { cursor: pointer; transition: opacity .18s; outline: none; }
+  :global(.graph-node.dragging) { cursor: grabbing; }
+  :global(.node-halo) { fill: transparent; stroke: transparent; stroke-width: 1; transition: .18s; }
+  :global(.node-circle) { fill: #17130f; stroke-width: 1.4; vector-effect: non-scaling-stroke; transition: .18s; }
+  :global(.node-label) { fill: #b7aa95; font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 8.8px; font-weight: 400; letter-spacing: .03em; paint-order: stroke; stroke: #0d0b08; stroke-width: 3px; stroke-linejoin: round; }
+  :global(.node-sub) { fill: #5f574e; font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 5.8px; letter-spacing: .12em; paint-order: stroke; stroke: #0d0b08; stroke-width: 2px; }
+  :global(.graph-node.control .node-circle) { stroke: #c9a96e; }
+  :global(.graph-node.knowledge .node-circle) { stroke: #e3c77e; }
+  :global(.graph-node.human .node-circle) { stroke: #9fb6cf; }
+  :global(.graph-node.output .node-circle) { stroke: #a7b993; }
+  :global(.graph-node.business .node-circle) { stroke: #c18f73; }
+  :global(.graph-node.action .node-circle) { stroke: #d0a9a9; }
+  :global(.graph-node.life .node-circle) { stroke: #9c8cb8; }
+  :global(.graph-node.principle .node-circle) { stroke: #8d8579; fill: #12100d; }
+  :global(.graph-node:hover .node-circle), :global(.graph-node:focus .node-circle) { fill: #2a231b; stroke-width: 2.1; }
+  :global(.graph-node:hover .node-halo), :global(.graph-node.selected .node-halo) { stroke: rgba(201,169,110,.18); fill: rgba(201,169,110,.025); }
+  :global(.graph-node.selected .node-circle) { fill: #332817; stroke: #f0d690; stroke-width: 2.4; filter: url(#node-glow); }
+  :global(.graph-node.selected .node-label) { fill: #f2dfb6; }
+  :global(.graph-node.dimmed) { opacity: .11; }
+  :global(.graph-node.hidden-node) { display: none; }
+
+  .stage-hint { position: absolute; left: 16px; bottom: 14px; color: var(--text-dim); font-size: .58rem; pointer-events: none; }
+  .stage-hint span { color: var(--gold-muted); text-transform: uppercase; letter-spacing: .08em; }
+  .discovery-toast { position: absolute; left: 50%; bottom: 18px; width: min(520px, calc(100% - 40px)); transform: translate(-50%, 16px); padding: 14px 16px; border: 1px solid rgba(183,155,216,.32); background: rgba(24,19,27,.92); box-shadow: 0 18px 60px rgba(0,0,0,.3); opacity: 0; pointer-events: none; transition: .25s; }
+  .discovery-toast.visible { opacity: 1; transform: translate(-50%, 0); }
+  .discovery-toast strong { display: block; margin-top: 4px; color: #d9c6ef; font-size: .78rem; font-weight: 500; }
+  .discovery-toast p:last-child { margin-top: 5px; color: #93879c; font-size: .68rem; line-height: 1.6; }
+
+  .node-panel { min-width: 0; padding: 22px 18px; border-left: 1px solid var(--border-default); background: var(--bg-surface); overflow-y: auto; }
+  .panel-empty { min-height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  .empty-orbit { width: 68px; height: 68px; margin-bottom: 22px; border: 1px solid var(--gold-dim); border-radius: 50%; position: relative; opacity: .65; }
+  .empty-orbit::before, .empty-orbit::after { content: ''; position: absolute; border: 1px solid var(--border-accent); border-radius: 50%; inset: 9px -9px; transform: rotate(45deg); }
+  .empty-orbit::after { transform: rotate(-45deg); }
+  .empty-orbit span { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: var(--gold-pure); left: 50%; top: 50%; transform: translate(-50%,-50%); box-shadow: 0 0 18px rgba(201,169,110,.35); }
+  .panel-empty h2, .panel-content h2 { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 300; line-height: 1.1; color: var(--text-primary); }
+  .panel-empty > p:last-child { margin-top: 15px; color: var(--text-muted); font-size: .72rem; line-height: 1.8; }
+  .panel-topline { display: flex; align-items: center; justify-content: space-between; }
+  .kind-badge { display: inline-flex; padding: 4px 7px; border: 1px solid var(--border-accent); color: var(--gold-muted); font-size: .55rem; letter-spacing: .12em; }
+  .panel-close { width: 30px; height: 30px; border: 1px solid var(--border-default); background: transparent; color: var(--text-muted); font-size: 1rem; cursor: pointer; }
+  .node-id { margin-top: 22px; color: var(--text-dim); font-size: .58rem; letter-spacing: .12em; }
+  .panel-role { margin-top: 10px; color: var(--gold-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; }
+  .panel-note { margin-top: 16px; color: var(--text-muted); font-size: .74rem; line-height: 1.85; }
+  .panel-connections { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-default); }
+  #panel-edges { margin-top: 9px; display: grid; gap: 5px; }
+  :global(.connection-row) { width: 100%; display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 7px; padding: 8px; border: 1px solid transparent; background: rgba(255,255,255,.015); color: var(--text-muted); font: inherit; text-align: left; cursor: pointer; }
+  :global(.connection-row:hover) { border-color: var(--border-default); background: var(--bg-elevated); }
+  :global(.connection-row .edge-dir) { color: var(--gold-muted); }
+  :global(.connection-row strong) { display: block; color: var(--text-primary); font-size: .62rem; font-weight: 500; }
+  :global(.connection-row small) { display: block; margin-top: 2px; color: var(--text-dim); font-size: .58rem; }
+  :global(.connection-row em) { color: #b79bd8; font-size: .52rem; font-style: normal; }
+  :global(.connection-row.candidate) { border-style: dashed; border-color: rgba(183,155,216,.18); }
+  .open-source { display: inline-flex; margin-top: 24px; color: var(--gold-pure); text-decoration: none; font-size: .7rem; border-bottom: 1px solid var(--gold-dim); padding-bottom: 3px; }
+
+  @media (max-width: 1100px) {
+    .graph-body { grid-template-columns: 96px minmax(0,1fr) 250px; }
+    .graph-filters { padding-inline: 8px; }
+    .filter { font-size: .58rem; }
+  }
+  @media (max-width: 820px) {
+    .graph-app { height: calc(100vh - 56px); min-height: 600px; }
+    .graph-toolbar { height: auto; align-items: flex-start; flex-direction: column; padding: 14px 14px 12px; }
+    .toolbar-actions { width: 100%; overflow-x: auto; padding-bottom: 2px; }
+    .search-box { width: 210px; min-width: 210px; }
+    .graph-body { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    .graph-filters { position: absolute; z-index: 5; left: 10px; top: 116px; width: auto; max-width: calc(100vw - 20px); display: flex; align-items: center; gap: 3px; padding: 6px; border: 1px solid var(--border-default); background: rgba(26,22,18,.9); overflow-x: auto; }
+    .graph-filters .mini-label, .filter-divider, .candidate-toggle, .legend { display: none; }
+    .filter { width: auto; white-space: nowrap; margin: 0; padding: 7px 8px; }
+    .node-panel { position: absolute; z-index: 8; left: 12px; right: 12px; bottom: 12px; max-height: 42vh; padding: 16px; border: 1px solid var(--border-default); background: rgba(26,22,18,.97); box-shadow: 0 22px 70px rgba(0,0,0,.45); }
+    .panel-empty { display: none; }
+    .node-panel:has(.panel-content[hidden]) { display: none; }
+    .stage-hint { display: none; }
+    .discovery-toast { bottom: 14px; }
+  }
+  @media (max-width: 540px) {
+    .brand-block h1 { font-size: 1.35rem; }
+    .brand-block p { font-size: .52rem; }
+    .toolbar-actions { gap: 5px; }
+    .tool-button { padding: 0 10px; font-size: .62rem; }
+  }
+</style>
