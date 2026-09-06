@@ -1,0 +1,92 @@
+---
+import PublicPageLayout from '../layouts/PublicPageLayout.astro';
+---
+
+<PublicPageLayout
+  title="失った夢の続き"
+  description="山田昌寛の原点。サッカーの夢、怪我と挫折、セパタクローとの偶然の出会い、日本代表、そして教育へ。"
+  eyebrow="STORY / MASAHIRO YAMADA"
+>
+  <p slot="lead" class="public-lead">
+    日本代表になったことより、その前と、その後に何度も折れたことの方が、今の自分をつくっている。
+  </p>
+
+  <section class="public-section">
+    <h2>書けなかった夢</h2>
+    <p>
+      子どもの頃はサッカー選手に憧れていた。日本代表という言葉にも惹かれていた。
+      けれど、怪我や現実との距離を知るうちに、その夢をまっすぐ口にできなくなった。
+      卒業文集にも「日本代表」とは書けなかった。
+    </p>
+    <p>
+      夢が消えたというより、自分の中で一度、火を小さくしたのだと思う。
+    </p>
+  </section>
+
+  <section class="public-section">
+    <h2>中庭で、火が戻った</h2>
+    <p>
+      浪人を経て日本体育大学へ進み、サッカーを続けていたある日、中庭で見慣れないボールに出会った。
+      セパタクローだった。
+    </p>
+    <p>
+      かつて憧れていた先輩が、この競技で日本代表になっていたことを思い出した。
+      「日本代表」という、子どもの頃に書けなかった言葉が、別の競技からもう一度こちらを向いた。
+    </p>
+    <div class="public-callout">
+      夢は、同じ形で戻ってくるとは限らない。道が変わったことで、むしろ本来の可能性に出会うことがある。
+    </div>
+  </section>
+
+  <section class="public-section">
+    <h2>代表になっても、物語は終わらなかった</h2>
+    <p>
+      セパタクローでは日本代表として世界最高峰の競技圏で勝負を経験し、アジア大会では銅メダルを獲得した。
+      ただ、代表に入ることも、勝つことも、自分の内側の揺れをすべて消してくれるわけではなかった。
+    </p>
+    <p>
+      選考から外れることもあった。思うように力を出せない時期もあった。
+      そこで初めて、技術や根性だけでは説明できない「人間の状態」に興味を持つようになった。
+    </p>
+  </section>
+
+  <section class="public-section">
+    <h2>勝ち方から、人の可能性へ</h2>
+    <p>
+      メンタル、脳、認知、身体、コーチング、哲学。学びは少しずつ広がった。
+      けれど今振り返ると、探していたものは一つだった。
+    </p>
+    <p>
+      人は、どうすれば本来持っている力を発揮できるのか。
+      どうすれば、外から答えを押し込まれるのではなく、自分で観測し、選び、また動き出せるのか。
+    </p>
+    <p>
+      競技人生で得たものを、過去の勲章にはしたくない。
+      身体で知ったことを、次の人が自分の可能性を取り戻すための教育へ変える。
+      それが、今の自分の仕事につながっている。
+    </p>
+  </section>
+
+  <section class="public-section">
+    <div class="public-grid">
+      <a class="public-card trust-link" href="/profile">
+        <span class="trust-kicker">PROFILE</span>
+        <strong>事実と現在地を見る</strong>
+        <span>競技経験、現在の活動、役割。</span>
+      </a>
+      <a class="public-card trust-link" href="/philosophy">
+        <span class="trust-kicker">PHILOSOPHY</span>
+        <strong>なぜ、そう考えるのか</strong>
+        <span>身体、問い、教育、Flowについて。</span>
+      </a>
+    </div>
+  </section>
+
+  <style>
+    .trust-link { display: grid; gap: 10px; text-decoration: none; transition: border-color .2s, background .2s; }
+    .trust-link:hover { border-color: var(--gold-muted); background: var(--bg-elevated); }
+    .trust-kicker { color: var(--gold-muted); font-family: 'Cormorant Garamond', serif; font-size: 11px; letter-spacing: .2em; }
+    .trust-link strong { color: var(--text-primary); font-weight: 500; }
+    .trust-link span:last-child { color: var(--text-muted); font-size: .86rem; }
+  </style>
+</PublicPageLayout>
