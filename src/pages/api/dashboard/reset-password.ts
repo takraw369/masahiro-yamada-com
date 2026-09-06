@@ -7,6 +7,8 @@ import {
 } from '../../../lib/dashboardGoogleAuth';
 import { getSiteStorageEnv } from '../../../lib/siteStorage';
 
+const DASHBOARD_IDLE_TIMEOUT_SECONDS = 60 * 60 * 24;
+
 export const POST = async ({ request, locals, cookies }: APIContext) => {
   const env = getSiteStorageEnv(locals);
   const accessToken = dashboardBearerToken(request);
@@ -55,7 +57,7 @@ export const POST = async ({ request, locals, cookies }: APIContext) => {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: DASHBOARD_IDLE_TIMEOUT_SECONDS,
     });
 
     return new Response(JSON.stringify({ ok: true }), {
