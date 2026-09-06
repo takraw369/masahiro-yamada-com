@@ -1,0 +1,87 @@
+---
+import PublicPageLayout from '../layouts/PublicPageLayout.astro';
+---
+
+<PublicPageLayout
+  title="山田 昌寛"
+  description="山田昌寛（MASA）のプロフィール。セパタクロー元日本代表、アジア大会銅メダル。競技経験を身体性・脳科学・教育へ変換している。"
+  eyebrow="PROFILE / MASA"
+>
+  <p slot="lead" class="public-lead">
+    世界最高峰の競技圏で勝負を身体で経験し、その一次経験を、身体性・脳科学・哲学・教育へ変換している。
+  </p>
+
+  <section class="public-section">
+    <h2>現在の役割</h2>
+    <p>
+      元日本代表アスリートとしての経験を、過去の実績ではなく「再利用できる身体知」として編集し、
+      人が自分の状態を観測し、自分で選び、自分の可能性を発揮できる教育と仕組みをつくっている。
+    </p>
+    <p>
+      主なテーマは、身体と認知、心身の調整、問いを起点にした教育、アスリート育成、コーチング、
+      そして人の経験をAIや仕組みと接続して次の価値へ変えること。
+    </p>
+  </section>
+
+  <section class="public-section">
+    <h2>競技</h2>
+    <div class="public-grid">
+      <div class="public-card fact-card">
+        <span class="fact-label">SPORT</span>
+        <strong>セパタクロー</strong>
+        <p>日本代表として長く競技。アジア勢が世界最高峰を形成する競技圏で国際大会を経験。</p>
+      </div>
+      <div class="public-card fact-card">
+        <span class="fact-label">RESULT</span>
+        <strong>アジア大会 銅メダル</strong>
+        <p>結果そのものより、勝負・役割・身体操作・精神状態を身体で知ったことを現在の教育へ接続している。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-section">
+    <h2>取り組んでいること</h2>
+    <div class="profile-stack">
+      <div class="public-card profile-row">
+        <span>01</span>
+        <div><strong>ACE</strong><p>身体性・認知・問い・哲学・競技経験を統合した教育OS / Method。</p></div>
+      </div>
+      <div class="public-card profile-row">
+        <span>02</span>
+        <div><strong>Athlete Quest</strong><p>知識を受け取るだけでなく、Questと実践を通じて自分で変化を起こす体験設計。</p></div>
+      </div>
+      <div class="public-card profile-row">
+        <span>03</span>
+        <div><strong>Sun Loves Flow</strong><p>人間の経験・意志・身体知と、AI・資産・仕組みを接続し、実現可能性を拡張する事業と世界観。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-section">
+    <h2>肩書きより、役割</h2>
+    <div class="public-callout">
+      謙遜して小さく見せることも、誇張して大きく見せることもしない。事実を見立て、今の自分が何を担うのかを名乗り、その役割に沿って行動する。
+    </div>
+    <p>
+      アスリートであることも、教育者であることも、完成した肩書きではない。
+      経験し、問い、試し、観測し、また次へ渡していく。その循環そのものを仕事にしている。
+    </p>
+  </section>
+
+  <section class="public-section profile-actions">
+    <a class="public-btn" href="/story">Storyを読む</a>
+    <a class="public-btn" href="/philosophy">Philosophyを読む</a>
+    <a class="public-btn" href="/contact">仕事・講演の相談</a>
+  </section>
+
+  <style>
+    .fact-card { display: grid; gap: 10px; }
+    .fact-label { color: var(--gold-muted); font-family: 'Cormorant Garamond', serif; font-size: 11px; letter-spacing: .2em; }
+    .fact-card strong, .profile-row strong { color: var(--text-primary); font-weight: 500; }
+    .fact-card p, .profile-row p { margin: 0; }
+    .profile-stack { display: grid; gap: 12px; }
+    .profile-row { display: grid; grid-template-columns: 42px 1fr; gap: 18px; align-items: start; }
+    .profile-row > span { color: var(--gold-muted); font-family: 'Cormorant Garamond', serif; letter-spacing: .08em; }
+    .profile-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  </style>
+</PublicPageLayout>
