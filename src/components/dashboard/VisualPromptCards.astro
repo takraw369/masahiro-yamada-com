@@ -1,0 +1,94 @@
+---
+const commands = [
+  {
+    type: 'PARTIAL EDIT',
+    title: 'この画像、ここだけ直して',
+    description: '変える要素と残す要素を分けて、構図・顔・カメラ位置など大事な部分を守りながら部分修正する。',
+    input: '画像 ＋ 変えたい箇所',
+    command: 'この画像、ここだけ直して',
+  },
+  {
+    type: 'PROMPT RECONSTRUCTION',
+    title: 'この画像の再現プロンプト作って',
+    description: '完成画像を構図・光・色・質感・Style・Fixed / Variableへ分解し、再利用できるPromptへ再構築する。',
+    input: '基準にしたい画像',
+    command: 'この画像の再現プロンプト作って',
+  },
+];
+---
+
+<section class="visual-prompts" aria-labelledby="visual-prompt-title">
+  <div class="section-head">
+    <div>
+      <p class="section-kicker">VISUAL PROMPT</p>
+      <h2 id="visual-prompt-title">画像を直す・型にする</h2>
+    </div>
+    <p class="section-note">画像をChatGPTに貼る → 使いたいカードを選ぶ → コピーした言葉を送る。</p>
+  </div>
+
+  <div class="command-grid">
+    {commands.map(item => (
+      <article class="command-card">
+        <span class="command-type">{item.type}</span>
+        <h3>{item.title}</h3>
+        <p>{item.description}</p>
+        <div class="command-footer">
+          <span class="command-input">必要：{item.input}</span>
+          <button class="copy-command" type="button" data-command={item.command}>
+            コマンドをコピー
+          </button>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <p class="visual-rule">
+    Drive正本：IMAGE_ASSET_OS。内部の隠れPromptを取り出すのではなく、完成Visualから再利用できる設計図を再構築する。
+  </p>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.copy-command').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const command = button.dataset.command;
+      if (!command) return;
+
+      try {
+        await navigator.clipboard.writeText(command);
+        const original = button.textContent;
+        button.textContent = 'コピーしました ✓';
+        window.setTimeout(() => {
+          button.textContent = original;
+        }, 1600);
+      } catch {
+        button.textContent = command;
+      }
+    });
+  });
+</script>
+
+<style>
+  .visual-prompts { margin-top: 54px; }
+  .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+  .section-kicker { color: var(--gold-muted); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
+  h2 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--text-primary); }
+  .section-note { max-width: 520px; color: var(--text-dim); font-size: .78rem; line-height: 1.65; text-align: right; }
+  .command-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .command-card { display: flex; flex-direction: column; min-height: 235px; padding: 22px; background: var(--bg-surface); border: 1px solid var(--border-default); }
+  .command-type { color: var(--gold-muted); font-size: .62rem; letter-spacing: .12em; }
+  .command-card h3 { margin-top: 14px; color: var(--text-primary); font-size: 1rem; font-weight: 500; }
+  .command-card > p { margin-top: 12px; color: var(--text-muted); font-size: .82rem; line-height: 1.8; }
+  .command-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: auto; padding-top: 20px; }
+  .command-input { color: var(--text-dim); font-size: .68rem; }
+  .copy-command { min-height: 42px; padding: 9px 13px; border: 1px solid var(--border-accent); background: var(--gold-glow); color: var(--gold-pure); font: inherit; font-size: .72rem; cursor: pointer; transition: border-color .2s, background .2s; }
+  .copy-command:hover { border-color: var(--gold-muted); background: rgba(201,169,110,.12); }
+  .visual-rule { margin-top: 12px; color: var(--text-dim); font-size: .68rem; line-height: 1.7; }
+
+  @media (max-width: 768px) {
+    .section-head { align-items: flex-start; flex-direction: column; }
+    .section-note { text-align: left; }
+    .command-grid { grid-template-columns: 1fr; }
+    .command-footer { align-items: stretch; flex-direction: column; }
+    .copy-command { width: 100%; }
+  }
+</style>
