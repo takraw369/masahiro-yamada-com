@@ -2,6 +2,7 @@ import { defineMiddleware } from 'astro:middleware';
 import { dashboardAuthToken, safeTokenEqual } from './lib/dashboardAuth';
 
 const CANONICAL_HOST = 'masahiroyamada.com';
+const DASHBOARD_IDLE_TIMEOUT_SECONDS = 60 * 60 * 24;
 const REDIRECT_HOSTS = new Set([
   'www.masahiroyamada.com',
   'masahiro-yamada.com',
@@ -46,6 +47,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
       }
       return context.redirect('/dashboard/login');
     }
+
+    // Rolling session: every authenticated Dashboard access extends the cookie
+    // for another 24 hours. If the Dashboard is unused for 24 hours, login is
+    // required again.
+    context.cookies.set('ace-dash-auth', cookie!, {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: DASHBOARD_IDLE_TIMEOUT_SECONDS,
+    });
   }
 
   return next();
