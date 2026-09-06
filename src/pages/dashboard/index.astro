@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import VisualPromptCards from '../../components/dashboard/VisualPromptCards.astro';
 
 const focusItems = [
   {
@@ -93,6 +94,8 @@ const pendingMedia = [
         ))}
       </div>
     </section>
+
+    <VisualPromptCards />
 
     <section class="section media-section">
       <div class="section-head">
