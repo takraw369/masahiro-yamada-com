@@ -1,0 +1,84 @@
+---
+import PublicPageLayout from '../layouts/PublicPageLayout.astro';
+---
+
+<PublicPageLayout
+  title="押し込むより、惹き出す"
+  description="山田昌寛の教育観・身体観・思想。答えを与えるより、観測・問い・体験から本人の可能性を惹き出す。"
+  eyebrow="PHILOSOPHY / MASA"
+>
+  <p slot="lead" class="public-lead">
+    人は、外から正解を入れれば動く機械ではない。身体で感じ、問いを持ち、自分で意味を握った時に、変化は内側から始まる。
+  </p>
+
+  <section class="public-section principle">
+    <span class="principle-no">01</span>
+    <h2>評価より、見立て</h2>
+    <p>
+      「すごい」「ダメ」「才能がある」「向いていない」。評価だけでは、人は上下の中に置かれやすい。
+      それよりも、今何が起きているのか、何ができていて、どこにズレがあるのかを見る。
+    </p>
+    <div class="public-callout">評価だと上下が生まれる。見立てだと、次の一手が生まれる。</div>
+  </section>
+
+  <section class="public-section principle">
+    <span class="principle-no">02</span>
+    <h2>知識の前に、身体</h2>
+    <p>
+      説明を聞いて「分かった」と思うことと、自分の身体で気づくことは違う。
+      呼吸、姿勢、視線、バランス、動き。身体は、意識と無意識の境目を観察できる最も近い場所にある。
+    </p>
+    <p>
+      だから教育では、答えを説明する前に、小さく体験してもらう。その後に「今、何が起きた？」と問う。
+    </p>
+  </section>
+
+  <section class="public-section principle">
+    <span class="principle-no">03</span>
+    <h2>分けて理解し、最後は統合する</h2>
+    <p>
+      心と身体、個人と社会、理論と実践。理解のために一度分けることはあっても、現実では互いに影響し続けている。
+      一つの原因だけで人を説明しない。
+    </p>
+    <p>
+      人を見る時も、肩書きや単一の能力ではなく、身体、環境、関係、過去から現在までの流れを見る。
+    </p>
+  </section>
+
+  <section class="public-section principle">
+    <span class="principle-no">04</span>
+    <h2>アスリートは、生き方</h2>
+    <p>
+      アスリートは競技者だけを指す言葉ではないと思っている。
+      気になることに問いを持ち、試し、うまくいかなさに出会い、観察し、学び直し、また行動する。
+    </p>
+    <p>
+      この循環を回し続ける人は、競技をしていなくてもアスリート的だ。
+      ACEやAthlete Questでつくりたいのも、誰かの正解を再現する人ではなく、自分でこの循環を回せる人だ。
+    </p>
+  </section>
+
+  <section class="public-section principle">
+    <span class="principle-no">05</span>
+    <h2>人づくりは、その先へ流れていく</h2>
+    <p>
+      一人の状態が整えば、その人の選択が変わる。選択が変われば関係が変わり、関係が積み重なれば文化になる。
+      教育を個人の成功だけで終わらせず、次の人、次の世代、社会へ還っていく流れとして考えたい。
+    </p>
+    <div class="public-callout">
+      自分だけが目立つためではなく、自分の経験を場に差し出すことで、誰かの火が灯る。その循環をつくる。
+    </div>
+  </section>
+
+  <section class="public-section philosophy-actions">
+    <a class="public-btn" href="/story">原点となったStory</a>
+    <a class="public-btn" href="/profile">Profileを見る</a>
+    <a class="public-btn" href="/contact">対話・仕事の相談</a>
+  </section>
+
+  <style>
+    .principle { position: relative; padding-top: 10px; }
+    .principle-no { display: block; margin-bottom: 8px; color: var(--gold-muted); font-family: 'Cormorant Garamond', serif; font-size: 12px; letter-spacing: .22em; }
+    .philosophy-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  </style>
+</PublicPageLayout>
