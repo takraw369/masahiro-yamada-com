@@ -29,7 +29,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith('/dashboard') &&
     pathname !== '/dashboard/login' &&
     !pathname.startsWith('/dashboard/logout');
-  const isDashboardApi = pathname.startsWith('/api/dashboard');
+  const isCalendarSyncApi = pathname === '/api/dashboard/calendar/sync';
+  const isDashboardApi = pathname.startsWith('/api/dashboard') && !isCalendarSyncApi;
 
   if (isDashboardPage || isDashboardApi) {
     const env = context.locals.runtime?.env as Record<string, string> | undefined;

@@ -4,6 +4,7 @@ export interface SiteStorageEnv {
   SUPABASE_URL?: string;
   SUPABASE_PUBLISHABLE_KEY?: string;
   DASHBOARD_PASSWORD?: string;
+  CALENDAR_SYNC_SECRET?: string;
   DB?: D1Database;
 }
 

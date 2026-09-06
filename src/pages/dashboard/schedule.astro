@@ -1,7 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
-import ContentScheduler from '../../components/dashboard/ContentScheduler';
+import PersonalSchedule from '../../components/dashboard/PersonalSchedule';
 ---
-<DashboardLayout title="Schedule" fullHeight={true}>
-  <ContentScheduler client:only="react" />
+<DashboardLayout title="Calendar">
+  <PersonalSchedule client:load />
 </DashboardLayout>
