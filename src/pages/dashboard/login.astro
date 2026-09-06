@@ -2,6 +2,7 @@
 import { dashboardAuthToken, safeTokenEqual } from '../../lib/dashboardAuth';
 import { getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
 
+const DASHBOARD_IDLE_TIMEOUT_SECONDS = 60 * 60 * 24;
 const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
 const signingSecret = env?.DASHBOARD_PASSWORD ?? '';
 const supabaseUrl = env?.SUPABASE_URL ?? '';
@@ -38,7 +39,7 @@ if (Astro.request.method === 'POST') {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: DASHBOARD_IDLE_TIMEOUT_SECONDS,
     });
     return Astro.redirect('/dashboard');
   }
@@ -52,6 +53,14 @@ if (Astro.request.method === 'POST') {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MASA OS — Login</title>
+  <script is:inline>
+    (() => {
+      const hash = window.location.hash || '';
+      if (/(?:^#|[&#])(access_token|error|error_description)=/.test(hash)) {
+        document.documentElement.classList.add('oauth-callback-pending');
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
@@ -75,6 +84,7 @@ if (Astro.request.method === 'POST') {
       justify-content: center;
       padding: 20px;
     }
+    html.oauth-callback-pending #auth-card { visibility: hidden; }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -206,6 +216,10 @@ if (Astro.request.method === 'POST') {
     const INTENT_KEY = 'masa.dashboard.oauth.intent';
     let recoveryAccessToken = '';
 
+    function finishCallbackUi() {
+      document.documentElement.classList.remove('oauth-callback-pending');
+    }
+
     function showMessage(text, isError = false) {
       if (!message) return;
       message.textContent = text;
@@ -229,17 +243,25 @@ if (Astro.request.method === 'POST') {
     recoveryButton?.addEventListener('click', () => beginGoogle('reset'));
 
     async function processGoogleCallback() {
-      if (!window.location.hash) return;
+      if (!window.location.hash) {
+        finishCallbackUi();
+        return;
+      }
+
       const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
       const accessToken = params.get('access_token') || '';
       const oauthError = params.get('error_description') || params.get('error') || '';
-      if (!accessToken && !oauthError) return;
+      if (!accessToken && !oauthError) {
+        finishCallbackUi();
+        return;
+      }
 
       window.history.replaceState({}, '', window.location.pathname);
       const intent = sessionStorage.getItem(INTENT_KEY) || 'login';
       sessionStorage.removeItem(INTENT_KEY);
 
       if (oauthError) {
+        finishCallbackUi();
         showMessage(`Googleログインに失敗しました: ${oauthError}`, true);
         return;
       }
@@ -248,11 +270,11 @@ if (Astro.request.method === 'POST') {
         recoveryAccessToken = accessToken;
         if (loginPanel) loginPanel.hidden = true;
         if (resetPanel) resetPanel.hidden = false;
+        finishCallbackUi();
         showMessage('Googleでadmin本人確認ができました。新しいパスワードを設定できます。');
         return;
       }
 
-      showMessage('Googleアカウントを確認しています…');
       const response = await fetch('/api/dashboard/google-login', {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -262,6 +284,8 @@ if (Astro.request.method === 'POST') {
         window.location.replace('/dashboard');
         return;
       }
+
+      finishCallbackUi();
       showMessage('このGoogleアカウントにはDashboard admin権限がありません。', true);
     }
 

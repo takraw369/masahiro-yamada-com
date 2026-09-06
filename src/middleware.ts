@@ -3,6 +3,10 @@ import { dashboardAuthToken, safeTokenEqual } from './lib/dashboardAuth';
 
 const CANONICAL_HOST = 'masahiroyamada.com';
 const DASHBOARD_IDLE_TIMEOUT_SECONDS = 60 * 60 * 24;
+const DASHBOARD_AUTH_BOOTSTRAP_APIS = new Set([
+  '/api/dashboard/google-login',
+  '/api/dashboard/reset-password',
+]);
 const REDIRECT_HOSTS = new Set([
   'www.masahiroyamada.com',
   'masahiro-yamada.com',
@@ -30,7 +34,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith('/dashboard') &&
     pathname !== '/dashboard/login' &&
     !pathname.startsWith('/dashboard/logout');
-  const isDashboardApi = pathname.startsWith('/api/dashboard');
+  const isDashboardApi =
+    pathname.startsWith('/api/dashboard') &&
+    !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname);
 
   if (isDashboardPage || isDashboardApi) {
     const env = context.locals.runtime?.env as Record<string, string> | undefined;
