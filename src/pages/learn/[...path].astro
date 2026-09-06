@@ -1,0 +1,6 @@
+---
+const path = Astro.params.path ? `/${Astro.params.path}` : '';
+const target = new URL(`https://ace-quest-board.takraw501.workers.dev/learn${path}`);
+for (const [key, value] of Astro.url.searchParams) target.searchParams.append(key, value);
+return Astro.redirect(target.toString(), 302);
+---
