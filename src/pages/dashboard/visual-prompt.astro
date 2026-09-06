@@ -1,0 +1,365 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Visual Prompt Lab">
+  <div class="prompt-shell">
+    <header class="prompt-hero">
+      <div>
+        <p class="eyebrow">PJT-039 · AI VISUAL LAB</p>
+        <h1>Visual Prompt <span>Lab</span></h1>
+        <p class="lead">文章・思想・台本を、使い回せる「視覚の言語」へ。型を選び、中身を入れ、完成Promptをコピーする。</p>
+      </div>
+      <a class="source-link" href="https://drive.google.com/file/d/1uFVr-CYpT2rTh8BKRdMmxOgwSJDwfmiA/view" target="_blank" rel="noopener noreferrer">Drive正本 ↗</a>
+    </header>
+
+    <section class="flow-card">
+      <span>TEXT</span><i>→</i><span>CORE</span><i>→</i><span>VISUAL TYPE</span><i>→</i><span>PROMPT</span><i>→</i><span>IMAGE</span><i>→</i><span>REUSE</span>
+    </section>
+
+    <section class="section-block">
+      <div class="section-head">
+        <div><p class="section-kicker">01 · CHOOSE</p><h2>見せ方の型を選ぶ</h2></div>
+        <p>深い概念→グラレコ、変化→4コマ、習慣→ノート、入口→サムネ、IP→キャラ解説。</p>
+      </div>
+      <div id="typeGrid" class="type-grid"></div>
+    </section>
+
+    <div class="workspace">
+      <div class="input-stack">
+        <section class="panel">
+          <div class="panel-head">
+            <div><p class="section-kicker">02 · PRESET</p><h2>サンプルから始める</h2></div>
+          </div>
+          <div class="preset-row">
+            <select id="presetSelect" aria-label="クイックプリセット"></select>
+            <button id="applyPreset" type="button">読み込む</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div><p class="section-kicker">03 · INPUT</p><h2 id="formTitle">内容を入れる</h2></div>
+            <span id="saveState" class="save-state">端末内に自動保存</span>
+          </div>
+          <div id="dynamicForm" class="form-grid"></div>
+        </section>
+      </div>
+
+      <aside>
+        <section class="panel output-panel">
+          <div class="panel-head">
+            <div><p class="section-kicker">04 · OUTPUT</p><h2>完成Prompt</h2></div>
+            <span id="typeBadge" class="type-badge">P01</span>
+          </div>
+          <p class="output-note">Gemini / ChatGPT画像生成 / その他の画像AIへそのまま渡せる形に整えます。</p>
+          <div class="actions">
+            <button id="generatePrompt" class="primary" type="button">Prompt生成</button>
+            <button id="copyPrompt" type="button">コピー</button>
+            <button id="resetForm" type="button">リセット</button>
+          </div>
+          <textarea id="promptOutput" class="prompt-output" readonly placeholder="入力後に「Prompt生成」を押してください。"></textarea>
+          <p id="status" class="status" aria-live="polite"></p>
+          <div class="truth-note">
+            <strong>SOURCE OF TRUTH</strong>
+            <span>Prompt本文の正本はDrive。Dashboardは「選ぶ・埋める・生成する」のInteraction Layer。</span>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  const STORAGE_KEY = 'masaVisualPromptLabPrimaryV1';
+
+  const types = {
+    infographic: {
+      icon: '◫', label: 'グラレコ', short: 'P01', when: '深い概念・全体像・モデル',
+      fields: [
+        ['theme','テーマ','text','例：脳のコンディションを整える3ステップ'],
+        ['purpose','用途','select',['SNS投稿','noteの見出し','講座スライド','教材']],
+        ['size','サイズ','select',['1:1','16:9','9:16']],
+        ['title','タイトル','text','画像内のメインタイトル'],
+        ['metaphor','中心の図・比喩','text','例：シャンパンタワー、ピラミッド、地図'],
+        ['points','要点 3〜5個','textarea','1行に1つずつ',true],
+        ['background','背景','select',['白','和紙風','黒板風','クリーム色']],
+        ['colors','色のテーマ','text','例：青と白でクリーンに'],
+        ['touch','タッチ','select',['手書きノート風','ボールペン＋マーカー風','チョーク風','シンプル線画']]
+      ]
+    },
+    comic: {
+      icon: '▦', label: '4コマ漫画', short: 'P02', when: 'Before / After・変化・気づき',
+      fields: [
+        ['theme','テーマ','text','例：AI時代の不安→行動'],
+        ['characters','登場人物','text','性別・年齢・雰囲気'],
+        ['panel1','コマ1｜現状・悩み','textarea','',true],
+        ['panel2','コマ2｜問題 / きっかけ','textarea','',true],
+        ['panel3','コマ3｜変化の瞬間','textarea','',true],
+        ['panel4','コマ4｜結論・行動','textarea','',true],
+        ['style','絵柄','select',['やわらかいアニメ調','シンプルな線画','親しみやすいアニメ調']],
+        ['tone','全体の雰囲気','text','例：前向き、教育的、子どもにも分かる']
+      ]
+    },
+    notebook: {
+      icon: '▤', label: '手書きノート', short: 'P03', when: '習慣・手順・説明書・学習',
+      fields: [
+        ['theme','テーマ','text','例：Flow状態に入りやすくする1日の習慣'],
+        ['title','タイトル','text','画像内の大見出し'],
+        ['background','背景','select',['白いノート','方眼ノート','黒板','和紙風']],
+        ['blocks','ブロック構成','textarea','例：朝｜朝日を浴びる\n昼｜集中と休憩\n夜｜睡眠準備',true],
+        ['icons','小さなアイコン','text','例：太陽、コーヒー、ベッド'],
+        ['marker','強調表現','text','例：マーカー、丸囲み、矢印'],
+        ['size','サイズ','select',['1:1','16:9','9:16']]
+      ]
+    },
+    banner: {
+      icon: '▰', label: 'サムネ・バナー', short: 'P04', when: '入口・強い一言・クリック誘導',
+      fields: [
+        ['content','コンテンツ名 / テーマ','text',''],
+        ['format','用途','select',['YouTubeサムネ','note用アイキャッチ','セミナーバナー','SNS告知']],
+        ['size','サイズ','select',['16:9','1:1','9:16']],
+        ['title','メインタイトル','text',''],
+        ['subtitle','サブコピー','text',''],
+        ['mainImage','メインイメージ','text','人物 / アイコン / 抽象背景など'],
+        ['tone','色のトーン','text','例：落ち着いた＋青、熱量＋赤黒'],
+        ['vibe','雰囲気','text','例：元アスリート×コーチらしい信頼感'],
+        ['composition','構図メモ','textarea','左右配置、背景要素、余白など',true]
+      ]
+    },
+    character: {
+      icon: '☺', label: 'キャラ＋解説', short: 'P05', when: 'IP育成・解説役・シリーズ化',
+      fields: [
+        ['character','キャラクター名','text','例：MASAキャラ、うさ、MAHRU'],
+        ['theme','解説テーマ','text',''],
+        ['size','サイズ','select',['1:1','16:9']],
+        ['pose','キャラクターの状態','text','例：立ってホワイトボードを指さす'],
+        ['board','ボードに書く内容','textarea','図解・キーワード・矢印',true],
+        ['speech','一番伝えたい一文','textarea','吹き出しの短い日本語',true],
+        ['style','絵柄 / 雰囲気','text','例：ポップで親しみやすいアニメ調'],
+        ['consistency','固定条件','text','例：元画像のデザイン・色・頭身を維持']
+      ]
+    },
+    universal: {
+      icon: '✦', label: '万能型', short: 'P06', when: '迷った時・新しい用途',
+      fields: [
+        ['theme','テーマ','text',''],
+        ['purpose','目的 / 用途','text','SNS投稿 / note / 講座スライドなど'],
+        ['size','サイズ','select',['1:1','16:9','9:16']],
+        ['layout','構図','select',['グラレコ1枚','4コマ漫画','手書きノート1ページ','バナー','自由構図']],
+        ['title','タイトル','text',''],
+        ['points','伝えたい要点','textarea','1行に1つずつ',true],
+        ['metaphor','比喩・モデル','text','例：シャンパンタワー、階段、地図'],
+        ['mood','雰囲気','text','ポジティブ / 落ち着いた / 熱量'],
+        ['colors','色のイメージ','text',''],
+        ['touch','タッチ','text','手書き風 / アニメ調 / シンプル線画']
+      ]
+    }
+  };
+
+  const presets = {
+    infographic: [
+      { name:'脳コンディション3ステップ', values:{ theme:'脳のコンディションを整える3ステップ', purpose:'SNS投稿', size:'1:1', title:'脳のコンディションを整える3ステップ', metaphor:'脳と身体のシャンパンタワー（上＝脳、真ん中＝感情、下＝身体）', points:'①整える\n②守る\n③攻める', background:'白', colors:'黒ペン＋少しだけカラー', touch:'手書きノート風' }},
+      { name:'選挙の一票＝400万円', values:{ theme:'選挙の一票の価値は約400万円', purpose:'SNS投稿', size:'9:16', title:'あなたの一票＝約400万円の影響', metaphor:'400万円の札束イラストと1人の有権者を対比', points:'1日あたり約◯◯円\n4年間で◯◯万円\n生活への影響を数字で見せる', background:'白', colors:'青と白をベースに落ち着いたトーン', touch:'手書きノート風' }},
+      { name:'60代からの若返り3原則', values:{ theme:'60代からの若返り3原則', purpose:'SNS投稿', size:'1:1', title:'60代からでも若返る3つの原則', metaphor:'3つの大きな丸', points:'睡眠｜短い説明\n栄養｜短い説明\n運動｜短い説明', background:'和紙風', colors:'温かい自然色', touch:'ボールペン＋マーカー風' }}
+    ],
+    comic: [
+      { name:'AI時代の不安→行動', values:{ theme:'AI時代に不安を感じている会社員が、一歩行動に踏み出すまで', characters:'30代日本人男性。最初は少し疲れた顔、最後は明るい表情', panel1:'ニュースを見て「AIに仕事を奪われるかも」と不安になる。', panel2:'スマホで「元アスリートの脳科学コーチ」の発信を見つける。', panel3:'ノートを開いて自分の「これから身につけるスキル」を書き出す。', panel4:'朝日を背景に「まず30日やってみよう」と前向きになる。', style:'やわらかいアニメ調', tone:'不安から主体性へ変わる、前向きな空気' }},
+      { name:'選挙に行かないとどうなる？', values:{ theme:'選挙に行かないと自分の生活にどう影響するか', characters:'高校生くらいの男女2人', panel1:'A「選挙めんどくさいし行かなくてよくない？」', panel2:'数年後、税金や物価が上がり「なんか生活キツくない？」と話す2人。', panel3:'テレビで「投票率が低いと一部の人だけの意見で決まってしまう」と解説。', panel4:'投票所の前で「1票＝400万円なら、ちゃんと使おう」と笑顔で話す。', style:'親しみやすいアニメ調', tone:'子どもにも分かる、シンプルで教育的' }}
+    ],
+    notebook: [
+      { name:'MASA流 Flow習慣', values:{ theme:'Flow状態に入りやすくする1日の習慣', title:'Flowに入る1日の習慣', background:'方眼ノート', blocks:'朝｜身体と脳を起こす\n昼｜集中と回復を切り替える\n夜｜刺激を落として睡眠へ', icons:'コーヒー、太陽、ベッド', marker:'黒ペン＋カラーマーカー、丸囲み、矢印', size:'1:1' }},
+      { name:'人づくり＝国づくり', values:{ theme:'人づくり＝国づくりのシャンパンタワーモデル', title:'人づくり＝国づくり', background:'黒板', blocks:'自分の心\n家族・仲間\n地域\n日本・世界', icons:'シャンパンタワー、矢印', marker:'白チョーク＋要所だけ色付きチョーク。右下に「一人から世界は変わる」', size:'1:1' }}
+    ],
+    banner: [
+      { name:'YouTube｜一票＝400万円', values:{ content:'【衝撃】選挙の一票＝400万円　本気で政治を自分事にする講座', format:'YouTubeサムネ', size:'16:9', title:'一票＝400万円の真実', subtitle:'政治を自分事にする', mainImage:'右側に元アスリート風の日本人男性キャラクター。背景に国会議事堂のシルエットとお金のイメージ', tone:'赤と黒をアクセント。強いが煽りすぎない', vibe:'政治・社会を考える知的さ＋元アスリートの信頼感', composition:'左側に大きなタイトル、右側に人物。背景要素は薄く。' }},
+      { name:'note｜若さは習慣でつくられる', values:{ content:'59歳でも若返る。チュアンド・タンから学ぶ3つの習慣', format:'note用アイキャッチ', size:'1:1', title:'若さは習慣でつくられる', subtitle:'睡眠・筋トレ・食事', mainImage:'中央に元気に歩く人物のシルエット。周囲に睡眠・筋トレ・食事のアイコン', tone:'爽やかなブルーとグリーン、清潔感', vibe:'健康・アンチエイジングの爽やかさ', composition:'中央タイトルを最優先。情報量を抑えてスマホで読める。' }}
+    ],
+    character: [
+      { name:'脳科学キャラが解説', values:{ character:'添付するオリジナルキャラクター', theme:'脳のコンディションが収入に与える影響', size:'1:1', pose:'左側でホワイトボードを指さして立つ', board:'脳 → 行動 → 成果 → 収入 の矢印図', speech:'脳のコンディション＝行動の質＝収入の質なんです', style:'親しみやすく知的な解説イラスト', consistency:'添付画像のキャラクターデザイン・色・輪郭を一貫して保つ' }},
+      { name:'マスコット×投票行動', values:{ character:'添付する犬キャラクター「うさ」', theme:'選挙の投票に行くよう呼びかける', size:'1:1', pose:'投票所の前で笑顔で前足を振る', board:'背景に「投票所」の看板', speech:'ボクたちの未来は、1票から変わるんだよ', style:'ポップで親しみやすいアニメ調', consistency:'元画像のデザインと色を維持する' }}
+    ],
+    universal: [{ name:'万能型｜空欄から', values:{ size:'1:1', layout:'グラレコ1枚', mood:'ポジティブ', touch:'手書き風' }}]
+  };
+
+  let state = loadState();
+  let activeType = state.activeType && types[state.activeType] ? state.activeType : 'infographic';
+  const el = (id) => document.getElementById(id);
+
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '') || { activeType:'infographic', values:{} }; }
+    catch { return { activeType:'infographic', values:{} }; }
+  }
+
+  function collectValues() {
+    const result = {};
+    document.querySelectorAll('#dynamicForm [data-key]').forEach((node) => { result[node.dataset.key] = node.value.trim(); });
+    return result;
+  }
+
+  function saveState() {
+    state.activeType = activeType;
+    state.values ||= {};
+    state.values[activeType] = collectValues();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    el('saveState').textContent = '保存済み';
+    window.setTimeout(() => { el('saveState').textContent = '端末内に自動保存'; }, 800);
+  }
+
+  function fieldToHtml(field) {
+    const [key, label, kind, detail, full] = field;
+    const cls = full ? 'field full' : 'field';
+    if (kind === 'select') return `<label class="${cls}"><span>${label}</span><select data-key="${key}">${detail.map((v) => `<option value="${v}">${v}</option>`).join('')}</select></label>`;
+    if (kind === 'textarea') return `<label class="${cls}"><span>${label}</span><textarea data-key="${key}" placeholder="${detail || ''}"></textarea></label>`;
+    return `<label class="${cls}"><span>${label}</span><input data-key="${key}" type="text" placeholder="${detail || ''}" /></label>`;
+  }
+
+  function renderTypes() {
+    el('typeGrid').innerHTML = Object.entries(types).map(([id,t]) => `<button class="type-card ${id === activeType ? 'is-active' : ''}" type="button" data-type="${id}"><span class="type-icon">${t.icon}</span><strong>${t.short}｜${t.label}</strong><small>${t.when}</small></button>`).join('');
+    document.querySelectorAll('[data-type]').forEach((button) => button.addEventListener('click', () => switchType(button.dataset.type)));
+  }
+
+  function renderPresets() {
+    el('presetSelect').innerHTML = (presets[activeType] || []).map((p,i) => `<option value="${i}">${p.name}</option>`).join('');
+  }
+
+  function renderForm() {
+    const t = types[activeType];
+    el('formTitle').textContent = `${t.short}｜${t.label}`;
+    el('typeBadge').textContent = t.short;
+    el('dynamicForm').innerHTML = t.fields.map(fieldToHtml).join('');
+    setValues(state.values?.[activeType] || {});
+    document.querySelectorAll('#dynamicForm [data-key]').forEach((node) => {
+      node.addEventListener('input', saveState);
+      node.addEventListener('change', saveState);
+    });
+  }
+
+  function switchType(nextType) {
+    if (!types[nextType] || nextType === activeType) return;
+    state.values ||= {};
+    state.values[activeType] = collectValues();
+    activeType = nextType;
+    state.activeType = nextType;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    renderTypes(); renderPresets(); renderForm();
+    el('promptOutput').value = '';
+    setStatus('型を切り替えました。');
+  }
+
+  function setValues(values = {}) {
+    document.querySelectorAll('#dynamicForm [data-key]').forEach((node) => {
+      if (values[node.dataset.key] !== undefined) node.value = values[node.dataset.key];
+    });
+  }
+
+  const val = (v, fallback) => v && v.trim() ? v.trim() : fallback;
+  const bulletLines = (v) => {
+    const list = (v || '').split('\n').map((x) => x.trim()).filter(Boolean);
+    return list.length ? list.map((x) => `・${x}`).join('\n') : '・[要点を入力]';
+  };
+
+  function buildPrompt() {
+    const v = collectValues();
+    if (activeType === 'infographic') return `「${val(v.theme,'[テーマ]')}」という内容を、手書き風のインフォグラフィック画像1枚にまとめてください。\n\n【用途・サイズ】\n・用途：${val(v.purpose,'[用途]')}\n・サイズ：${val(v.size,'[1:1 / 16:9 / 9:16]')}\n\n【構成】\n・全体のタイトル：「${val(v.title,'[タイトル]')}」\n・中心に「${val(v.metaphor,'[メインの図や比喩]')}」を配置\n・周りに3〜5個の吹き出しや小さな箱で以下の要点を配置\n${bulletLines(v.points)}\n\n【デザイン】\n・背景：${val(v.background,'[背景]')}\n・色のテーマ：${val(v.colors,'[色のイメージ]')}\n・タッチ：${val(v.touch,'手書きノート風')}\n・線、矢印、囲み枠を使い、視線の流れを明確にする\n\n【文字】\n・日本語テキストは読みやすく、崩さず正確に表示する\n・スマホで一目で理解できる情報量に抑える`;
+
+    if (activeType === 'comic') return `「${val(v.theme,'[テーマ]')}」を伝える4コマ漫画を作成してください。\n\n【レイアウト】\n・サイズは1:1の正方形\n・4コマを縦2×横2で配置\n・登場人物：${val(v.characters,'[性別・年齢・雰囲気]')}\n\n【ストーリー】\n・コマ1：${val(v.panel1,'[現状・悩み]')}\n・コマ2：${val(v.panel2,'[問題 / きっかけ]')}\n・コマ3：${val(v.panel3,'[変化の瞬間]')}\n・コマ4：${val(v.panel4,'[前向きな結論・行動]')}\n\n【デザイン】\n・絵柄：${val(v.style,'やわらかいアニメ調')}\n・雰囲気：${val(v.tone,'親しみやすく前向き')}\n・日本語のセリフは短く、吹き出し内に読みやすく配置する\n・各コマで感情の変化が視覚的に伝わるようにする`;
+
+    if (activeType === 'notebook') return `「${val(v.theme,'[テーマ]')}」を、手書きノート風の1ページの説明書にしてください。\n\n【レイアウト】\n・背景：${val(v.background,'[白いノート / 方眼ノート / 黒板]')}\n・上部にタイトル「${val(v.title,'[タイトル]')}」を大きく配置\n・サイズ：${val(v.size,'1:1')}\n\n【ブロック構成】\n${bulletLines(v.blocks)}\n\n【デザイン】\n・${val(v.marker,'マーカー、丸囲み、矢印')}を入れる\n・小さなアイコン：${val(v.icons,'[テーマに合うアイコン]')}\n・1ページとして余白を残し、情報を詰め込みすぎない\n・日本語は手書き風だが、崩れすぎず読めるようにする`;
+
+    if (activeType === 'banner') return `「${val(v.content,'[コンテンツ名]')}」の${val(v.format,'[YouTubeサムネ / note用アイキャッチ / セミナーバナー]')}画像を作成してください。\n\n【基本】\n・サイズ：${val(v.size,'[16:9 / 1:1 / 9:16]')}\n・日本語メインタイトル：「${val(v.title,'[メインタイトル]')}」\n・サブテキスト：「${val(v.subtitle,'[サブコピー]')}」\n\n【ビジュアル】\n・メインイメージ：${val(v.mainImage,'[人物 / アイコン / 抽象背景]')}\n・色のトーン：${val(v.tone,'[色・熱量]')}\n・雰囲気：${val(v.vibe,'[信頼感・知性・爽やかさ]')}\n・構図：${val(v.composition,'タイトルを最優先し、スマホで一瞬で読める構図')}\n\n【文字】\n・日本語タイトルは大きく、正確に、崩さず表示する\n・情報量を抑え、サムネイルサイズでも主題が伝わるようにする\n・煽りだけに寄せず、信頼感と入口としての強さを両立する`;
+
+    if (activeType === 'character') return `添付する「${val(v.character,'[キャラクター名]')}」の画像を元に、そのキャラクターが「${val(v.theme,'[テーマ]')}」について解説するイラストを1枚作成してください。\n\n【構図】\n・サイズ：${val(v.size,'1:1')}\n・キャラクター：${val(v.pose,'[ポーズ / ボードを指さす]')}\n・背景 / ボード：${val(v.board,'[テーマを説明する図解やキーワード]')}\n\n【セリフ】\n・吹き出しで「${val(v.speech,'[一番伝えたい一文]')}」と話している\n・日本語は短く、読みやすく配置する\n\n【デザイン】\n・雰囲気：${val(v.style,'親しみやすい解説イラスト')}\n・固定条件：${val(v.consistency,'元画像とデザイン・色・輪郭・頭身の一貫性を保つ')}\n・同一キャラクターを毎回ゼロから再解釈せず、参照画像をSource of Truthとして扱う`;
+
+    return `「${val(v.theme,'[テーマ]')}」の内容を、${val(v.purpose,'[SNS投稿 / note / 講座スライド]')}に使える画像として作成してください。\n\n【レイアウト】\n・サイズ：${val(v.size,'[1:1 / 16:9 / 9:16]')}\n・構図：${val(v.layout,'[グラレコ / 4コマ / ノート / バナー]')}\n\n【内容】\n・タイトル：「${val(v.title,'[タイトル]')}」\n・伝えたい要点：\n${bulletLines(v.points)}\n・使ってほしい比喩やモデル：${val(v.metaphor,'[シャンパンタワー、階段、地図など]')}\n\n【デザイン】\n・雰囲気：${val(v.mood,'[ポジティブ / 落ち着いた / 熱量]')}\n・色のイメージ：${val(v.colors,'[色]')}\n・タッチ：${val(v.touch,'[手書き風 / アニメ調 / シンプル線画]')}\n\n【文字】\n・日本語テキストは読みやすく、崩さず表示する\n・短いフレーズを中心にする\n・画像を見た人が3秒で主題を理解できる情報設計にする`;
+  }
+
+  function applyPreset() {
+    const preset = presets[activeType]?.[Number(el('presetSelect').value || 0)];
+    if (!preset) return;
+    setValues(preset.values || {});
+    saveState();
+    el('promptOutput').value = buildPrompt();
+    setStatus(`「${preset.name}」を読み込みました。`);
+  }
+
+  function generatePrompt() {
+    saveState();
+    el('promptOutput').value = buildPrompt();
+    setStatus('Promptを生成しました。');
+  }
+
+  async function copyPrompt() {
+    if (!el('promptOutput').value) generatePrompt();
+    const text = el('promptOutput').value;
+    try { await navigator.clipboard.writeText(text); setStatus('コピーしました。画像AIへそのまま貼れます。'); }
+    catch { el('promptOutput').focus(); el('promptOutput').select(); document.execCommand('copy'); setStatus('コピーしました。'); }
+  }
+
+  function resetForm() {
+    state.values ||= {};
+    state.values[activeType] = {};
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    renderForm();
+    el('promptOutput').value = '';
+    setStatus('この型の入力をリセットしました。');
+  }
+
+  function setStatus(message) { el('status').textContent = message; }
+
+  renderTypes(); renderPresets(); renderForm();
+  el('applyPreset').addEventListener('click', applyPreset);
+  el('generatePrompt').addEventListener('click', generatePrompt);
+  el('copyPrompt').addEventListener('click', copyPrompt);
+  el('resetForm').addEventListener('click', resetForm);
+</script>
+
+<style>
+  .prompt-shell { max-width: 1320px; margin: 0 auto; padding-bottom: 64px; }
+  .prompt-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; padding: 14px 0 32px; border-bottom: 1px solid var(--border-default); }
+  .eyebrow, .section-kicker { color: var(--gold-muted); font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
+  h1 { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(2.6rem, 5vw, 4.8rem); line-height: .95; }
+  h1 span { color: var(--gold-pure); }
+  .lead { max-width: 780px; margin-top: 16px; color: var(--text-muted); font-size: .9rem; line-height: 1.85; }
+  .source-link { flex-shrink: 0; color: var(--gold-pure); text-decoration: none; border: 1px solid var(--border-accent); padding: 11px 16px; font-size: .76rem; }
+  .source-link:hover { border-color: var(--gold-muted); background: var(--gold-glow); }
+  .flow-card { margin-top: 18px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 9px; padding: 15px; border: 1px solid var(--border-default); background: var(--bg-surface); }
+  .flow-card span { color: var(--text-muted); font-size: .65rem; letter-spacing: .1em; border: 1px solid var(--border-default); padding: 6px 9px; }
+  .flow-card i { color: var(--gold-dim); font-style: normal; }
+  .section-block { margin-top: 34px; }
+  .section-head, .panel-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+  .section-head h2, .panel h2 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 300; }
+  .section-head > p { max-width: 520px; color: var(--text-dim); font-size: .74rem; text-align: right; }
+  .type-grid { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 10px; }
+  .type-card { min-height: 132px; display: flex; flex-direction: column; gap: 7px; align-items: flex-start; text-align: left; padding: 16px; border: 1px solid var(--border-default); background: var(--bg-surface); color: inherit; cursor: pointer; transition: transform .18s, border-color .18s, background .18s; }
+  .type-card:hover { transform: translateY(-2px); border-color: var(--border-hover); }
+  .type-card.is-active { border-color: var(--gold-muted); background: var(--gold-glow); }
+  .type-icon { color: var(--gold-pure); font-size: 1.4rem; }
+  .type-card strong { color: var(--text-primary); font-size: .78rem; font-weight: 500; }
+  .type-card small { color: var(--text-muted); font-size: .66rem; line-height: 1.55; }
+  .workspace { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(380px,.85fr); gap: 14px; margin-top: 14px; align-items: start; }
+  .input-stack { display: grid; gap: 14px; }
+  .panel { padding: 20px; border: 1px solid var(--border-default); background: var(--bg-surface); }
+  .output-panel { position: sticky; top: 18px; }
+  .save-state, .type-badge { color: var(--gold-muted); font-size: .62rem; border: 1px solid var(--border-default); padding: 5px 8px; letter-spacing: .08em; }
+  .preset-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  select, input, textarea { width: 100%; border: 1px solid var(--border-default); background: var(--bg-void); color: var(--text-primary); padding: 11px 12px; font-family: inherit; font-size: .8rem; outline: none; }
+  select:focus, input:focus, textarea:focus { border-color: var(--gold-muted); }
+  button { border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-muted); padding: 10px 13px; cursor: pointer; font-family: inherit; font-size: .76rem; }
+  button:hover { color: var(--text-primary); border-color: var(--border-hover); }
+  button.primary { color: var(--bg-void); background: var(--gold-pure); border-color: var(--gold-pure); font-weight: 500; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  .field { display: grid; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  .field > span { color: var(--text-muted); font-size: .68rem; }
+  .field textarea { min-height: 96px; resize: vertical; line-height: 1.65; }
+  .output-note { color: var(--text-dim); font-size: .72rem; line-height: 1.65; margin-bottom: 12px; }
+  .actions { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+  .prompt-output { min-height: 530px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: .72rem; line-height: 1.65; }
+  .status { min-height: 20px; margin-top: 8px; color: var(--gold-pure); font-size: .68rem; }
+  .truth-note { margin-top: 12px; padding: 12px; border: 1px solid var(--border-default); background: var(--gold-glow); }
+  .truth-note strong { display: block; color: var(--gold-muted); font-size: .6rem; letter-spacing: .12em; margin-bottom: 5px; }
+  .truth-note span { color: var(--text-muted); font-size: .68rem; line-height: 1.55; }
+  @media (max-width: 1160px) { .type-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } .workspace { grid-template-columns: 1fr; } .output-panel { position: static; } .prompt-output { min-height: 390px; } }
+  @media (max-width: 640px) { .prompt-hero { align-items: flex-start; flex-direction: column; } .source-link { width: 100%; text-align: center; } .section-head { align-items: flex-start; flex-direction: column; } .section-head > p { text-align: left; } .type-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } .form-grid { grid-template-columns: 1fr; } .field.full { grid-column: auto; } .preset-row { grid-template-columns: 1fr; } }
+</style>
