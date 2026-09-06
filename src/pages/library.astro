@@ -1,0 +1,216 @@
+---
+import PublicPageLayout from '../layouts/PublicPageLayout.astro';
+import { libraryItems, yen } from '../lib/libraryCatalog';
+---
+
+<PublicPageLayout
+  title="MASA LIBRARY"
+  eyebrow="KNOWLEDGE SHELF / MICRO PUBLISHING"
+  description="日本代表20年の身体知・競技知・学習知を、PDF・ワークブック・セミナー資料として一冊ずつ公開するMASAの知識棚。"
+>
+  <p slot="lead" class="public-lead">
+    投稿して消える知識を、読める・試せる・買える形へ。<br />
+    小さな教材から入り、必要なら個別実装へ進める知識の売り場です。
+  </p>
+
+  <section class="public-section library-intro">
+    <div class="public-grid">
+      <div class="public-card">
+        <p class="library-kicker">READ</p>
+        <h2>一つの悩みを、一冊で。</h2>
+        <p>低価格教材は「薄い情報」ではなく、ひとつの問題を自分で動かすための最小単位として設計します。</p>
+      </div>
+      <div class="public-card">
+        <p class="library-kicker">DEEPEN</p>
+        <h2>読んだ先に、実装がある。</h2>
+        <p>自分で試して詰まったら、勝ち筋OS 90分で本人仕様へ。知識販売と個別セッションを競合させません。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="public-section">
+    <div class="library-section-head">
+      <div>
+        <p class="library-kicker">SHELF 01</p>
+        <h2>現在の棚</h2>
+      </div>
+      <p class="public-muted">LIVE のみ即時販売。PREVIEW は内容完成後に公開します。</p>
+    </div>
+
+    <div class="library-grid">
+      {libraryItems.map((item) => (
+        <a class="library-card" href={`/library/${item.slug}`} aria-label={`${item.title}の詳細を見る`}>
+          <div class={`library-cover cover-${item.coverNo}`}>
+            <span class="library-cover-no">{item.coverNo}</span>
+            <span class="library-cover-format">{item.format}</span>
+            <strong>{item.title}</strong>
+            <small>{item.subtitle}</small>
+            <span class="library-cover-author">MASA / 山田昌寛</span>
+          </div>
+          <div class="library-card-body">
+            <div class="library-meta">
+              <span>{item.category}</span>
+              <span class:list={['library-status', item.status === 'live' && 'is-live']}>
+                {item.status === 'live' ? 'LIVE' : 'PREVIEW'}
+              </span>
+            </div>
+            <h3>{item.title}</h3>
+            <p>{item.subtitle}</p>
+            <div class="library-price-row">
+              <strong>{item.status === 'live' ? yen(item.priceYen) : `予定 ${yen(item.priceYen)}`}</strong>
+              <span>{item.releaseLabel}</span>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="public-section public-card library-principle">
+    <p class="library-kicker">PUBLISHING RULE</p>
+    <h2>表紙は先に出す。中身は完成してから売る。</h2>
+    <p>
+      企画段階から棚に置き、どのテーマに反応が集まるかを観測します。未完成の教材は「先行案内」と明示し、決済は有効化しません。
+      売れた・読まれた・質問が集まったテーマだけを、増補版・動画講義・セミナー・書籍・ACE Lessonへ育てます。
+    </p>
+  </section>
+
+  <section class="public-section library-deep">
+    <p class="library-kicker">DEEP DIVE</p>
+    <h2>読むだけでは足りなくなったら。</h2>
+    <p>教材で自分の課題が見えたあと、「自分の場合はどうする？」を90分で実装するのが勝ち筋OSです。</p>
+    <div class="library-actions">
+      <a class="public-btn" href="/gate">勝ち筋OSを見る</a>
+      <a class="public-btn public-btn-line" href="https://lin.ee/pcAHpTBy" target="_blank" rel="noopener noreferrer">LINEで相談する</a>
+    </div>
+  </section>
+</PublicPageLayout>
+
+<style>
+  .library-kicker {
+    margin: 0 0 8px;
+    color: var(--gold-muted) !important;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    letter-spacing: .2em;
+  }
+  .library-intro h2 { font-size: 1.6rem; }
+  .library-section-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 18px;
+  }
+  .library-section-head h2 { margin-bottom: 0; }
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .library-card {
+    display: block;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    text-decoration: none;
+    transition: transform .2s, border-color .2s;
+  }
+  .library-card:hover { transform: translateY(-3px); border-color: var(--gold-dim); }
+  .library-cover {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    padding: 24px 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background:
+      linear-gradient(145deg, rgba(201,169,110,.14), transparent 48%),
+      radial-gradient(circle at 80% 10%, rgba(201,169,110,.16), transparent 34%),
+      #15120f;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .library-cover::after {
+    content: '';
+    position: absolute;
+    inset: 13px;
+    border: 1px solid rgba(201,169,110,.14);
+    pointer-events: none;
+  }
+  .cover-02 { background: linear-gradient(160deg, rgba(90,77,58,.33), transparent 52%), #111315; }
+  .cover-03 { background: radial-gradient(circle at 50% 35%, rgba(201,169,110,.18), transparent 30%), #16120d; }
+  .cover-04 { background: linear-gradient(135deg, rgba(82,98,82,.2), transparent 50%), #101311; }
+  .cover-05 { background: linear-gradient(150deg, rgba(130,75,68,.22), transparent 52%), #17100f; }
+  .cover-06 { background: linear-gradient(145deg, rgba(64,73,95,.28), transparent 55%), #111219; }
+  .library-cover-no {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: var(--text-dim);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    line-height: 1;
+  }
+  .library-cover-format {
+    margin-bottom: auto;
+    color: var(--gold-muted);
+    font-size: 9px;
+    letter-spacing: .15em;
+  }
+  .library-cover strong {
+    position: relative;
+    z-index: 1;
+    font-family: 'Cormorant Garamond', 'Zen Kaku Gothic New', serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--text-primary);
+  }
+  .library-cover small {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: .75rem;
+    line-height: 1.55;
+  }
+  .library-cover-author {
+    position: relative;
+    z-index: 1;
+    margin-top: 24px;
+    color: var(--gold-muted);
+    font-size: 9px;
+    letter-spacing: .12em;
+  }
+  .library-card-body { padding: 18px; }
+  .library-meta, .library-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .library-meta { color: var(--text-dim); font-size: 9px; letter-spacing: .1em; }
+  .library-status {
+    border: 1px solid var(--border-default);
+    padding: 3px 7px;
+    color: var(--text-dim);
+  }
+  .library-status.is-live { color: var(--success); border-color: rgba(143,189,145,.3); }
+  .library-card-body h3 { margin: 14px 0 4px; font-size: 1rem; }
+  .library-card-body p { min-height: 3.2em; margin: 0 0 18px; color: var(--text-muted); font-size: .78rem; line-height: 1.6; }
+  .library-price-row { border-top: 1px solid var(--border-default); padding-top: 13px; }
+  .library-price-row strong { color: var(--gold-pure); font-size: .9rem; }
+  .library-price-row span { color: var(--text-dim); font-size: .68rem; }
+  .library-principle h2 { margin-bottom: 12px; }
+  .library-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+
+  @media (max-width: 900px) {
+    .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 620px) {
+    .library-section-head { align-items: flex-start; flex-direction: column; gap: 8px; }
+    .library-grid { grid-template-columns: 1fr; }
+    .library-cover { aspect-ratio: 4 / 4.7; }
+  }
+</style>
