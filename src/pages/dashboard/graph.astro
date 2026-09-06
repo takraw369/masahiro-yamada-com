@@ -1,0 +1,254 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const nodes = [
+  { id:'N025', label:'MASTER DASHBOARD', kind:'CONTROL', note:'MASA OS全体の現在地・優先順位・次Actionを俯瞰する操作面。' },
+  { id:'N026', label:'DRIVE INDEX', kind:'CONTROL', note:'Drive全体を発見・分類し、正本と処理対象を見つける索引。' },
+  { id:'N017', label:'KNOWLEDGE FACTORY', kind:'KNOWLEDGE', note:'SourceをNodeへ分解し、既存Canonと接続して再利用可能な知識へ変換する。' },
+  { id:'N018', label:'HUMAN FLOW GRAPH', kind:'HUMAN', note:'人・状態・学び・縁・行動を意味付きEdgeで接続するHuman OS。' },
+  { id:'N019', label:'ACE BRAIN', kind:'HUMAN', note:'過去の知識・状態・関係から、今の次の良い経験へ進める認知OS。' },
+  { id:'N020', label:'CONTENT OS', kind:'OUTPUT', note:'KnowledgeをSNS・note・Quest・Productへ届く表現へ変換する。' },
+  { id:'N021', label:'PRODUCT OS', kind:'BUSINESS', note:'Sellable資産をOffer・Naming・Priceへ変換する。' },
+  { id:'N022', label:'QUEST MASTER', kind:'ACTION', note:'Knowledgeを問い・実践へ変換し、Evidenceを残す。' },
+  { id:'N023', label:'DISTRIBUTION OS', kind:'OUTPUT', note:'Contentを市場へ出し、反応をEvidenceとして戻す。' },
+  { id:'N024', label:'CRM OS', kind:'BUSINESS', note:'顧客・見込み客との接点、反応、CaseをKnowledgeとProductへ戻す。' },
+  { id:'N027', label:'ASSET FLOW', kind:'OUTPUT', note:'RAW→SIGNAL→IP→CONTENT→OFFER→REVENUEへ価値変換する流れ。' },
+  { id:'N028', label:'WANT TO', kind:'LIFE', note:'Want toとPurposeをProject・Taskへ接続し、実践Evidenceで更新する。' },
+  { id:'N029', label:'CAPITAL OS', kind:'BUSINESS', note:'RevenueをRunway・自由・資本形成へ接続する。' },
+  { id:'N030', label:'REVENUE IDEAS', kind:'BUSINESS', note:'収益候補を資産性・反復性・波及で比較する。' },
+  { id:'N031', label:'SHEET HUB', kind:'CONTROL', note:'重要Spreadsheetへ迷わず到達する人間向け入口。' },
+  { id:'N003', label:'PREDICTION GAP', kind:'PRINCIPLE', note:'予測→実測→誤差→更新。学習や市場検証へ横断転用できる。' },
+  { id:'N013', label:'LIFE HIERARCHY', kind:'PRINCIPLE', note:'Source→Being→Purpose→Vision→Want to→Project→Task。' },
+  { id:'N016', label:'RETURN', kind:'PRINCIPLE', note:'強さは乱れないことではなく、戻って再選択できること。' },
+  { id:'N011', label:'EN FLOW', kind:'PRINCIPLE', note:'縁は状態・環境・接触・信頼・交換・タイミング・継続で育つFlow。' },
+  { id:'N012', label:'EDUCATION → POSSIBILITY', kind:'PRINCIPLE', note:'Educationは答えを渡すだけでなく、次の可能性・人・場所・体験へ接続する。' },
+];
+
+const edges = [
+  { source:'N026', target:'N017', relation:'feeds', state:'CONFIRMED', note:'Drive資産をKnowledge Factoryへ送る' },
+  { source:'N017', target:'N020', relation:'produces', state:'CONFIRMED', note:'KnowledgeをContentへ変換' },
+  { source:'N017', target:'N018', relation:'feeds', state:'CONFIRMED', note:'KnowledgeをHuman Flowへ供給' },
+  { source:'N018', target:'N022', relation:'routes_to', state:'CONFIRMED', note:'状態からNext Questへ' },
+  { source:'N022', target:'N018', relation:'evidence_for', state:'CONFIRMED', note:'Quest EvidenceがHuman Flowを更新' },
+  { source:'N020', target:'N021', relation:'feeds', state:'CONFIRMED', note:'Sellable ContentをOfferへ' },
+  { source:'N020', target:'N023', relation:'distributed_by', state:'CONFIRMED', note:'Contentを市場へ配信' },
+  { source:'N023', target:'N017', relation:'evidence_for', state:'CONFIRMED', note:'市場反応をKnowledgeへ戻す' },
+  { source:'N024', target:'N017', relation:'evidence_for', state:'CONFIRMED', note:'顧客反応をKnowledgeへ戻す' },
+  { source:'N024', target:'N021', relation:'informs', state:'CONFIRMED', note:'顧客EvidenceがOffer改善へ' },
+  { source:'N027', target:'N020', relation:'transforms', state:'CONFIRMED', note:'AssetをContentへ' },
+  { source:'N027', target:'N021', relation:'transforms', state:'CONFIRMED', note:'AssetをOfferへ' },
+  { source:'N028', target:'N018', relation:'informs', state:'CONFIRMED', note:'Want toをRoutingへ' },
+  { source:'N018', target:'N019', relation:'informs', state:'CONFIRMED', note:'Human FlowをACE BRAINへ' },
+  { source:'N017', target:'N019', relation:'feeds', state:'CONFIRMED', note:'KnowledgeをACE BRAINへ' },
+  { source:'N025', target:'N017', relation:'surfaces', state:'CONFIRMED', note:'DashboardからKnowledge Factoryを参照' },
+  { source:'N025', target:'N021', relation:'surfaces', state:'CONFIRMED', note:'DashboardからProduct OSを参照' },
+  { source:'N031', target:'N025', relation:'surfaces', state:'CONFIRMED', note:'Sheet HubからDashboardへ' },
+  { source:'N030', target:'N021', relation:'informs', state:'CONFIRMED', note:'Revenue候補をProduct化へ' },
+  { source:'N021', target:'N029', relation:'feeds', state:'CONFIRMED', note:'商品収益をCapital判断へ' },
+  { source:'N016', target:'N021', relation:'supports', state:'CONFIRMED', note:'RETURN原理がOfferの核を支える' },
+  { source:'N011', target:'N018', relation:'supports', state:'CONFIRMED', note:'縁を動的Relationship Graphへ拡張' },
+  { source:'N013', target:'N028', relation:'supports', state:'CONFIRMED', note:'Life hierarchyがWant toを支える' },
+];
+
+const suggestions = [
+  {
+    id:'E035', source:'N003', target:'N023', relation:'supports',
+    title:'予測誤差 × 発信改善',
+    reason:'予測→実測→誤差更新の学習原理は、投稿仮説→反応→改善にも同型で使える可能性がある。',
+    confidence:'MEDIUM-HIGH'
+  },
+  {
+    id:'E036', source:'N013', target:'N030', relation:'informs',
+    title:'人生設計 × 収益ポートフォリオ',
+    reason:'Want to階層とRevenue候補を重ねると、「稼げるが未来を削る案」を見つけやすくなる可能性がある。',
+    confidence:'MEDIUM'
+  },
+  {
+    id:'E037', source:'N012', target:'N024', relation:'supports',
+    title:'Education × CRM',
+    reason:'CRMを顧客管理だけでなく「次の良い縁・人・体験を返す層」へ拡張できる可能性がある。',
+    confidence:'MEDIUM'
+  },
+];
+---
+
+<DashboardLayout title="MASA Brain Graph" fullHeight={true}>
+  <div class="app">
+    <header class="toolbar">
+      <div>
+        <p class="eyebrow">MASA BRAIN · GRAPH v0.2</p>
+        <h1>点と点を、<span>一緒に育てる。</span></h1>
+      </div>
+      <div class="actions">
+        <label class="search"><span>⌕</span><input id="search" placeholder="Nodeを検索" /></label>
+        <button id="connect-mode" class="btn">＋ 2点を繋ぐ</button>
+        <button id="gpt-next" class="btn accent">✦ GPT提案</button>
+      </div>
+    </header>
+
+    <div class="workbench">
+      <section class="canvas-wrap">
+        <div class="hint" id="hint">Nodeをクリックすると周辺をFocus。空白ドラッグで移動、ホイールでZoom。</div>
+        <svg id="graph" viewBox="0 0 1400 900" aria-label="MASA Brain knowledge graph">
+          <defs>
+            <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <g id="edge-layer"></g>
+          <g id="candidate-layer"></g>
+          <g id="node-layer"></g>
+        </svg>
+        <div class="legend"><span><i class="solid"></i>確認済み</span><span><i class="dash"></i>GPT候補</span><span><i class="human"></i>MASA提案</span></div>
+      </section>
+
+      <aside class="panel">
+        <section class="card" id="node-card">
+          <p class="kicker">SELECTED NODE</p>
+          <h2 id="node-title">Nodeを選択</h2>
+          <p id="node-note" class="muted">クリックすると意味と接続先をここで確認できる。</p>
+          <div id="node-links" class="mini-list"></div>
+        </section>
+
+        <section class="card composer" id="composer">
+          <div class="card-head">
+            <div><p class="kicker">MASA → GRAPH</p><h2>ここ、繋がる。</h2></div>
+            <button id="composer-clear" class="icon-btn" aria-label="選択解除">×</button>
+          </div>
+          <div class="pair"><span id="pair-a">1点目を選択</span><b>→</b><span id="pair-b">2点目を選択</span></div>
+          <label>関係
+            <select id="relation"><option>supports</option><option>informs</option><option>feeds</option><option>routes_to</option><option>related_to</option><option>contrasts</option></select>
+          </label>
+          <label>コメント
+            <textarea id="comment" rows="4" placeholder="例：ここ同じ原理やと思う。商品設計にも効くんちゃう？"></textarea>
+          </label>
+          <button id="save-proposal" class="btn accent wide">この接続案を保存</button>
+          <p id="save-status" class="status"></p>
+        </section>
+
+        <section class="card gpt-card" id="gpt-card">
+          <p class="kicker">GPT DISCOVERY · KNOWLEDGE FACTORY</p>
+          <h2 id="gpt-title">GPTが遠い点を探す</h2>
+          <p id="gpt-reason" class="muted">「GPT提案」を押すと、Knowledge Factoryで生成済みの候補Edgeを順番に見せる。</p>
+          <div id="gpt-pair" class="pair compact"></div>
+          <div class="decision-row">
+            <button id="gpt-accept" class="btn accent" disabled>採用候補</button>
+            <button id="gpt-hold" class="btn" disabled>保留</button>
+          </div>
+          <p class="micro">※ 現在はDrive/Knowledge Factoryで生成済みのGPT候補。新しいAPI課金は追加していない。</p>
+        </section>
+
+        <section class="card">
+          <p class="kicker">RECENT GRAPH NOTES</p>
+          <div id="activity" class="activity"><p class="muted">読み込み中…</p></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  .app{height:100vh;display:flex;flex-direction:column;background:var(--bg-void);overflow:hidden}.toolbar{height:104px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:18px 24px;border-bottom:1px solid var(--border-default);background:rgba(13,11,8,.97)}.eyebrow,.kicker{font-size:.62rem;letter-spacing:.16em;color:var(--gold-muted);text-transform:uppercase}.toolbar h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;margin-top:3px}.toolbar h1 span{color:var(--gold-pure)}.actions{display:flex;gap:8px;align-items:center}.search{display:flex;align-items:center;gap:8px;border:1px solid var(--border-default);background:var(--bg-surface);padding:0 12px;height:40px}.search input{width:150px;background:transparent;border:0;outline:0;color:var(--text-primary);font:inherit;font-size:.78rem}.btn{min-height:40px;border:1px solid var(--border-default);background:var(--bg-surface);color:var(--text-muted);padding:8px 13px;cursor:pointer;font:inherit;font-size:.75rem;transition:.18s}.btn:hover,.btn.active{color:var(--text-primary);border-color:var(--gold-muted);background:var(--gold-glow)}.btn.accent{border-color:var(--border-accent);color:var(--gold-pure)}.btn:disabled{opacity:.35;cursor:not-allowed}.wide{width:100%}.workbench{min-height:0;flex:1;display:grid;grid-template-columns:minmax(0,1fr) 340px}.canvas-wrap{position:relative;min-width:0;overflow:hidden;background:radial-gradient(circle at 50% 45%,rgba(201,169,110,.05),transparent 36%),#0d0b08}.canvas-wrap:after{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(201,169,110,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(201,169,110,.025) 1px,transparent 1px);background-size:36px 36px}.hint{position:absolute;z-index:3;top:14px;left:14px;padding:7px 9px;border:1px solid var(--border-default);background:rgba(26,22,18,.8);color:var(--text-dim);font-size:.66rem}svg{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}svg.panning{cursor:grabbing}.legend{position:absolute;z-index:3;left:14px;bottom:14px;display:flex;gap:14px;background:rgba(26,22,18,.86);border:1px solid var(--border-default);padding:8px 10px;font-size:.62rem;color:var(--text-muted)}.legend span{display:flex;align-items:center;gap:6px}.legend i{display:block;width:20px;height:1px;background:#665b4d}.legend .dash{background:none;border-top:1px dashed #a783d6}.legend .human{background:none;border-top:2px dashed #c9a96e}.panel{overflow:auto;border-left:1px solid var(--border-default);background:#12100d;padding:12px;display:grid;align-content:start;gap:10px}.card{border:1px solid var(--border-default);background:var(--bg-surface);padding:15px}.card h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:300;margin:4px 0 8px;color:var(--text-primary)}.muted{color:var(--text-muted);font-size:.76rem;line-height:1.7}.mini-list{display:grid;gap:5px;margin-top:10px}.mini-item{padding:7px;border-left:1px solid var(--gold-dim);font-size:.67rem;color:var(--text-muted)}.mini-item b{color:var(--text-primary);font-weight:400}.card-head{display:flex;align-items:flex-start;justify-content:space-between}.icon-btn{border:0;background:transparent;color:var(--text-dim);cursor:pointer;font-size:1.1rem}.composer{border-color:rgba(201,169,110,.22)}.pair{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:7px;padding:9px;margin:10px 0;border:1px solid var(--border-default);background:#100e0c;font-size:.67rem;color:var(--text-muted)}.pair span:last-child{text-align:right}.pair b{color:var(--gold-pure);font-weight:400}.pair.compact{margin-top:12px}.composer label{display:grid;gap:5px;color:var(--text-dim);font-size:.64rem;margin-top:9px}.composer select,.composer textarea{width:100%;border:1px solid var(--border-default);background:#100e0c;color:var(--text-primary);padding:8px;font:inherit;font-size:.74rem;outline:none;resize:vertical}.status{min-height:16px;margin-top:7px;color:var(--gold-muted);font-size:.64rem}.gpt-card{border-color:rgba(167,131,214,.28);background:linear-gradient(180deg,rgba(167,131,214,.04),var(--bg-surface))}.decision-row{display:flex;gap:8px;margin-top:10px}.micro{margin-top:9px;font-size:.58rem;line-height:1.55;color:var(--text-dim)}.activity{display:grid;gap:7px;margin-top:8px}.activity-item{padding:8px;border:1px solid var(--border-default);font-size:.65rem;color:var(--text-muted);line-height:1.5}.activity-item strong{display:block;color:var(--text-primary);font-weight:400;margin-bottom:2px}.activity-item time{display:block;color:var(--text-dim);font-size:.56rem;margin-top:3px}
+  :global(.kg-edge){stroke:#4d4439;stroke-width:1.2;opacity:.66}:global(.kg-edge.focus){stroke:#c9a96e;stroke-width:2;opacity:.95}:global(.kg-candidate){stroke:#a783d6;stroke-width:2;stroke-dasharray:8 7;opacity:.95;filter:url(#glow)}:global(.kg-human){stroke:#c9a96e;stroke-width:2.3;stroke-dasharray:3 6;opacity:.95}:global(.kg-node){cursor:pointer}:global(.kg-node circle){fill:#1a1612;stroke:#5a4d3a;stroke-width:1.5;transition:.16s}:global(.kg-node text){fill:#8b806f;font-family:'Zen Kaku Gothic New',sans-serif;font-size:12px;text-anchor:middle;pointer-events:none;transition:.16s}:global(.kg-node:hover circle),:global(.kg-node.selected circle),:global(.kg-node.pair-selected circle){stroke:#c9a96e;stroke-width:3;filter:url(#glow)}:global(.kg-node.selected text),:global(.kg-node.pair-selected text){fill:#d4c5a9}:global(.kg-node.gpt-selected circle){stroke:#a783d6;stroke-width:3;filter:url(#glow)}:global(.kg-node.dim){opacity:.18}
+  @media(max-width:900px){.toolbar{height:auto;align-items:flex-start;flex-direction:column}.actions{width:100%;flex-wrap:wrap}.search{flex:1;min-width:170px}.search input{width:100%}.workbench{grid-template-columns:1fr;grid-template-rows:58vh auto}.panel{border-left:0;border-top:1px solid var(--border-default);overflow:visible}.app{height:auto;min-height:100vh;overflow:visible}.canvas-wrap{min-height:58vh}}
+</style>
+
+<script define:vars={{ nodes, edges, suggestions }}>
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.getElementById('graph');
+  const edgeLayer=document.getElementById('edge-layer');
+  const candidateLayer=document.getElementById('candidate-layer');
+  const nodeLayer=document.getElementById('node-layer');
+  const search=document.getElementById('search');
+  const connectBtn=document.getElementById('connect-mode');
+  const hint=document.getElementById('hint');
+  const pairA=document.getElementById('pair-a');
+  const pairB=document.getElementById('pair-b');
+  const comment=document.getElementById('comment');
+  const relation=document.getElementById('relation');
+  const saveBtn=document.getElementById('save-proposal');
+  const saveStatus=document.getElementById('save-status');
+  const nodeTitle=document.getElementById('node-title');
+  const nodeNote=document.getElementById('node-note');
+  const nodeLinks=document.getElementById('node-links');
+  const activity=document.getElementById('activity');
+  const gptNext=document.getElementById('gpt-next');
+  const gptTitle=document.getElementById('gpt-title');
+  const gptReason=document.getElementById('gpt-reason');
+  const gptPair=document.getElementById('gpt-pair');
+  const gptAccept=document.getElementById('gpt-accept');
+  const gptHold=document.getElementById('gpt-hold');
+
+  const byId=new Map(nodes.map(n=>[n.id,n]));
+  const positions=new Map();
+  const humanEdges=[];
+  let selected=null, connectMode=false, pair=[], gptIndex=-1, gptSuggestion=null;
+  let view={x:0,y:0,w:1400,h:900}, panStart=null, dragNode=null, dragMoved=false;
+
+  const centers={CONTROL:[700,120],KNOWLEDGE:[690,330],HUMAN:[980,410],OUTPUT:[510,535],BUSINESS:[900,690],ACTION:[1150,560],LIFE:[310,690],PRINCIPLE:[250,310]};
+  const buckets={};
+  nodes.forEach(n=>{(buckets[n.kind]??=[]).push(n)});
+  Object.entries(buckets).forEach(([kind,list])=>{
+    const c=centers[kind]||[700,450]; const radius=Math.min(150,70+list.length*16);
+    list.forEach((n,i)=>{const a=(Math.PI*2*i/list.length)-Math.PI/2;positions.set(n.id,{x:c[0]+Math.cos(a)*radius,y:c[1]+Math.sin(a)*radius});});
+  });
+
+  function labelFor(id){return byId.get(id)?.label||id}
+  function connectedIds(id){const set=new Set([id]);[...edges,...humanEdges].forEach(e=>{if(e.source===id)set.add(e.target);if(e.target===id)set.add(e.source)});return set}
+  function lineEl(edge,cls){const a=positions.get(edge.source),b=positions.get(edge.target);if(!a||!b)return null;const l=document.createElementNS(NS,'line');l.setAttribute('x1',a.x);l.setAttribute('y1',a.y);l.setAttribute('x2',b.x);l.setAttribute('y2',b.y);l.setAttribute('class',cls);l.dataset.source=edge.source;l.dataset.target=edge.target;l.dataset.note=edge.note||'';return l}
+  function wrapLabel(text){if(text.length<=15)return [text];const parts=text.split(' ');if(parts.length===1)return [text.slice(0,14),text.slice(14,28)];const cut=Math.ceil(parts.length/2);return [parts.slice(0,cut).join(' '),parts.slice(cut).join(' ')]}
+
+  function render(){
+    edgeLayer.innerHTML='';candidateLayer.innerHTML='';nodeLayer.innerHTML='';
+    const focus=selected?connectedIds(selected):null;
+    edges.forEach(e=>{const l=lineEl(e,'kg-edge'+(selected&&(e.source===selected||e.target===selected)?' focus':''));if(l)edgeLayer.appendChild(l)});
+    humanEdges.forEach(e=>{const l=lineEl(e,'kg-human');if(l)candidateLayer.appendChild(l)});
+    if(gptSuggestion){const l=lineEl(gptSuggestion,'kg-candidate');if(l)candidateLayer.appendChild(l)}
+    const q=(search.value||'').trim().toLowerCase();
+    nodes.forEach(n=>{
+      const p=positions.get(n.id);const g=document.createElementNS(NS,'g');g.setAttribute('transform',`translate(${p.x} ${p.y})`);g.setAttribute('class','kg-node');g.dataset.id=n.id;
+      const isMatch=!q||n.label.toLowerCase().includes(q)||n.note.toLowerCase().includes(q);if(!isMatch||(focus&&!focus.has(n.id)))g.classList.add('dim');
+      if(selected===n.id)g.classList.add('selected');if(pair.includes(n.id))g.classList.add('pair-selected');if(gptSuggestion&&(gptSuggestion.source===n.id||gptSuggestion.target===n.id))g.classList.add('gpt-selected');
+      const c=document.createElementNS(NS,'circle');c.setAttribute('r',n.kind==='PRINCIPLE'?34:42);g.appendChild(c);
+      const lines=wrapLabel(n.label);lines.forEach((line,i)=>{const t=document.createElementNS(NS,'text');t.setAttribute('y',String((i-(lines.length-1)/2)*15+4));t.textContent=line;g.appendChild(t)});
+      g.addEventListener('click',ev=>{ev.stopPropagation();if(dragMoved){dragMoved=false;return}handleNodeClick(n.id)});
+      g.addEventListener('pointerdown',ev=>{ev.stopPropagation();dragNode=n.id;dragMoved=false;svg.setPointerCapture?.(ev.pointerId)});
+      nodeLayer.appendChild(g);
+    });
+  }
+
+  function showNode(id){selected=id;const n=byId.get(id);nodeTitle.textContent=n.label;nodeNote.textContent=n.note;nodeLinks.innerHTML='';[...edges,...humanEdges].filter(e=>e.source===id||e.target===id).slice(0,7).forEach(e=>{const other=e.source===id?e.target:e.source;const d=document.createElement('div');d.className='mini-item';d.innerHTML=`<b>${labelFor(other)}</b><br>${e.relation} · ${e.note||''}`;nodeLinks.appendChild(d)});render()}
+  function handleNodeClick(id){if(connectMode){if(pair.includes(id))pair=pair.filter(x=>x!==id);else if(pair.length<2)pair.push(id);else pair=[pair[1],id];updatePair();render();return}showNode(id)}
+  function updatePair(){pairA.textContent=pair[0]?labelFor(pair[0]):'1点目を選択';pairB.textContent=pair[1]?labelFor(pair[1]):'2点目を選択';hint.textContent=connectMode?(pair.length<2?'繋ぎたいNodeを2つクリック':'コメントを書いて接続案を保存'):'Nodeをクリックすると周辺をFocus。空白ドラッグで移動、ホイールでZoom。'}
+  function clearPair(){pair=[];comment.value='';saveStatus.textContent='';updatePair();render()}
+
+  connectBtn.addEventListener('click',()=>{connectMode=!connectMode;connectBtn.classList.toggle('active',connectMode);connectBtn.textContent=connectMode?'接続モード中 ✓':'＋ 2点を繋ぐ';if(!connectMode)clearPair();else updatePair()});
+  document.getElementById('composer-clear').addEventListener('click',clearPair);
+  search.addEventListener('input',render);
+
+  async function postFeedback(messageText,contextObj){
+    const res=await fetch('/api/dashboard/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({page:'/dashboard/graph',message:messageText,context:JSON.stringify(contextObj)})});
+    if(!res.ok)throw new Error('save_failed');return res.json();
+  }
+
+  saveBtn.addEventListener('click',async()=>{
+    if(pair.length!==2){saveStatus.textContent='Nodeを2つ選んで。';return}
+    const rel=relation.value;const text=comment.value.trim()||'この2点は繋がると思う';saveBtn.disabled=true;saveStatus.textContent='保存中…';
+    try{await postFeedback(`CONNECT ${labelFor(pair[0])} → ${labelFor(pair[1])}｜${text}`,{type:'graph_edge_proposal',source:pair[0],target:pair[1],relation:rel,note:text});humanEdges.push({source:pair[0],target:pair[1],relation:rel,note:text,state:'MASA_PROPOSAL'});saveStatus.textContent='保存した。Graphにも仮Edgeを出した。';render();loadActivity()}catch{saveStatus.textContent='保存に失敗。もう一度試して。'}finally{saveBtn.disabled=false}
+  });
+
+  function showSuggestion(s){gptSuggestion=s;gptTitle.textContent=s.title;gptReason.textContent=s.reason;gptPair.innerHTML=`<span>${labelFor(s.source)}</span><b>↔</b><span>${labelFor(s.target)}</span>`;gptAccept.disabled=false;gptHold.disabled=false;selected=null;render()}
+  gptNext.addEventListener('click',()=>{gptIndex=(gptIndex+1)%suggestions.length;showSuggestion(suggestions[gptIndex])});
+  async function decideSuggestion(decision){if(!gptSuggestion)return;const s=gptSuggestion;const btn=decision==='accept'?gptAccept:gptHold;btn.disabled=true;try{await postFeedback(`GPT ${decision==='accept'?'ACCEPT':'HOLD'}｜${s.title}`,{type:'gpt_edge_decision',decision,suggestion_id:s.id,source:s.source,target:s.target,relation:s.relation,reason:s.reason});if(decision==='accept')humanEdges.push({source:s.source,target:s.target,relation:s.relation,note:`GPT候補を採用候補：${s.reason}`,state:'MASA_PROPOSAL'});loadActivity();render()}catch{}finally{gptAccept.disabled=false;gptHold.disabled=false}}
+  gptAccept.addEventListener('click',()=>decideSuggestion('accept'));gptHold.addEventListener('click',()=>decideSuggestion('hold'));
+
+  async function loadActivity(){try{const r=await fetch('/api/dashboard/feedback');const data=await r.json();const items=(data.items||[]).filter(x=>x.page==='/dashboard/graph').slice(0,6);activity.innerHTML='';if(!items.length){activity.innerHTML='<p class="muted">まだGraphコメントはない。</p>';return}items.forEach(x=>{const d=document.createElement('div');d.className='activity-item';d.innerHTML=`<strong>${escapeHtml(x.message)}</strong><time>${new Date(x.created_at).toLocaleString('ja-JP')}</time>`;activity.appendChild(d)})}catch{activity.innerHTML='<p class="muted">履歴を読み込めなかった。</p>'}}
+  function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+
+  function setView(){svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.w} ${view.h}`)}
+  svg.addEventListener('wheel',ev=>{ev.preventDefault();const factor=ev.deltaY>0?1.1:.9;const rect=svg.getBoundingClientRect();const px=view.x+(ev.clientX-rect.left)/rect.width*view.w;const py=view.y+(ev.clientY-rect.top)/rect.height*view.h;const nw=view.w*factor,nh=view.h*factor;view.x=px-(px-view.x)*factor;view.y=py-(py-view.y)*factor;view.w=nw;view.h=nh;setView()},{passive:false});
+  svg.addEventListener('pointerdown',ev=>{if(ev.target.closest?.('.kg-node'))return;panStart={cx:ev.clientX,cy:ev.clientY,x:view.x,y:view.y};svg.classList.add('panning');svg.setPointerCapture?.(ev.pointerId)});
+  svg.addEventListener('pointermove',ev=>{const rect=svg.getBoundingClientRect();if(dragNode){const p=positions.get(dragNode);const nx=view.x+(ev.clientX-rect.left)/rect.width*view.w;const ny=view.y+(ev.clientY-rect.top)/rect.height*view.h;if(Math.abs(nx-p.x)>2||Math.abs(ny-p.y)>2)dragMoved=true;positions.set(dragNode,{x:nx,y:ny});render();return}if(panStart){view.x=panStart.x-(ev.clientX-panStart.cx)/rect.width*view.w;view.y=panStart.y-(ev.clientY-panStart.cy)/rect.height*view.h;setView()}});
+  svg.addEventListener('pointerup',()=>{dragNode=null;panStart=null;svg.classList.remove('panning')});svg.addEventListener('pointercancel',()=>{dragNode=null;panStart=null;svg.classList.remove('panning')});
+  svg.addEventListener('click',()=>{if(!connectMode){selected=null;nodeTitle.textContent='Nodeを選択';nodeNote.textContent='クリックすると意味と接続先をここで確認できる。';nodeLinks.innerHTML='';render()}});
+
+  setView();updatePair();render();loadActivity();
+</script>
