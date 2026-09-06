@@ -1,0 +1,324 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const driveUrl = 'https://docs.google.com/document/d/14MkB5pM2NjpGKnlK_qYKidDyvytNjqm2JXwpH63u-UY/edit?usp=drivesdk';
+
+const numbers = [
+  { n: 0, hypothesis: 'SELF / SOURCE', hint: '自分・源・余白・可能性' },
+  { n: 1, hypothesis: 'BEGIN / WILL', hint: '個・始まり・意志・起動' },
+  { n: 2, hypothesis: 'PAIR / RELATION', hint: '対・関係・二極・受容' },
+  { n: 3, hypothesis: 'CREATE', hint: '創造・展開・第三の動き' },
+  { n: 4, hypothesis: 'STRUCTURE', hint: '構造・基盤・現実化・安定' },
+  { n: 5, hypothesis: 'CHANGE / HUMAN', hint: '変化・自由・人間・中心' },
+  { n: 6, hypothesis: 'HARMONY / CARE', hint: '調和・育成・愛・奉仕' },
+  { n: 7, hypothesis: 'INQUIRY', hint: '探究・知識・研究・内省' },
+  { n: 8, hypothesis: 'POWER / ∞', hint: '力・組織・循環・現実的拡張' },
+  { n: 9, hypothesis: 'INTEGRATE', hint: '統合・完成・普遍・次周期への出口' },
+];
+
+const layers = [
+  [0],
+  [1, 2],
+  [3, 4, 5],
+  [6, 7, 8, 9],
+];
+---
+
+<DashboardLayout title="0→9 FLOW MODEL">
+  <div class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">MASA OS · NUMBER PHILOSOPHY R&D</p>
+        <h1>数字は固定。<span>意味を育てる。</span></h1>
+        <p class="lead">0→9の順番は動かさず、数字の本質とMASAの体験・人生・事業がどこで重なるかを発掘する。書いた内容はSupabaseへ保存され、端末をまたいで残る。</p>
+      </div>
+      <a class="drive-link" href={driveUrl} target="_blank" rel="noopener noreferrer">Drive正本を開く ↗</a>
+    </header>
+
+    <section class="model-section">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">MODEL</p>
+          <h2>0 → 9</h2>
+        </div>
+        <p class="rule">0＝源。1〜9は決め打ちせず、体験から発見する。</p>
+      </div>
+
+      <div class="pyramid" aria-label="0から9の四層モデル">
+        {layers.map(layer => (
+          <div class="pyramid-row">
+            {layer.map(n => {
+              const item = numbers.find(x => x.n === n)!;
+              return (
+                <a class:list={['number-node', n === 0 && 'source']} href={`#number-${n}`}>
+                  <strong>{n}</strong>
+                  <span>{item.hypothesis}</span>
+                </a>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      <div class="layer-note">
+        <span>0｜SOURCE</span>
+        <span>1–2｜INNER</span>
+        <span>3–5｜LIFE</span>
+        <span>6–9｜IMPACT</span>
+      </div>
+    </section>
+
+    <section class="editor-section">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">WORKBENCH</p>
+          <h2>数字ごとの発掘メモ</h2>
+        </div>
+        <div class="global-status" id="global-status">読み込み中…</div>
+      </div>
+
+      <div class="cards">
+        {numbers.map(item => (
+          <article class="number-card" id={`number-${item.n}`} data-number={item.n}>
+            <div class="card-head">
+              <div class="number-mark">{item.n}</div>
+              <div>
+                <p class="hypothesis">現時点の仮説 · {item.hypothesis}</p>
+                <h3>{item.hint}</h3>
+              </div>
+              <span class="save-state" data-status>未編集</span>
+            </div>
+
+            <div class="fields">
+              <label>
+                <span>今しっくりくる意味</span>
+                <textarea data-field="meaning" rows="3" placeholder={`「${item.n}」をMASAの言葉で定義する`}></textarea>
+              </label>
+              <label>
+                <span>入れたい人生領域</span>
+                <textarea data-field="lifeArea" rows="3" placeholder="身体・心・家族・仕事・教育・事業・社会など"></textarea>
+              </label>
+              <label class="wide">
+                <span>体験・エピソード</span>
+                <textarea data-field="episode" rows="4" placeholder="競技、家族、仕事、転機、身体感覚など。概念より実体験を優先。"></textarea>
+              </label>
+              <label class="wide">
+                <span>違和感／保留</span>
+                <textarea data-field="friction" rows="3" placeholder="まだ決めたくないこと、別解、矛盾、あとで調べたいこと"></textarea>
+              </label>
+            </div>
+
+            <div class="card-foot">
+              <p>入力は自動保存。ボタンで即時保存もできる。</p>
+              <button type="button" data-save>保存する</button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="principles">
+      <p class="section-kicker">RULES</p>
+      <div class="principle-grid">
+        <div><strong>01</strong><span>数字を意味に合わせて入れ替えない。</span></div>
+        <div><strong>02</strong><span>無理に全部決めない。違和感を残す。</span></div>
+        <div><strong>03</strong><span>MASAの実体験・身体感覚を一次情報にする。</span></div>
+        <div><strong>04</strong><span>事業名は後から、本質と一致した場所へ接続する。</span></div>
+      </div>
+    </section>
+  </div>
+</DashboardLayout>
+
+<script>
+  type Note = {
+    number: number;
+    meaning?: string;
+    life_area?: string;
+    lifeArea?: string;
+    episode?: string;
+    friction?: string;
+  };
+
+  const API = '/api/dashboard/flow-09';
+  const LOCAL_KEY = 'masa-flow-09-backup-v1';
+  const timers = new Map<number, ReturnType<typeof setTimeout>>();
+  const globalStatus = document.getElementById('global-status');
+
+  function cardFor(number: number) {
+    return document.querySelector<HTMLElement>(`.number-card[data-number="${number}"]`);
+  }
+
+  function readCard(number: number) {
+    const card = cardFor(number);
+    const get = (field: string) =>
+      (card?.querySelector<HTMLTextAreaElement>(`[data-field="${field}"]`)?.value || '').trim();
+    return {
+      number,
+      meaning: get('meaning'),
+      lifeArea: get('lifeArea'),
+      episode: get('episode'),
+      friction: get('friction'),
+    };
+  }
+
+  function setStatus(number: number, text: string, state = '') {
+    const el = cardFor(number)?.querySelector<HTMLElement>('[data-status]');
+    if (!el) return;
+    el.textContent = text;
+    el.dataset.state = state;
+  }
+
+  function writeCard(note: Note) {
+    const card = cardFor(note.number);
+    if (!card) return;
+    const values: Record<string, string> = {
+      meaning: note.meaning || '',
+      lifeArea: note.lifeArea ?? note.life_area ?? '',
+      episode: note.episode || '',
+      friction: note.friction || '',
+    };
+    for (const [field, value] of Object.entries(values)) {
+      const textarea = card.querySelector<HTMLTextAreaElement>(`[data-field="${field}"]`);
+      if (textarea) textarea.value = value;
+    }
+  }
+
+  function saveLocalBackup() {
+    const payload = Array.from({ length: 10 }, (_, number) => readCard(number));
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(payload));
+  }
+
+  function loadLocalBackup() {
+    try {
+      const raw = localStorage.getItem(LOCAL_KEY);
+      if (!raw) return false;
+      const notes = JSON.parse(raw) as Note[];
+      notes.forEach(writeCard);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function save(number: number) {
+    const payload = readCard(number);
+    saveLocalBackup();
+    setStatus(number, '保存中…', 'saving');
+
+    try {
+      const response = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setStatus(number, '保存済み', 'saved');
+      if (globalStatus) globalStatus.textContent = 'Supabase同期済み';
+    } catch {
+      setStatus(number, '端末に退避', 'warning');
+      if (globalStatus) globalStatus.textContent = '通信エラー：端末にバックアップ済み';
+    }
+  }
+
+  function queueSave(number: number) {
+    const current = timers.get(number);
+    if (current) clearTimeout(current);
+    setStatus(number, '編集中…', 'dirty');
+    saveLocalBackup();
+    timers.set(number, setTimeout(() => save(number), 1100));
+  }
+
+  async function load() {
+    try {
+      const response = await fetch(API);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const body = await response.json() as { notes?: Note[] };
+      (body.notes || []).forEach(writeCard);
+      saveLocalBackup();
+      if (globalStatus) globalStatus.textContent = 'Supabase接続済み';
+      for (let n = 0; n <= 9; n++) setStatus(n, '同期済み', 'saved');
+    } catch {
+      const restored = loadLocalBackup();
+      if (globalStatus) {
+        globalStatus.textContent = restored
+          ? 'オフライン：端末バックアップを表示中'
+          : '保存先へ接続できません';
+      }
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('.number-card').forEach(card => {
+    const number = Number(card.dataset.number);
+    card.querySelectorAll<HTMLTextAreaElement>('textarea').forEach(textarea => {
+      textarea.addEventListener('input', () => queueSave(number));
+    });
+    card.querySelector<HTMLButtonElement>('[data-save]')?.addEventListener('click', () => {
+      const current = timers.get(number);
+      if (current) clearTimeout(current);
+      save(number);
+    });
+  });
+
+  load();
+</script>
+
+<style>
+  .shell { max-width: 1280px; margin: 0 auto; padding-bottom: 72px; }
+  .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; padding: 10px 0 34px; border-bottom: 1px solid var(--border-default); }
+  .eyebrow, .section-kicker { color: var(--gold-muted); font-size: .68rem; letter-spacing: .15em; text-transform: uppercase; font-weight: 500; }
+  h1 { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-size: clamp(2.4rem, 5vw, 4.6rem); font-weight: 300; line-height: 1; }
+  h1 span { color: var(--gold-pure); }
+  .lead { margin-top: 18px; max-width: 820px; color: var(--text-muted); line-height: 1.9; font-size: .9rem; }
+  .drive-link { flex-shrink: 0; color: var(--gold-pure); text-decoration: none; border: 1px solid var(--border-accent); padding: 11px 15px; font-size: .76rem; }
+  .model-section, .editor-section, .principles { margin-top: 42px; }
+  .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 20px; }
+  h2 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; }
+  .rule, .global-status { color: var(--text-dim); font-size: .76rem; }
+  .pyramid { padding: 28px 16px; display: grid; gap: 10px; background: var(--bg-surface); border: 1px solid var(--border-default); }
+  .pyramid-row { display: flex; justify-content: center; gap: 10px; }
+  .number-node { width: clamp(110px, 15vw, 180px); min-height: 78px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--text-muted); text-decoration: none; border: 1px solid var(--border-default); background: var(--bg-void); transition: .18s ease; }
+  .number-node:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+  .number-node strong { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--gold-pure); }
+  .number-node span { font-size: .58rem; letter-spacing: .08em; }
+  .number-node.source { border-color: var(--gold-muted); box-shadow: 0 0 0 1px var(--gold-glow); }
+  .layer-note { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+  .layer-note span { padding: 9px 10px; text-align: center; color: var(--text-dim); border: 1px solid var(--border-default); font-size: .63rem; }
+  .cards { display: grid; gap: 14px; }
+  .number-card { scroll-margin-top: 20px; padding: 20px; background: var(--bg-surface); border: 1px solid var(--border-default); }
+  .card-head { display: grid; grid-template-columns: 58px 1fr auto; gap: 16px; align-items: center; margin-bottom: 18px; }
+  .number-mark { width: 54px; height: 54px; display: grid; place-items: center; font-family: 'Cormorant Garamond', serif; font-size: 2.1rem; color: var(--gold-pure); border: 1px solid var(--border-accent); }
+  .hypothesis { color: var(--gold-muted); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; }
+  h3 { margin-top: 4px; color: var(--text-primary); font-size: .95rem; font-weight: 400; }
+  .save-state { color: var(--text-dim); font-size: .68rem; }
+  .save-state[data-state='saved'] { color: var(--gold-muted); }
+  .save-state[data-state='warning'] { color: var(--text-muted); }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { display: grid; gap: 7px; }
+  label.wide { grid-column: 1 / -1; }
+  label > span { color: var(--text-muted); font-size: .7rem; }
+  textarea { width: 100%; resize: vertical; padding: 12px 13px; background: var(--bg-void); color: var(--text-primary); border: 1px solid var(--border-default); outline: none; font: inherit; font-size: .82rem; line-height: 1.7; }
+  textarea:focus { border-color: var(--gold-muted); }
+  textarea::placeholder { color: var(--text-dim); }
+  .card-foot { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-default); display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+  .card-foot p { color: var(--text-dim); font-size: .68rem; }
+  button { padding: 9px 16px; background: transparent; color: var(--gold-pure); border: 1px solid var(--border-accent); cursor: pointer; font: inherit; font-size: .72rem; }
+  button:hover { border-color: var(--gold-muted); background: var(--gold-glow); }
+  .principle-grid { margin-top: 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .principle-grid div { padding: 16px; display: flex; gap: 14px; border: 1px solid var(--border-default); background: var(--bg-surface); }
+  .principle-grid strong { color: var(--gold-dim); font-family: 'Cormorant Garamond', serif; font-weight: 300; }
+  .principle-grid span { color: var(--text-muted); font-size: .8rem; }
+  @media (max-width: 760px) {
+    .hero, .section-head { align-items: flex-start; flex-direction: column; }
+    .drive-link { width: 100%; text-align: center; }
+    .pyramid { overflow-x: auto; padding-left: 8px; padding-right: 8px; }
+    .pyramid-row { min-width: 540px; }
+    .number-node { width: 120px; }
+    .layer-note { grid-template-columns: 1fr 1fr; }
+    .fields, .principle-grid { grid-template-columns: 1fr; }
+    label.wide { grid-column: auto; }
+    .card-head { grid-template-columns: 48px 1fr; }
+    .number-mark { width: 44px; height: 44px; font-size: 1.7rem; }
+    .save-state { grid-column: 2; }
+    .card-foot { align-items: stretch; flex-direction: column; }
+  }
+</style>

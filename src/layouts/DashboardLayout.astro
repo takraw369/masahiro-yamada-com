@@ -8,6 +8,7 @@ const pathname = Astro.url.pathname;
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
+  { href: '/dashboard/flow-09', label: '0→9 Flow', icon: '◉', exact: false },
   { href: '/dashboard/funnel', label: 'Trinity Funnel', icon: '◎', exact: false },
   { href: '/dashboard/post', label: 'X Post', icon: '𝕏', exact: false },
   { href: '/dashboard/lian', label: 'リアン', icon: '💚', exact: false },
@@ -61,7 +62,6 @@ function isActive(item: { href: string; exact: boolean }): boolean {
       display: flex;
     }
 
-    /* ── Sidebar ── */
     .sidebar {
       width: var(--sidebar-width);
       flex-shrink: 0;
@@ -160,7 +160,6 @@ function isActive(item: { href: string; exact: boolean }): boolean {
       color: var(--text-muted);
     }
 
-    /* ── Sidebar overlay (mobile) ── */
     .sidebar-overlay {
       display: none;
       position: fixed;
@@ -173,7 +172,6 @@ function isActive(item: { href: string; exact: boolean }): boolean {
       display: block;
     }
 
-    /* ── Content area ── */
     .content-wrap {
       margin-left: var(--sidebar-width);
       flex: 1;
@@ -182,7 +180,6 @@ function isActive(item: { href: string; exact: boolean }): boolean {
       flex-direction: column;
     }
 
-    /* ── Mobile top bar ── */
     .mobile-header {
       display: none;
       align-items: center;
@@ -229,7 +226,6 @@ function isActive(item: { href: string; exact: boolean }): boolean {
       color: var(--gold-pure);
     }
 
-    /* ── Main content ── */
     .main-content {
       flex: 1;
       padding: 32px 36px;
@@ -240,7 +236,6 @@ function isActive(item: { href: string; exact: boolean }): boolean {
       overflow: hidden;
     }
 
-    /* ── Mobile breakpoint ── */
     @media (max-width: 768px) {
       .sidebar {
         transform: translateX(-100%);
