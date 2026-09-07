@@ -29,11 +29,10 @@ export default { renderToString, renderToStaticMarkup, renderToReadableStream };
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
-    platformProxy: {
-      // Astro dev must not inherit production RPC URLs or credentials.
-      // Use the isolated Worker preview for runtime integration checks.
-      enabled: false,
-    },
+    // Preserve pre-v14 image behavior; do not silently provision a new Images binding.
+    imageService: 'compile',
+    // Keep build-time prerendering on Node while on-demand routes run in workerd.
+    prerenderEnvironment: 'node',
   }),
   integrations: [react()],
   vite: {
