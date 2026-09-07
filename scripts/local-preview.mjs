@@ -1,6 +1,8 @@
 import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { resolve, join, isAbsolute } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export async function startPreview(port = 8787) {
   const root = process.cwd();
@@ -8,10 +10,14 @@ export async function startPreview(port = 8787) {
   const directory = await mkdtemp(resolve('work/preview-'));
   const config = JSON.parse(await readFile('wrangler.preview.jsonc', 'utf8'));
 
-  // Wrangler v14/Astro 6+ can use a package entrypoint. Only filesystem
-  // entrypoints should be made absolute when the isolated config is copied.
+  // The isolated Wrangler config lives under work/preview-*, so bare package
+  // entrypoints can no longer be resolved relative to the project root. Keep
+  // production config canonical, but resolve its package entrypoint before
+  // copying the preview config into the isolated directory.
   if (isAbsolute(config.main) || config.main.startsWith('./') || config.main.startsWith('../')) {
     config.main = resolve(config.main);
+  } else {
+    config.main = fileURLToPath(import.meta.resolve(config.main));
   }
   config.assets.directory = resolve(config.assets.directory);
   delete config.$schema;
