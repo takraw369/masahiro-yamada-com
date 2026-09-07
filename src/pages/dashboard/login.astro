@@ -197,7 +197,7 @@ if (Astro.request.method === 'POST') {
     </form>
   </div>
 
-  <script>
+  <script is:inline>
     const card = document.getElementById('auth-card');
     const supabaseUrl = card?.dataset.supabaseUrl || '';
     const googleButton = document.getElementById('google-login');
