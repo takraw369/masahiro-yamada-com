@@ -1,0 +1,464 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Watercolor Art Print">
+  <main class="watercolor-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">VISUAL PROMPT · STYLE #001</p>
+        <h1>Watercolor <span>Art Print</span></h1>
+        <p class="lead">写真を、構図と主題を保ったまま上質な水彩ギャラリープリントへ。Presetを選び、Variableだけ変えて、完成Promptをコピーする。</p>
+      </div>
+      <div class="hero-actions">
+        <a href="/dashboard/visual-prompt" class="ghost-link">← Visual Prompt Lab</a>
+        <a href="https://docs.google.com/document/d/1YrZr2NaGetVsMSoznfncfwYQVt62tSBbkCsi4EYXXh0/edit" target="_blank" rel="noopener noreferrer" class="source-link">Drive正本 ↗</a>
+      </div>
+    </header>
+
+    <section class="master-strip" aria-label="Master style flow">
+      <span>PHOTO</span><i>→</i><span>MASTER STYLE</span><i>→</i><span>PRESET</span><i>→</i><span>VARIABLE</span><i>→</i><span>PRESERVE</span><i>→</i><span>PROMPT</span><i>→</i><span>IMAGE</span>
+    </section>
+
+    <section class="style-card">
+      <div class="style-badge">MASTER STYLE</div>
+      <div>
+        <h2>Gallery Watercolor Print</h2>
+        <p>自然な鉛筆線、透明水彩のにじみ、紙の質感、余白のあるアートプリント。写真の「何が写っているか」より、構図・空気・光・記憶の手触りを残す。</p>
+      </div>
+      <div class="style-tags" aria-label="Style tags">
+        <span>transparent watercolor</span>
+        <span>soft graphite</span>
+        <span>fine-art paper</span>
+        <span>white margin</span>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">01 · PRESET</p>
+          <h2>何を残したい写真？</h2>
+        </div>
+        <p>Presetは構図の解釈を変えるだけ。Master Styleは固定されます。</p>
+      </div>
+
+      <div class="preset-grid" id="presetGrid">
+        <button type="button" class="preset-card is-active" data-preset="store">
+          <span class="preset-number">01</span>
+          <strong>STORE + LANDMARK</strong>
+          <small>店・建物・街角・旅先。外観とランドマークを残す。</small>
+        </button>
+        <button type="button" class="preset-card" data-preset="home">
+          <span class="preset-number">02</span>
+          <strong>HOME + SEASON</strong>
+          <small>家・庭・家族の場所。季節と生活の空気を残す。</small>
+        </button>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <div class="input-stack">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">02 · VARIABLE</p>
+              <h2>今回だけ変えるもの</h2>
+            </div>
+            <span id="saveState" class="save-state">端末内に自動保存</span>
+          </div>
+
+          <div class="form-grid">
+            <label class="field full">
+              <span>写真の主役 / 場所</span>
+              <input id="subject" type="text" placeholder="例：海沿いの小さな珈琲店、祖母の家の縁側" />
+            </label>
+
+            <label class="field">
+              <span>季節</span>
+              <select id="season">
+                <option>春</option>
+                <option>初夏</option>
+                <option selected>夏</option>
+                <option>秋</option>
+                <option>冬</option>
+                <option>季節感を強調しない</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>時間・光</span>
+              <select id="light">
+                <option>朝の柔らかい光</option>
+                <option selected>日中の自然光</option>
+                <option>夕方の金色の光</option>
+                <option>曇天の静かな光</option>
+                <option>写真の光をそのまま維持</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>色の方向</span>
+              <select id="palette">
+                <option selected>写真の色を自然に整理</option>
+                <option>青・緑を少し爽やかに</option>
+                <option>暖色を少し強める</option>
+                <option>低彩度で落ち着かせる</option>
+                <option>ヴィンテージ寄りに褪色</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>余白 / 比率</span>
+              <select id="ratio">
+                <option selected>4:5 縦長アートプリント</option>
+                <option>1:1 正方形</option>
+                <option>3:2 横長</option>
+                <option>写真の比率を維持</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>タイトル（任意）</span>
+              <input id="title" type="text" placeholder="例：SHONAN MORNING" />
+            </label>
+
+            <label class="field">
+              <span>年号（任意）</span>
+              <input id="year" type="text" inputmode="numeric" placeholder="例：2026" />
+            </label>
+
+            <label class="field full">
+              <span>追加したい空気・記憶</span>
+              <textarea id="mood" rows="3" placeholder="例：夏の終わり、少し懐かしく、静かな幸福感。観光ポスターではなく個人の記憶として。"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">03 · PRESERVE</p>
+              <h2>変えないものを固定</h2>
+            </div>
+            <button id="preserveAll" class="tiny-button" type="button">全部ON</button>
+          </div>
+
+          <div class="toggle-grid">
+            <label class="toggle-card"><input type="checkbox" data-preserve="構図・カメラ位置" checked /><span>構図・カメラ位置</span></label>
+            <label class="toggle-card"><input type="checkbox" data-preserve="主役の形・外観" checked /><span>主役の形・外観</span></label>
+            <label class="toggle-card"><input type="checkbox" data-preserve="建物・ランドマークの位置関係" checked /><span>建物・ランドマーク</span></label>
+            <label class="toggle-card"><input type="checkbox" data-preserve="看板・ロゴ・固有文字" /><span>看板・ロゴ・文字</span></label>
+            <label class="toggle-card"><input type="checkbox" data-preserve="人物の人数・位置・雰囲気" /><span>人物</span></label>
+            <label class="toggle-card"><input type="checkbox" data-preserve="写真固有の小物・植栽・道具" /><span>小物・植栽</span></label>
+          </div>
+
+          <p class="preserve-note">※ 画像生成は再描画を伴うため完全固定ではありません。顔・ロゴ・文字など重要要素ほど、生成後に差分確認してください。</p>
+        </section>
+      </div>
+
+      <aside class="output-column">
+        <section class="panel output-panel">
+          <div class="panel-head">
+            <div>
+              <p class="section-kicker">04 · OUTPUT</p>
+              <h2>完成Prompt</h2>
+            </div>
+            <span id="presetBadge" class="type-badge">STORE</span>
+          </div>
+
+          <p class="output-note">ChatGPT画像生成などへ、写真を添付してこのPromptを一緒に渡してください。</p>
+
+          <div class="actions">
+            <button id="generatePrompt" class="primary" type="button">Prompt生成</button>
+            <button id="copyPrompt" type="button">コピー</button>
+            <button id="resetForm" type="button">リセット</button>
+          </div>
+
+          <textarea id="promptOutput" class="prompt-output" readonly placeholder="PresetとVariableを設定して「Prompt生成」を押してください。"></textarea>
+          <p id="status" class="status" aria-live="polite"></p>
+
+          <div class="quality-gate">
+            <strong>FINAL CHECK</strong>
+            <ul>
+              <li>主役・構図が原写真からズレていないか</li>
+              <li>水彩がデジタル加工風になっていないか</li>
+              <li>文字を入れた場合、誤字・崩れがないか</li>
+              <li>余白・紙質・にじみがアートプリントとして自然か</li>
+            </ul>
+          </div>
+
+          <div class="truth-note">
+            <strong>SOURCE OF TRUTH</strong>
+            <span>IMAGE_ASSET_OSのMaster Styleが正本。この画面は選択・変数入力・Prompt生成だけを担当。</span>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</DashboardLayout>
+
+<script>
+  const STORAGE_KEY = 'masaWatercolorConfiguratorV1';
+  const $ = (id) => document.getElementById(id);
+
+  const presets = {
+    store: {
+      badge: 'STORE',
+      label: 'STORE + LANDMARK',
+      purpose: '店舗・建物・街角・ランドマークを、旅の記憶として残す水彩アートプリント',
+      composition: '原写真の建物のプロポーション、道路・歩道・植栽・看板・周囲のランドマークの位置関係を優先して維持する。建築パースを不自然に誇張しない。',
+      emphasis: '店構えや建物を主役にしつつ、街の空気・人の気配・旅の余韻を残す。観光広告や不動産パースのようにしない。'
+    },
+    home: {
+      badge: 'HOME',
+      label: 'HOME + SEASON',
+      purpose: '家・庭・家族の場所を、季節と生活の記憶として残す水彩アートプリント',
+      composition: '原写真の家・庭・窓・樹木・家具・生活小物の位置関係を維持する。整えすぎず、その場所らしい生活の痕跡を残す。',
+      emphasis: '季節の光、空気、植物、暮らしの温度を感じさせる。住宅カタログのように無機質にせず、個人の記憶として描く。'
+    }
+  };
+
+  const defaults = {
+    activePreset: 'store',
+    values: {
+      subject: '',
+      season: '夏',
+      light: '日中の自然光',
+      palette: '写真の色を自然に整理',
+      ratio: '4:5 縦長アートプリント',
+      title: '',
+      year: '',
+      mood: ''
+    },
+    preserve: ['構図・カメラ位置', '主役の形・外観', '建物・ランドマークの位置関係']
+  };
+
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      return saved && saved.values ? saved : structuredClone(defaults);
+    } catch {
+      return structuredClone(defaults);
+    }
+  }
+
+  let state = loadState();
+
+  function getValues() {
+    return {
+      subject: $('subject').value.trim(),
+      season: $('season').value,
+      light: $('light').value,
+      palette: $('palette').value,
+      ratio: $('ratio').value,
+      title: $('title').value.trim(),
+      year: $('year').value.trim(),
+      mood: $('mood').value.trim()
+    };
+  }
+
+  function getPreserve() {
+    return [...document.querySelectorAll('[data-preserve]:checked')].map((node) => node.dataset.preserve);
+  }
+
+  function saveState() {
+    state.values = getValues();
+    state.preserve = getPreserve();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    $('saveState').textContent = '保存済み';
+    window.setTimeout(() => { $('saveState').textContent = '端末内に自動保存'; }, 800);
+  }
+
+  function applyState() {
+    Object.entries(state.values || {}).forEach(([key, value]) => {
+      if ($(key)) $(key).value = value;
+    });
+
+    document.querySelectorAll('[data-preserve]').forEach((node) => {
+      node.checked = (state.preserve || []).includes(node.dataset.preserve);
+    });
+
+    document.querySelectorAll('[data-preset]').forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.preset === state.activePreset);
+    });
+
+    $('presetBadge').textContent = presets[state.activePreset].badge;
+  }
+
+  function switchPreset(nextPreset) {
+    if (!presets[nextPreset]) return;
+    state.activePreset = nextPreset;
+    saveState();
+    applyState();
+    $('promptOutput').value = '';
+    setStatus(`${presets[nextPreset].label} に切り替えました。`);
+  }
+
+  function lineOr(value, fallback) {
+    return value && value.trim() ? value.trim() : fallback;
+  }
+
+  function buildPrompt() {
+    const v = getValues();
+    const preset = presets[state.activePreset];
+    const preserve = getPreserve();
+    const titleInstruction = v.title
+      ? `下部の余白に、小さく上品に「${v.title}${v.year ? ` · ${v.year}` : ''}」と配置する。文字は正確に、過度に目立たせない。`
+      : v.year
+        ? `下部の余白に、小さく上品に「${v.year}」だけを配置する。`
+        : '画像内に新しいタイトルや説明文を追加しない。';
+
+    const preserveText = preserve.length
+      ? preserve.map((item) => `・${item}`).join('\n')
+      : '・原写真の主要な構図と主役';
+
+    return `添付した写真を参照し、${preset.purpose}として再描画してください。\n\n【MASTER STYLE｜固定】\n・高品質な透明水彩＋ごく薄い鉛筆 / graphite の下描き\n・手描きらしい自然なにじみ、濃淡、紙に吸い込む水分感\n・fine-art watercolor paper の繊維と微細な凹凸が見える\n・写真フィルターやデジタル油彩ではなく、実物の水彩原画をスキャンしたような質感\n・輪郭を全部均一に囲まず、必要な場所だけ線を残して光と空気へ溶かす\n・余白を活かしたgallery print。ポスター広告のような過密な情報配置にしない\n・過度なHDR、3Dレンダリング感、CG感、プラスチック感、強すぎるシャープネスを避ける\n\n【PRESET｜${preset.label}】\n${preset.composition}\n${preset.emphasis}\n\n【今回のVARIABLE】\n・主役 / 場所：${lineOr(v.subject, '添付写真の主役をそのまま採用')}\n・季節：${v.season}\n・時間・光：${v.light}\n・色の方向：${v.palette}\n・画面比率：${v.ratio}\n・空気・記憶：${lineOr(v.mood, '穏やかで、少しだけ懐かしい。原写真の空気感を優先')}\n\n【PRESERVE｜変えない】\n${preserveText}\n\n【文字】\n${titleInstruction}\n原写真に存在する看板・ロゴ・文字をPreserve指定している場合は、可能な限り正確に維持し、読めない文字を勝手に創作しない。\n\n【COMPOSITION】\n・原写真の視点、高さ、主要な余白、主役と背景の距離感を尊重する\n・不要な物を勝手に増やさない。人物・車・植物・家具などを追加する場合も、元写真の文脈を壊さない\n・主役だけを切り抜いた商品画像にせず、場所の文脈と空気を残す\n・外周に自然な白い紙の余白を残し、額装できる完成作品として成立させる\n\n【QUALITY GATE】\n生成後に次を自己点検してから完成版を出す：\n1. 原写真の主役・構図・位置関係が維持されている\n2. 水彩のにじみと紙質が自然で、単なる写真加工に見えない\n3. 建築や人物の形が不自然に歪んでいない\n4. 文字を入れた場合、誤字・文字崩れ・不要な追加文字がない\n5. 余白を含め、1枚の上質なギャラリーアートプリントとして成立している`;
+  }
+
+  function generatePrompt() {
+    saveState();
+    $('promptOutput').value = buildPrompt();
+    setStatus('Promptを生成しました。写真と一緒に画像生成AIへ渡せます。');
+  }
+
+  async function copyPrompt() {
+    if (!$('promptOutput').value) generatePrompt();
+    const text = $('promptOutput').value;
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus('コピーしました。ChatGPTに写真を添付して貼り付けてください。');
+    } catch {
+      $('promptOutput').focus();
+      $('promptOutput').select();
+      document.execCommand('copy');
+      setStatus('コピーしました。');
+    }
+  }
+
+  function resetForm() {
+    state = structuredClone(defaults);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    applyState();
+    $('promptOutput').value = '';
+    setStatus('Watercolor Configuratorを初期状態に戻しました。');
+  }
+
+  function setStatus(message) {
+    $('status').textContent = message;
+  }
+
+  document.querySelectorAll('[data-preset]').forEach((button) => {
+    button.addEventListener('click', () => switchPreset(button.dataset.preset));
+  });
+
+  document.querySelectorAll('input, select, textarea').forEach((node) => {
+    node.addEventListener('input', saveState);
+    node.addEventListener('change', saveState);
+  });
+
+  $('preserveAll').addEventListener('click', () => {
+    document.querySelectorAll('[data-preserve]').forEach((node) => { node.checked = true; });
+    saveState();
+    setStatus('PreserveをすべてONにしました。');
+  });
+
+  $('generatePrompt').addEventListener('click', generatePrompt);
+  $('copyPrompt').addEventListener('click', copyPrompt);
+  $('resetForm').addEventListener('click', resetForm);
+
+  applyState();
+</script>
+
+<style>
+  .watercolor-shell { max-width: 1320px; margin: 0 auto; padding-bottom: 64px; }
+  .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; padding: 14px 0 32px; border-bottom: 1px solid var(--border-default); }
+  .eyebrow, .section-kicker { color: var(--gold-muted); font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
+  h1 { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(2.6rem, 5vw, 4.8rem); line-height: .95; }
+  h1 span { color: var(--gold-pure); }
+  .lead { max-width: 800px; margin-top: 16px; color: var(--text-muted); font-size: .9rem; line-height: 1.85; }
+  .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .source-link, .ghost-link { color: var(--gold-pure); text-decoration: none; border: 1px solid var(--border-accent); padding: 11px 14px; font-size: .74rem; white-space: nowrap; }
+  .ghost-link { color: var(--text-muted); }
+  .source-link:hover, .ghost-link:hover { border-color: var(--gold-muted); background: var(--gold-glow); color: var(--gold-pure); }
+
+  .master-strip { margin-top: 18px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 9px; padding: 15px; border: 1px solid var(--border-default); background: var(--bg-surface); }
+  .master-strip span { color: var(--text-muted); font-size: .64rem; letter-spacing: .1em; border: 1px solid var(--border-default); padding: 6px 9px; }
+  .master-strip i { color: var(--gold-dim); font-style: normal; }
+
+  .style-card { margin-top: 14px; padding: 18px; display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 18px; border: 1px solid var(--border-accent); background: linear-gradient(135deg, var(--gold-glow), var(--bg-surface)); }
+  .style-badge { color: var(--gold-pure); border: 1px solid var(--gold-muted); padding: 8px 10px; font-size: .62rem; letter-spacing: .12em; }
+  .style-card h2 { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 1.7rem; }
+  .style-card p { margin-top: 5px; color: var(--text-muted); font-size: .73rem; line-height: 1.7; }
+  .style-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; max-width: 360px; }
+  .style-tags span { border: 1px solid var(--border-default); padding: 5px 7px; color: var(--text-dim); font-size: .6rem; }
+
+  .section-block { margin-top: 34px; }
+  .section-head, .panel-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+  .section-head h2, .panel h2 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 300; }
+  .section-head > p { max-width: 480px; color: var(--text-dim); font-size: .72rem; text-align: right; }
+
+  .preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  .preset-card { min-height: 128px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; gap: 6px 12px; align-items: start; text-align: left; padding: 18px; border: 1px solid var(--border-default); background: var(--bg-surface); color: inherit; cursor: pointer; transition: transform .18s, border-color .18s, background .18s; }
+  .preset-card:hover { transform: translateY(-2px); border-color: var(--border-hover); }
+  .preset-card.is-active { border-color: var(--gold-muted); background: var(--gold-glow); }
+  .preset-number { color: var(--gold-pure); font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; grid-row: 1 / span 2; }
+  .preset-card strong { color: var(--text-primary); font-size: .82rem; font-weight: 500; letter-spacing: .06em; }
+  .preset-card small { color: var(--text-muted); font-size: .68rem; line-height: 1.6; }
+
+  .workspace { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(390px,.85fr); gap: 14px; margin-top: 14px; align-items: start; }
+  .input-stack { display: grid; gap: 14px; }
+  .panel { border: 1px solid var(--border-default); background: var(--bg-surface); padding: 20px; }
+  .output-column { position: sticky; top: 18px; }
+  .save-state { color: var(--text-dim); font-size: .64rem; }
+  .type-badge { color: var(--gold-pure); font-size: .68rem; letter-spacing: .1em; border: 1px solid var(--border-accent); padding: 6px 8px; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .field.full { grid-column: 1 / -1; }
+  .field > span { color: var(--text-muted); font-size: .69rem; }
+  input, select, textarea { width: 100%; border: 1px solid var(--border-default); background: var(--bg-void); color: var(--text-primary); padding: 11px 12px; font: inherit; font-size: .78rem; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold-muted); }
+  textarea { resize: vertical; line-height: 1.65; }
+
+  .toggle-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 9px; }
+  .toggle-card { display: flex; align-items: center; gap: 9px; min-height: 48px; padding: 10px 12px; border: 1px solid var(--border-default); cursor: pointer; }
+  .toggle-card:hover { border-color: var(--border-hover); }
+  .toggle-card input { width: auto; accent-color: var(--gold-pure); }
+  .toggle-card span { color: var(--text-muted); font-size: .72rem; }
+  .preserve-note { margin-top: 12px; color: var(--text-dim); font-size: .64rem; line-height: 1.7; }
+  .tiny-button { padding: 7px 9px; border: 1px solid var(--border-default); background: transparent; color: var(--text-muted); cursor: pointer; font: inherit; font-size: .64rem; }
+  .tiny-button:hover { border-color: var(--gold-muted); color: var(--gold-pure); }
+
+  .output-note { color: var(--text-muted); font-size: .72rem; line-height: 1.65; margin-bottom: 12px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .actions button { border: 1px solid var(--border-default); background: transparent; color: var(--text-muted); padding: 10px 12px; cursor: pointer; font: inherit; font-size: .72rem; }
+  .actions button:hover { border-color: var(--gold-muted); color: var(--gold-pure); }
+  .actions .primary { background: var(--gold-pure); color: var(--bg-void); border-color: var(--gold-pure); font-weight: 500; }
+  .prompt-output { min-height: 520px; margin-top: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: .68rem; line-height: 1.7; }
+  .status { min-height: 22px; margin-top: 8px; color: var(--gold-muted); font-size: .67rem; }
+
+  .quality-gate, .truth-note { margin-top: 12px; border: 1px solid var(--border-default); padding: 12px; }
+  .quality-gate strong, .truth-note strong { display: block; color: var(--gold-muted); font-size: .6rem; letter-spacing: .12em; }
+  .quality-gate ul { margin: 8px 0 0 18px; color: var(--text-dim); font-size: .64rem; line-height: 1.75; }
+  .truth-note span { display: block; margin-top: 6px; color: var(--text-dim); font-size: .64rem; line-height: 1.6; }
+
+  @media (max-width: 1080px) {
+    .workspace { grid-template-columns: 1fr; }
+    .output-column { position: static; }
+    .prompt-output { min-height: 360px; }
+    .style-card { grid-template-columns: 1fr; }
+    .style-tags { justify-content: flex-start; max-width: none; }
+  }
+
+  @media (max-width: 720px) {
+    .hero { align-items: flex-start; flex-direction: column; }
+    .hero-actions { justify-content: flex-start; }
+    .preset-grid, .form-grid, .toggle-grid { grid-template-columns: 1fr; }
+    .field.full { grid-column: auto; }
+    .section-head { align-items: flex-start; flex-direction: column; }
+    .section-head > p { text-align: left; }
+    .panel { padding: 16px; }
+    .master-strip { justify-content: flex-start; }
+  }
+</style>
