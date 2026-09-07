@@ -1,0 +1,194 @@
+---
+interface AiOperatingMetrics {
+  measured_at?: string | null;
+  context_assets?: number | null;
+  context_items?: number | null;
+  indexed_assets?: number | null;
+  decision_logs?: number | null;
+  delegated_decisions?: number | null;
+  manual_work_removed?: number | null;
+  activity_events?: number | null;
+  activity_instrumented?: boolean | null;
+  automation_workflows?: number | null;
+  automation_runs?: number | null;
+  automation_success_rate?: number | null;
+  latest_automation_run?: string | null;
+  latest_context_update?: string | null;
+  reused_assets?: number | null;
+  reuse_events?: number | null;
+  projects?: number | null;
+  tasks?: number | null;
+}
+
+export interface Props {
+  metrics?: AiOperatingMetrics | null;
+  error?: string | null;
+}
+
+const { metrics = null, error = null } = Astro.props;
+const activityInstrumented = Boolean(metrics?.activity_instrumented);
+
+const number = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed.toLocaleString('ja-JP') : '—';
+};
+
+const percent = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? `${parsed.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}%` : '—';
+};
+
+const dateTime = (value: unknown) => {
+  if (typeof value !== 'string' || !value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+};
+
+const cards = [
+  {
+    label: 'Context Assets',
+    value: metrics ? number(metrics.context_assets) : '—',
+    status: metrics ? 'LIVE' : 'OFFLINE',
+    note: metrics
+      ? `Canonical ${number(metrics.context_assets)} · Knowledge Items ${number(metrics.context_items)} · Indexed ${number(metrics.indexed_assets)}`
+      : 'Supabaseの実測値を取得できていません。',
+  },
+  {
+    label: 'Decision Log',
+    value: activityInstrumented ? number(metrics?.decision_logs) : '—',
+    status: activityInstrumented ? 'LIVE' : 'UNTRACKED',
+    note: activityInstrumented
+      ? '判断理由がDecision eventとして記録された件数。'
+      : '活動ログ自体が未稼働。0件ではなく「まだ測っていない」。',
+  },
+  {
+    label: 'Delegated Decisions',
+    value: activityInstrumented ? number(metrics?.delegated_decisions) : '—',
+    status: activityInstrumented ? 'LIVE' : 'UNTRACKED',
+    note: activityInstrumented
+      ? '作業ではなく判断までAIへ移譲した記録。'
+      : 'AIへの判断移譲をevent化していないため、現時点では未計測。',
+  },
+  {
+    label: 'Automated Workflows',
+    value: metrics ? number(metrics.automation_workflows) : '—',
+    status: metrics ? 'LIVE' : 'OFFLINE',
+    note: metrics
+      ? `${number(metrics.automation_runs)} runs · Success ${percent(metrics.automation_success_rate)} · Latest ${dateTime(metrics.latest_automation_run)}`
+      : 'Automation runtimeの実測値を取得できていません。',
+  },
+  {
+    label: 'Human Work Removed',
+    value: activityInstrumented ? number(metrics?.manual_work_removed) : '—',
+    status: activityInstrumented ? 'LIVE' : 'UNTRACKED',
+    note: activityInstrumented
+      ? '人間が今後やらなくてよくなった作業・確認・判断の件数。'
+      : '「やめられた仕事」のevent記録をこれから開始する必要あり。',
+  },
+  {
+    label: 'Asset Reuse',
+    value: metrics ? number(metrics.reuse_events) : '—',
+    status: metrics ? 'LIVE' : 'OFFLINE',
+    note: metrics
+      ? `${number(metrics.reused_assets)} assets reused · 資産の複利化を測る指標`
+      : '再利用カウンタを取得できていません。',
+  },
+];
+---
+
+<section class="ai-os-section">
+  <div class="section-head">
+    <div>
+      <p class="section-kicker">AI OPERATING SYSTEM</p>
+      <h2>第二の脳は、第二の組織になっているか。</h2>
+    </div>
+    <div class="measure-meta">
+      <span class:list={['live-dot', { offline: !metrics }]}></span>
+      <span>{metrics ? `LIVE · ${dateTime(metrics.measured_at)}` : 'DATA OFFLINE'}</span>
+    </div>
+  </div>
+
+  {error && (
+    <div class="metric-error">Metrics fetch: {error}</div>
+  )}
+
+  <div class="metric-grid">
+    {cards.map(card => (
+      <article class="metric-card">
+        <div class="metric-top">
+          <span class="metric-label">{card.label}</span>
+          <span class:list={['metric-status', card.status.toLowerCase()]}>{card.status}</span>
+        </div>
+        <strong class="metric-value">{card.value}</strong>
+        <p>{card.note}</p>
+      </article>
+    ))}
+  </div>
+
+  <div class="evidence-strip">
+    <div class="evidence-item">
+      <span class="evidence-label">CONTEXT</span>
+      <strong>{metrics ? 'MEASURED' : 'OFFLINE'}</strong>
+      <small>{metrics ? `${number(metrics.context_assets)} canonical docs · latest ${dateTime(metrics.latest_context_update)}` : '—'}</small>
+    </div>
+    <span class="arrow">→</span>
+    <div class="evidence-item">
+      <span class="evidence-label">DECISION</span>
+      <strong>{activityInstrumented ? 'MEASURED' : 'INSTRUMENT NEXT'}</strong>
+      <small>{activityInstrumented ? `${number(metrics?.decision_logs)} logged` : '判断理由をevent化する'}</small>
+    </div>
+    <span class="arrow">→</span>
+    <div class="evidence-item">
+      <span class="evidence-label">DELEGATION</span>
+      <strong>{activityInstrumented ? 'MEASURED' : 'INSTRUMENT NEXT'}</strong>
+      <small>{activityInstrumented ? `${number(metrics?.delegated_decisions)} delegated` : 'AIへ渡した判断をevent化する'}</small>
+    </div>
+    <span class="arrow">→</span>
+    <div class="evidence-item">
+      <span class="evidence-label">SYSTEM</span>
+      <strong>{metrics && Number(metrics.automation_workflows) > 0 ? 'RUNNING' : 'NO EVIDENCE'}</strong>
+      <small>{metrics ? `${number(metrics.automation_workflows)} workflows · ${number(metrics.automation_runs)} runs` : '—'}</small>
+    </div>
+  </div>
+
+  <p class="metric-rule">
+    KPIは「AI機能の数」ではなく、<strong>MASAが説明・判断・手作業を何件手放せたか</strong>。未計測は0扱いせず、次に計測すべき穴として表示する。
+  </p>
+</section>
+
+<style>
+  .ai-os-section { margin-top: 54px; }
+  .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+  .section-kicker { color: var(--gold-muted); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
+  h2 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--text-primary); }
+  .measure-meta { display: flex; align-items: center; gap: 8px; color: var(--text-dim); font-size: .66rem; letter-spacing: .08em; white-space: nowrap; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold-pure); box-shadow: 0 0 12px rgba(201,169,110,.5); }
+  .live-dot.offline { background: var(--text-dim); box-shadow: none; }
+  .metric-error { margin-bottom: 12px; padding: 10px 12px; border: 1px dashed var(--border-default); color: var(--text-dim); font-size: .7rem; overflow-wrap: anywhere; }
+  .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .metric-card { min-height: 176px; padding: 18px; background: var(--bg-surface); border: 1px solid var(--border-default); }
+  .metric-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .metric-label { color: var(--gold-muted); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
+  .metric-status { font-size: .55rem; letter-spacing: .1em; padding: 3px 6px; border: 1px solid var(--border-default); color: var(--text-dim); }
+  .metric-status.live { color: var(--gold-pure); border-color: var(--border-accent); }
+  .metric-status.untracked { color: var(--text-muted); border-style: dashed; }
+  .metric-value { display: block; margin-top: 18px; font-family: 'Cormorant Garamond', serif; font-weight: 300; color: var(--text-primary); font-size: 3rem; line-height: .9; }
+  .metric-card p { margin-top: 16px; color: var(--text-muted); font-size: .72rem; line-height: 1.7; }
+  .evidence-strip { margin-top: 12px; display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: stretch; border: 1px solid var(--border-default); background: var(--bg-surface); }
+  .evidence-item { padding: 15px; min-width: 0; }
+  .evidence-label { display: block; color: var(--gold-muted); font-size: .58rem; letter-spacing: .12em; }
+  .evidence-item strong { display: block; margin-top: 5px; color: var(--text-primary); font-size: .78rem; font-weight: 500; }
+  .evidence-item small { display: block; margin-top: 5px; color: var(--text-dim); font-size: .63rem; line-height: 1.5; }
+  .arrow { display: flex; align-items: center; color: var(--gold-dim); font-size: .8rem; }
+  .metric-rule { margin-top: 12px; padding: 14px 16px; color: var(--text-muted); font-size: .74rem; line-height: 1.8; border-left: 2px solid var(--gold-dim); background: var(--gold-glow); }
+  .metric-rule strong { color: var(--text-primary); font-weight: 500; }
+  @media (max-width: 1080px) { .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .evidence-strip { grid-template-columns: 1fr 1fr; } .arrow { display: none; } }
+  @media (max-width: 640px) { .section-head { align-items: flex-start; flex-direction: column; } .metric-grid { grid-template-columns: 1fr; } .evidence-strip { grid-template-columns: 1fr; } .evidence-item + .evidence-item { border-top: 1px solid var(--border-default); } }
+</style>
