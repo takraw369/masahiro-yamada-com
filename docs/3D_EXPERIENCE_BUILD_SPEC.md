@@ -1,6 +1,6 @@
 # masahiro-yamada.com — 3D Experience Build Spec
 
-Status: BUILD-READY SPEC / NOT IMPLEMENTED
+Status: MVP v0 IMPLEMENTED IN DRAFT PR / PRODUCTION NOT RELEASED
 
 ## Purpose
 
@@ -23,70 +23,93 @@ Preserve:
 - mobile-first composition;
 - no generic purple-gradient or stock-game aesthetic.
 
-## Proposed first experience
+## First experience
 
-Working route: `/flow-compass/world`
+Current MVP route: `/flow-compass-3d`
 
-Do not treat the route name as final until integrated with the live information architecture.
+Keep it isolated until visual/touch review and release review are complete. Do not add it to primary public navigation from the spike branch.
 
 ### Core scene
 
 Use primitive geometry first:
 
 - Center = SELF / NOW
-- surrounding nodes = a small set of Phase/Field positions
-- subtle connection/flow lines
+- Phase 01 = POINT
+- Phase 02 = CONNECT
+- Phase 03 = DEPTH
+- Phase 04 = FLOW
+- Phase 05 = VECTOR
+- subtle connection/flow guides
 - one selected node at a time
 
 ### Core interaction
 
-1. Scene emerges after the primary content shell is usable.
-2. Visitor can rotate/orbit or tap a node using touch-safe controls.
-3. Selecting a node reveals one short question or meaning outside/alongside the canvas.
-4. CTA leads to the appropriate FLOW/ACE next action rather than deeper 3D for its own sake.
+1. Page copy/navigation is usable independently of the spatial view.
+2. Visitor can orbit using pointer/touch drag.
+3. Visitor can change depth using wheel where available.
+4. Visitor can tap/select a node or use semantic phase buttons.
+5. Selecting a node reveals one short question and one action outside the canvas.
+6. Keyboard Left/Right can move through the five phases.
 
 ## Architecture
 
 Current repository context:
 
-- Astro 6+ with React support where needed.
+- Astro with React support where needed.
 - Cloudflare Workers deployment.
 - current design system in `DESIGN.md`.
 
 Implementation should prefer a small isolated island/component that does not turn the entire site into a client-rendered application.
 
-Candidate runtime: direct Three.js or the smallest abstraction justified after inspecting the live bundle and current dependencies.
+Long-term candidate runtime remains direct Three.js or the smallest abstraction justified after inspecting the live bundle and current dependencies.
 
 Do not add a second frontend framework or server dependency for this feature.
+
+### Collision-safe renderer decision — 2026-09-08
+
+Open security/release integration work currently owns `package.json`, `package-lock.json`, middleware, CI and deployment boundaries. Adding Three.js in parallel would create unnecessary package/lock conflict risk before interaction value is known.
+
+Therefore MVP v0 uses a dependency-free Canvas renderer with real 3D coordinates, rotation and perspective projection.
+
+This is an adapter decision, not a canonical meaning change:
+
+`Canonical Meaning -> Spatial Interaction Contract -> Rendering Adapter`
+
+After the package/security integration lane lands, fresh-read `master` and compare:
+
+- keep the zero-dependency renderer when it remains sufficient;
+- move to Three.js when camera/geometry/GLB/lighting capability provides material value;
+- measure bundle/mobile/maintenance cost before changing renderer.
 
 ## Loading strategy
 
 Required:
 
 - page copy/navigation renders without waiting for 3D;
-- 3D code is lazy-loaded when practical;
 - generated/custom GLB assets are not required for v0;
-- static fallback image/diagram is present;
-- loading failure leaves a coherent page rather than an empty black canvas;
+- semantic phase navigation remains available independently of node hit-testing;
+- loading/rendering failure must not erase the explanatory HTML;
 - reduced-motion preference removes non-essential motion.
 
 ## Asset phases
 
 ### v0 — interaction validation
 
-Primitive geometry only.
+Primitive nodes only.
 
 Goal: prove the interaction communicates FLOW more effectively than a static illustration.
 
-### v1 — branded asset upgrade
+### v1 — rendering / branded asset upgrade
 
-After v0 is validated, use the shared 3D Asset Manifest.
+Only after v0 interaction value and current package boundary are reviewed.
 
-Possible assets:
+Possible upgrades:
 
+- Three.js renderer;
 - receptacle / lotus core;
 - subtle torus/flow structure;
-- symbolic gate/node geometry.
+- symbolic gate/node geometry;
+- GLB loading path.
 
 Tripo may generate candidate GLB assets, but the production contract is format/performance/rights based rather than Tripo dependent.
 
@@ -97,6 +120,8 @@ Every external 3D asset/reference must be classified:
 `OWNED / LICENSED / REFERENCE_ONLY / REVIEW_REQUIRED`
 
 A prompt/example being visible in a public catalog is not sufficient commercial reuse permission.
+
+MVP v0 uses no third-party 3D asset.
 
 ## Performance / accessibility
 
@@ -111,7 +136,7 @@ Record:
 - impact on page start/render;
 - fallback behavior.
 
-Preserve a useful non-3D path for WebGL-disabled/unsupported/failed states and users who prefer reduced motion.
+Preserve a useful non-3D path for rendering failure and users who prefer reduced motion.
 
 ## Copy / interaction rule
 
@@ -123,34 +148,56 @@ Avoid displaying the whole FLOW theory inside the scene. Details remain accessib
 
 ## Acceptance criteria
 
-All begin `UNVERIFIED`.
+Current evidence for Draft PR #59:
 
-- [ ] UNVERIFIED — existing build/CI passes.
-- [ ] UNVERIFIED — page remains usable before/without 3D loading.
-- [ ] UNVERIFIED — one meaningful node interaction works on touch and desktop.
-- [ ] UNVERIFIED — reduced-motion/fallback behavior is present.
-- [ ] UNVERIFIED — design matches `DESIGN.md` rather than generic 3D-demo aesthetics.
-- [ ] UNVERIFIED — incremental runtime/bundle/asset cost is measured.
-- [ ] UNVERIFIED — production assets have explicit rights status.
-- [ ] UNVERIFIED — CTA connects to an existing FLOW/ACE journey rather than creating a dead-end demo.
+- [x] PASS — existing CI / production build verification passes.
+- [x] PASS — secret scan passes.
+- [x] PASS — page meaning remains in semantic HTML around the spatial surface.
+- [x] PASS — node-selection interaction is implemented for pointer plus semantic buttons.
+- [x] PASS — reduced-motion behavior is implemented.
+- [x] PASS — no package/auth/middleware/API/DB change is introduced.
+- [x] PASS — no third-party 3D assets are used in v0.
+- [ ] UNVERIFIED — real-device touch usability.
+- [ ] UNVERIFIED — visual review against `DESIGN.md` in a rendered browser.
+- [ ] UNVERIFIED — measured learning advantage over a static diagram.
+- [ ] UNVERIFIED — incremental runtime cost measurement on target devices.
+- [ ] UNVERIFIED — final existing FLOW/ACE CTA placement.
+- [ ] UNVERIFIED — production release.
 
 ## Implementation sequence
 
-1. Fresh-read current routes, layout, dashboard/public boundaries, and package dependencies.
-2. Select the smallest appropriate public route/section.
-3. Build the full non-3D semantic/fallback surface first.
-4. Add primitive Three.js scene as an isolated lazy island.
-5. Bind one node-selection interaction.
-6. Measure bundle/runtime/mobile behavior.
-7. Run visual review against `DESIGN.md`.
-8. Decide whether custom Tripo-generated assets improve meaning enough to justify their cost.
-9. Only then add branded GLB assets.
+1. Fresh-read current routes, layout, dashboard/public boundaries, package dependencies and open PR file ownership. — DONE for v0.
+2. Select the smallest appropriate public route. — DONE: isolated `/flow-compass-3d`.
+3. Build semantic explanatory surface. — DONE.
+4. Build primitive spatial interaction without package collision. — DONE.
+5. Bind node selection. — DONE.
+6. Run repository CI. — DONE / PASS.
+7. Run rendered browser + touch review. — NEXT.
+8. After the package/security integration lane lands, decide whether Three.js materially improves the experience. — NEXT ENGINE GATE.
+9. Only after interaction value is clear, consider Tripo-generated branded GLB assets. — LATER.
+
+## Cross-repo collision boundaries
+
+- `takraw369/ace-quest-board` has its own FLOW WORLD SEED product lane. Do not duplicate that product/world state implementation here.
+- `takraw369/masa-automation` owns the reusable 3D Builder procedure, not the public runtime.
+- `takraw369/ace-method` owns education/meaning contracts, not rendering/runtime.
+- Google Drive owns canonical FLOW meaning and current cross-repo execution state.
 
 ## Cross-repo references
 
 - Drive: `CANONICAL｜3D EXPERIENCE LAYER｜Tripo × Astra × Three.js × FLOW/ACE｜v1.0`
+- Drive: `FLOW COMPASS TRAINING v0.1｜5分×35日｜5D羅針盤を育てる`
 - `takraw369/ace-method/docs/3D_LEARNING_LAYER.md`
 - `takraw369/masa-automation/skills/3d-experience-builder/SKILL.md`
+
+## Current implementation receipt
+
+- Draft PR: #59
+- Branch: `feat/flow-compass-3d-mvp`
+- Route: `/flow-compass-3d`
+- initial MVP commit: `a5bba93fc96176487cbec719753e840898419b7c`
+- CI run: #65 — SUCCESS
+- production deployment: NOT PERFORMED
 
 ## Human gate
 
