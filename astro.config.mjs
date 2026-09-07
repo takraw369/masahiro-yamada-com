@@ -30,7 +30,9 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare({
     platformProxy: {
-      enabled: true,
+      // Astro dev must not inherit production RPC URLs or credentials.
+      // Use the isolated Worker preview for runtime integration checks.
+      enabled: false,
     },
   }),
   integrations: [react()],

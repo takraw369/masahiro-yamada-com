@@ -1,9 +1,8 @@
 import type { APIContext } from 'astro';
-import { dashboardAuthToken } from '../../../lib/dashboardAuth';
+import { createDashboardSession, dashboardCookieOptions } from '../../../lib/dashboardAuth';
 import { dashboardBearerToken, getDashboardGoogleAdmin } from '../../../lib/dashboardGoogleAuth';
 import { getSiteStorageEnv } from '../../../lib/siteStorage';
 
-const DASHBOARD_IDLE_TIMEOUT_SECONDS = 60 * 60 * 24;
 
 export const POST = async ({ request, locals, cookies }: APIContext) => {
   const env = getSiteStorageEnv(locals);
@@ -29,14 +28,8 @@ export const POST = async ({ request, locals, cookies }: APIContext) => {
       throw new Error('dashboard_secret_missing');
     }
 
-    const token = await dashboardAuthToken(env.DASHBOARD_PASSWORD);
-    cookies.set('ace-dash-auth', token, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: DASHBOARD_IDLE_TIMEOUT_SECONDS,
-    });
+    const token = await createDashboardSession(env.DASHBOARD_PASSWORD, new URL(request.url).origin);
+    cookies.set('ace-dash-auth', token, dashboardCookieOptions);
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { 'Content-Type': 'application/json' },

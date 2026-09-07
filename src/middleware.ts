@@ -1,8 +1,8 @@
 import { defineMiddleware } from 'astro:middleware';
-import { dashboardAuthToken, safeTokenEqual } from './lib/dashboardAuth';
+import { createDashboardSession, verifyDashboardSession, dashboardCookieOptions } from './lib/dashboardAuth';
+import { isSameOriginRequest, privateHeaders } from './lib/security/request.mjs';
 
 const CANONICAL_HOST = 'masahiroyamada.com';
-const DASHBOARD_IDLE_TIMEOUT_SECONDS = 60 * 60 * 24;
 const DASHBOARD_AUTH_BOOTSTRAP_APIS = new Set([
   '/api/dashboard/google-login',
   '/api/dashboard/reset-password',
@@ -37,34 +37,39 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isDashboardApi =
     pathname.startsWith('/api/dashboard') &&
     !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname);
+  const isHarnessApi = /^\/api\/(x|line)-harness(?:\/|$)/.test(pathname);
+  const isPrivate = pathname.startsWith('/dashboard') || pathname.startsWith('/api/dashboard') || isHarnessApi;
 
-  if (isDashboardPage || isDashboardApi) {
+  if (isPrivate && !isSameOriginRequest(context.request)) {
+    return new Response(JSON.stringify({ ok: false, error: 'same_origin_required' }), {
+      status: 403, headers: privateHeaders({ 'Content-Type': 'application/json' }),
+    });
+  }
+
+  if (isDashboardPage || isDashboardApi || isHarnessApi) {
     const env = context.locals.runtime?.env as Record<string, string> | undefined;
     const password = env?.DASHBOARD_PASSWORD ?? '';
     const cookie = context.cookies.get('ace-dash-auth')?.value;
-    const expected = password ? await dashboardAuthToken(password) : '';
 
-    if (!safeTokenEqual(cookie, expected)) {
-      if (isDashboardApi) {
+    if (!await verifyDashboardSession(cookie, password, url.origin)) {
+      if (isDashboardApi || isHarnessApi) {
         return new Response(JSON.stringify({ ok: false, error: 'unauthorized' }), {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: privateHeaders({ 'Content-Type': 'application/json' }),
         });
       }
-      return context.redirect('/dashboard/login');
+      return new Response(null, { status: 302, headers: privateHeaders({ Location: '/dashboard/login' }) });
     }
 
     // Rolling session: every authenticated Dashboard access extends the cookie
     // for another 24 hours. If the Dashboard is unused for 24 hours, login is
     // required again.
-    context.cookies.set('ace-dash-auth', cookie!, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: DASHBOARD_IDLE_TIMEOUT_SECONDS,
-    });
+    context.cookies.set('ace-dash-auth', await createDashboardSession(password, url.origin), dashboardCookieOptions);
   }
 
-  return next();
+  const response = await next();
+  if (isPrivate) {
+    for (const [name, value] of Object.entries(privateHeaders())) response.headers.set(name, value);
+  }
+  return response;
 });
