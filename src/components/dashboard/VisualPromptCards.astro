@@ -1,4 +1,6 @@
 ---
+import GPTQuickTriggers from './GPTQuickTriggers.astro';
+
 const commands = [
   {
     type: 'PARTIAL EDIT',
@@ -46,6 +48,8 @@ const commands = [
     Drive正本：IMAGE_ASSET_OS。内部の隠れPromptを取り出すのではなく、完成Visualから再利用できる設計図を再構築する。
   </p>
 </section>
+
+<GPTQuickTriggers />
 
 <script>
   document.querySelectorAll<HTMLButtonElement>('.copy-command').forEach((button) => {
