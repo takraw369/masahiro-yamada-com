@@ -16,37 +16,48 @@ let startupError;
 child.stdout.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
 child.stderr.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
 child.on('error', (error) => { startupError = error; });
+
+const previewFetch = (url, init = {}) => fetch(url, {
+  ...init,
+  signal: AbortSignal.timeout(1000),
+});
+
 try {
   let ready = false;
-  for (let attempt = 0; attempt < 150; attempt++) {
+  for (let attempt = 0; attempt < 30; attempt++) {
     if (startupError) throw startupError;
     if (child.exitCode !== null) throw new Error(logs);
-    try { const res = await fetch(base); await res.arrayBuffer(); ready = true; break; } catch {}
+    try {
+      const res = await previewFetch(base);
+      await res.arrayBuffer();
+      ready = true;
+      break;
+    } catch {}
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  assert.ok(ready, logs);
+  assert.ok(ready, logs || 'Worker preview did not answer the readiness probe within the bounded startup window.');
   for (const path of ['/', '/contact', '/faq', '/tips', '/library', '/gate', '/dashboard/login']) {
-    const res = await fetch(base + path);
+    const res = await previewFetch(base + path);
     assert.equal(res.status, 200, path);
     assert.match(res.headers.get('content-type'), /text\/html/, path);
     assert.ok((await res.text()).includes('<html'), path);
   }
-  const dashboard = await fetch(base + '/dashboard', { redirect: 'manual' });
+  const dashboard = await previewFetch(base + '/dashboard', { redirect: 'manual' });
   assert.equal(dashboard.status, 302);
   assert.equal(dashboard.headers.get('location'), '/dashboard/login');
   assert.match(dashboard.headers.get('cache-control'), /no-store/);
   for (const path of ['/api/dashboard/state', '/api/dashboard/voice', '/api/x-harness/x-accounts', '/api/line-harness/line-accounts']) {
-    const res = await fetch(base + path);
+    const res = await previewFetch(base + path);
     assert.equal(res.status, 401, path);
     assert.match(res.headers.get('cache-control'), /no-store/);
   }
   // These exact bootstrap routes must remain reachable, without accepting auth.
   for (const path of ['/api/dashboard/google-login', '/api/dashboard/reset-password']) {
-    const res = await fetch(base + path, { method: 'POST', headers: { Origin: base } });
+    const res = await previewFetch(base + path, { method: 'POST', headers: { Origin: base } });
     assert.equal(res.status, 401);
     assert.equal((await res.json()).error, 'missing_access_token');
   }
-  const csrf = await fetch(base + '/api/x-harness/posts', { method: 'POST', headers: { Origin: 'https://other.example.test' } });
+  const csrf = await previewFetch(base + '/api/x-harness/posts', { method: 'POST', headers: { Origin: 'https://other.example.test' } });
   assert.equal(csrf.status, 403);
   console.log('Worker preview smoke passed: public pages, auth bootstrap and private boundaries.');
 } catch (error) {
