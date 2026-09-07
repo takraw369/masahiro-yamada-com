@@ -16,8 +16,16 @@ process.stdout.write(raw);
 const output = stripAnsi(raw);
 const diagnostics = [...output.matchAll(/^(src\/[^:\n]+):\d+:\d+\s+-\s+error\b/gm)].map((match) => match[1]);
 const summary = output.match(/-\s+(\d+)\s+errors\b/);
-const totalErrors = summary ? Number(summary[1]) : diagnostics.length;
 
+// A non-zero Astro check with no normal diagnostic summary means the checker
+// itself could not complete (for example, invalid config or migration errors).
+// Never relabel that as legacy type debt.
+if (check.status !== 0 && !summary) {
+  console.error('\n[typecheck-release] FAIL: Astro check did not complete normally; release diagnostics are not trustworthy.');
+  process.exit(1);
+}
+
+const totalErrors = summary ? Number(summary[1]) : diagnostics.length;
 const head = process.env.TYPECHECK_HEAD_SHA || 'HEAD';
 let base = process.env.TYPECHECK_BASE_REF || 'origin/master';
 const mergeBase = run('git', ['merge-base', base, head]);
