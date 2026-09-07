@@ -2,8 +2,7 @@
 
 /**
  * Transitional runtime typing for the current Cloudflare/Astro integration.
- * Keep this narrow: it exists to describe runtime bindings already used by the app,
- * not to make arbitrary values type-safe by assertion.
+ * Keep this narrow: it describes runtime bindings already used by the app.
  */
 declare namespace App {
   interface Locals {
@@ -15,8 +14,27 @@ declare namespace App {
 }
 
 /**
- * The repository already uses a D1 binding in legacy dashboard paths without
- * installing Cloudflare Workers ambient types. Keep the legacy surface explicit
- * until those paths are migrated or @cloudflare/workers-types is adopted.
+ * Minimal D1 surface used by legacy dashboard fallback paths.
+ * This preserves generic result typing without importing the full Workers ambient
+ * package during the current Supabase cutover.
  */
-type D1Database = any;
+interface D1Result<T = unknown> {
+  results?: T[];
+  success?: boolean;
+  meta?: unknown;
+  error?: string;
+}
+
+interface D1PreparedStatement {
+  bind(...values: unknown[]): D1PreparedStatement;
+  first<T = Record<string, unknown>>(columnName?: string): Promise<T | null>;
+  all<T = Record<string, unknown>>(): Promise<D1Result<T>>;
+  run<T = unknown>(): Promise<D1Result<T>>;
+  raw<T = unknown[]>(): Promise<T[]>;
+}
+
+interface D1Database {
+  prepare(query: string): D1PreparedStatement;
+  batch<T = unknown>(statements: D1PreparedStatement[]): Promise<Array<D1Result<T>>>;
+  exec(query: string): Promise<unknown>;
+}
