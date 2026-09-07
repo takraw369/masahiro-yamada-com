@@ -24,6 +24,20 @@ jobs:
           node-version: '22'
           cache: npm
 
+      # Temporary migration bridge: package.json intentionally moved across Astro
+      # majors. Generate the candidate lockfile in CI, test it, then commit the
+      # verified lockfile and remove this step before merge.
+      - name: Generate candidate dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Capture candidate lockfile
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: astro7-candidate-lock
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
