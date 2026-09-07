@@ -1,0 +1,84 @@
+---
+const triggers = [
+  { category: 'ASSET', command: 'これ資産化して' },
+  { category: 'VERIFY', command: 'これ検証して' },
+  { category: 'FOCUS', command: '今やること3つ' },
+  { category: 'IMPROVE', command: '改善TOP3出して' },
+  { category: 'VISUAL', command: 'これ、画像にして / Visual OSで' },
+  { category: 'MOTION', command: 'このテーマ、1枚Boardに落とせるやん？', featured: true },
+];
+
+const registryUrl = 'https://docs.google.com/spreadsheets/d/1GgtaSO9pU25p8TvsCQ_HzBzL6GzbSucwqEyDLZRlsLU/edit#gid=4202';
+---
+
+<section class="quick-triggers" aria-labelledby="gpt-trigger-title">
+  <div class="trigger-head">
+    <div>
+      <p class="trigger-kicker">GPT QUICK TRIGGERS</p>
+      <h2 id="gpt-trigger-title">やりたいことを、一言で。</h2>
+    </div>
+    <a href={registryUrl} target="_blank" rel="noopener noreferrer">全トリガー ↗</a>
+  </div>
+
+  <div class="trigger-list">
+    {triggers.map(item => (
+      <button
+        class:list={['trigger-chip', item.featured && 'is-featured']}
+        type="button"
+        data-command={item.command}
+        title={`${item.command} をコピー`}
+      >
+        <span>{item.category}</span>
+        <strong>{item.command}</strong>
+      </button>
+    ))}
+  </div>
+
+  <p class="trigger-note">
+    正本：MASTER_DASHBOARD / 07_AI_COMMANDS。ここは小さな入口だけを表示し、GPT×Wantの一覧と同じCommand Registryへつなぐ。
+  </p>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.trigger-chip').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const command = button.dataset.command;
+      if (!command) return;
+
+      try {
+        await navigator.clipboard.writeText(command);
+        const strong = button.querySelector('strong');
+        if (!strong) return;
+        const original = strong.textContent;
+        strong.textContent = 'コピーしました ✓';
+        window.setTimeout(() => {
+          strong.textContent = original;
+        }, 1400);
+      } catch {
+        // Clipboard permission can be unavailable in some embedded contexts.
+      }
+    });
+  });
+</script>
+
+<style>
+  .quick-triggers { margin-top: 30px; padding: 16px 18px; border: 1px solid var(--border-default); background: var(--bg-surface); }
+  .trigger-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 12px; }
+  .trigger-kicker { color: var(--gold-muted); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; }
+  h2 { margin-top: 3px; color: var(--text-primary); font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 300; }
+  .trigger-head a { color: var(--gold-pure); font-size: .66rem; text-decoration: none; white-space: nowrap; }
+  .trigger-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .trigger-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 7px 10px; border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-muted); font: inherit; cursor: pointer; transition: border-color .18s, background .18s, transform .18s; }
+  .trigger-chip:hover { transform: translateY(-1px); border-color: var(--border-hover); background: var(--gold-glow); }
+  .trigger-chip span { color: var(--gold-muted); font-size: .52rem; letter-spacing: .08em; }
+  .trigger-chip strong { color: var(--text-primary); font-size: .7rem; font-weight: 400; }
+  .trigger-chip.is-featured { border-color: var(--border-accent); background: var(--gold-glow); }
+  .trigger-chip.is-featured strong { color: var(--gold-pure); }
+  .trigger-note { margin-top: 10px; color: var(--text-dim); font-size: .6rem; line-height: 1.6; }
+
+  @media (max-width: 640px) {
+    .trigger-head { align-items: flex-start; flex-direction: column; }
+    .trigger-list { display: grid; grid-template-columns: 1fr; }
+    .trigger-chip { justify-content: flex-start; text-align: left; }
+  }
+</style>
