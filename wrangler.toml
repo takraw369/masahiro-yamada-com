@@ -31,8 +31,9 @@ custom_domain = true
 # Add www / legacy host custom domains after their registrar nameserver cutover.
 # Host-based 301 logic is already implemented in src/middleware.ts.
 
-# Temporary cutover binding: Supabase is now primary storage, while D1 remains
-# available only for one-time legacy import and emergency fallback.
+# Temporary cutover binding: Supabase is the only write authority. D1 remains
+# available only for one-time legacy import and read-only emergency fallback.
+# New mutations must not fall back to D1 after the cutover marker is complete.
 [[d1_databases]]
 binding = "DB"
 database_name = "sunlovesflow-db"
