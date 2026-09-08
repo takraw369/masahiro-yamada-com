@@ -1,3 +1,4 @@
+import { env as workerEnv } from 'cloudflare:workers';
 import type { APIContext } from 'astro';
 
 interface Env {
@@ -124,10 +125,10 @@ function messagesForText(rawText: string) {
   ];
 }
 
-export const POST = async ({ request, locals }: APIContext) => {
-  const env = locals.runtime?.env as Env | undefined;
-  const channelSecret = env?.LINE_CHANNEL_SECRET ?? '';
-  const accessToken = env?.LINE_CHANNEL_ACCESS_TOKEN ?? '';
+export const POST = async ({ request }: APIContext) => {
+  const env = workerEnv as unknown as Env;
+  const channelSecret = env.LINE_CHANNEL_SECRET ?? '';
+  const accessToken = env.LINE_CHANNEL_ACCESS_TOKEN ?? '';
   const rawBody = await request.text();
 
   if (!channelSecret || !accessToken) {
