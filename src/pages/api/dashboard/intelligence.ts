@@ -113,12 +113,12 @@ export const POST = async ({ request, locals }: APIContext) => {
     if (action === 'content_seed') {
       const id = clean(body.id);
       if (!id) return json({ ok: false, error: 'intelligence_id_required' }, 400);
-      const result = await supabaseRpc<IntelligenceRow | IntelligenceRow[]>(env, 'masa_intelligence_make_content_seed_v1', {
+      const result = await supabaseRpc<IntelligenceRow | IntelligenceRow[]>(env, 'masa_intelligence_make_output_drafts_v1', {
         p_owner_key: ownerKey,
         p_id: id,
       });
       const row = Array.isArray(result) ? result[0] : result;
-      return row ? json({ ok: true, item: toItem(row) }) : json({ ok: false, error: 'content_seed_missing' }, 500);
+      return row ? json({ ok: true, item: toItem(row) }) : json({ ok: false, error: 'output_drafts_missing' }, 500);
     }
 
     const title = clean(body.title);
