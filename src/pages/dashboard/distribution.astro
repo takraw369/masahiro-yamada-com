@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import DistributionBoard from '../../components/dashboard/DistributionBoard';
+---
+
+<DashboardLayout title="Distribution OS">
+  <DistributionBoard client:only="react" />
+</DashboardLayout>
