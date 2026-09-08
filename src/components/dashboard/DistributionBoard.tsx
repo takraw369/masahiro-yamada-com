@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Platform = 'X' | 'Instagram' | 'note';
 type QueueStatus = 'HOLD' | 'DRAFT' | 'READY' | 'PUBLISHED';
@@ -28,6 +28,22 @@ type ContentItem = {
   cta: string;
   primaryDoorId: string | null;
   reuseDoorIds: string[];
+};
+
+type LiveContentRow = {
+  asset_id: string;
+  current_title: string | null;
+  productization_status: string | null;
+  next_action: string | null;
+  source_url: string | null;
+  last_reviewed: string | null;
+  source_updated_at: string | null;
+};
+
+type DistributionApiResponse = {
+  ok: boolean;
+  storage: string;
+  content: LiveContentRow[];
 };
 
 const STORAGE_KEY = 'masa-primary-distribution-board-v1';
@@ -201,6 +217,36 @@ function platformDraft(item: ContentItem, target: 'x' | 'threads' | 'instagram' 
   return `${item.hook}\n\n${item.body}\n\n${item.cta}`.trim();
 }
 
+function cleanTitle(value: string | null, fallback: string) {
+  if (!value?.trim()) return fallback;
+  return value.replace(/^SEED｜/, '').trim();
+}
+
+function statusFromCanonical(item: ContentItem, value: string | null): QueueStatus {
+  const text = (value || '').toUpperCase();
+  if (text.includes('DISTRIBUTION_HOLD') || text.includes('HOLD')) return 'HOLD';
+  if (item.id === 'C034' && !item.primaryDoorId) return 'HOLD';
+  if (text.includes('READY')) return item.primaryDoorId ? 'READY' : item.status;
+  if (text.includes('PUBLISHED')) return 'PUBLISHED';
+  return item.status;
+}
+
+function mergeCanonical(current: ContentItem[], rows: LiveContentRow[]) {
+  const byId = new Map(rows.map((row) => [row.asset_id, row]));
+  return current.map((item) => {
+    const row = byId.get(item.id);
+    if (!row) return item;
+    const canonicalState = [row.productization_status, row.next_action].filter(Boolean).join(' — ');
+    return {
+      ...item,
+      title: cleanTitle(row.current_title, item.title),
+      status: statusFromCanonical(item, row.productization_status),
+      sourceUrl: row.source_url || item.sourceUrl,
+      sourceState: canonicalState || item.sourceState,
+    };
+  });
+}
+
 const palette = {
   bg: '#0D0B08',
   panel: '#17130f',
@@ -219,6 +265,31 @@ export default function DistributionBoard() {
   const [filter, setFilter] = useState(() => typeof window === 'undefined' ? 'ALL' : localStorage.getItem(FILTER_KEY) || 'ALL');
   const [selectedId, setSelectedId] = useState('C034');
   const [message, setMessage] = useState('');
+  const [syncState, setSyncState] = useState<'loading' | 'live' | 'fallback'>('loading');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch('/api/dashboard/distribution', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`distribution_${response.status}`);
+        return response.json() as Promise<DistributionApiResponse>;
+      })
+      .then((payload) => {
+        if (cancelled || !payload.ok || !Array.isArray(payload.content)) return;
+        setQueue((current) => {
+          const next = mergeCanonical(current, payload.content);
+          saveQueue(next);
+          return next;
+        });
+        setSyncState('live');
+      })
+      .catch(() => {
+        if (!cancelled) setSyncState('fallback');
+      });
+
+    return () => { cancelled = true; };
+  }, []);
 
   const selected = queue.find((item) => item.id === selectedId) || queue[0];
   const selectedMedia = mediaById(selected?.primaryDoorId || null);
@@ -298,6 +369,9 @@ export default function DistributionBoard() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={eyebrow}>DISTRIBUTION OS · PRIMARY</span>
           <span style={{ ...eyebrow, color: palette.green, borderColor: '#345244' }}>Human Gate ON</span>
+          <span style={{ ...eyebrow, color: syncState === 'live' ? palette.green : syncState === 'fallback' ? palette.red : palette.muted }}>
+            {syncState === 'live' ? 'Drive Sync LIVE' : syncState === 'fallback' ? 'Static Fallback' : 'Drive Sync…'}
+          </span>
         </div>
         <h1 style={{ margin: '10px 0 6px', fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2rem,5vw,3.6rem)', fontWeight: 300, color: palette.gold }}>What → Where → CTA</h1>
         <p style={{ color: palette.muted, maxWidth: 900, lineHeight: 1.8 }}>
