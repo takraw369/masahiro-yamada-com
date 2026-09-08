@@ -32,16 +32,13 @@ async function buildIsolatedPreview(root, env) {
   }
 }
 
-export const ISOLATED_SESSION_SECRET = 'isolated-worker-smoke-test-secret';
-
-export async function startPreview(port = 8787, { authenticated = false } = {}) {
+export async function startPreview(port = 8787, vars = {}) {
   const root = process.cwd();
   await mkdir('work', { recursive: true });
   const directory = await mkdtemp(resolve('work/preview-'));
 
   try {
     const config = JSON.parse(await readFile('wrangler.preview.jsonc', 'utf8'));
-    if (authenticated) config.vars = { DASHBOARD_PASSWORD: ISOLATED_SESSION_SECRET };
     // The temporary config is intentionally outside the project root so local
     // production .dev.vars files cannot be discovered. Keep assets rooted at the
     // actual project build directory while leaving Astro's unified entrypoint bare
@@ -49,6 +46,9 @@ export async function startPreview(port = 8787, { authenticated = false } = {}) 
     if (typeof config.assets?.directory === 'string') {
       config.assets.directory = resolve(root, config.assets.directory);
     }
+    // Only caller-supplied preview values are injected. Process env remains
+    // allowlisted above, so CI/local production credentials are never inherited.
+    config.vars = { ...(config.vars || {}), ...vars };
     delete config.$schema;
 
     const configPath = join(directory, 'wrangler.json');
