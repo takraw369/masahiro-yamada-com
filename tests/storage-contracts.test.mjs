@@ -69,7 +69,7 @@ test('storage outages never acknowledge secondary writes or leak upstream detail
     assert.equal(response.status, 503);
     const result = await response.json();
     assert.equal(result.ok, false);
-    assert.equal(result.error, 'storage_unavailable');
+    assert.equal(result.error, 'primary_storage_unavailable');
     assert.equal(result.storage, 'unavailable');
     assert.doesNotMatch(JSON.stringify(result), /private schema/);
   }

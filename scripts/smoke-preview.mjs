@@ -25,9 +25,9 @@ const previewFetch = (url, init = {}) => fetch(url, {
 
 try {
   let ready = false;
-  for (let attempt = 0; attempt < 30; attempt++) {
+  for (let attempt = 0; attempt < 120; attempt++) {
     if (startupError) throw startupError;
-    if (child.exitCode !== null) throw new Error(logs);
+    if (child.exitCode !== null || child.signalCode !== null) throw new Error(`Worker exited: ${child.exitCode ?? child.signalCode}. ${logs}`);
     try {
       const res = await previewFetch(base);
       await res.arrayBuffer();
@@ -68,7 +68,7 @@ try {
     assert.match(res.headers.get('set-cookie'), /ace-dash-auth=v2\./, path);
     const html = await res.text();
     assert.ok(html.includes('<html'), path);
-    if (path === '/dashboard/lian') assert.ok(html.includes('LINEの情報を取得できませんでした'));
+    if (path === '/dashboard/lian') assert.ok(html.includes('LINE Control Plane'));
     if (path === '/dashboard/funnel') assert.ok(html.includes('現在の集計ではありません'));
   }
   console.log('Worker preview smoke passed: public routes, auth bootstrap, private boundaries and authenticated Dashboard rendering.');

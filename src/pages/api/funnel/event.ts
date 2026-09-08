@@ -19,7 +19,7 @@ export const POST = async ({ request, locals }: APIContext) => {
 
   let body: Record<string, unknown>;
   try {
-    body = await request.json<Record<string, unknown>>();
+    body = await request.json();
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid_body');
   } catch {
     return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {

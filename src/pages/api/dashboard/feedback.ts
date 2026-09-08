@@ -31,7 +31,7 @@ export const GET = async ({ locals }: APIContext) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch {
-    return new Response(JSON.stringify({ ok: false, items: [], storage: 'unavailable', error: 'storage_unavailable' }), {
+    return new Response(JSON.stringify({ ok: false, items: [], storage: 'unavailable', error: 'primary_storage_unavailable' }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -73,7 +73,7 @@ export const POST = async ({ request, locals }: APIContext) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch {
-    return new Response(JSON.stringify({ ok: false, stored: false, storage: 'unavailable', error: 'storage_unavailable' }), {
+    return new Response(JSON.stringify({ ok: false, stored: false, storage: 'unavailable', error: 'primary_storage_unavailable' }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
     });
