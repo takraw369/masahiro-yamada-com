@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import InvestmentDashboard from '../../components/dashboard/InvestmentDashboard';
+---
+
+<DashboardLayout title="Investment">
+  <InvestmentDashboard client:only="react" />
+</DashboardLayout>
