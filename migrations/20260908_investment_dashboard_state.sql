@@ -16,11 +16,12 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path = public
+set search_path = public, private
 as $$
 declare v_state jsonb;
 begin
   if p_owner_key is null or p_owner_key !~ '^[0-9a-f]{64}$' then raise exception 'invalid_owner_key'; end if;
+  if not exists (select 1 from private.masa_dashboard_owner_keys k where k.owner_key = p_owner_key) then raise exception 'invalid_owner_key'; end if;
   select s.state into v_state from public.masa_investment_state s where s.owner_key = p_owner_key;
   return coalesce(v_state, '{}'::jsonb);
 end;
@@ -30,10 +31,11 @@ create or replace function public.masa_investment_state_set_v1(p_owner_key text,
 returns boolean
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, private
 as $$
 begin
   if p_owner_key is null or p_owner_key !~ '^[0-9a-f]{64}$' then raise exception 'invalid_owner_key'; end if;
+  if not exists (select 1 from private.masa_dashboard_owner_keys k where k.owner_key = p_owner_key) then raise exception 'invalid_owner_key'; end if;
   if p_state is null or jsonb_typeof(p_state) <> 'object' then raise exception 'invalid_state'; end if;
   if octet_length(p_state::text) > 200000 then raise exception 'state_too_large'; end if;
   insert into public.masa_investment_state(owner_key, state, updated_at)
