@@ -1,11 +1,20 @@
 import { env as workerEnv } from 'cloudflare:workers';
 import { dashboardOwnerKey } from './dashboardAuth';
 
+interface SiteStorageD1Statement {
+  bind(...values: unknown[]): SiteStorageD1Statement;
+  all<T>(): Promise<{ results?: T[] }>;
+}
+
+interface SiteStorageD1Database {
+  prepare(query: string): SiteStorageD1Statement;
+}
+
 export interface SiteStorageEnv {
   SUPABASE_URL?: string;
   SUPABASE_PUBLISHABLE_KEY?: string;
   DASHBOARD_PASSWORD?: string;
-  DB?: D1Database;
+  DB?: SiteStorageD1Database;
 }
 
 const jsonHeaders = (key: string) => ({
