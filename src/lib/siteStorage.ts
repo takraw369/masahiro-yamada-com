@@ -4,6 +4,7 @@ import { dashboardOwnerKey } from './dashboardAuth';
 interface SiteStorageD1Statement {
   bind(...values: unknown[]): SiteStorageD1Statement;
   all<T>(): Promise<{ results?: T[] }>;
+  run(): Promise<unknown>;
 }
 
 interface SiteStorageD1Database {
