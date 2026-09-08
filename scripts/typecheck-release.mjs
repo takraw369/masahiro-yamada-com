@@ -27,7 +27,7 @@ if (check.status !== 0 && !summary) {
 
 const totalErrors = summary ? Number(summary[1]) : diagnostics.length;
 const head = process.env.TYPECHECK_HEAD_SHA || 'HEAD';
-let base = process.env.TYPECHECK_BASE_REF || 'origin/master';
+let base = process.env.TYPECHECK_BASE_SHA || process.env.TYPECHECK_BASE_REF || 'origin/master';
 const mergeBase = run('git', ['merge-base', base, head]);
 if (mergeBase.status === 0 && (mergeBase.stdout ?? '').trim()) {
   base = mergeBase.stdout.trim();
