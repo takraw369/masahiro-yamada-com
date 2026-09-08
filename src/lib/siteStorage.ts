@@ -156,7 +156,8 @@ export async function migrateLegacyD1(env: SiteStorageEnv): Promise<MigrationSta
     }>();
 
     for (const row of rows.results || []) {
-      await supabaseRpc<number>(env, 'trinity_funnel_event_import', {
+      await supabaseRpc<number>(env, 'trinity_funnel_event_import_v2', {
+        p_owner_key: ownerKey,
         p_legacy_id: row.id,
         p_session_id: row.session_id,
         p_event_name: row.event_name,
