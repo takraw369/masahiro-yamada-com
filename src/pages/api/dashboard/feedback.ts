@@ -1,4 +1,5 @@
 import type { APIContext } from 'astro';
+import type { SiteStorageEnv } from '../../../lib/siteStorage';
 import {
   getDashboardOwnerKey,
   getSiteStorageEnv,
@@ -6,7 +7,7 @@ import {
   supabaseRpc,
 } from '../../../lib/siteStorage';
 
-async function ensureD1Table(db: D1Database) {
+async function ensureD1Table(db: NonNullable<SiteStorageEnv['DB']>) {
   await db.prepare(`
     CREATE TABLE IF NOT EXISTS dashboard_feedback (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,9 +87,9 @@ export const GET = async ({ locals }: APIContext) => {
 
 export const POST = async ({ request, locals }: APIContext) => {
   const env = getSiteStorageEnv(locals);
-  const body = await request.json<{ page?: string; message?: string; context?: string }>();
-  const message = body.message?.trim();
-  const page = body.page?.trim() || '/dashboard';
+  const body = (await request.json()) as { page?: unknown; message?: unknown; context?: unknown };
+  const message = typeof body.message === 'string' ? body.message.trim() : '';
+  const page = typeof body.page === 'string' && body.page.trim() ? body.page.trim() : '/dashboard';
   const context = typeof body.context === 'string' ? body.context : null;
 
   if (!message) {
