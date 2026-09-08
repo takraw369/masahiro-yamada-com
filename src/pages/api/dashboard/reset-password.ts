@@ -19,9 +19,9 @@ export const POST = async ({ request, locals, cookies }: APIContext) => {
     });
   }
 
-  let body: { password?: string } = {};
+  let body: unknown;
   try {
-    body = (await request.json()) as { password?: string };
+    body = await request.json();
   } catch {
     return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
       status: 400,
@@ -29,7 +29,15 @@ export const POST = async ({ request, locals, cookies }: APIContext) => {
     });
   }
 
-  const password = String(body.password || '');
+  if (!body || typeof body !== 'object' || Array.isArray(body) ||
+      !('password' in body) || typeof body.password !== 'string') {
+    return new Response(JSON.stringify({ ok: false, error: 'invalid_password' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const password = body.password;
   if (password.length < 12 || password.length > 128) {
     return new Response(JSON.stringify({ ok: false, error: 'password_length' }), {
       status: 400,
@@ -46,9 +54,10 @@ export const POST = async ({ request, locals, cookies }: APIContext) => {
       });
     }
 
+    // Check session prerequisites before changing the stored login password.
+    if (!env.DASHBOARD_PASSWORD) throw new Error('dashboard_secret_missing');
     const updated = await resetDashboardPasswordWithGoogle(env, accessToken, password);
     if (!updated) throw new Error('password_not_updated');
-    if (!env.DASHBOARD_PASSWORD) throw new Error('dashboard_secret_missing');
 
     const token = await createDashboardSession(env.DASHBOARD_PASSWORD, new URL(request.url).origin);
     cookies.set('ace-dash-auth', token, dashboardCookieOptions);
