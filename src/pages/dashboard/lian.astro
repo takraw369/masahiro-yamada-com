@@ -1,142 +1,354 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
 
-interface Env {
-  LINE_HARNESS_URL: string;
-  LINE_HARNESS_API_KEY: string;
-}
+type Summary = {
+  line_contacts: number;
+  active_enrollments: number;
+  active_sequences: number;
+  draft_sequences: number;
+  messages_24h: number;
+  inbound_7d: number;
+  outbound_7d: number;
+  total_xp: number;
+};
 
-const env = Astro.locals.runtime?.env as Env | undefined;
-const baseUrl = env?.LINE_HARNESS_URL ?? 'https://line-crm-worker.takraw501.workers.dev';
-const apiKey = env?.LINE_HARNESS_API_KEY ?? '';
+type Sequence = {
+  sequence_key: string;
+  name: string;
+  status: string;
+  description?: string | null;
+  step_count: number;
+  active_enrollments: number;
+  next_send_at?: string | null;
+  updated_at?: string | null;
+};
 
-let accounts: any[] = [];
-let friends: any[] = [];
-let friendTotal = 0;
+type RecentMessage = {
+  sent_at: string;
+  direction: 'inbound' | 'outbound' | string;
+  body: string;
+  delivery_reason?: string | null;
+  delivery_mode?: string | null;
+  contact_label: string;
+};
+
+type Progress = {
+  contact_id: string;
+  contact_label: string;
+  lifecycle_stage?: string | null;
+  xp_total: number;
+  growth_rank?: string | null;
+  growth_level?: number | null;
+  streak_current?: number | null;
+  streak_best?: number | null;
+  actions_completed?: number | null;
+  quests_completed?: number | null;
+  education_completed?: number | null;
+  updated_at?: string | null;
+};
+
+type ActiveHour = { hour_jst: number; message_count: number };
+type SourceRow = {
+  source_channel: string;
+  source_campaign: string;
+  lifecycle_stage: string;
+  contact_count: number;
+};
+type AutomationRun = {
+  automation_key: string;
+  trigger_source?: string | null;
+  status: string;
+  started_at: string;
+  duration_ms?: number | null;
+  target_count?: number | null;
+  sent_count?: number | null;
+  skipped_count?: number | null;
+  error_count?: number | null;
+  error_message?: string | null;
+};
+
+type LineSnapshot = {
+  generated_at: string;
+  summary: Summary;
+  sequences: Sequence[];
+  recent_messages: RecentMessage[];
+  progress: Progress[];
+  active_hours: ActiveHour[];
+  sources: SourceRow[];
+  automation_runs: AutomationRun[];
+};
+
+const emptySummary: Summary = {
+  line_contacts: 0,
+  active_enrollments: 0,
+  active_sequences: 0,
+  draft_sequences: 0,
+  messages_24h: 0,
+  inbound_7d: 0,
+  outbound_7d: 0,
+  total_xp: 0,
+};
+
+const env = getSiteStorageEnv(Astro.locals);
+let snapshot: LineSnapshot = {
+  generated_at: new Date().toISOString(),
+  summary: emptySummary,
+  sequences: [],
+  recent_messages: [],
+  progress: [],
+  active_hours: [],
+  sources: [],
+  automation_runs: [],
+};
 let error = '';
 
 try {
-  const [accRes, friendRes] = await Promise.all([
-    fetch(`${baseUrl}/api/line-accounts`, { headers: { Authorization: `Bearer ${apiKey}` } }),
-    fetch(`${baseUrl}/api/friends?limit=10`, { headers: { Authorization: `Bearer ${apiKey}` } }),
-  ]);
-  const accJson = await accRes.json() as any;
-  const friendJson = await friendRes.json() as any;
-  accounts = accJson.data ?? [];
-  friends = friendJson.data ?? [];
-  friendTotal = friendJson.total ?? friends.length;
-} catch (e) {
-  error = String(e);
+  const ownerKey = await getDashboardOwnerKey(env);
+  snapshot = await supabaseRpc<LineSnapshot>(env, 'masa_line_control_snapshot', {
+    p_owner_key: ownerKey,
+  });
+} catch (cause) {
+  error = cause instanceof Error ? cause.message : String(cause);
+}
+
+const { summary } = snapshot;
+const maxHourCount = Math.max(1, ...snapshot.active_hours.map((row) => Number(row.message_count || 0)));
+
+function jst(value?: string | null) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function statusLabel(status?: string | null) {
+  if (status === 'active') return 'ACTIVE';
+  if (status === 'success') return 'OK';
+  if (status === 'draft') return 'DRAFT';
+  if (status === 'archived') return 'ARCHIVE';
+  return (status || 'UNKNOWN').toUpperCase();
 }
 ---
 <DashboardLayout title="リアン">
   <style>
-    .stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
-    .stat-card {
-      flex: 1;
-      background: #1A1612;
-      border: 1px solid #2E2822;
-      padding: 16px;
-      text-align: center;
-    }
-    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: #C9A96E; }
-    .stat-label { font-size: 0.75rem; color: #7A6F5F; margin-top: 4px; }
-    .section { margin-bottom: 28px; }
-    .section-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1rem;
-      font-weight: 300;
-      color: #8B7355;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
       border-bottom: 1px solid #2E2822;
     }
-    .account-card {
-      background: #1A1612;
-      border: 1px solid #2E2822;
-      padding: 14px 16px;
-      margin-bottom: 8px;
-    }
-    .account-name { font-size: 0.9rem; color: #D4C5A9; }
-    .account-meta { font-size: 0.75rem; color: #7A6F5F; margin-top: 4px; }
-    .friend-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #2E2822;
-      font-size: 0.85rem;
-    }
-    .friend-row:last-child { border-bottom: none; }
-    .friend-name { color: #D4C5A9; font-size: 0.875rem; }
-    .friend-meta { font-size: 0.75rem; color: #7A6F5F; }
-    .error { color: #E85D4A; font-size: 0.85rem; padding: 12px 16px; background: rgba(232,92,82,0.08); border: 1px solid rgba(232,92,82,0.2); margin-bottom: 20px; }
-    .empty { color: #7A6F5F; font-size: 0.875rem; }
-    .section-link {
-      display: block;
-      text-align: center;
-      margin-top: 24px;
-      color: #7A6F5F;
-      font-size: 0.82rem;
-      text-decoration: none;
-      border: 1px solid #2E2822;
-      padding: 12px;
-      transition: color 0.2s, border-color 0.2s;
-      font-family: 'Zen Kaku Gothic New', sans-serif;
-    }
-    .section-link:hover { color: #D4C5A9; border-color: #8B7355; }
-    .friends-list {
-      background: #1A1612;
-      border: 1px solid #2E2822;
-      padding: 0 16px;
+    .eyebrow { color: #8B7355; font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; }
+    .hero h1 { margin: 6px 0 5px; font: 300 1.8rem/1.15 'Cormorant Garamond', serif; color: #E4D8C3; }
+    .hero p { margin: 0; max-width: 680px; color: #8D8273; font-size: 0.82rem; line-height: 1.65; }
+    .live-pill { border: 1px solid #49644F; color: #93B69A; padding: 7px 10px; font-size: 0.68rem; letter-spacing: .1em; white-space: nowrap; }
+    .error { color: #E85D4A; font-size: 0.82rem; padding: 12px 14px; background: rgba(232,92,82,.08); border: 1px solid rgba(232,92,82,.2); margin-bottom: 18px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 28px; }
+    .stat { background: #1A1612; border: 1px solid #2E2822; padding: 15px; }
+    .stat-num { font: 300 1.8rem/1 'Cormorant Garamond', serif; color: #C9A96E; }
+    .stat-label { color: #786D5F; font-size: .7rem; margin-top: 7px; }
+    .section { margin-bottom: 30px; }
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px solid #2E2822; }
+    .section-title { margin: 0; font: 300 1rem/1.2 'Cormorant Garamond', serif; color: #9B8260; letter-spacing: .08em; text-transform: uppercase; }
+    .section-note { color: #665E53; font-size: .68rem; text-align: right; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .card { background: #1A1612; border: 1px solid #2E2822; padding: 14px 15px; }
+    .card-title { color: #D6C7AE; font-size: .88rem; }
+    .card-meta { margin-top: 5px; color: #746A5D; font-size: .7rem; line-height: 1.55; }
+    .badge { display: inline-block; padding: 2px 6px; margin-right: 6px; border: 1px solid #3B342C; color: #94836B; font-size: .62rem; letter-spacing: .06em; }
+    .badge.active, .badge.ok { border-color: #49644F; color: #93B69A; }
+    .badge.draft { border-color: #6D5D3F; color: #C6A66B; }
+    .progress-top { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+    .xp { font: 300 1.45rem/1 'Cormorant Garamond', serif; color:#C9A96E; }
+    .metrics { display:flex; gap:12px; flex-wrap:wrap; margin-top:9px; color:#817668; font-size:.7rem; }
+    .hour-row { display:grid; grid-template-columns: 44px 1fr 34px; gap:10px; align-items:center; padding:5px 0; }
+    .hour { color:#A99B87; font-size:.72rem; font-variant-numeric: tabular-nums; }
+    .bar-track { height:6px; background:#28221C; overflow:hidden; }
+    .bar { height:100%; background:#8B7355; }
+    .count { color:#71675A; font-size:.68rem; text-align:right; }
+    .source-row, .run-row { display:flex; justify-content:space-between; gap:14px; padding:10px 0; border-bottom:1px solid #28221C; }
+    .source-row:last-child, .run-row:last-child { border-bottom:0; }
+    .primary { color:#CFC0A8; font-size:.8rem; }
+    .secondary { color:#71675A; font-size:.68rem; margin-top:3px; }
+    .message-list { border:1px solid #2E2822; background:#17130F; }
+    .message { padding:12px 14px; border-bottom:1px solid #28221C; }
+    .message:last-child { border-bottom:0; }
+    .message-head { display:flex; justify-content:space-between; gap:12px; color:#70665A; font-size:.66rem; margin-bottom:6px; }
+    .message-body { color:#C9BDA9; font-size:.78rem; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .empty { color:#71675A; font-size:.78rem; padding:12px 0; }
+    .architecture { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; align-items:center; }
+    .node { border:1px solid #2E2822; padding:10px; color:#A99B87; font-size:.69rem; text-align:center; min-height:48px; display:flex; align-items:center; justify-content:center; }
+    .footer-note { color:#625A50; font-size:.68rem; line-height:1.7; margin-top:20px; }
+    @media (max-width: 760px) {
+      .hero { grid-template-columns:1fr; align-items:start; }
+      .live-pill { justify-self:start; }
+      .stats { grid-template-columns:repeat(2,1fr); }
+      .grid-2 { grid-template-columns:1fr; }
+      .architecture { grid-template-columns:1fr; }
     }
   </style>
 
-  {error && <p class="error">{error}</p>}
-
-  <div class="stat-row">
-    <div class="stat-card">
-      <div class="stat-num">{friendTotal}</div>
-      <div class="stat-label">友だち総数</div>
+  <div class="hero">
+    <div>
+      <div class="eyebrow">LINE Control Plane</div>
+      <h1>Lian / ACE Journey</h1>
+      <p>今動いているLINE本番を、流入・会話・配信・XP・Quest前後の行動として見る管理面。ログインはMASA Dashboardのパスワード認証をそのまま使用し、APIキーは画面に出さない。</p>
     </div>
-    <div class="stat-card">
-      <div class="stat-num">{accounts.length}</div>
-      <div class="stat-label">LINEアカウント</div>
-    </div>
+    <div class="live-pill">SUPABASE RUNTIME</div>
   </div>
 
-  <div class="section">
-    <div class="section-title">LINEアカウント</div>
-    {accounts.length === 0 && <p class="empty">未登録</p>}
-    {accounts.map((a: any) => (
-      <div class="account-card">
-        <div class="account-name">{a.name ?? a.channelId}</div>
-        <div class="account-meta">Channel ID: {a.channelId}</div>
+  {error && <p class="error">LINEデータを取得できませんでした：{error}</p>}
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num">{summary.line_contacts}</div><div class="stat-label">LINE接続者</div></div>
+    <div class="stat"><div class="stat-num">{summary.total_xp}</div><div class="stat-label">LINE接続者 XP</div></div>
+    <div class="stat"><div class="stat-num">{summary.active_enrollments}</div><div class="stat-label">進行中シナリオ</div></div>
+    <div class="stat"><div class="stat-num">{summary.messages_24h}</div><div class="stat-label">24hメッセージ</div></div>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Runtime</h2>
+      <div class="section-note">現在の実送信源</div>
+    </div>
+    <div class="architecture">
+      <div class="node">LINE公式<br />Messaging API</div>
+      <div class="node">Supabase<br />Webhook / Journey / XP</div>
+      <div class="node">Cloudflare Cron<br />Sequence Dispatch</div>
+      <div class="node">MASA Dashboard<br />Password Only</div>
+    </div>
+    <p class="footer-note">旧 line-harness-admin / line-crm-worker はこの画面の参照先にしない。現行Runtimeの状態をSupabaseから直接読む。</p>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Journey / Progress</h2>
+      <div class="section-note">Quest前後の行動・XP</div>
+    </div>
+    {snapshot.progress.length === 0 && <p class="empty">LINE接続者の成長データはまだありません。</p>}
+    <div class="grid-2">
+      {snapshot.progress.map((p) => (
+        <div class="card">
+          <div class="progress-top">
+            <div>
+              <div class="card-title">{p.contact_label}</div>
+              <div class="card-meta">{p.lifecycle_stage ?? 'unknown'} · {p.growth_rank ?? 'seed'} Lv.{p.growth_level ?? 1}</div>
+            </div>
+            <div class="xp">{p.xp_total} XP</div>
+          </div>
+          <div class="metrics">
+            <span>Action {p.actions_completed ?? 0}</span>
+            <span>Quest {p.quests_completed ?? 0}</span>
+            <span>Education {p.education_completed ?? 0}</span>
+            <span>Streak {p.streak_current ?? 0}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Active Rhythm</h2>
+      <div class="section-note">直近30日・受信時刻 JST</div>
+    </div>
+    {snapshot.active_hours.length === 0 && <p class="empty">行動時刻データはまだありません。</p>}
+    {snapshot.active_hours.map((row) => (
+      <div class="hour-row">
+        <div class="hour">{String(row.hour_jst).padStart(2, '0')}:00</div>
+        <div class="bar-track"><div class="bar" style={`width:${Math.max(3, Math.round((row.message_count / maxHourCount) * 100))}%`}></div></div>
+        <div class="count">{row.message_count}</div>
       </div>
     ))}
-  </div>
+  </section>
 
-  <div class="section">
-    <div class="section-title">最近の友だち（最新10件）</div>
-    {friends.length === 0 && <p class="empty">まだ友だちがいません</p>}
-    {friends.length > 0 && (
-      <div class="friends-list">
-        {friends.map((f: any) => (
-          <div class="friend-row">
-            <div>
-              <div class="friend-name">{f.displayName ?? f.lineUserId}</div>
-              <div class="friend-meta">{f.lineUserId}</div>
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Source</h2>
+      <div class="section-note">どこから来て・今どこか</div>
+    </div>
+    {snapshot.sources.length === 0 && <p class="empty">流入ソースはまだありません。</p>}
+    <div class="card">
+      {snapshot.sources.map((source) => (
+        <div class="source-row">
+          <div>
+            <div class="primary">{source.source_channel} / {source.source_campaign}</div>
+            <div class="secondary">stage: {source.lifecycle_stage}</div>
+          </div>
+          <div class="xp">{source.contact_count}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Sequences</h2>
+      <div class="section-note">ACTIVE {summary.active_sequences} / DRAFT {summary.draft_sequences}</div>
+    </div>
+    {snapshot.sequences.length === 0 && <p class="empty">シナリオはありません。</p>}
+    <div class="grid-2">
+      {snapshot.sequences.map((sequence) => (
+        <div class="card">
+          <div class="card-title">
+            <span class:list={['badge', { active: sequence.status === 'active', draft: sequence.status === 'draft' }]}>{statusLabel(sequence.status)}</span>
+            {sequence.name}
+          </div>
+          <div class="card-meta">{sequence.step_count} steps · active {sequence.active_enrollments} · next {jst(sequence.next_send_at)}</div>
+          {sequence.description && <div class="card-meta">{sequence.description}</div>}
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Recent Messages</h2>
+      <div class="section-note">IN {summary.inbound_7d} / OUT {summary.outbound_7d} · 7日</div>
+    </div>
+    {snapshot.recent_messages.length === 0 && <p class="empty">メッセージ履歴はありません。</p>}
+    {snapshot.recent_messages.length > 0 && (
+      <div class="message-list">
+        {snapshot.recent_messages.slice(0, 15).map((message) => (
+          <div class="message">
+            <div class="message-head">
+              <span>{message.direction === 'inbound' ? '← IN' : '→ OUT'} · {message.contact_label}{message.delivery_reason ? ` · ${message.delivery_reason}` : ''}</span>
+              <span>{jst(message.sent_at)}</span>
             </div>
-            <div class="friend-meta">{f.createdAt ? new Date(f.createdAt).toLocaleDateString('ja-JP') : ''}</div>
+            <div class="message-body">{message.body}</div>
           </div>
         ))}
       </div>
     )}
-  </div>
+  </section>
 
-  <a href="https://line-harness-admin-bwj.pages.dev" target="_blank" rel="noopener" class="section-link">
-    LINE Harness 管理画面を開く →
-  </a>
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Automation</h2>
+      <div class="section-note">Cloudflare / Supabase dispatch</div>
+    </div>
+    <div class="card">
+      {snapshot.automation_runs.length === 0 && <p class="empty">実行ログはありません。</p>}
+      {snapshot.automation_runs.slice(0, 8).map((run) => (
+        <div class="run-row">
+          <div>
+            <div class="primary"><span class:list={['badge', { ok: run.status === 'success' }]}>{statusLabel(run.status)}</span>{run.automation_key}</div>
+            <div class="secondary">{run.trigger_source ?? 'unknown'} · target {run.target_count ?? 0} · sent {run.sent_count ?? 0} · error {run.error_count ?? 0}</div>
+          </div>
+          <div class="secondary">{jst(run.started_at)}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <p class="footer-note">Snapshot: {jst(snapshot.generated_at)} · この初版はREAD ONLY。配信停止・編集・シナリオ有効化などの書き込み操作は、既存本番を壊さない検証後に段階追加する。</p>
 </DashboardLayout>
