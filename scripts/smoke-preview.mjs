@@ -38,9 +38,20 @@ const base = `http://127.0.0.1:${port}`;
 const stubBase = `http://127.0.0.1:${stubPort}`;
 const publishableKey = 'preview-publishable-key';
 const sessionKey = 'preview-only-session-key-32chars';
+const calendarSyncSecret = 'calendar-preview-bearer';
 const validPassword = 'preview-password-123';
 const resetPassword = 'preview-reset-password-456';
 const resetBodies = [];
+const calendarReplaceBodies = [];
+
+const calendarEvent = {
+  event_id: 'preview-event-1',
+  title: 'Preview Calendar Event',
+  start_at: '2026-09-09T01:00:00.000Z',
+  end_at: '2026-09-09T02:00:00.000Z',
+  all_day: false,
+  location: 'Preview Room',
+};
 
 const supabaseStub = createHttpServer(async (request, response) => {
   try {
@@ -85,6 +96,29 @@ const supabaseStub = createHttpServer(async (request, response) => {
       return;
     }
 
+    if (request.method === 'POST' && url.pathname === '/rest/v1/rpc/masa_calendar_snapshot_get_v2') {
+      json(response, 200, [calendarEvent]);
+      return;
+    }
+
+    if (request.method === 'POST' && url.pathname === '/rest/v1/rpc/masa_calendar_sync_status_v2') {
+      json(response, 200, [{
+        synced_at: '2026-09-08T14:00:00.000Z',
+        source_synced_at: '2026-09-08T13:59:59.000Z',
+        window_start: '2026-09-08T00:00:00.000Z',
+        window_end: '2026-10-08T00:00:00.000Z',
+        event_count: 1,
+      }]);
+      return;
+    }
+
+    if (request.method === 'POST' && url.pathname === '/rest/v1/rpc/masa_calendar_snapshot_replace_v2') {
+      const body = JSON.parse((await requestBody(request)) || '{}');
+      calendarReplaceBodies.push(body);
+      json(response, 200, 1);
+      return;
+    }
+
     json(response, 404, { error: 'not_found' });
   } catch (error) {
     json(response, 500, { error: String(error) });
@@ -108,6 +142,7 @@ try {
     SUPABASE_URL: stubBase,
     SUPABASE_PUBLISHABLE_KEY: publishableKey,
     DASHBOARD_PASSWORD: sessionKey,
+    CALENDAR_SYNC_SECRET: calendarSyncSecret,
   });
   child.stdout.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
   child.stderr.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
@@ -143,12 +178,14 @@ try {
   assert.ok(loginHtml.includes('/api/dashboard/google-login'));
   assert.ok(loginHtml.includes('/api/dashboard/reset-password'));
 
-  const dashboard = await previewFetch(base + '/dashboard', { redirect: 'manual' });
-  assert.equal(dashboard.status, 302);
-  assert.equal(dashboard.headers.get('location'), '/dashboard/login');
-  assert.match(dashboard.headers.get('cache-control'), /no-store/);
+  for (const path of ['/dashboard', '/dashboard/schedule', '/dashboard/content-schedule']) {
+    const response = await previewFetch(base + path, { redirect: 'manual' });
+    assert.equal(response.status, 302, path);
+    assert.equal(response.headers.get('location'), '/dashboard/login', path);
+    assert.match(response.headers.get('cache-control'), /no-store/, path);
+  }
 
-  for (const path of ['/api/dashboard/state', '/api/dashboard/voice', '/api/x-harness/x-accounts', '/api/line-harness/line-accounts']) {
+  for (const path of ['/api/dashboard/state', '/api/dashboard/voice', '/api/dashboard/calendar', '/api/x-harness/x-accounts', '/api/line-harness/line-accounts']) {
     const res = await previewFetch(base + path);
     assert.equal(res.status, 401, path);
     assert.match(res.headers.get('cache-control'), /no-store/);
@@ -182,6 +219,22 @@ try {
   });
   assert.equal(googleDashboard.status, 200);
   assert.match(googleDashboard.headers.get('content-type'), /text\/html/);
+
+  const schedulePage = await previewFetch(base + '/dashboard/schedule', {
+    headers: { Cookie: googleCookie },
+    redirect: 'manual',
+  });
+  assert.equal(schedulePage.status, 200);
+  assert.match(schedulePage.headers.get('content-type'), /text\/html/);
+
+  const calendarRead = await previewFetch(base + '/api/dashboard/calendar', {
+    headers: { Cookie: googleCookie },
+  });
+  assert.equal(calendarRead.status, 200);
+  const calendarReadBody = await calendarRead.json();
+  assert.equal(calendarReadBody.ok, true);
+  assert.deepEqual(calendarReadBody.events, [calendarEvent]);
+  assert.equal(calendarReadBody.sync.event_count, 1);
 
   const passwordLogin = await previewFetch(base + '/dashboard/login', {
     method: 'POST',
@@ -220,13 +273,54 @@ try {
   });
   assert.equal(resetDashboard.status, 200);
 
+  // Calendar ingestion is deliberately outside browser Origin/session middleware.
+  // Its own Bearer secret must reject unauthenticated callers and accept Apps Script-style POSTs.
+  const calendarUnauthorized = await previewFetch(base + '/api/dashboard/calendar/sync', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  assert.equal(calendarUnauthorized.status, 401);
+  assert.equal((await calendarUnauthorized.json()).error, 'unauthorized');
+
+  const sourceSyncedAt = new Date().toISOString();
+  const windowStart = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const windowEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const syncPayload = {
+    source_synced_at: sourceSyncedAt,
+    window_start: windowStart,
+    window_end: windowEnd,
+    events: [{
+      event_id: calendarEvent.event_id,
+      calendar_id: 'primary',
+      title: calendarEvent.title,
+      start_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      end_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+      all_day: false,
+      location: calendarEvent.location,
+    }],
+  };
+  const calendarSync = await previewFetch(base + '/api/dashboard/calendar/sync', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${calendarSyncSecret}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(syncPayload),
+  });
+  assert.equal(calendarSync.status, 200);
+  assert.deepEqual(await calendarSync.json(), { ok: true, event_count: 1 });
+  assert.equal(calendarReplaceBodies.length, 1);
+  assert.equal(calendarReplaceBodies[0].p_source_synced_at, sourceSyncedAt);
+  assert.equal(calendarReplaceBodies[0].p_events[0].event_id, calendarEvent.event_id);
+
   const csrf = await previewFetch(base + '/api/x-harness/posts', {
     method: 'POST',
     headers: { Origin: 'https://other.example.test' },
   });
   assert.equal(csrf.status, 403);
 
-  console.log('Worker preview smoke passed: public routes, auth boundaries, Google-admin session, password login and recovery contract.');
+  console.log('Worker preview smoke passed: public routes, auth/recovery, private Calendar read and Bearer Calendar sync contract.');
 } catch (error) {
   console.error(logs);
   throw error;
