@@ -2,113 +2,69 @@
 
 ## Purpose
 
-投資情報を貯めるためではなく、世界の資本Flowを「観測 → 仮説 → 少額実験 → 検証 → 増減判断 → 学習資産化」するためのMASA OS内ダッシュボード。
+投資情報を貯めるためではなく、世界の資本Flowを「観測 → 仮説 → 少額実験 → 検証 → 増減判断 → 学習資産化」するMASA OS内の投資司令盤。
 
 ## Source of Truth
 
 - UI / human decision surface: `masahiro-yamada-com` `/dashboard/investment`
-- automation / collection / analysis jobs: `masa-automation`
-- durable knowledge / evidence: Google Drive investment assets (existing folders should be consolidated rather than duplicated)
-- execution: manual first. Broker/order execution is out of scope until explicit controls and risk rules exist.
+- automation / research: `masa-automation` `workflows/25_investment`
+- operational state: Supabase `masa_investment_state`
+- durable evidence / project handoff: Google Drive `PROJECT_投資ダッシュボード｜Capital Flow Lab`
+- execution: broker orders remain manual
 
-## Core objects
+## Live MVP — 2026-09-08
 
-### Signal
-- symbol / series
-- current value
-- change
-- regime
-- timestamp
-- source
+Implemented:
 
-### Thesis
-- id
-- title
-- hypothesis
-- confidence 0-100
-- supporting evidence
-- counter evidence
-- next trigger
-- invalidation
-- affected assets
-- last updated
+- Dashboard navigation entry `Investment`
+- `/dashboard/investment`
+- live-on-open market endpoint for USD/JPY, TOPIX, 1615 bank ETF, 1475 TOPIX ETF, US 10Y, NASDAQ, BTC
+- source / observed timestamp / daily-change display
+- THESIS-001 confidence / trigger / invalidation management
+- experiment-capital and position log (`seed → core → exit`)
+- intelligence log for human/AI evidence
+- Supabase persistence across devices
+- LocalStorage fallback if cloud persistence is unavailable
+- production Supabase migration applied
+- manual-only broker execution guardrail
 
-### Position / Experiment
-- asset
-- amount
-- entry date
-- entry thesis
-- expected trigger
-- invalidation
-- status
-- P/L
-
-### Intelligence
-- source
-- published_at
-- event_at
-- facts
-- interpretation
-- thesis impact
-- confidence impact
-
-## MVP watchlist
-
-1. USD/JPY
-2. JGB 10Y
-3. BOJ policy / guidance
-4. TOPIX
-5. Japan banks
-6. US 10Y Treasury
-7. NASDAQ
-8. BTC
-9. Japan overseas securities flows
-10. Japan FX reserves / intervention disclosures
+JGB 10Y is intentionally not represented by an unverified proxy ticker. It remains a manual signal until a reliable official/approved series is wired.
 
 ## THESIS-001
 
 **日本マネー逆流｜Japan Capital Repatriation**
 
-Flow:
+BOJ normalization → Japan yields rise → rate differential narrows → yen carry shrinks → yen strengthens → Japanese capital returns home → domestic financials / Japan equities benefit → foreign risk assets may face marginal liquidity pressure.
 
-BOJ normalization → Japan yields rise → rate differential narrows → yen carry shrinks → yen strengthens → Japanese capital returns home → domestic financials / Japan equities benefit → foreign risk assets face marginal liquidity pressure.
+This is a hypothesis, not a prediction. Confidence must move with evidence and counter-evidence.
 
-Do not treat this as a prediction. Update confidence from observed evidence.
+## Existing automation assets
 
-## Automation phases
+Do not create a second investment automation domain. `masa-automation/workflows/25_investment` already exists and includes the conservative `smart_money_weekly` research sensor and Investment Committee / human-gate rules. Dashboard work should integrate with this domain rather than duplicate it.
 
-### Phase 0 — now
-- dashboard route
-- thesis display
-- experiment capital
-- manual position log
-- local persistence
+## Operating loop
 
-### Phase 1 — data
-- market data ingestion
-- timestamp/source labels
-- daily snapshots
-- event calendar
-
-### Phase 2 — AI strategy
-- news/event intake
-- deduplicate
-- fact vs interpretation
-- map evidence to thesis
-- confidence update proposal
-- trigger / invalidation alerts
-
-### Phase 3 — shared operating system
-- Drive evidence links
-- portfolio history
-- weekly learning report
-- content reuse candidates
-- API-accessible strategy state for other AI agents
+1. Dashboard automatically refreshes market signals when opened.
+2. AI / MASA adds consequential intelligence only.
+3. Evidence updates thesis confidence, trigger, or invalidation.
+4. MASA decides whether to enter / add / wait / exit.
+5. Positions and rationale persist in Supabase.
+6. Weekly learning should extract reusable principles into Drive without turning every market headline into permanent knowledge.
 
 ## Guardrails
 
-- AI may recommend, rank, explain and update confidence.
-- AI must preserve evidence and counter-evidence.
-- No automatic broker order execution in early phases.
-- Do not increase position size merely because price moved in the expected direction; require thesis evidence.
-- Keep living expenses and experiment capital separate.
+- no automatic broker orders
+- no leverage by default
+- rumor never directly becomes a position action
+- preserve contrary evidence
+- distinguish observed price movement from causal explanation
+- living expenses and experiment capital remain separate
+- do not increase size solely because price moved in the expected direction
+
+## Next evolution (not required for MVP)
+
+- official JGB yield series
+- BOJ / MOF / Fed release collectors
+- automated thesis-impact proposals from `masa-automation`
+- alert thresholds and event-triggered notifications
+- optional read-only broker portfolio sync
