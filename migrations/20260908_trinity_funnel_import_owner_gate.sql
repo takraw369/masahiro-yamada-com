@@ -93,6 +93,9 @@ begin
 end;
 $$;
 
+-- SECURITY DEFINER functions are executable by PUBLIC by default. Close the
+-- default surface first, then intentionally expose v2 to the runtime roles that
+-- still must present a registered Dashboard owner key.
 revoke all on function public.trinity_funnel_event_import_v2(
   text, bigint, text, text, text, text, text, text, timestamptz
 ) from public;
@@ -100,7 +103,8 @@ grant execute on function public.trinity_funnel_event_import_v2(
   text, bigint, text, text, text, text, text, text, timestamptz
 ) to anon, authenticated, service_role;
 
--- Retire the ungated legacy import surface. Existing production data is unchanged.
+-- Retire the ungated legacy import surface. Explicitly revoke PUBLIC as well as
+-- Supabase API roles so a different baseline/default ACL cannot re-expose v1.
 revoke execute on function public.trinity_funnel_event_import(
   bigint, text, text, text, text, text, text, timestamptz
-) from anon, authenticated;
+) from public, anon, authenticated;
