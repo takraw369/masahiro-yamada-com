@@ -1,0 +1,15 @@
+{
+  "name": "masahiro-yamada-preview",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": false
+  }
+}

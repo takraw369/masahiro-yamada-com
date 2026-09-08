@@ -1,15 +1,15 @@
 ---
-import { dashboardAuthToken, safeTokenEqual } from '../../lib/dashboardAuth';
+import { env as workerEnv } from 'cloudflare:workers';
+import { createDashboardSession, verifyDashboardSession, dashboardCookieOptions } from '../../lib/dashboardAuth';
 import { getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
 
-const DASHBOARD_IDLE_TIMEOUT_SECONDS = 60 * 60 * 24;
-const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
-const signingSecret = env?.DASHBOARD_PASSWORD ?? '';
-const supabaseUrl = env?.SUPABASE_URL ?? '';
+const env = workerEnv as unknown as Record<string, string>;
+const signingSecret = env.DASHBOARD_PASSWORD ?? '';
+const supabaseUrl = env.SUPABASE_URL ?? '';
 const cookie = Astro.cookies.get('ace-dash-auth')?.value;
-const expectedToken = signingSecret ? await dashboardAuthToken(signingSecret) : '';
+const origin = new URL(Astro.request.url).origin;
 
-if (safeTokenEqual(cookie, expectedToken)) {
+if (await verifyDashboardSession(cookie, signingSecret, origin)) {
   return Astro.redirect('/dashboard');
 }
 
@@ -33,14 +33,8 @@ if (Astro.request.method === 'POST') {
   }
 
   if (valid && signingSecret) {
-    const token = await dashboardAuthToken(signingSecret);
-    Astro.cookies.set('ace-dash-auth', token, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: DASHBOARD_IDLE_TIMEOUT_SECONDS,
-    });
+    const token = await createDashboardSession(signingSecret, origin);
+    Astro.cookies.set('ace-dash-auth', token, dashboardCookieOptions);
     return Astro.redirect('/dashboard');
   }
 
@@ -204,7 +198,7 @@ if (Astro.request.method === 'POST') {
     </form>
   </div>
 
-  <script>
+  <script is:inline>
     const card = document.getElementById('auth-card');
     const supabaseUrl = card?.dataset.supabaseUrl || '';
     const googleButton = document.getElementById('google-login');

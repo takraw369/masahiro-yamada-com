@@ -1,10 +1,21 @@
+import { env as workerEnv } from 'cloudflare:workers';
 import { dashboardOwnerKey } from './dashboardAuth';
+
+interface SiteStorageD1Statement {
+  bind(...values: unknown[]): SiteStorageD1Statement;
+  all<T>(): Promise<{ results?: T[] }>;
+  run(): Promise<unknown>;
+}
+
+interface SiteStorageD1Database {
+  prepare(query: string): SiteStorageD1Statement;
+}
 
 export interface SiteStorageEnv {
   SUPABASE_URL?: string;
   SUPABASE_PUBLISHABLE_KEY?: string;
   DASHBOARD_PASSWORD?: string;
-  DB?: D1Database;
+  DB?: SiteStorageD1Database;
 }
 
 const jsonHeaders = (key: string) => ({
@@ -12,8 +23,8 @@ const jsonHeaders = (key: string) => ({
   'Content-Type': 'application/json',
 });
 
-export function getSiteStorageEnv(locals: any): SiteStorageEnv {
-  return (locals?.runtime?.env || {}) as SiteStorageEnv;
+export function getSiteStorageEnv(_locals?: any): SiteStorageEnv {
+  return workerEnv as unknown as SiteStorageEnv;
 }
 
 export function hasSupabase(env: SiteStorageEnv) {
@@ -146,7 +157,8 @@ export async function migrateLegacyD1(env: SiteStorageEnv): Promise<MigrationSta
     }>();
 
     for (const row of rows.results || []) {
-      await supabaseRpc<number>(env, 'trinity_funnel_event_import', {
+      await supabaseRpc<number>(env, 'trinity_funnel_event_import_v2', {
+        p_owner_key: ownerKey,
         p_legacy_id: row.id,
         p_session_id: row.session_id,
         p_event_name: row.event_name,
