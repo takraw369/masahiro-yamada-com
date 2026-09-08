@@ -65,7 +65,25 @@ export const POST = async ({ request, locals }: APIContext) => {
 
   let raw = '';
   try {
-    raw = await request.text();
+    const reader = request.body?.getReader();
+    if (!reader) return jsonResponse({ ok: false, error: 'invalid_body' }, 400);
+    const decoder = new TextDecoder();
+    let bytes = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        bytes += value.byteLength;
+        if (bytes > MAX_BODY_BYTES) {
+          await reader.cancel();
+          return jsonResponse({ ok: false, error: 'payload_too_large' }, 413);
+        }
+        raw += decoder.decode(value, { stream: true });
+      }
+      raw += decoder.decode();
+    } finally {
+      reader.releaseLock();
+    }
   } catch {
     return jsonResponse({ ok: false, error: 'invalid_body' }, 400);
   }
@@ -100,6 +118,8 @@ export const POST = async ({ request, locals }: APIContext) => {
     Number.isNaN(startDate.getTime())
     || Number.isNaN(endDate.getTime())
     || Number.isNaN(sourceDate.getTime())
+    || sourceDate.getTime() > Date.now() + 10 * 60 * 1000
+    || sourceDate.getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000
     || endDate <= startDate
     || endDate.getTime() - startDate.getTime() > MAX_WINDOW_MS
   ) {
