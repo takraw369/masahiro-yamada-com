@@ -1,5 +1,7 @@
 # Release integration evidence — 2026-09-07
 
+> Historical audit. Current release state and corrected evidence are in [the refreshed receipt](release-conductor-2026-09-08.md). PR #55 has since been merged and deployed by a separately authorized release action. The NO-GO and not-checked statements below describe the original audit only.
+
 Status: **NO-GO for production** until the gates below are satisfied. No deployment,
 secret change, DNS change, database migration, PR merge or PR closure is performed
 by this work. This is a derived engineering report, not a new operational canon.
