@@ -37,7 +37,7 @@ jobs:
           TYPECHECK_HEAD_SHA: ${{ github.sha }}
         run: npm run typecheck:release
 
-      - name: Build
+      - name: Build production artifact
         run: npm run build
 
       - name: Isolated Worker preview
@@ -45,6 +45,11 @@ jobs:
 
       - name: Dependency security gate
         run: npm run security:check
+
+      # test:preview deliberately rebuilds dist with an isolated Wrangler config.
+      # Never deploy that artifact; rebuild from canonical production wrangler.toml.
+      - name: Rebuild production artifact after preview
+        run: npm run build
 
       - name: Deploy to Cloudflare Workers
         run: npx --no-install wrangler deploy
