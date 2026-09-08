@@ -110,37 +110,17 @@ export const POST = async ({ request, locals }: APIContext) => {
     return new Response(JSON.stringify({ ok: true, stored: true, id, storage: 'supabase' }), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (supabaseError) {
-    if (!env.DB) {
-      return new Response(JSON.stringify({ ok: false, error: String(supabaseError) }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    try {
-      await ensureD1Table(env.DB);
-      const result = await env.DB.prepare(
-        `INSERT INTO dashboard_feedback (user_id, page, message, context)
-         VALUES (?, ?, ?, ?)`
-      ).bind('masa', page, message, context).run();
-
-      return new Response(JSON.stringify({
-        ok: true,
-        stored: true,
-        id: result.meta.last_row_id,
-        storage: 'd1-fallback',
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (d1Error) {
-      return new Response(JSON.stringify({
-        ok: false,
-        error: `supabase=${String(supabaseError)};d1=${String(d1Error)}`,
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+  } catch {
+    // Supabase is the only write authority after cutover. Do not create new
+    // D1-only feedback after the one-time import marker has completed.
+    return new Response(JSON.stringify({
+      ok: false,
+      stored: false,
+      error: 'primary_storage_unavailable',
+      storage: 'unavailable',
+    }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
