@@ -107,6 +107,21 @@ test('mutation Origin is mandatory and exact; read requests remain usable', () =
   assert.equal(isSameOriginRequest(new Request(origin)), true);
 });
 
+test('Dashboard password login uses JSON bootstrap instead of native form POST', async () => {
+  const [login, middleware, endpoint] = await Promise.all([
+    readFile(new URL('../src/pages/dashboard/login.astro', import.meta.url), 'utf8'),
+    readFile(new URL('../src/middleware.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/pages/api/dashboard/password-login.ts', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(login, /id="password-login-form"/);
+  assert.doesNotMatch(login, /<form\s+method="POST"/i);
+  assert.match(login, /fetch\('\/api\/dashboard\/password-login'/);
+  assert.match(middleware, /'\/api\/dashboard\/password-login'/);
+  assert.match(endpoint, /verify_dashboard_login_password/);
+  assert.match(endpoint, /createDashboardSession/);
+});
+
 test('post-cutover mutations never create D1-only state', async () => {
   const [state, feedback, funnel] = await Promise.all([
     readFile(new URL('../src/pages/api/dashboard/state.ts', import.meta.url), 'utf8'),

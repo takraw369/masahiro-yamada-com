@@ -53,7 +53,7 @@ export async function getDashboardGoogleAdmin(
   });
   if (!adminResponse.ok) return null;
 
-  const isAdmin = Boolean(await adminResponse.json());
+  const isAdmin = (await adminResponse.json()) === true;
   return isAdmin ? user : null;
 }
 
@@ -77,5 +77,5 @@ export async function resetDashboardPasswordWithGoogle(
   if (!response.ok) {
     throw new Error(`dashboard_password_reset_${response.status}:${text.slice(0, 240)}`);
   }
-  return text ? Boolean(JSON.parse(text)) : false;
+  return text ? JSON.parse(text) === true : false;
 }

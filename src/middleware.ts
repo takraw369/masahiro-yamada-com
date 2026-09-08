@@ -6,6 +6,7 @@ import { isSameOriginRequest, privateHeaders } from './lib/security/request.mjs'
 const CANONICAL_HOST = 'masahiroyamada.com';
 const DASHBOARD_AUTH_BOOTSTRAP_APIS = new Set([
   '/api/dashboard/google-login',
+  '/api/dashboard/password-login',
   '/api/dashboard/reset-password',
 ]);
 const REDIRECT_HOSTS = new Set([

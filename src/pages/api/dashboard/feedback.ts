@@ -87,9 +87,17 @@ export const GET = async ({ locals }: APIContext) => {
 
 export const POST = async ({ request, locals }: APIContext) => {
   const env = getSiteStorageEnv(locals);
-  const body = (await request.json()) as { page?: unknown; message?: unknown; context?: unknown };
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid_body');
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' },
+    });
+  }
   const message = typeof body.message === 'string' ? body.message.trim() : '';
-  const page = typeof body.page === 'string' && body.page.trim() ? body.page.trim() : '/dashboard';
+  const page = typeof body.page === 'string' ? body.page.trim() || '/dashboard' : '/dashboard';
   const context = typeof body.context === 'string' ? body.context : null;
 
   if (!message) {
