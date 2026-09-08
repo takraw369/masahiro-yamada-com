@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { createDashboardSession, verifyDashboardSession, dashboardAuthToken, dashboardOwnerKey, DASHBOARD_IDLE_TIMEOUT_SECONDS } from '../src/lib/dashboardAuth.ts';
 import { handleHarnessProxy } from '../src/lib/security/harness-proxy.ts';
@@ -104,4 +105,22 @@ test('mutation Origin is mandatory and exact; read requests remain usable', () =
   assert.equal(isSameOriginRequest(new Request(origin, { method: 'POST' })), false);
   assert.equal(isSameOriginRequest(new Request(origin, { method: 'POST', headers: { Origin: origin } })), true);
   assert.equal(isSameOriginRequest(new Request(origin)), true);
+});
+
+test('post-cutover mutations never create D1-only state', async () => {
+  const [state, feedback, funnel] = await Promise.all([
+    readFile(new URL('../src/pages/api/dashboard/state.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/pages/api/dashboard/feedback.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/pages/api/funnel/event.ts', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(state, /primary_storage_unavailable/);
+  assert.doesNotMatch(state, /INSERT OR REPLACE INTO ace_checked/);
+  assert.doesNotMatch(state, /DELETE FROM ace_checked/);
+
+  assert.match(feedback, /primary_storage_unavailable/);
+  assert.doesNotMatch(feedback, /INSERT INTO dashboard_feedback/);
+
+  assert.match(funnel, /stored: false/);
+  assert.doesNotMatch(funnel, /INSERT INTO trinity_funnel_events/);
 });
