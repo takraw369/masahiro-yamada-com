@@ -1,0 +1,173 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+<DashboardLayout title="MASA Intelligence Feed">
+  <div class="intel-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">DISCOVER → TRUST → REUSE → OUTPUT</p>
+        <h1>MASA Intelligence Feed</h1>
+        <p class="lead">興味があること、進む方向、世界の変化をひとつのFeedへ。ACEは重要なレンズの1つ。情報を読むだけで終わらせず、Evidence・SNS種・Asset・Projectへ育てる。</p>
+      </div>
+      <a class="lab-link" href="/dashboard/evidence">Evidence Lab →</a>
+    </header>
+
+    <div id="intel-error" class="error" hidden></div>
+
+    <section class="metrics" id="intel-metrics">
+      <div class="metric"><span>NEW</span><strong>—</strong><small>未処理</small></div>
+      <div class="metric"><span>HIGH SIGNAL</span><strong>—</strong><small>4.0+</small></div>
+      <div class="metric"><span>TRUSTED</span><strong>—</strong><small>Verified / Evidence</small></div>
+      <div class="metric"><span>OUTPUT</span><strong>—</strong><small>Seed / Asset / Project</small></div>
+    </section>
+
+    <section class="panel intake-panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">MANUAL INTAKE</p><h2>こちらから入れる</h2></div>
+        <span>URLだけでなく「気になった理由」も餌になる。</span>
+      </div>
+      <form id="intel-form" class="intake-form">
+        <label class="wide">タイトル / 気づき<input name="title" required maxlength="500" placeholder="例：AI Agentが教育コンテンツ制作をどう変えるか" /></label>
+        <label class="wide">URL<input name="url" type="url" placeholder="https://...（任意）" /></label>
+        <label>領域<select name="topic">
+          <option>Athlete / Education</option><option>AI / Build</option><option>Business / Revenue</option><option>Health / Human</option><option>Capital / Market</option><option>Society / Culture</option><option>Creativity / Media</option><option>Life / Place</option><option selected>General</option>
+        </select></label>
+        <label class="span-2">なぜ気になる？<input name="whyItMatters" maxlength="3000" placeholder="今のProject・人生・事業との接点" /></label>
+        <label class="wide">メモ / 引用ではない要点<textarea name="excerpt" maxlength="5000" placeholder="自分の言葉で要点や仮説を残す"></textarea></label>
+        <div class="submit-row wide"><span id="submit-state"></span><button type="submit">Feedへ追加</button></div>
+      </form>
+    </section>
+
+    <section class="filters">
+      <input id="intel-query" type="search" placeholder="タイトル・要点・Why・Lensを検索" />
+      <select id="intel-topic"><option value="all">全領域</option></select>
+      <select id="intel-status">
+        <option value="all">全状態</option><option value="new">NEW</option><option value="saved">SAVE</option><option value="review">REVIEW</option><option value="verified">VERIFIED</option><option value="content_seed">SNS / AI種</option><option value="evidence">EVIDENCE</option><option value="asset">ASSET</option><option value="project">PROJECT</option><option value="archived">ARCHIVE</option>
+      </select>
+      <select id="intel-impact"><option value="all">ACE影響すべて</option><option value="transformative">TRANSFORM</option><option value="direct">DIRECT</option><option value="adjacent">ADJACENT</option><option value="none">NONE</option></select>
+      <div id="intel-count" class="count">—</div>
+    </section>
+
+    <section id="intel-list" class="intel-list"><div class="empty">Intelligence Feedを読み込み中…</div></section>
+  </div>
+
+  <style>
+    .intel-shell{max-width:1240px;margin:0 auto;padding-bottom:64px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;padding:10px 0 28px;border-bottom:1px solid var(--border-default)}.eyebrow{font-size:.66rem;letter-spacing:.18em;color:var(--gold-pure);font-weight:500}.hero h1,.panel h2{font-family:'Cormorant Garamond',serif;font-weight:300}.hero h1{font-size:clamp(2.5rem,5vw,4.2rem);line-height:1;margin-top:5px}.lead{max-width:800px;color:var(--text-muted);line-height:1.85;margin-top:12px;font-size:.88rem}.lab-link{color:var(--gold-pure);text-decoration:none;border:1px solid var(--border-accent);padding:11px 15px;font-size:.75rem;flex-shrink:0}.lab-link:hover{background:var(--gold-glow)}.error{border:1px solid rgba(220,80,80,.35);background:rgba(180,50,50,.08);padding:12px 14px;margin-top:16px;color:#dba8a0;font-size:.8rem}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.metric,.panel,.intel-card,.filters{background:var(--bg-surface);border:1px solid var(--border-default)}.metric{padding:16px}.metric span{display:block;color:var(--gold-muted);font-size:.62rem;letter-spacing:.14em}.metric strong{display:block;font-family:'Cormorant Garamond',serif;font-size:2.05rem;font-weight:400;margin-top:3px}.metric small{font-size:.66rem;color:var(--text-dim)}.panel{padding:18px;margin-bottom:12px}.panel-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:12px}.panel h2{font-size:1.6rem;margin-top:3px}.panel-head>span{font-size:.67rem;color:var(--text-dim)}.intake-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}.intake-form label{display:grid;gap:5px;color:var(--text-muted);font-size:.64rem;letter-spacing:.05em}.wide{grid-column:1/-1}.span-2{grid-column:span 2}.intake-form input,.intake-form textarea,.intake-form select,.filters input,.filters select{background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--text-primary);font:inherit;padding:10px 11px;outline:none}.intake-form textarea{min-height:78px;resize:vertical}.intake-form input:focus,.intake-form textarea:focus,.intake-form select:focus,.filters input:focus,.filters select:focus{border-color:var(--border-hover)}.submit-row{display:flex;align-items:center;justify-content:flex-end;gap:10px}.submit-row span{font-size:.66rem;color:var(--text-dim)}button{font:inherit}.submit-row button,.action{cursor:pointer;border:1px solid var(--border-default);background:var(--bg-elevated);color:var(--text-muted);padding:8px 10px;font-size:.68rem}.submit-row button{border-color:var(--border-accent);background:var(--gold-glow);color:var(--gold-pure);padding:10px 15px}.action:hover{border-color:var(--border-hover);color:var(--text-primary)}.action.primary{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.action:disabled{opacity:.45;cursor:wait}.filters{display:grid;grid-template-columns:minmax(240px,1fr) auto auto auto auto;gap:8px;padding:11px;margin-bottom:12px}.count{display:flex;align-items:center;color:var(--text-dim);font-size:.7rem;padding:0 6px}.intel-list{display:grid;gap:10px}.intel-card{padding:18px}.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.tag-row{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:.59rem;letter-spacing:.04em;padding:4px 7px;border:1px solid var(--border-default);color:var(--text-muted)}.tag.topic{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.tag.status{color:var(--text-primary)}.tag.ace-direct,.tag.ace-transformative{color:#d8bd86;border-color:rgba(216,189,134,.35)}.title{font-size:1.03rem;font-weight:500;margin-top:11px;line-height:1.5}.source{font-size:.66rem;color:var(--text-dim);margin-top:5px;line-height:1.6}.source a{color:var(--gold-muted);text-decoration:none}.source a:hover{color:var(--gold-pure)}.score-box{min-width:108px;text-align:right}.signal{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--gold-pure);line-height:1}.signal-label{font-size:.56rem;color:var(--text-dim);letter-spacing:.12em}.scores{display:flex;gap:7px;justify-content:flex-end;margin-top:5px;font-size:.58rem;color:var(--text-muted)}.why{margin-top:13px;padding:11px 12px;border-left:2px solid var(--gold-dim);background:var(--gold-glow);font-size:.78rem;line-height:1.75;color:var(--text-primary)}.excerpt{margin-top:10px;color:var(--text-muted);font-size:.77rem;line-height:1.75;white-space:pre-wrap}.outputs{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}.output{font-size:.58rem;color:var(--text-dim);border-bottom:1px solid var(--border-default);padding:2px 0}.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-default)}.seed{margin-top:10px;border:1px dashed var(--border-default);padding:11px;background:var(--bg-void)}.seed summary{cursor:pointer;color:var(--gold-muted);font-size:.68rem}.seed pre{white-space:pre-wrap;word-break:break-word;color:var(--text-muted);font:inherit;font-size:.72rem;line-height:1.65;margin-top:9px}.empty{padding:26px;border:1px dashed var(--border-default);color:var(--text-dim);text-align:center;font-size:.78rem}.time{font-size:.61rem;color:var(--text-dim);margin-top:5px}
+    @media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.count{grid-column:1/-1}.hero{align-items:flex-start;flex-direction:column}.intake-form{grid-template-columns:1fr 1fr}.span-2{grid-column:auto}.card-head{display:block}.score-box{text-align:left;margin-top:10px}.scores{justify-content:flex-start}}
+    @media(max-width:560px){.metrics,.intake-form,.filters{grid-template-columns:1fr}.wide,.span-2{grid-column:auto}.hero h1{font-size:2.4rem}.lab-link{width:100%;text-align:center}.intel-card{padding:15px}}
+  </style>
+
+  <script>
+    const TOPICS=['Athlete / Education','AI / Build','Business / Revenue','Health / Human','Capital / Market','Society / Culture','Creativity / Media','Life / Place','General'];
+    const STATUS_LABEL={new:'NEW',saved:'SAVE',review:'REVIEW',verified:'VERIFIED',content_seed:'SNS / AI種',evidence:'EVIDENCE',asset:'ASSET',project:'PROJECT',archived:'ARCHIVE'};
+    let items=[];
+    const list=document.getElementById('intel-list');
+    const q=document.getElementById('intel-query');
+    const topic=document.getElementById('intel-topic');
+    const status=document.getElementById('intel-status');
+    const impact=document.getElementById('intel-impact');
+    const count=document.getElementById('intel-count');
+    const errorEl=document.getElementById('intel-error');
+    const form=document.getElementById('intel-form');
+    const submitState=document.getElementById('submit-state');
+    TOPICS.forEach(t=>topic.insertAdjacentHTML('beforeend',`<option value="${t}">${t}</option>`));
+    const esc=(v='')=>String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const score=(item,key)=>Number(item.scores?.[key]??0);
+    const fmt=v=>{if(!v)return '';const d=new Date(v);return Number.isNaN(d.getTime())?'':d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});};
+    const showError=t=>{errorEl.textContent=t||'';errorEl.hidden=!t;};
+
+    function updateMetrics(){
+      const values=[
+        items.filter(x=>x.status==='new').length,
+        items.filter(x=>score(x,'signal')>=4).length,
+        items.filter(x=>['verified','evidence'].includes(x.status)).length,
+        items.filter(x=>['content_seed','asset','project'].includes(x.status)).length,
+      ];
+      document.querySelectorAll('#intel-metrics strong').forEach((el,i)=>el.textContent=String(values[i]??0));
+    }
+
+    function filtered(){
+      const needle=(q.value||'').trim().toLowerCase();
+      return items.filter(x=>topic.value==='all'||x.topic===topic.value)
+        .filter(x=>status.value==='all'||x.status===status.value)
+        .filter(x=>impact.value==='all'||x.aceImpact===impact.value)
+        .filter(x=>!needle||[x.title,x.excerpt,x.whyItMatters,x.topic,...(x.lenses||[])].join(' ').toLowerCase().includes(needle));
+    }
+
+    function card(item){
+      const signal=score(item,'signal').toFixed(1);
+      const outputs=(item.suggestedOutputs||[]).map(x=>`<span class="output">${esc(x)}</span>`).join('');
+      const source=item.url?`<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">SOURCE ↗</a>`:'NO URL';
+      const ace=item.aceImpact!=='none'?`<span class="tag ace-${esc(item.aceImpact)}">ACE ${esc(item.aceImpact.toUpperCase())}</span>`:'';
+      const seed=item.contentSeed?`<details class="seed"><summary>生成済みの加工種を見る</summary><pre>${esc(item.contentSeed)}</pre><button class="action" data-copy="seed">Copy seed</button></details>`:'';
+      return `<article class="intel-card" data-id="${esc(item.id)}">
+        <div class="card-head"><div><div class="tag-row"><span class="tag topic">${esc(item.topic)}</span><span class="tag status">${esc(STATUS_LABEL[item.status]||item.status)}</span><span class="tag">${esc(item.factType)}</span><span class="tag">${esc(item.sourceKind)}</span>${ace}</div><h3 class="title">${esc(item.title)}</h3><div class="source">${source}${item.provenance?` · ${esc(item.provenance)}`:''}</div><div class="time">${esc(fmt(item.lastSeenAt||item.detectedAt))}</div></div>
+        <div class="score-box"><div class="signal">${signal}</div><div class="signal-label">SIGNAL / 5</div><div class="scores"><span>I ${score(item,'interest')}</span><span>S ${score(item,'strategic')}</span><span>T ${score(item,'trust')}</span><span>R ${score(item,'reuse')}</span></div></div></div>
+        ${item.whyItMatters?`<div class="why"><strong>WHY</strong> — ${esc(item.whyItMatters)}</div>`:''}
+        ${item.excerpt?`<div class="excerpt">${esc(item.excerpt.slice(0,1500))}${item.excerpt.length>1500?'…':''}</div>`:''}
+        <div class="outputs">${outputs}</div>
+        <div class="actions">
+          <button class="action" data-status="saved">☆ 保存</button>
+          <button class="action" data-status="verified">✓ 確認済み</button>
+          <button class="action primary" data-action="content_seed">✎ SNS / AI種</button>
+          <button class="action primary" data-action="promote_evidence">◇ Evidence化</button>
+          <button class="action" data-status="asset">◆ Asset候補</button>
+          <button class="action" data-status="project">→ Project候補</button>
+          <button class="action" data-status="archived">Archive</button>
+        </div>${seed}
+      </article>`;
+    }
+
+    function render(){
+      const rows=filtered(); count.textContent=`${rows.length} / ${items.length}`;
+      list.innerHTML=rows.length?rows.map(card).join(''):'<div class="empty">この条件の情報はありません。</div>';
+    }
+
+    async function loadItems(){
+      showError('');
+      const res=await fetch('/api/dashboard/intelligence',{headers:{Accept:'application/json'}});
+      const data=await res.json();
+      if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
+      items=data.items||[]; updateMetrics(); render();
+    }
+
+    async function patchItem(id,patch){
+      const res=await fetch('/api/dashboard/intelligence',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,patch})});
+      const data=await res.json(); if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
+      items=items.map(x=>x.id===id?data.item:x); updateMetrics(); render();
+    }
+
+    async function actionItem(id,action){
+      const res=await fetch('/api/dashboard/intelligence',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action})});
+      const data=await res.json(); if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
+      items=items.map(x=>x.id===id?data.item:x); updateMetrics(); render();
+    }
+
+    form.addEventListener('submit',async e=>{
+      e.preventDefault(); showError(''); submitState.textContent='追加中…';
+      const fd=new FormData(form); const selected=String(fd.get('topic')||'General');
+      try{
+        const res=await fetch('/api/dashboard/intelligence',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:fd.get('title'),url:fd.get('url'),excerpt:fd.get('excerpt'),topic:selected,lenses:selected==='General'?[]:[selected],whyItMatters:fd.get('whyItMatters')})});
+        const data=await res.json(); if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
+        items=[data.item,...items]; form.reset(); submitState.textContent='追加しました'; updateMetrics(); render(); setTimeout(()=>submitState.textContent='',1800);
+      }catch(err){submitState.textContent='';showError(String(err));}
+    });
+
+    list.addEventListener('click',async e=>{
+      const button=e.target.closest('button'); if(!button)return;
+      const card=button.closest('.intel-card'); if(!card)return;
+      const id=card.dataset.id; if(!id)return;
+      if(button.dataset.copy==='seed'){
+        const item=items.find(x=>x.id===id); if(item?.contentSeed){await navigator.clipboard.writeText(item.contentSeed);button.textContent='Copied';setTimeout(()=>button.textContent='Copy seed',1000);} return;
+      }
+      button.disabled=true; showError('');
+      try{
+        if(button.dataset.status) await patchItem(id,{status:button.dataset.status});
+        else if(button.dataset.action) await actionItem(id,button.dataset.action);
+      }catch(err){showError(String(err));button.disabled=false;}
+    });
+
+    [q,topic,status,impact].forEach(el=>el.addEventListener(el===q?'input':'change',render));
+    loadItems().catch(err=>{showError(String(err));list.innerHTML='<div class="empty">読み込みに失敗しました。</div>';});
+  </script>
+</DashboardLayout>
