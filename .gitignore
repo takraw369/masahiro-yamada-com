@@ -5,3 +5,9 @@ dist/
 .wrangler/
 .dev.vars
 .claude/
+.dev.vars.*
+.env
+.env.*
+!.env.example
+!.dev.vars.example
+work/

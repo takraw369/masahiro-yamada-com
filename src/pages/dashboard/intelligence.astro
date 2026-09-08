@@ -58,23 +58,41 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   </style>
 
   <script>
-    const TOPICS=['Athlete / Education','AI / Build','Business / Revenue','Health / Human','Capital / Market','Society / Culture','Creativity / Media','Life / Place','General'];
-    const STATUS_LABEL={new:'NEW',saved:'SAVE',review:'REVIEW',verified:'VERIFIED',content_seed:'SNS / AI種',evidence:'EVIDENCE',asset:'ASSET',project:'PROJECT',archived:'ARCHIVE'};
-    let items=[];
-    const list=document.getElementById('intel-list');
-    const q=document.getElementById('intel-query');
-    const topic=document.getElementById('intel-topic');
-    const status=document.getElementById('intel-status');
-    const impact=document.getElementById('intel-impact');
-    const count=document.getElementById('intel-count');
-    const errorEl=document.getElementById('intel-error');
-    const form=document.getElementById('intel-form');
-    const submitState=document.getElementById('submit-state');
+    type IntelligenceItem = {
+      id:string; title:string; url:string; sourceKind:string; provenance:string; excerpt:string;
+      topic:string; lenses:string[]; scores:Record<string,number>; factType:string; aceImpact:string;
+      whyItMatters:string; suggestedOutputs:string[]; status:string; contentSeed:string;
+      lastSeenAt:string|null; detectedAt:string|null;
+    };
+    type IntelligenceResponse = { ok:boolean; error?:string; item?:IntelligenceItem; items?:IntelligenceItem[] };
+    type IntelligencePatch = { status?:string; topic?:string; lenses?:string[]; aceImpact?:string; whyItMatters?:string; outputTargets?:string[]; contentSeed?:string; driveUrl?:string };
+
+    const TOPICS=['Athlete / Education','AI / Build','Business / Revenue','Health / Human','Capital / Market','Society / Culture','Creativity / Media','Life / Place','General'] as const;
+    const STATUS_LABEL:Record<string,string>={new:'NEW',saved:'SAVE',review:'REVIEW',verified:'VERIFIED',content_seed:'SNS / AI種',evidence:'EVIDENCE',asset:'ASSET',project:'PROJECT',archived:'ARCHIVE'};
+    const ESCAPE:Record<string,string>={'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'};
+
+    function requiredEl<T extends HTMLElement>(id:string):T{
+      const el=document.getElementById(id);
+      if(!el)throw new Error(`missing_element:${id}`);
+      return el as T;
+    }
+
+    let items:IntelligenceItem[]=[];
+    const list=requiredEl<HTMLElement>('intel-list');
+    const q=requiredEl<HTMLInputElement>('intel-query');
+    const topic=requiredEl<HTMLSelectElement>('intel-topic');
+    const status=requiredEl<HTMLSelectElement>('intel-status');
+    const impact=requiredEl<HTMLSelectElement>('intel-impact');
+    const count=requiredEl<HTMLElement>('intel-count');
+    const errorEl=requiredEl<HTMLElement>('intel-error');
+    const form=requiredEl<HTMLFormElement>('intel-form');
+    const submitState=requiredEl<HTMLElement>('submit-state');
+
     TOPICS.forEach(t=>topic.insertAdjacentHTML('beforeend',`<option value="${t}">${t}</option>`));
-    const esc=(v='')=>String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-    const score=(item,key)=>Number(item.scores?.[key]??0);
-    const fmt=v=>{if(!v)return '';const d=new Date(v);return Number.isNaN(d.getTime())?'':d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});};
-    const showError=t=>{errorEl.textContent=t||'';errorEl.hidden=!t;};
+    const esc=(v:unknown='')=>String(v).replace(/[&<>'"]/g,c=>ESCAPE[c]??c);
+    const score=(item:IntelligenceItem,key:string)=>Number(item.scores?.[key]??0);
+    const fmt=(v:string|null|undefined)=>{if(!v)return '';const d=new Date(v);return Number.isNaN(d.getTime())?'':d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});};
+    const showError=(t:unknown)=>{const text=t?String(t):'';errorEl.textContent=text;errorEl.hidden=!text;};
 
     function updateMetrics(){
       const values=[
@@ -83,18 +101,19 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         items.filter(x=>['verified','evidence'].includes(x.status)).length,
         items.filter(x=>['content_seed','asset','project'].includes(x.status)).length,
       ];
-      document.querySelectorAll('#intel-metrics strong').forEach((el,i)=>el.textContent=String(values[i]??0));
+      document.querySelectorAll<HTMLElement>('#intel-metrics strong').forEach((el,i)=>el.textContent=String(values[i]??0));
     }
 
-    function filtered(){
+    function filtered():IntelligenceItem[]{
       const needle=(q.value||'').trim().toLowerCase();
-      return items.filter(x=>topic.value==='all'||x.topic===topic.value)
+      return items.filter(x=>status.value==='archived'||x.status!=='archived')
+        .filter(x=>topic.value==='all'||x.topic===topic.value)
         .filter(x=>status.value==='all'||x.status===status.value)
         .filter(x=>impact.value==='all'||x.aceImpact===impact.value)
         .filter(x=>!needle||[x.title,x.excerpt,x.whyItMatters,x.topic,...(x.lenses||[])].join(' ').toLowerCase().includes(needle));
     }
 
-    function card(item){
+    function card(item:IntelligenceItem):string{
       const signal=score(item,'signal').toFixed(1);
       const outputs=(item.suggestedOutputs||[]).map(x=>`<span class="output">${esc(x)}</span>`).join('');
       const source=item.url?`<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">SOURCE ↗</a>`:'NO URL';
@@ -123,40 +142,45 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       list.innerHTML=rows.length?rows.map(card).join(''):'<div class="empty">この条件の情報はありません。</div>';
     }
 
+    async function readResponse(res:Response):Promise<IntelligenceResponse>{
+      return await res.json() as IntelligenceResponse;
+    }
+
     async function loadItems(){
       showError('');
       const res=await fetch('/api/dashboard/intelligence',{headers:{Accept:'application/json'}});
-      const data=await res.json();
+      const data=await readResponse(res);
       if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
       items=data.items||[]; updateMetrics(); render();
     }
 
-    async function patchItem(id,patch){
+    async function patchItem(id:string,patch:IntelligencePatch){
       const res=await fetch('/api/dashboard/intelligence',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,patch})});
-      const data=await res.json(); if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
-      items=items.map(x=>x.id===id?data.item:x); updateMetrics(); render();
+      const data=await readResponse(res); if(!res.ok||!data.ok||!data.item)throw new Error(data.error||`HTTP ${res.status}`);
+      items=items.map(x=>x.id===id?data.item!:x); updateMetrics(); render();
     }
 
-    async function actionItem(id,action){
+    async function actionItem(id:string,action:string){
       const res=await fetch('/api/dashboard/intelligence',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action})});
-      const data=await res.json(); if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
-      items=items.map(x=>x.id===id?data.item:x); updateMetrics(); render();
+      const data=await readResponse(res); if(!res.ok||!data.ok||!data.item)throw new Error(data.error||`HTTP ${res.status}`);
+      items=items.map(x=>x.id===id?data.item!:x); updateMetrics(); render();
     }
 
     form.addEventListener('submit',async e=>{
       e.preventDefault(); showError(''); submitState.textContent='追加中…';
       const fd=new FormData(form); const selected=String(fd.get('topic')||'General');
       try{
-        const res=await fetch('/api/dashboard/intelligence',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:fd.get('title'),url:fd.get('url'),excerpt:fd.get('excerpt'),topic:selected,lenses:selected==='General'?[]:[selected],whyItMatters:fd.get('whyItMatters')})});
-        const data=await res.json(); if(!res.ok||!data.ok)throw new Error(data.error||`HTTP ${res.status}`);
+        const res=await fetch('/api/dashboard/intelligence',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:String(fd.get('title')||''),url:String(fd.get('url')||''),excerpt:String(fd.get('excerpt')||''),topic:selected,lenses:selected==='General'?[]:[selected],whyItMatters:String(fd.get('whyItMatters')||'')})});
+        const data=await readResponse(res); if(!res.ok||!data.ok||!data.item)throw new Error(data.error||`HTTP ${res.status}`);
         items=[data.item,...items]; form.reset(); submitState.textContent='追加しました'; updateMetrics(); render(); setTimeout(()=>submitState.textContent='',1800);
-      }catch(err){submitState.textContent='';showError(String(err));}
+      }catch(err){submitState.textContent='';showError(err);}
     });
 
     list.addEventListener('click',async e=>{
-      const button=e.target.closest('button'); if(!button)return;
-      const card=button.closest('.intel-card'); if(!card)return;
-      const id=card.dataset.id; if(!id)return;
+      if(!(e.target instanceof Element))return;
+      const button=e.target.closest<HTMLButtonElement>('button'); if(!button)return;
+      const cardEl=button.closest<HTMLElement>('.intel-card'); if(!cardEl)return;
+      const id=cardEl.dataset.id; if(!id)return;
       if(button.dataset.copy==='seed'){
         const item=items.find(x=>x.id===id); if(item?.contentSeed){await navigator.clipboard.writeText(item.contentSeed);button.textContent='Copied';setTimeout(()=>button.textContent='Copy seed',1000);} return;
       }
@@ -164,10 +188,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       try{
         if(button.dataset.status) await patchItem(id,{status:button.dataset.status});
         else if(button.dataset.action) await actionItem(id,button.dataset.action);
-      }catch(err){showError(String(err));button.disabled=false;}
+      }catch(err){showError(err);button.disabled=false;}
     });
 
-    [q,topic,status,impact].forEach(el=>el.addEventListener(el===q?'input':'change',render));
-    loadItems().catch(err=>{showError(String(err));list.innerHTML='<div class="empty">読み込みに失敗しました。</div>';});
+    q.addEventListener('input',render);
+    topic.addEventListener('change',render);
+    status.addEventListener('change',render);
+    impact.addEventListener('change',render);
+    loadItems().catch(err=>{showError(err);list.innerHTML='<div class="empty">読み込みに失敗しました。</div>';});
   </script>
 </DashboardLayout>

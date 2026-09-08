@@ -15,6 +15,7 @@ jobs:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js
@@ -26,8 +27,23 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Security regression tests
+        run: npm test
+
+      - name: Typecheck release delta
+        env:
+          TYPECHECK_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          TYPECHECK_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npm run typecheck:release
+
       - name: Verify production build
         run: npm run build
+
+      - name: Isolated Worker preview
+        run: npm run test:preview
+
+      - name: Dependency security gate
+        run: npm run security:check
 
   secret-scan:
     runs-on: ubuntu-latest

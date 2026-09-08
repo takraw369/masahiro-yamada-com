@@ -58,13 +58,21 @@ export const GET = async ({ locals }: APIContext) => {
 
 export const POST = async ({ request, locals }: APIContext) => {
   const env = getSiteStorageEnv(locals);
-  const body = await request.json<{ slotId: string; checked: boolean; xp: number }>();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid_body');
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' },
+    });
+  }
   const slotId = typeof body.slotId === 'string' ? body.slotId.trim().slice(0, 180) : '';
-  const checked = Boolean(body.checked);
-  const xp = Number.isFinite(body.xp) ? Math.max(0, Math.round(body.xp)) : 0;
+  const checked = body.checked;
+  const xp = typeof body.xp === 'number' && Number.isFinite(body.xp) ? Math.max(0, Math.round(body.xp)) : 0;
 
-  if (!slotId) {
-    return new Response(JSON.stringify({ ok: false, error: 'slot_id_required' }), {
+  if (!slotId || typeof checked !== 'boolean') {
+    return new Response(JSON.stringify({ ok: false, error: 'invalid_state' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -82,40 +90,17 @@ export const POST = async ({ request, locals }: APIContext) => {
     return new Response(JSON.stringify({ ok: true, storage: 'supabase' }), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (supabaseError) {
-    if (!env.DB) {
-      return new Response(JSON.stringify({ ok: false, error: String(supabaseError) }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    try {
-      if (checked) {
-        await env.DB.prepare(
-          'INSERT OR REPLACE INTO ace_checked (user_id, slot_id, xp, checked_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)'
-        )
-          .bind('masa', slotId, xp)
-          .run();
-      } else {
-        await env.DB.prepare(
-          'DELETE FROM ace_checked WHERE user_id = ? AND slot_id = ?'
-        )
-          .bind('masa', slotId)
-          .run();
-      }
-
-      return new Response(JSON.stringify({ ok: true, storage: 'd1-fallback' }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (d1Error) {
-      return new Response(JSON.stringify({
-        ok: false,
-        error: `supabase=${String(supabaseError)};d1=${String(d1Error)}`,
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+  } catch {
+    // Supabase is the only write authority after cutover. Writing new state to
+    // D1 here would create data that the completed one-time migration will not
+    // automatically replay after Supabase recovers.
+    return new Response(JSON.stringify({
+      ok: false,
+      error: 'primary_storage_unavailable',
+      storage: 'unavailable',
+    }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };

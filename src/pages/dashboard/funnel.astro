@@ -1,9 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
-
-interface Env {
-  DB: D1Database;
-}
+import { getSiteStorageEnv } from '../../lib/siteStorage';
 
 type EventRow = {
   event_name: string;
@@ -18,7 +15,7 @@ type SourceRow = {
   trial_clicks: number;
 };
 
-const env = Astro.locals.runtime?.env as Env | undefined;
+const env = getSiteStorageEnv();
 let dbReady = false;
 let eventRows: EventRow[] = [];
 let sourceRows: SourceRow[] = [];
@@ -46,8 +43,8 @@ if (env?.DB) {
       LIMIT 8
     `).all<SourceRow>();
 
-    eventRows = events.results;
-    sourceRows = sources.results;
+    eventRows = events.results || [];
+    sourceRows = sources.results || [];
     dbReady = true;
   } catch {
     dbReady = false;
@@ -77,15 +74,15 @@ const cards = [
       <div>
         <span class="eyebrow">ACE GROWTH</span>
         <h1>Trinity Funnel</h1>
-        <p>直近30日｜診断 → LINE → 体験セッションの最短導線</p>
+        <p>旧データの参考表示（直近30日）。現在の集計ではありません。</p>
       </div>
       <a href="/trinity" target="_blank" rel="noopener noreferrer">診断ページを見る ↗</a>
     </div>
 
     {!dbReady ? (
       <section class="notice">
-        <strong>計測DBの準備待ち</strong>
-        <p><code>migrations/004_trinity_funnel.sql</code> を本番D1へ適用すると、この画面に数値が入り始めます。</p>
+        <strong>旧データを取得できません</strong>
+        <p>現在の診断イベントは別途保存されています。この画面の数値を最新の成果判断には使用しないでください。</p>
       </section>
     ) : (
       <>

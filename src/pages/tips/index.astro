@@ -14,18 +14,15 @@ const tips = (await getCollection('tips', ({ data }) => data.publish !== false))
   </section>
 
   <section class="list" aria-label="Tips list">
-    {tips.map((tip) => {
-      const slug = tip.data.slug ?? tip.id.replace(/\.md$/, '');
-      return (
-        <article class="card">
-          <div class="meta">
-            <span>{tip.data.category}</span>
-            <time datetime={tip.data.publishedAt.toISOString()}>{tip.data.publishedAt.toLocaleDateString('ja-JP')}</time>
-          </div>
-          <h2><a href={`/tips/${slug}`}>{tip.data.title}</a></h2>
-        </article>
-      );
-    })}
+    {tips.map((tip) => (
+      <article class="card">
+        <div class="meta">
+          <span>{tip.data.category}</span>
+          <time datetime={tip.data.publishedAt.toISOString()}>{tip.data.publishedAt.toLocaleDateString('ja-JP')}</time>
+        </div>
+        <h2><a href={`/tips/${tip.id}`}>{tip.data.title}</a></h2>
+      </article>
+    ))}
   </section>
 
   <style>

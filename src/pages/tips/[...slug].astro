@@ -1,16 +1,13 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import TipsLayout from '../../layouts/TipsLayout.astro';
 
 const { slug } = Astro.params;
 const tips = await getCollection('tips', ({ data }) => data.publish !== false);
-const tip = tips.find((item) => {
-  const itemSlug = item.data.slug ?? item.id.replace(/\.md$/, '');
-  return itemSlug === slug;
-});
+const tip = tips.find((item) => item.id === slug);
 
 if (!tip) return Astro.redirect('/tips/', 302);
-const { Content } = await tip.render();
+const { Content } = await render(tip);
 ---
 
 <TipsLayout title={tip.data.title} description={`${tip.data.title} — ACE Tips`}>

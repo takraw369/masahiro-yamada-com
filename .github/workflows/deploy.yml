@@ -14,12 +14,13 @@ jobs:
     name: Deploy
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
@@ -27,11 +28,31 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Build
+      - name: Security regression tests
+        run: npm test
+
+      - name: Typecheck release delta
+        env:
+          TYPECHECK_BASE_REF: ${{ github.event.before || 'HEAD^' }}
+          TYPECHECK_HEAD_SHA: ${{ github.sha }}
+        run: npm run typecheck:release
+
+      - name: Build production artifact
+        run: npm run build
+
+      - name: Isolated Worker preview
+        run: npm run test:preview
+
+      - name: Dependency security gate
+        run: npm run security:check
+
+      # test:preview deliberately rebuilds dist with an isolated Wrangler config.
+      # Never deploy that artifact; rebuild from canonical production wrangler.toml.
+      - name: Rebuild production artifact after preview
         run: npm run build
 
       - name: Deploy to Cloudflare Workers
-        run: npx --yes wrangler@latest deploy
+        run: npx --no-install wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

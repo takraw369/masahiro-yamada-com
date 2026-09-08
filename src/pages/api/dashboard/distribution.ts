@@ -44,12 +44,12 @@ export const GET = async ({ locals }: APIContext) => {
       storage: 'drive-supabase-read-model',
       content: rows || [],
     }), { headers: JSON_HEADERS });
-  } catch (error) {
+  } catch {
     return new Response(JSON.stringify({
       ok: false,
       storage: 'static-fallback',
       content: [],
-      error: String(error),
+      error: 'distribution_unavailable',
     }), {
       status: 503,
       headers: JSON_HEADERS,

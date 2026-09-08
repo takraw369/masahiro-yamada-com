@@ -1,50 +1,15 @@
 ---
-import { dashboardAuthToken, safeTokenEqual } from '../../lib/dashboardAuth';
-import { getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
+import { env as workerEnv } from 'cloudflare:workers';
+import { verifyDashboardSession } from '../../lib/dashboardAuth';
 
-const DASHBOARD_IDLE_TIMEOUT_SECONDS = 60 * 60 * 24;
-const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
-const signingSecret = env?.DASHBOARD_PASSWORD ?? '';
-const supabaseUrl = env?.SUPABASE_URL ?? '';
+const env = workerEnv as unknown as Record<string, string>;
+const signingSecret = env.DASHBOARD_PASSWORD ?? '';
+const supabaseUrl = env.SUPABASE_URL ?? '';
 const cookie = Astro.cookies.get('ace-dash-auth')?.value;
-const expectedToken = signingSecret ? await dashboardAuthToken(signingSecret) : '';
+const origin = new URL(Astro.request.url).origin;
 
-if (safeTokenEqual(cookie, expectedToken)) {
+if (await verifyDashboardSession(cookie, signingSecret, origin)) {
   return Astro.redirect('/dashboard');
-}
-
-let error = '';
-
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  const password = String(formData.get('password') ?? '');
-  let valid = false;
-
-  if (password) {
-    try {
-      valid = await supabaseRpc<boolean>(
-        getSiteStorageEnv(Astro.locals),
-        'verify_dashboard_login_password',
-        { p_password: password },
-      );
-    } catch {
-      error = 'ログイン認証に接続できません。少し待って再試行してください。';
-    }
-  }
-
-  if (valid && signingSecret) {
-    const token = await dashboardAuthToken(signingSecret);
-    Astro.cookies.set('ace-dash-auth', token, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: DASHBOARD_IDLE_TIMEOUT_SECONDS,
-    });
-    return Astro.redirect('/dashboard');
-  }
-
-  if (!error) error = 'パスワードが違います';
 }
 ---
 <!DOCTYPE html>
@@ -166,7 +131,6 @@ if (Astro.request.method === 'POST') {
     <div class="title">MASA OS</div>
     <div class="subtitle">private dashboard / admin access</div>
 
-    {error && <div class="error">{error}</div>}
     <div id="oauth-message" class="message" hidden></div>
 
     <div id="login-panel">
@@ -177,12 +141,12 @@ if (Astro.request.method === 'POST') {
 
       <div class="divider">または</div>
 
-      <form method="POST">
+      <form id="password-login-form">
         <div class="form-group">
           <label for="password">Dashboard Password</label>
-          <input type="password" id="password" name="password" autocomplete="current-password" />
+          <input type="password" id="password" name="password" autocomplete="current-password" maxlength="128" required />
         </div>
-        <button type="submit">パスワードで入る</button>
+        <button type="submit" id="password-login-submit">パスワードで入る</button>
       </form>
 
       <button type="button" class="recovery-link" id="password-recovery">パスワードを忘れた / 再設定する</button>
@@ -204,11 +168,14 @@ if (Astro.request.method === 'POST') {
     </form>
   </div>
 
-  <script>
+  <script is:inline>
     const card = document.getElementById('auth-card');
     const supabaseUrl = card?.dataset.supabaseUrl || '';
     const googleButton = document.getElementById('google-login');
     const recoveryButton = document.getElementById('password-recovery');
+    const passwordForm = document.getElementById('password-login-form');
+    const passwordInput = document.getElementById('password');
+    const passwordLoginSubmit = document.getElementById('password-login-submit');
     const loginPanel = document.getElementById('login-panel');
     const resetPanel = document.getElementById('reset-panel');
     const message = document.getElementById('oauth-message');
@@ -242,6 +209,42 @@ if (Astro.request.method === 'POST') {
     googleButton?.addEventListener('click', () => beginGoogle('login'));
     recoveryButton?.addEventListener('click', () => beginGoogle('reset'));
 
+    passwordForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = passwordInput?.value || '';
+      if (!password) {
+        showMessage('パスワードを入力してください。', true);
+        return;
+      }
+
+      if (passwordLoginSubmit) passwordLoginSubmit.disabled = true;
+      showMessage('ログインしています…');
+
+      try {
+        const response = await fetch('/api/dashboard/password-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok && result.ok) {
+          window.location.replace('/dashboard');
+          return;
+        }
+
+        if (response.status === 401) {
+          showMessage('パスワードが違います。', true);
+        } else {
+          showMessage('ログイン認証に接続できません。少し待って再試行してください。', true);
+        }
+      } catch {
+        showMessage('ログイン認証に接続できません。少し待って再試行してください。', true);
+      } finally {
+        if (passwordLoginSubmit) passwordLoginSubmit.disabled = false;
+      }
+    });
+
     async function processGoogleCallback() {
       if (!window.location.hash) {
         finishCallbackUi();
@@ -271,22 +274,27 @@ if (Astro.request.method === 'POST') {
         if (loginPanel) loginPanel.hidden = true;
         if (resetPanel) resetPanel.hidden = false;
         finishCallbackUi();
-        showMessage('Googleでadmin本人確認ができました。新しいパスワードを設定できます。');
+        showMessage('新しいパスワードを入力してください。保存時にGoogleのadmin権限を確認します。');
         return;
       }
 
-      const response = await fetch('/api/dashboard/google-login', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const result = await response.json().catch(() => ({}));
-      if (response.ok && result.ok) {
-        window.location.replace('/dashboard');
-        return;
-      }
+      try {
+        const response = await fetch('/api/dashboard/google-login', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const result = await response.json().catch(() => ({}));
+        if (response.ok && result.ok) {
+          window.location.replace('/dashboard');
+          return;
+        }
 
-      finishCallbackUi();
-      showMessage('このGoogleアカウントにはDashboard admin権限がありません。', true);
+        finishCallbackUi();
+        showMessage('このGoogleアカウントにはDashboard admin権限がありません。', true);
+      } catch {
+        finishCallbackUi();
+        showMessage('ログイン認証に接続できませんでした。もう一度Googleログインから進んでください。', true);
+      }
     }
 
     resetPanel?.addEventListener('submit', async (event) => {
@@ -309,25 +317,31 @@ if (Astro.request.method === 'POST') {
 
       if (resetSubmit) resetSubmit.disabled = true;
       showMessage('新しいパスワードを保存しています…');
-      const response = await fetch('/api/dashboard/reset-password', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${recoveryAccessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      });
-      const result = await response.json().catch(() => ({}));
+      const accessToken = recoveryAccessToken;
       recoveryAccessToken = '';
+      try {
+        const response = await fetch('/api/dashboard/reset-password', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password }),
+        });
+        const result = await response.json().catch(() => ({}));
 
-      if (response.ok && result.ok) {
-        showMessage('再設定しました。Dashboardへ移動します。');
-        window.location.replace('/dashboard');
-        return;
+        if (response.ok && result.ok) {
+          showMessage('再設定しました。Dashboardへ移動します。');
+          window.location.replace('/dashboard');
+          return;
+        }
+
+        showMessage('再設定できませんでした。Google本人確認からもう一度やり直してください。', true);
+      } catch {
+        showMessage('保存結果を確認できませんでした。Google本人確認からもう一度やり直してください。', true);
+      } finally {
+        if (resetSubmit) resetSubmit.disabled = false;
       }
-
-      if (resetSubmit) resetSubmit.disabled = false;
-      showMessage('再設定できませんでした。Google本人確認からもう一度やり直してください。', true);
     });
 
     void processGoogleCallback();

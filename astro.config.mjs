@@ -28,10 +28,14 @@ export default { renderToString, renderToStaticMarkup, renderToReadableStream };
 
 export default defineConfig({
   output: 'server',
+  // Dashboard sessions use the signed cookie contract, not Astro's session API.
+  // Avoid silently provisioning a SESSION KV binding during the Astro 7 cutover.
+  session: false,
   adapter: cloudflare({
-    platformProxy: {
-      enabled: true,
-    },
+    // Preserve pre-v14 image behavior; do not silently provision a new Images binding.
+    imageService: 'compile',
+    // Keep build-time prerendering on Node while on-demand routes run in workerd.
+    prerenderEnvironment: 'node',
   }),
   integrations: [react()],
   vite: {

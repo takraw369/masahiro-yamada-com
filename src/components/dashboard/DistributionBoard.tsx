@@ -276,7 +276,11 @@ export default function DistributionBoard() {
         return response.json() as Promise<DistributionApiResponse>;
       })
       .then((payload) => {
-        if (cancelled || !payload.ok || !Array.isArray(payload.content)) return;
+        if (cancelled) return;
+        if (!payload.ok || !Array.isArray(payload.content)) {
+          setSyncState('fallback');
+          return;
+        }
         setQueue((current) => {
           const next = mergeCanonical(current, payload.content);
           saveQueue(next);

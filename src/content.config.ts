@@ -1,10 +1,11 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const tips = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: './src/content/tips' }),
   schema: z.object({
     title: z.string(),
-    slug: z.string().optional(),
     publishedAt: z.coerce.date(),
     category: z.enum(['比較三原則', '第0層', 'be-do-have', 'FLOW', 'フジサン', 'その他']),
     publish: z.boolean().optional(),
