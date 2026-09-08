@@ -1,3 +1,4 @@
+import { env as workerEnv } from 'cloudflare:workers';
 import { dashboardOwnerKey } from './dashboardAuth';
 
 export interface SiteStorageEnv {
@@ -12,8 +13,8 @@ const jsonHeaders = (key: string) => ({
   'Content-Type': 'application/json',
 });
 
-export function getSiteStorageEnv(locals: any): SiteStorageEnv {
-  return (locals?.runtime?.env || {}) as SiteStorageEnv;
+export function getSiteStorageEnv(_locals?: any): SiteStorageEnv {
+  return workerEnv as unknown as SiteStorageEnv;
 }
 
 export function hasSupabase(env: SiteStorageEnv) {
