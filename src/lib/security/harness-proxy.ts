@@ -27,8 +27,15 @@ async function readLimited(stream: ReadableStream<Uint8Array> | null, limit: num
 }
 
 // Port the narrow action contract from PR #6, retaining master's admin login.
-export async function handleHarnessProxy(provider: 'x' | 'line', context: APIContext) {
-  const env = context.locals.runtime?.env as Record<string, string> | undefined;
+// Production callers pass Cloudflare's direct env binding. The locals fallback is
+// retained only for the Node-native regression harness, where Astro runtime locals
+// are represented by a plain test object rather than the removed Astro v6 API.
+export async function handleHarnessProxy(
+  provider: 'x' | 'line',
+  context: APIContext,
+  runtimeEnv?: Record<string, string>,
+) {
+  const env = runtimeEnv ?? ((context.locals as any)?.runtime?.env as Record<string, string> | undefined);
   const url = new URL(context.request.url);
   if (!await verifyDashboardSession(context.cookies.get('ace-dash-auth')?.value, env?.DASHBOARD_PASSWORD || '', url.origin)) {
     return jsonResponse({ error: 'unauthorized' }, 401);
