@@ -2,9 +2,7 @@
 
 /**
  * Transitional runtime typing for the current Cloudflare/Astro integration.
- * Keep this intentionally narrow. Legacy D1 typing remains legacy debt and is not
- * redefined here because ambient D1 declarations can change diagnostics in files
- * outside this release.
+ * Keep this intentionally narrow while legacy source files still reference locals.
  */
 declare namespace App {
   interface Locals {
@@ -13,4 +11,13 @@ declare namespace App {
       [key: string]: unknown;
     };
   }
+}
+
+/**
+ * Astro 6+ / @astrojs/cloudflare exposes Worker bindings through this virtual
+ * module at runtime. Keep the declaration deliberately generic until generated
+ * Cloudflare binding types become the repository-wide source of truth.
+ */
+declare module 'cloudflare:workers' {
+  export const env: Record<string, unknown>;
 }
