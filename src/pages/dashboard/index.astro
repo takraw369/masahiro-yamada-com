@@ -1,6 +1,25 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import VisualPromptCards from '../../components/dashboard/VisualPromptCards.astro';
+import AiOperatingMetrics from '../../components/dashboard/AiOperatingMetrics.astro';
+import { getSiteStorageEnv, getDashboardOwnerKey, hasSupabase, supabaseRpc } from '../../lib/siteStorage';
+
+let aiMetrics: Record<string, unknown> | null = null;
+let aiMetricsError: string | null = null;
+
+try {
+  const env = getSiteStorageEnv(Astro.locals);
+  if (!hasSupabase(env)) {
+    aiMetricsError = 'supabase_not_configured';
+  } else {
+    const ownerKey = await getDashboardOwnerKey(env);
+    aiMetrics = await supabaseRpc<Record<string, unknown>>(env, 'masa_ai_os_metrics_v1', {
+      p_owner_key: ownerKey,
+    });
+  }
+} catch (error) {
+  aiMetricsError = String(error).slice(0, 180);
+}
 
 const focusItems = [
   {
@@ -94,6 +113,8 @@ const pendingMedia = [
         ))}
       </div>
     </section>
+
+    <AiOperatingMetrics metrics={aiMetrics} error={aiMetricsError} />
 
     <VisualPromptCards />
 
