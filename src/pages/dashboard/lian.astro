@@ -1,4 +1,5 @@
 ---
+import { env as workerEnv } from 'cloudflare:workers';
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
 interface Env {
@@ -6,7 +7,7 @@ interface Env {
   LINE_HARNESS_API_KEY: string;
 }
 
-const env = Astro.locals.runtime?.env as Env | undefined;
+const env = workerEnv as unknown as Env;
 const baseUrl = env?.LINE_HARNESS_URL ?? 'https://line-crm-worker.takraw501.workers.dev';
 const apiKey = env?.LINE_HARNESS_API_KEY ?? '';
 
@@ -16,17 +17,19 @@ let friendTotal = 0;
 let error = '';
 
 try {
+  if (!apiKey) throw new Error('line_unavailable');
   const [accRes, friendRes] = await Promise.all([
-    fetch(`${baseUrl}/api/line-accounts`, { headers: { Authorization: `Bearer ${apiKey}` } }),
-    fetch(`${baseUrl}/api/friends?limit=10`, { headers: { Authorization: `Bearer ${apiKey}` } }),
+    fetch(`${baseUrl}/api/line-accounts`, { headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'error', signal: AbortSignal.timeout(10000) }),
+    fetch(`${baseUrl}/api/friends?limit=10`, { headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'error', signal: AbortSignal.timeout(10000) }),
   ]);
+  if (!accRes.ok || !friendRes.ok) throw new Error('line_unavailable');
   const accJson = await accRes.json() as any;
   const friendJson = await friendRes.json() as any;
   accounts = accJson.data ?? [];
   friends = friendJson.data ?? [];
   friendTotal = friendJson.total ?? friends.length;
-} catch (e) {
-  error = String(e);
+} catch {
+  error = 'LINEの情報を取得できませんでした。時間をおいて再度お試しください。';
 }
 ---
 <DashboardLayout title="リアン">

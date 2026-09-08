@@ -4,14 +4,14 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node ./scripts/patch-worker.mjs",
+    "build": "astro build && node ./scripts/patch-worker.mjs && node scripts/verify-worker-config.mjs",
     "preview": "node scripts/preview.mjs",
-    "deploy": "astro build && node ./scripts/patch-worker.mjs && wrangler deploy",
+    "deploy": "npm run build && wrangler deploy",
     "astro": "astro",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "astro check",
     "typecheck:release": "node scripts/typecheck-release.mjs",
-    "test:preview": "node scripts/smoke-preview.mjs",
+    "test:preview": "node --experimental-strip-types scripts/smoke-preview.mjs",
     "security:check": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {

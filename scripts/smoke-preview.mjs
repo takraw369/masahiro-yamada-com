@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createServer } from 'node:net';
-import { startPreview } from './local-preview.mjs';
+import { startPreview, ISOLATED_SESSION_SECRET } from './local-preview.mjs';
+import { createDashboardSession } from '../src/lib/dashboardAuth.ts';
 
 const server = createServer();
 server.listen(0, '127.0.0.1');
@@ -10,7 +11,7 @@ const port = server.address().port;
 server.close();
 await once(server, 'close');
 const base = `http://127.0.0.1:${port}`;
-const child = await startPreview(port);
+const child = await startPreview(port, { authenticated: true });
 let logs = '';
 let startupError;
 child.stdout.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
@@ -59,7 +60,18 @@ try {
   }
   const csrf = await previewFetch(base + '/api/x-harness/posts', { method: 'POST', headers: { Origin: 'https://other.example.test' } });
   assert.equal(csrf.status, 403);
-  console.log('Worker preview smoke passed: public pages, auth bootstrap and private boundaries.');
+  const session = await createDashboardSession(ISOLATED_SESSION_SECRET, base);
+  for (const path of ['/dashboard', '/dashboard/lian', '/dashboard/funnel', '/dashboard/schedule', '/dashboard/voice']) {
+    const res = await previewFetch(base + path, { redirect: 'manual', headers: { Cookie: `ace-dash-auth=${session}` } });
+    assert.equal(res.status, 200, path);
+    assert.match(res.headers.get('cache-control'), /no-store/, path);
+    assert.match(res.headers.get('set-cookie'), /ace-dash-auth=v2\./, path);
+    const html = await res.text();
+    assert.ok(html.includes('<html'), path);
+    if (path === '/dashboard/lian') assert.ok(html.includes('LINEの情報を取得できませんでした'));
+    if (path === '/dashboard/funnel') assert.ok(html.includes('現在の集計ではありません'));
+  }
+  console.log('Worker preview smoke passed: public routes, auth bootstrap, private boundaries and authenticated Dashboard rendering.');
 } catch (error) {
   console.error(logs);
   throw error;

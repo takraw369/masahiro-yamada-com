@@ -35,7 +35,7 @@ Fix stale documentation when a verified mismatch is found.
 - Legacy domains redirect to the canonical domain; preserve path and query where intended.
 - Cloudflare Worker configuration in `wrangler.toml` is production-sensitive.
 - Supabase is primary storage where current code/config says so; D1 is legacy/fallback where explicitly retained.
-- ACE public Tips are sourced from `ace-vault` and mirrored by `scripts/sync-from-vault.mjs`.
+- Drive / MASA_OS is canonical for Knowledge and approved public Tips. Builds consume reviewed, committed exports; retired Obsidian vaults must not be read or synchronized. `scripts/sync-from-vault.mjs` is a no-op compatibility entrypoint.
 - Only Tips explicitly marked public may enter this public repository.
 - Do not turn mirrored content into a second canonical copy.
 

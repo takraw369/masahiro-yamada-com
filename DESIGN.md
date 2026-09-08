@@ -269,7 +269,7 @@
 
 ## Framework Context
 
-- **Framework**: Astro 5.x with `@astrojs/react` (verify exact/current version in `package.json`)
+- **Framework**: Astro 7.x with `@astrojs/react` (verify exact/current versions in `package-lock.json`)
 - **Adapter**: `@astrojs/cloudflare` (Workers)
 - **Styling**: Inline styles for React components, CSS variables for Astro pages
 - **Deploy**: Cloudflare Workers via GitHub Actions CI/CD
