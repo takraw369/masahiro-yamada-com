@@ -19,10 +19,14 @@ test('legacy D1 funnel import uses the registered-owner v2 RPC', () => {
   assert.match(migration, /'owner_key',\s*p_owner_key/i);
 });
 
-test('ungated legacy import RPC loses anonymous and authenticated execution', () => {
+test('ungated legacy import RPC loses every public API execution path', () => {
   assert.match(
     migration,
-    /revoke execute on function public\.trinity_funnel_event_import\([\s\S]*?\) from anon, authenticated;/i,
+    /revoke execute on function public\.trinity_funnel_event_import\([\s\S]*?\) from public, anon, authenticated;/i,
+  );
+  assert.match(
+    migration,
+    /revoke all on function public\.trinity_funnel_event_import_v2\([\s\S]*?\) from public;/i,
   );
   assert.match(
     migration,
