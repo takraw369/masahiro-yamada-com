@@ -2,32 +2,11 @@ import type { APIContext } from 'astro';
 import {
   getDashboardOwnerKey,
   getSiteStorageEnv,
-  migrateLegacyD1,
   supabaseRpc,
 } from '../../../lib/siteStorage';
 
-async function ensureD1Table(db: D1Database) {
-  await db.prepare(`
-    CREATE TABLE IF NOT EXISTS dashboard_feedback (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT NOT NULL DEFAULT 'masa',
-      page TEXT NOT NULL DEFAULT '/dashboard',
-      message TEXT NOT NULL,
-      context TEXT,
-      status TEXT NOT NULL DEFAULT 'new',
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `).run();
-}
-
 export const GET = async ({ locals }: APIContext) => {
   const env = getSiteStorageEnv(locals);
-
-  try {
-    await migrateLegacyD1(env);
-  } catch {
-    // Best-effort legacy import; the read path below still has D1 fallback.
-  }
 
   try {
     const ownerKey = await getDashboardOwnerKey(env);
@@ -52,43 +31,26 @@ export const GET = async ({ locals }: APIContext) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch {
-    if (!env.DB) {
-      return new Response(JSON.stringify({ ok: true, items: [], storage: 'unavailable' }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    try {
-      await ensureD1Table(env.DB);
-      const rows = await env.DB.prepare(
-        `SELECT id, page, message, context, status, created_at
-         FROM dashboard_feedback
-         WHERE user_id = ?
-         ORDER BY id DESC
-         LIMIT 20`
-      ).bind('masa').all();
-
-      return new Response(JSON.stringify({
-        ok: true,
-        items: rows.results,
-        storage: 'd1-fallback',
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (error) {
-      return new Response(JSON.stringify({ ok: false, items: [], error: String(error) }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    return new Response(JSON.stringify({ ok: false, items: [], storage: 'unavailable', error: 'storage_unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
 
 export const POST = async ({ request, locals }: APIContext) => {
   const env = getSiteStorageEnv(locals);
-  const body = await request.json<{ page?: string; message?: string; context?: string }>();
-  const message = body.message?.trim();
-  const page = body.page?.trim() || '/dashboard';
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid_body');
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  const message = typeof body.message === 'string' ? body.message.trim() : '';
+  const page = typeof body.page === 'string' ? body.page.trim() || '/dashboard' : '/dashboard';
   const context = typeof body.context === 'string' ? body.context : null;
 
   if (!message) {
@@ -110,37 +72,10 @@ export const POST = async ({ request, locals }: APIContext) => {
     return new Response(JSON.stringify({ ok: true, stored: true, id, storage: 'supabase' }), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (supabaseError) {
-    if (!env.DB) {
-      return new Response(JSON.stringify({ ok: false, error: String(supabaseError) }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    try {
-      await ensureD1Table(env.DB);
-      const result = await env.DB.prepare(
-        `INSERT INTO dashboard_feedback (user_id, page, message, context)
-         VALUES (?, ?, ?, ?)`
-      ).bind('masa', page, message, context).run();
-
-      return new Response(JSON.stringify({
-        ok: true,
-        stored: true,
-        id: result.meta.last_row_id,
-        storage: 'd1-fallback',
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (d1Error) {
-      return new Response(JSON.stringify({
-        ok: false,
-        error: `supabase=${String(supabaseError)};d1=${String(d1Error)}`,
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+  } catch {
+    return new Response(JSON.stringify({ ok: false, stored: false, storage: 'unavailable', error: 'storage_unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
