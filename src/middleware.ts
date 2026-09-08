@@ -35,11 +35,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith('/dashboard') &&
     pathname !== '/dashboard/login' &&
     !pathname.startsWith('/dashboard/logout');
+  // This machine-to-machine endpoint has its own constant-time Bearer-secret gate.
+  // Keep it outside browser session/Origin checks so Apps Script can call it.
+  const isCalendarSyncApi = pathname === '/api/dashboard/calendar/sync';
   const isDashboardApi =
     pathname.startsWith('/api/dashboard') &&
-    !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname);
+    !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname) &&
+    !isCalendarSyncApi;
   const isHarnessApi = /^\/api\/(x|line)-harness(?:\/|$)/.test(pathname);
-  const isPrivate = pathname.startsWith('/dashboard') || pathname.startsWith('/api/dashboard') || isHarnessApi;
+  const isPrivate =
+    pathname.startsWith('/dashboard') ||
+    (pathname.startsWith('/api/dashboard') && !isCalendarSyncApi) ||
+    isHarnessApi;
 
   if (isPrivate && !isSameOriginRequest(context.request)) {
     return new Response(JSON.stringify({ ok: false, error: 'same_origin_required' }), {
