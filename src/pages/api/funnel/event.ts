@@ -54,35 +54,15 @@ export const POST = async ({ request, locals }: APIContext) => {
     return new Response(JSON.stringify({ ok: true, stored: true, id, storage: 'supabase' }), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (supabaseError) {
-    // Public diagnosis must remain usable even if analytics storage is unavailable.
-    if (!env.DB) {
-      return new Response(JSON.stringify({ ok: true, stored: false, storage: 'unavailable' }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    try {
-      await env.DB.prepare(
-        `INSERT INTO trinity_funnel_events
-          (session_id, event_name, source, medium, campaign, path)
-         VALUES (?, ?, ?, ?, ?, ?)`
-      )
-        .bind(sessionId, eventName, source, medium, campaign, path)
-        .run();
-
-      return new Response(JSON.stringify({ ok: true, stored: true, storage: 'd1-fallback' }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch {
-      return new Response(JSON.stringify({
-        ok: true,
-        stored: false,
-        storage: 'unavailable',
-        fallback: String(supabaseError),
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+  } catch {
+    // Public diagnosis must remain usable even if analytics storage is unavailable;
+    // post-cutover analytics must not create D1-only data that will not replay.
+    return new Response(JSON.stringify({
+      ok: true,
+      stored: false,
+      storage: 'unavailable',
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
