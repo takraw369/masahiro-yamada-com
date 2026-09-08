@@ -26,7 +26,12 @@ test('Calendar migration enforces owner capabilities, ACLs, atomicity and freshn
     const read = (key = owner) => db.query('select * from public.masa_calendar_snapshot_get_v2($1,$2,$3)', [key, from, to]);
     for (const role of ['anon', 'authenticated']) {
       await db.exec(`set role ${role}`);
-      await assert.rejects(db.query('select * from public.masa_calendar_events'), /permission denied/);
+      for (const table of ['masa_calendar_events', 'masa_calendar_sync_state']) {
+        await assert.rejects(db.query(`select * from public.${table}`), /permission denied/);
+      }
+      const { rows: acl } = await db.query("select proname, has_function_privilege(current_user, oid, 'EXECUTE') as allowed from pg_proc where proname in ('masa_calendar_snapshot_get_v1', 'masa_calendar_snapshot_replace_v1', 'masa_calendar_sync_status_v1')");
+      assert.equal(acl.length, 3);
+      assert.ok(acl.every(row => !row.allowed));
       await assert.rejects(db.query('select public.masa_calendar_sync_status_v1($1)', [owner]), /permission denied/);
       await assert.rejects(read(foreign), /dashboard_owner_required/);
       await assert.rejects(db.query('select public.masa_calendar_sync_status_v2($1)', [foreign]), /dashboard_owner_required/);

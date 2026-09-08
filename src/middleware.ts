@@ -38,7 +38,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     !pathname.startsWith('/dashboard/logout');
   // This machine-to-machine endpoint has its own constant-time Bearer-secret gate.
   // Keep it outside browser session/Origin checks so Apps Script can call it.
-  const isCalendarSyncApi = pathname === '/api/dashboard/calendar/sync';
+  const isCalendarSyncApi = pathname === '/api/dashboard/calendar/sync' && context.request.method === 'POST';
   const isDashboardApi =
     pathname.startsWith('/api/dashboard') &&
     !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname) &&
@@ -46,10 +46,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isHarnessApi = /^\/api\/(x|line)-harness(?:\/|$)/.test(pathname);
   const isPrivate =
     pathname.startsWith('/dashboard') ||
-    (pathname.startsWith('/api/dashboard') && !isCalendarSyncApi) ||
+    pathname.startsWith('/api/dashboard') ||
     isHarnessApi;
 
-  if (isPrivate && !isSameOriginRequest(context.request)) {
+  if (isPrivate && !isCalendarSyncApi && !isSameOriginRequest(context.request)) {
     return new Response(JSON.stringify({ ok: false, error: 'same_origin_required' }), {
       status: 403, headers: privateHeaders({ 'Content-Type': 'application/json' }),
     });

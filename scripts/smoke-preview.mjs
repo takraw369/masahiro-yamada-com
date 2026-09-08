@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
 import { once } from 'node:events';
 import { createServer as createHttpServer } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
@@ -38,6 +39,7 @@ const base = `http://127.0.0.1:${port}`;
 const stubBase = `http://127.0.0.1:${stubPort}`;
 const publishableKey = 'preview-publishable-key';
 const sessionKey = 'preview-only-session-key-32chars';
+const ownerKey = createHmac('sha256', sessionKey).update('dashboard-storage-owner').digest('hex');
 const calendarSyncSecret = 'calendar-preview-bearer';
 const validPassword = 'preview-password-123';
 const resetPassword = 'preview-reset-password-456';
@@ -97,11 +99,13 @@ const supabaseStub = createHttpServer(async (request, response) => {
     }
 
     if (request.method === 'POST' && url.pathname === '/rest/v1/rpc/masa_calendar_snapshot_get_v2') {
+      assert.equal(JSON.parse(await requestBody(request)).p_owner_key, ownerKey);
       json(response, 200, [calendarEvent]);
       return;
     }
 
     if (request.method === 'POST' && url.pathname === '/rest/v1/rpc/masa_calendar_sync_status_v2') {
+      assert.equal(JSON.parse(await requestBody(request)).p_owner_key, ownerKey);
       json(response, 200, [{
         synced_at: '2026-09-08T14:00:00.000Z',
         source_synced_at: '2026-09-08T13:59:59.000Z',
@@ -114,6 +118,7 @@ const supabaseStub = createHttpServer(async (request, response) => {
 
     if (request.method === 'POST' && url.pathname === '/rest/v1/rpc/masa_calendar_snapshot_replace_v2') {
       const body = JSON.parse((await requestBody(request)) || '{}');
+      assert.equal(body.p_owner_key, ownerKey);
       calendarReplaceBodies.push(body);
       json(response, 200, 1);
       return;
@@ -149,9 +154,9 @@ try {
   child.on('error', (error) => { startupError = error; });
 
   let ready = false;
-  for (let attempt = 0; attempt < 30; attempt++) {
+  for (let attempt = 0; attempt < 120; attempt++) {
     if (startupError) throw startupError;
-    if (child.exitCode !== null) throw new Error(logs);
+    if (child.exitCode !== null || child.signalCode !== null) throw new Error(logs);
     try {
       const res = await previewFetch(base);
       await res.arrayBuffer();
@@ -226,6 +231,13 @@ try {
   });
   assert.equal(schedulePage.status, 200);
   assert.match(schedulePage.headers.get('content-type'), /text\/html/);
+  assert.match(await schedulePage.text(), /PersonalSchedule/);
+  for (const path of ['/dashboard/content-schedule', '/dashboard/lian', '/dashboard/funnel', '/dashboard/voice', '/dashboard/intelligence']) {
+    const response = await previewFetch(base + path, { headers: { Cookie: googleCookie } });
+    assert.equal(response.status, 200, path);
+    assert.match(response.headers.get('cache-control'), /no-store/);
+    await response.arrayBuffer();
+  }
 
   const calendarRead = await previewFetch(base + '/api/dashboard/calendar', {
     headers: { Cookie: googleCookie },
@@ -236,17 +248,17 @@ try {
   assert.deepEqual(calendarReadBody.events, [calendarEvent]);
   assert.equal(calendarReadBody.sync.event_count, 1);
 
-  const passwordLogin = await previewFetch(base + '/dashboard/login', {
+  const passwordLogin = await previewFetch(base + '/api/dashboard/password-login', {
     method: 'POST',
     headers: {
       Origin: base,
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/json',
     },
-    body: new URLSearchParams({ password: validPassword }),
+    body: JSON.stringify({ password: validPassword }),
     redirect: 'manual',
   });
-  assert.equal(passwordLogin.status, 302);
-  assert.equal(passwordLogin.headers.get('location'), '/dashboard');
+  assert.equal(passwordLogin.status, 200);
+  assert.equal((await passwordLogin.json()).ok, true);
   const passwordCookie = cookieFrom(passwordLogin);
   const passwordDashboard = await previewFetch(base + '/dashboard', {
     headers: { Cookie: passwordCookie },
@@ -281,6 +293,7 @@ try {
     body: '{}',
   });
   assert.equal(calendarUnauthorized.status, 401);
+  assert.equal(calendarUnauthorized.headers.get('referrer-policy'), 'no-referrer');
   assert.equal((await calendarUnauthorized.json()).error, 'unauthorized');
 
   const sourceSyncedAt = new Date().toISOString();
