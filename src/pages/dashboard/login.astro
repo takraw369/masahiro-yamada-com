@@ -1,10 +1,11 @@
 ---
+import { env as workerEnv } from 'cloudflare:workers';
 import { createDashboardSession, verifyDashboardSession, dashboardCookieOptions } from '../../lib/dashboardAuth';
 import { getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
 
-const env = Astro.locals.runtime?.env as Record<string, string> | undefined;
-const signingSecret = env?.DASHBOARD_PASSWORD ?? '';
-const supabaseUrl = env?.SUPABASE_URL ?? '';
+const env = workerEnv as unknown as Record<string, string>;
+const signingSecret = env.DASHBOARD_PASSWORD ?? '';
+const supabaseUrl = env.SUPABASE_URL ?? '';
 const cookie = Astro.cookies.get('ace-dash-auth')?.value;
 const origin = new URL(Astro.request.url).origin;
 
