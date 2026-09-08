@@ -1,7 +1,6 @@
 ---
 import { env as workerEnv } from 'cloudflare:workers';
-import { createDashboardSession, verifyDashboardSession, dashboardCookieOptions } from '../../lib/dashboardAuth';
-import { getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
+import { verifyDashboardSession } from '../../lib/dashboardAuth';
 
 const env = workerEnv as unknown as Record<string, string>;
 const signingSecret = env.DASHBOARD_PASSWORD ?? '';
@@ -11,34 +10,6 @@ const origin = new URL(Astro.request.url).origin;
 
 if (await verifyDashboardSession(cookie, signingSecret, origin)) {
   return Astro.redirect('/dashboard');
-}
-
-let error = '';
-
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  const password = String(formData.get('password') ?? '');
-  let valid = false;
-
-  if (password) {
-    try {
-      valid = await supabaseRpc<boolean>(
-        getSiteStorageEnv(Astro.locals),
-        'verify_dashboard_login_password',
-        { p_password: password },
-      );
-    } catch {
-      error = 'ログイン認証に接続できません。少し待って再試行してください。';
-    }
-  }
-
-  if (valid && signingSecret) {
-    const token = await createDashboardSession(signingSecret, origin);
-    Astro.cookies.set('ace-dash-auth', token, dashboardCookieOptions);
-    return Astro.redirect('/dashboard');
-  }
-
-  if (!error) error = 'パスワードが違います';
 }
 ---
 <!DOCTYPE html>
@@ -160,7 +131,6 @@ if (Astro.request.method === 'POST') {
     <div class="title">MASA OS</div>
     <div class="subtitle">private dashboard / admin access</div>
 
-    {error && <div class="error">{error}</div>}
     <div id="oauth-message" class="message" hidden></div>
 
     <div id="login-panel">
@@ -171,12 +141,12 @@ if (Astro.request.method === 'POST') {
 
       <div class="divider">または</div>
 
-      <form method="POST">
+      <form id="password-login-form">
         <div class="form-group">
           <label for="password">Dashboard Password</label>
-          <input type="password" id="password" name="password" autocomplete="current-password" />
+          <input type="password" id="password" name="password" autocomplete="current-password" maxlength="128" required />
         </div>
-        <button type="submit">パスワードで入る</button>
+        <button type="submit" id="password-login-submit">パスワードで入る</button>
       </form>
 
       <button type="button" class="recovery-link" id="password-recovery">パスワードを忘れた / 再設定する</button>
@@ -203,6 +173,9 @@ if (Astro.request.method === 'POST') {
     const supabaseUrl = card?.dataset.supabaseUrl || '';
     const googleButton = document.getElementById('google-login');
     const recoveryButton = document.getElementById('password-recovery');
+    const passwordForm = document.getElementById('password-login-form');
+    const passwordInput = document.getElementById('password');
+    const passwordLoginSubmit = document.getElementById('password-login-submit');
     const loginPanel = document.getElementById('login-panel');
     const resetPanel = document.getElementById('reset-panel');
     const message = document.getElementById('oauth-message');
@@ -235,6 +208,42 @@ if (Astro.request.method === 'POST') {
 
     googleButton?.addEventListener('click', () => beginGoogle('login'));
     recoveryButton?.addEventListener('click', () => beginGoogle('reset'));
+
+    passwordForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = passwordInput?.value || '';
+      if (!password) {
+        showMessage('パスワードを入力してください。', true);
+        return;
+      }
+
+      if (passwordLoginSubmit) passwordLoginSubmit.disabled = true;
+      showMessage('ログインしています…');
+
+      try {
+        const response = await fetch('/api/dashboard/password-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok && result.ok) {
+          window.location.replace('/dashboard');
+          return;
+        }
+
+        if (response.status === 401) {
+          showMessage('パスワードが違います。', true);
+        } else {
+          showMessage('ログイン認証に接続できません。少し待って再試行してください。', true);
+        }
+      } catch {
+        showMessage('ログイン認証に接続できません。少し待って再試行してください。', true);
+      } finally {
+        if (passwordLoginSubmit) passwordLoginSubmit.disabled = false;
+      }
+    });
 
     async function processGoogleCallback() {
       if (!window.location.hash) {
