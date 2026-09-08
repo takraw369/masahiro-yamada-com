@@ -45,8 +45,8 @@ begin
     raise exception 'intelligence_archived';
   end if;
 
-  v_trust := greatest(0, least(5, coalesce((v_row.scores->>'trust')::integer, 0)));
-  v_signal := greatest(0, least(5, coalesce((v_row.scores->>'signal')::integer, 0)));
+  v_trust := greatest(0, least(5, coalesce((v_row.scores->>'trust')::numeric::integer, 0)));
+  v_signal := greatest(0, least(5, coalesce((v_row.scores->>'signal')::numeric::integer, 0)));
   v_claim := coalesce(nullif(btrim(v_row.title), ''), 'Untitled source');
   v_interpretation := coalesce(nullif(btrim(v_row.why_it_matters), ''), 'MASA interpretation pending review.');
   v_one_thing := left(v_interpretation, 700);
@@ -75,7 +75,7 @@ begin
 
   update public.masa_intelligence_feed
   set content_seed = left(v_seed, 6000),
-      status = 'content_seed',
+      status = case when v_row.status in ('verified','evidence','asset','project') then v_row.status else 'content_seed' end,
       output_targets = coalesce(v_output_targets, array['sns','x','threads','instagram','note']::text[]),
       reviewed_at = now(),
       updated_at = now()
