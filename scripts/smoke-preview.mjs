@@ -39,7 +39,7 @@ const base = `http://127.0.0.1:${port}`;
 const stubBase = `http://127.0.0.1:${stubPort}`;
 const publishableKey = 'preview-publishable-key';
 const sessionKey = 'preview-only-session-key-32chars';
-const ownerKey = createHmac('sha256', sessionKey).update('dashboard-storage-owner').digest('hex');
+const ownerKey = createHmac('sha256', sessionKey).update('masahiro-yamada.com:dashboard-storage-owner:v1').digest('hex');
 const calendarSyncSecret = 'calendar-preview-bearer';
 const validPassword = 'preview-password-123';
 const resetPassword = 'preview-reset-password-456';
@@ -49,8 +49,8 @@ const calendarReplaceBodies = [];
 const calendarEvent = {
   event_id: 'preview-event-1',
   title: 'Preview Calendar Event',
-  start_at: '2026-09-09T01:00:00.000Z',
-  end_at: '2026-09-09T02:00:00.000Z',
+  start_at: new Date(Date.now() + 3600000).toISOString(),
+  end_at: new Date(Date.now() + 7200000).toISOString(),
   all_day: false,
   location: 'Preview Room',
 };
@@ -107,8 +107,8 @@ const supabaseStub = createHttpServer(async (request, response) => {
     if (request.method === 'POST' && url.pathname === '/rest/v1/rpc/masa_calendar_sync_status_v2') {
       assert.equal(JSON.parse(await requestBody(request)).p_owner_key, ownerKey);
       json(response, 200, [{
-        synced_at: '2026-09-08T14:00:00.000Z',
-        source_synced_at: '2026-09-08T13:59:59.000Z',
+        synced_at: new Date().toISOString(),
+        source_synced_at: new Date(Date.now() - 1000).toISOString(),
         window_start: '2026-09-08T00:00:00.000Z',
         window_end: '2026-10-08T00:00:00.000Z',
         event_count: 1,
