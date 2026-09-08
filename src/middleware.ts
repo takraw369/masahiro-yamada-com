@@ -1,3 +1,4 @@
+import { env as workerEnv } from 'cloudflare:workers';
 import { defineMiddleware } from 'astro:middleware';
 import { createDashboardSession, verifyDashboardSession, dashboardCookieOptions } from './lib/dashboardAuth';
 import { isSameOriginRequest, privateHeaders } from './lib/security/request.mjs';
@@ -47,8 +48,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   if (isDashboardPage || isDashboardApi || isHarnessApi) {
-    const env = context.locals.runtime?.env as Record<string, string> | undefined;
-    const password = env?.DASHBOARD_PASSWORD ?? '';
+    const env = workerEnv as unknown as Record<string, string>;
+    const password = env.DASHBOARD_PASSWORD ?? '';
     const cookie = context.cookies.get('ace-dash-auth')?.value;
 
     if (!await verifyDashboardSession(cookie, password, url.origin)) {
