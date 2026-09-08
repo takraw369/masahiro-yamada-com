@@ -19,7 +19,7 @@ export const POST = async ({ request, locals }: APIContext) => {
 
   let body: Record<string, unknown>;
   try {
-    body = await request.json<Record<string, unknown>>();
+    body = (await request.json()) as Record<string, unknown>;
   } catch {
     return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
       status: 400,
