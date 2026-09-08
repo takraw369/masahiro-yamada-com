@@ -58,10 +58,11 @@ export const GET = async ({ locals }: APIContext) => {
 
 export const POST = async ({ request, locals }: APIContext) => {
   const env = getSiteStorageEnv(locals);
-  const body = await request.json<{ slotId: string; checked: boolean; xp: number }>();
+  const body = (await request.json()) as { slotId?: unknown; checked?: unknown; xp?: unknown };
   const slotId = typeof body.slotId === 'string' ? body.slotId.trim().slice(0, 180) : '';
   const checked = Boolean(body.checked);
-  const xp = Number.isFinite(body.xp) ? Math.max(0, Math.round(body.xp)) : 0;
+  const rawXp = typeof body.xp === 'number' ? body.xp : Number.NaN;
+  const xp = Number.isFinite(rawXp) ? Math.max(0, Math.round(rawXp)) : 0;
 
   if (!slotId) {
     return new Response(JSON.stringify({ ok: false, error: 'slot_id_required' }), {
