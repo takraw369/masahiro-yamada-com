@@ -88,7 +88,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     function filtered(){
       const needle=(q.value||'').trim().toLowerCase();
-      return items.filter(x=>topic.value==='all'||x.topic===topic.value)
+      return items.filter(x=>status.value==='archived'||x.status!=='archived')
+        .filter(x=>topic.value==='all'||x.topic===topic.value)
         .filter(x=>status.value==='all'||x.status===status.value)
         .filter(x=>impact.value==='all'||x.aceImpact===impact.value)
         .filter(x=>!needle||[x.title,x.excerpt,x.whyItMatters,x.topic,...(x.lenses||[])].join(' ').toLowerCase().includes(needle));
