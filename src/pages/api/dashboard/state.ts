@@ -58,14 +58,21 @@ export const GET = async ({ locals }: APIContext) => {
 
 export const POST = async ({ request, locals }: APIContext) => {
   const env = getSiteStorageEnv(locals);
-  const body = (await request.json()) as { slotId?: unknown; checked?: unknown; xp?: unknown };
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid_body');
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' },
+    });
+  }
   const slotId = typeof body.slotId === 'string' ? body.slotId.trim().slice(0, 180) : '';
-  const checked = Boolean(body.checked);
-  const rawXp = typeof body.xp === 'number' ? body.xp : Number.NaN;
-  const xp = Number.isFinite(rawXp) ? Math.max(0, Math.round(rawXp)) : 0;
+  const checked = body.checked;
+  const xp = typeof body.xp === 'number' && Number.isFinite(body.xp) ? Math.max(0, Math.round(body.xp)) : 0;
 
-  if (!slotId) {
-    return new Response(JSON.stringify({ ok: false, error: 'slot_id_required' }), {
+  if (!slotId || typeof checked !== 'boolean') {
+    return new Response(JSON.stringify({ ok: false, error: 'invalid_state' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });

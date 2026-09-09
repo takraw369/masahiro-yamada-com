@@ -4,9 +4,9 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node ./scripts/patch-worker.mjs",
+    "build": "astro build && node ./scripts/patch-worker.mjs && node scripts/verify-worker-config.mjs",
     "preview": "node scripts/preview.mjs",
-    "deploy": "astro build && node ./scripts/patch-worker.mjs && wrangler deploy",
+    "deploy": "npm run build && wrangler deploy",
     "astro": "astro",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "astro check",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@electric-sql/pglite": "0.5.8",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "^5.7.0",
