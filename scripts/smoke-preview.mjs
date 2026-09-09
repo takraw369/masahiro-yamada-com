@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createServer } from 'node:net';
+import { createLineFixture, smokeLineObservability } from './smoke-line-observability.mjs';
 import { startPreview } from './local-preview.mjs';
 
 const server = createServer();
@@ -10,7 +11,8 @@ const port = server.address().port;
 server.close();
 await once(server, 'close');
 const base = `http://127.0.0.1:${port}`;
-const child = await startPreview(port);
+const fixture = await createLineFixture();
+const child = await startPreview(port, { vars: fixture.vars }).catch(async (error) => { await fixture.close(); throw error; });
 let logs = '';
 let startupError;
 child.stdout.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
@@ -59,6 +61,7 @@ try {
   }
   const csrf = await previewFetch(base + '/api/x-harness/posts', { method: 'POST', headers: { Origin: 'https://other.example.test' } });
   assert.equal(csrf.status, 403);
+  await smokeLineObservability(base, fixture);
   console.log('Worker preview smoke passed: public pages, auth bootstrap and private boundaries.');
 } catch (error) {
   console.error(logs);
@@ -67,4 +70,5 @@ try {
   child.kill('SIGTERM');
   await Promise.race([once(child, 'exit'), new Promise((resolve) => setTimeout(resolve, 3000))]);
   if (child.exitCode === null) child.kill('SIGKILL');
+  await fixture.close();
 }
