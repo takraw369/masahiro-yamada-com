@@ -7,7 +7,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       <div>
         <p class="eyebrow">DISCOVER → TRUST → REUSE → OUTPUT</p>
         <h1>MASA Intelligence Feed</h1>
-        <p class="lead">興味があること、進む方向、世界の変化をひとつのFeedへ。ACEは重要なレンズの1つ。情報を読むだけで終わらせず、Evidence・SNS種・Asset・Projectへ育てる。</p>
+        <p class="lead">興味があること、進む方向、世界の変化をひとつのFeedへ。ACEは重要なレンズの1つ。情報を読むだけで終わらせず、Evidence・SNS種・Asset・Projectへ育てる。People Radarは「こんな人おるよ！」を3人までに絞って同じFeedへ届ける。</p>
       </div>
       <a class="lab-link" href="/dashboard/evidence">Evidence Lab →</a>
     </header>
@@ -17,8 +17,17 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     <section class="metrics" id="intel-metrics">
       <div class="metric"><span>NEW</span><strong>—</strong><small>未処理</small></div>
       <div class="metric"><span>HIGH SIGNAL</span><strong>—</strong><small>4.0+</small></div>
+      <div class="metric"><span>PEOPLE</span><strong>—</strong><small>People Radar</small></div>
       <div class="metric"><span>TRUSTED</span><strong>—</strong><small>Verified / Evidence</small></div>
       <div class="metric"><span>OUTPUT</span><strong>—</strong><small>Seed / Asset / Project</small></div>
+    </section>
+
+    <section class="panel people-intro">
+      <div class="panel-head">
+        <div><p class="eyebrow">PEOPLE RADAR</p><h2>こんな人おるよ！</h2></div>
+        <span>有名さではなく、MASAとの接続・情報密度・新規性・橋渡し価値で見る。</span>
+      </div>
+      <p class="people-note">推薦は判断材料。Follow・DM・返信は自動実行しない。<strong>FOLLOWED</strong> はMASAが実際にフォローした後の手動記録だけ。</p>
     </section>
 
     <section class="panel intake-panel">
@@ -39,7 +48,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     </section>
 
     <section class="filters">
-      <input id="intel-query" type="search" placeholder="タイトル・要点・Why・Lensを検索" />
+      <input id="intel-query" type="search" placeholder="タイトル・人物・要点・Why・Lensを検索" />
+      <select id="intel-kind"><option value="all">すべて</option><option value="people">People</option><option value="intelligence">情報</option></select>
       <select id="intel-topic"><option value="all">全領域</option></select>
       <select id="intel-status">
         <option value="all">全状態</option><option value="new">NEW</option><option value="saved">SAVE</option><option value="review">REVIEW</option><option value="verified">VERIFIED</option><option value="content_seed">SNS / AI種</option><option value="evidence">EVIDENCE</option><option value="asset">ASSET</option><option value="project">PROJECT</option><option value="archived">ARCHIVE</option>
@@ -52,8 +62,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   </div>
 
   <style>
-    .intel-shell{max-width:1240px;margin:0 auto;padding-bottom:64px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;padding:10px 0 28px;border-bottom:1px solid var(--border-default)}.eyebrow{font-size:.66rem;letter-spacing:.18em;color:var(--gold-pure);font-weight:500}.hero h1,.panel h2{font-family:'Cormorant Garamond',serif;font-weight:300}.hero h1{font-size:clamp(2.5rem,5vw,4.2rem);line-height:1;margin-top:5px}.lead{max-width:800px;color:var(--text-muted);line-height:1.85;margin-top:12px;font-size:.88rem}.lab-link{color:var(--gold-pure);text-decoration:none;border:1px solid var(--border-accent);padding:11px 15px;font-size:.75rem;flex-shrink:0}.lab-link:hover{background:var(--gold-glow)}.error{border:1px solid rgba(220,80,80,.35);background:rgba(180,50,50,.08);padding:12px 14px;margin-top:16px;color:#dba8a0;font-size:.8rem}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.metric,.panel,.intel-card,.filters{background:var(--bg-surface);border:1px solid var(--border-default)}.metric{padding:16px}.metric span{display:block;color:var(--gold-muted);font-size:.62rem;letter-spacing:.14em}.metric strong{display:block;font-family:'Cormorant Garamond',serif;font-size:2.05rem;font-weight:400;margin-top:3px}.metric small{font-size:.66rem;color:var(--text-dim)}.panel{padding:18px;margin-bottom:12px}.panel-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:12px}.panel h2{font-size:1.6rem;margin-top:3px}.panel-head>span{font-size:.67rem;color:var(--text-dim)}.intake-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}.intake-form label{display:grid;gap:5px;color:var(--text-muted);font-size:.64rem;letter-spacing:.05em}.wide{grid-column:1/-1}.span-2{grid-column:span 2}.intake-form input,.intake-form textarea,.intake-form select,.filters input,.filters select{background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--text-primary);font:inherit;padding:10px 11px;outline:none}.intake-form textarea{min-height:78px;resize:vertical}.intake-form input:focus,.intake-form textarea:focus,.intake-form select:focus,.filters input:focus,.filters select:focus{border-color:var(--border-hover)}.submit-row{display:flex;align-items:center;justify-content:flex-end;gap:10px}.submit-row span{font-size:.66rem;color:var(--text-dim)}button{font:inherit}.submit-row button,.action{cursor:pointer;border:1px solid var(--border-default);background:var(--bg-elevated);color:var(--text-muted);padding:8px 10px;font-size:.68rem}.submit-row button{border-color:var(--border-accent);background:var(--gold-glow);color:var(--gold-pure);padding:10px 15px}.action:hover{border-color:var(--border-hover);color:var(--text-primary)}.action.primary{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.action:disabled{opacity:.45;cursor:wait}.filters{display:grid;grid-template-columns:minmax(240px,1fr) auto auto auto auto;gap:8px;padding:11px;margin-bottom:12px}.count{display:flex;align-items:center;color:var(--text-dim);font-size:.7rem;padding:0 6px}.intel-list{display:grid;gap:10px}.intel-card{padding:18px}.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.tag-row{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:.59rem;letter-spacing:.04em;padding:4px 7px;border:1px solid var(--border-default);color:var(--text-muted)}.tag.topic{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.tag.status{color:var(--text-primary)}.tag.ace-direct,.tag.ace-transformative{color:#d8bd86;border-color:rgba(216,189,134,.35)}.title{font-size:1.03rem;font-weight:500;margin-top:11px;line-height:1.5}.source{font-size:.66rem;color:var(--text-dim);margin-top:5px;line-height:1.6}.source a{color:var(--gold-muted);text-decoration:none}.source a:hover{color:var(--gold-pure)}.score-box{min-width:108px;text-align:right}.signal{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--gold-pure);line-height:1}.signal-label{font-size:.56rem;color:var(--text-dim);letter-spacing:.12em}.scores{display:flex;gap:7px;justify-content:flex-end;margin-top:5px;font-size:.58rem;color:var(--text-muted)}.why{margin-top:13px;padding:11px 12px;border-left:2px solid var(--gold-dim);background:var(--gold-glow);font-size:.78rem;line-height:1.75;color:var(--text-primary)}.excerpt{margin-top:10px;color:var(--text-muted);font-size:.77rem;line-height:1.75;white-space:pre-wrap}.outputs{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}.output{font-size:.58rem;color:var(--text-dim);border-bottom:1px solid var(--border-default);padding:2px 0}.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-default)}.seed{margin-top:10px;border:1px dashed var(--border-default);padding:11px;background:var(--bg-void)}.seed summary{cursor:pointer;color:var(--gold-muted);font-size:.68rem}.seed pre{white-space:pre-wrap;word-break:break-word;color:var(--text-muted);font:inherit;font-size:.72rem;line-height:1.65;margin-top:9px}.empty{padding:26px;border:1px dashed var(--border-default);color:var(--text-dim);text-align:center;font-size:.78rem}.time{font-size:.61rem;color:var(--text-dim);margin-top:5px}
-    @media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.count{grid-column:1/-1}.hero{align-items:flex-start;flex-direction:column}.intake-form{grid-template-columns:1fr 1fr}.span-2{grid-column:auto}.card-head{display:block}.score-box{text-align:left;margin-top:10px}.scores{justify-content:flex-start}}
+    .intel-shell{max-width:1240px;margin:0 auto;padding-bottom:64px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;padding:10px 0 28px;border-bottom:1px solid var(--border-default)}.eyebrow{font-size:.66rem;letter-spacing:.18em;color:var(--gold-pure);font-weight:500}.hero h1,.panel h2{font-family:'Cormorant Garamond',serif;font-weight:300}.hero h1{font-size:clamp(2.5rem,5vw,4.2rem);line-height:1;margin-top:5px}.lead{max-width:820px;color:var(--text-muted);line-height:1.85;margin-top:12px;font-size:.88rem}.lab-link{color:var(--gold-pure);text-decoration:none;border:1px solid var(--border-accent);padding:11px 15px;font-size:.75rem;flex-shrink:0}.lab-link:hover{background:var(--gold-glow)}.error{border:1px solid rgba(220,80,80,.35);background:rgba(180,50,50,.08);padding:12px 14px;margin-top:16px;color:#dba8a0;font-size:.8rem}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:20px 0}.metric,.panel,.intel-card,.filters{background:var(--bg-surface);border:1px solid var(--border-default)}.metric{padding:16px}.metric span{display:block;color:var(--gold-muted);font-size:.62rem;letter-spacing:.14em}.metric strong{display:block;font-family:'Cormorant Garamond',serif;font-size:2.05rem;font-weight:400;margin-top:3px}.metric small{font-size:.66rem;color:var(--text-dim)}.panel{padding:18px;margin-bottom:12px}.panel-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:12px}.panel h2{font-size:1.6rem;margin-top:3px}.panel-head>span{font-size:.67rem;color:var(--text-dim)}.people-intro{border-color:var(--border-accent);background:linear-gradient(120deg,var(--gold-glow),var(--bg-surface))}.people-note{color:var(--text-muted);font-size:.74rem;line-height:1.7}.people-note strong{color:var(--text-primary)}.intake-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}.intake-form label{display:grid;gap:5px;color:var(--text-muted);font-size:.64rem;letter-spacing:.05em}.wide{grid-column:1/-1}.span-2{grid-column:span 2}.intake-form input,.intake-form textarea,.intake-form select,.filters input,.filters select{background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--text-primary);font:inherit;padding:10px 11px;outline:none}.intake-form textarea{min-height:78px;resize:vertical}.intake-form input:focus,.intake-form textarea:focus,.intake-form select:focus,.filters input:focus,.filters select:focus{border-color:var(--border-hover)}.submit-row{display:flex;align-items:center;justify-content:flex-end;gap:10px}.submit-row span{font-size:.66rem;color:var(--text-dim)}button{font:inherit}.submit-row button,.action{cursor:pointer;border:1px solid var(--border-default);background:var(--bg-elevated);color:var(--text-muted);padding:8px 10px;font-size:.68rem}.submit-row button{border-color:var(--border-accent);background:var(--gold-glow);color:var(--gold-pure);padding:10px 15px}.action:hover{border-color:var(--border-hover);color:var(--text-primary)}.action.primary{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.action:disabled{opacity:.45;cursor:wait}.filters{display:grid;grid-template-columns:minmax(220px,1fr) auto auto auto auto auto;gap:8px;padding:11px;margin-bottom:12px}.count{display:flex;align-items:center;color:var(--text-dim);font-size:.7rem;padding:0 6px}.intel-list{display:grid;gap:10px}.intel-card{padding:18px}.intel-card.people-card{border-color:var(--border-accent)}.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.tag-row{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:.59rem;letter-spacing:.04em;padding:4px 7px;border:1px solid var(--border-default);color:var(--text-muted)}.tag.topic{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.tag.status{color:var(--text-primary)}.tag.discovery{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.tag.recommend{color:var(--text-primary)}.tag.ace-direct,.tag.ace-transformative{color:#d8bd86;border-color:rgba(216,189,134,.35)}.title{font-size:1.03rem;font-weight:500;margin-top:11px;line-height:1.5}.source{font-size:.66rem;color:var(--text-dim);margin-top:5px;line-height:1.6}.source a{color:var(--gold-muted);text-decoration:none}.source a:hover{color:var(--gold-pure)}.score-box{min-width:118px;text-align:right}.signal{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--gold-pure);line-height:1}.signal-label{font-size:.56rem;color:var(--text-dim);letter-spacing:.12em}.scores{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;margin-top:5px;font-size:.58rem;color:var(--text-muted)}.why{margin-top:13px;padding:11px 12px;border-left:2px solid var(--gold-dim);background:var(--gold-glow);font-size:.78rem;line-height:1.75;color:var(--text-primary)}.excerpt{margin-top:10px;color:var(--text-muted);font-size:.77rem;line-height:1.75;white-space:pre-wrap}.feedback{margin-top:10px;padding:8px 10px;border:1px dashed var(--border-default);font-size:.67rem;color:var(--text-muted)}.feedback strong{color:var(--gold-pure)}.outputs{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}.output{font-size:.58rem;color:var(--text-dim);border-bottom:1px solid var(--border-default);padding:2px 0}.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-default)}.seed{margin-top:10px;border:1px dashed var(--border-default);padding:11px;background:var(--bg-void)}.seed summary{cursor:pointer;color:var(--gold-muted);font-size:.68rem}.seed pre{white-space:pre-wrap;word-break:break-word;color:var(--text-muted);font:inherit;font-size:.72rem;line-height:1.65;margin-top:9px}.empty{padding:26px;border:1px dashed var(--border-default);color:var(--text-dim);text-align:center;font-size:.78rem}.time{font-size:.61rem;color:var(--text-dim);margin-top:5px}
+    @media(max-width:1000px){.metrics{grid-template-columns:repeat(3,1fr)}.filters{grid-template-columns:1fr 1fr 1fr}.filters input{grid-column:1/-1}.count{grid-column:1/-1}}
+    @media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.hero{align-items:flex-start;flex-direction:column}.intake-form{grid-template-columns:1fr 1fr}.span-2{grid-column:auto}.card-head{display:block}.score-box{text-align:left;margin-top:10px}.scores{justify-content:flex-start}.panel-head{align-items:flex-start;flex-direction:column}}
     @media(max-width:560px){.metrics,.intake-form,.filters{grid-template-columns:1fr}.wide,.span-2{grid-column:auto}.hero h1{font-size:2.4rem}.lab-link{width:100%;text-align:center}.intel-card{padding:15px}}
   </style>
 
@@ -61,7 +72,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     type IntelligenceItem = {
       id:string; title:string; url:string; sourceKind:string; provenance:string; excerpt:string;
       topic:string; lenses:string[]; scores:Record<string,number>; factType:string; aceImpact:string;
-      whyItMatters:string; suggestedOutputs:string[]; status:string; contentSeed:string;
+      whyItMatters:string; suggestedOutputs:string[]; status:string; outputTargets:string[]; contentSeed:string;
       lastSeenAt:string|null; detectedAt:string|null;
     };
     type IntelligenceResponse = { ok:boolean; error?:string; item?:IntelligenceItem; items?:IntelligenceItem[] };
@@ -69,6 +80,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     const TOPICS=['Athlete / Education','AI / Build','Business / Revenue','Health / Human','Capital / Market','Society / Culture','Creativity / Media','Life / Place','General'] as const;
     const STATUS_LABEL:Record<string,string>={new:'NEW',saved:'SAVE',review:'REVIEW',verified:'VERIFIED',content_seed:'SNS / AI種',evidence:'EVIDENCE',asset:'ASSET',project:'PROJECT',archived:'ARCHIVE'};
+    const PEOPLE_ACTION_LABEL:Record<string,string>={WATCH:'WATCH',SKIP:'SKIP',DEEP_RESEARCH:'DEEP RESEARCH',COLLAB_CANDIDATE:'COLLAB候補',FOLLOWED:'FOLLOWED'};
+    const RECOMMEND_LABEL:Record<string,string>={WATCH:'WATCH',FOLLOW_CANDIDATE:'FOLLOW候補',DEEP_RESEARCH:'DEEP RESEARCH',COLLAB_CANDIDATE:'COLLAB候補'};
     const ESCAPE:Record<string,string>={'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'};
 
     function requiredEl<T extends HTMLElement>(id:string):T{
@@ -80,6 +93,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     let items:IntelligenceItem[]=[];
     const list=requiredEl<HTMLElement>('intel-list');
     const q=requiredEl<HTMLInputElement>('intel-query');
+    const kind=requiredEl<HTMLSelectElement>('intel-kind');
     const topic=requiredEl<HTMLSelectElement>('intel-topic');
     const status=requiredEl<HTMLSelectElement>('intel-status');
     const impact=requiredEl<HTMLSelectElement>('intel-impact');
@@ -93,11 +107,21 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const score=(item:IntelligenceItem,key:string)=>Number(item.scores?.[key]??0);
     const fmt=(v:string|null|undefined)=>{if(!v)return '';const d=new Date(v);return Number.isNaN(d.getTime())?'':d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});};
     const showError=(t:unknown)=>{const text=t?String(t):'';errorEl.textContent=text;errorEl.hidden=!text;};
+    const isPerson=(item:IntelligenceItem)=>item.sourceKind==='person';
+    const recommendation=(item:IntelligenceItem)=>{
+      const raw=(item.suggestedOutputs||[]).find(x=>x.startsWith('recommend:'));
+      return raw?raw.slice('recommend:'.length):'';
+    };
+    const peopleFeedback=(item:IntelligenceItem)=>{
+      const raw=(item.outputTargets||[]).find(x=>x.startsWith('people:'));
+      return raw?raw.slice('people:'.length):'';
+    };
 
     function updateMetrics(){
       const values=[
         items.filter(x=>x.status==='new').length,
         items.filter(x=>score(x,'signal')>=4).length,
+        items.filter(isPerson).length,
         items.filter(x=>['verified','evidence'].includes(x.status)).length,
         items.filter(x=>['content_seed','asset','project'].includes(x.status)).length,
       ];
@@ -107,13 +131,37 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     function filtered():IntelligenceItem[]{
       const needle=(q.value||'').trim().toLowerCase();
       return items.filter(x=>status.value==='archived'||x.status!=='archived')
+        .filter(x=>kind.value==='all'||(kind.value==='people'?isPerson(x):!isPerson(x)))
         .filter(x=>topic.value==='all'||x.topic===topic.value)
         .filter(x=>status.value==='all'||x.status===status.value)
         .filter(x=>impact.value==='all'||x.aceImpact===impact.value)
-        .filter(x=>!needle||[x.title,x.excerpt,x.whyItMatters,x.topic,...(x.lenses||[])].join(' ').toLowerCase().includes(needle));
+        .filter(x=>!needle||[x.title,x.excerpt,x.whyItMatters,x.topic,x.provenance,...(x.lenses||[]),...(x.suggestedOutputs||[]),...(x.outputTargets||[])].join(' ').toLowerCase().includes(needle));
     }
 
-    function card(item:IntelligenceItem):string{
+    function personCard(item:IntelligenceItem):string{
+      const fit=Math.round(score(item,'fit'));
+      const rec=recommendation(item);
+      const feedback=peopleFeedback(item);
+      const discovery=(item.suggestedOutputs||[]).includes('discovery_pick');
+      const source=item.url?`<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">PROFILE ↗</a>`:'NO URL';
+      const ace=item.aceImpact!=='none'?`<span class="tag ace-${esc(item.aceImpact)}">ACE ${esc(item.aceImpact.toUpperCase())}</span>`:'';
+      return `<article class="intel-card people-card" data-id="${esc(item.id)}">
+        <div class="card-head"><div><div class="tag-row"><span class="tag topic">${esc(item.topic)}</span><span class="tag status">${esc(STATUS_LABEL[item.status]||item.status)}</span><span class="tag">PEOPLE</span>${discovery?'<span class="tag discovery">発掘枠</span>':''}${rec?`<span class="tag recommend">推奨：${esc(RECOMMEND_LABEL[rec]||rec)}</span>`:''}${ace}</div><h3 class="title">${esc(item.title)}</h3><div class="source">${source}${item.provenance?` · ${esc(item.provenance)}`:''}</div><div class="time">${esc(fmt(item.lastSeenAt||item.detectedAt))}</div></div>
+        <div class="score-box"><div class="signal">${fit}</div><div class="signal-label">MASA FIT / 100</div><div class="scores"><span>DEN ${Math.round(score(item,'density'))}</span><span>NOV ${Math.round(score(item,'novelty'))}</span><span>REL ${Math.round(score(item,'relationship'))}</span></div></div></div>
+        ${item.whyItMatters?`<div class="why"><strong>WHY NOW</strong> — ${esc(item.whyItMatters)}</div>`:''}
+        ${item.excerpt?`<div class="excerpt">${esc(item.excerpt.slice(0,1200))}${item.excerpt.length>1200?'…':''}</div>`:''}
+        ${feedback?`<div class="feedback">現在の判断：<strong>${esc(PEOPLE_ACTION_LABEL[feedback]||feedback)}</strong></div>`:''}
+        <div class="actions">
+          <button class="action" data-people-action="WATCH">👀 Watch</button>
+          <button class="action" data-people-action="DEEP_RESEARCH">⌕ Deep Research</button>
+          <button class="action primary" data-people-action="COLLAB_CANDIDATE">🤝 Collaboration候補</button>
+          <button class="action" data-people-action="FOLLOWED">✓ Followedを記録</button>
+          <button class="action" data-people-action="SKIP">Skip</button>
+        </div>
+      </article>`;
+    }
+
+    function intelligenceCard(item:IntelligenceItem):string{
       const signal=score(item,'signal').toFixed(1);
       const outputs=(item.suggestedOutputs||[]).map(x=>`<span class="output">${esc(x)}</span>`).join('');
       const source=item.url?`<a href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">SOURCE ↗</a>`:'NO URL';
@@ -136,6 +184,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         </div>${seed}
       </article>`;
     }
+
+    function card(item:IntelligenceItem):string{return isPerson(item)?personCard(item):intelligenceCard(item);}
 
     function render(){
       const rows=filtered(); count.textContent=`${rows.length} / ${items.length}`;
@@ -166,6 +216,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       items=items.map(x=>x.id===id?data.item!:x); updateMetrics(); render();
     }
 
+    async function peopleAction(id:string,action:string){
+      const item=items.find(x=>x.id===id); if(!item)return;
+      const statusByAction:Record<string,string>={WATCH:'saved',SKIP:'archived',DEEP_RESEARCH:'review',COLLAB_CANDIDATE:'project',FOLLOWED:'saved'};
+      const nextTargets=(item.outputTargets||[]).filter(x=>!x.startsWith('people:'));
+      nextTargets.push(`people:${action}`);
+      await patchItem(id,{status:statusByAction[action]||'review',outputTargets:nextTargets});
+    }
+
     form.addEventListener('submit',async e=>{
       e.preventDefault(); showError(''); submitState.textContent='追加中…';
       const fd=new FormData(form); const selected=String(fd.get('topic')||'General');
@@ -186,12 +244,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       }
       button.disabled=true; showError('');
       try{
-        if(button.dataset.status) await patchItem(id,{status:button.dataset.status});
+        if(button.dataset.peopleAction) await peopleAction(id,button.dataset.peopleAction);
+        else if(button.dataset.status) await patchItem(id,{status:button.dataset.status});
         else if(button.dataset.action) await actionItem(id,button.dataset.action);
       }catch(err){showError(err);button.disabled=false;}
     });
 
     q.addEventListener('input',render);
+    kind.addEventListener('change',render);
     topic.addEventListener('change',render);
     status.addEventListener('change',render);
     impact.addEventListener('change',render);
