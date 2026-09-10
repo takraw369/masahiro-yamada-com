@@ -2,9 +2,15 @@
 
 ## Baseline and saved work
 
-PR #55 is done. Current master reviewed: `940e8215301d4efdd8c5e92fe78b270bdd55b6ea` (includes the newer Intelligence archive filter after `381d48e`). Calendar was integrated from the current clean PR head `1bc989e`, preserving its history with forward commits and merges. Old worktrees, uncommitted files and saved Calendar `401c72f` remain untouched.
+PR #55 is done. Original integration master reviewed: `940e8215301d4efdd8c5e92fe78b270bdd55b6ea` (includes the newer Intelligence archive filter after `381d48e`). Calendar was integrated from the current clean PR head `1bc989e`, preserving its history with forward commits and merges. Old worktrees, uncommitted files and saved Calendar `401c72f` remain untouched.
 
-Dependencies included for integration testing: password JSON-bootstrap #73 at `d9403d9`, then saved-work follow-up #74 at `593eee4`. Human merge order is #73 → retarget/accept #74 → #44 → #66. Calendar-only review: compare #74's branch `fix/post-release-contracts-20260909` to `feat/calendar-dashboard-sync`. Do not merge dependencies implicitly through #44 without reviewing them.
+Original dependencies included for integration testing: password JSON-bootstrap #73 at `d9403d9`, then saved-work follow-up #74 at `593eee4`. Human merge order is #73 → retarget/accept #74 → #44 → #66. Calendar-only review: compare #74's branch `fix/post-release-contracts-20260909` to `feat/calendar-dashboard-sync`. Do not merge dependencies implicitly through #44 without reviewing them.
+
+## Accepted baseline update — 2026-09-11
+
+Master `96c0becf336a363abd4db2e85c69c713773d8fcc` now contains accepted #73 and #74, plus the current People Radar and LINE observability features. It was merged normally into #44, preserving branch history. Preview conflict resolution keeps both Calendar/auth recovery checks and authenticated LINE observability checks, sharing only synthetic local bindings. No production operation, secret change or Calendar activation was performed.
+
+Validation on this baseline: 72 tests pass; release-delta typecheck has zero changed files with errors (368 existing repository errors remain); production build and Worker artifact configuration pass; production dependency audit reports zero vulnerabilities. Isolated preview exercises Calendar and LINE together.
 
 ## VERIFIED
 
@@ -18,7 +24,7 @@ Dependencies included for integration testing: password JSON-bootstrap #73 at `d
 
 ## Verification commands and scope
 
-`npm test`: 64 passing tests, including real handler/middleware contracts and disposable embedded PostgreSQL (PGlite 0.5.8) executing the existing SQL. Database tests verify both table ACLs, all v1 revocations, foreign-owner denial, valid registered-owner access, payload atomicity, stale/equal timestamp rejection, recurring occurrences, and cancellation via a newer empty snapshot. This is not a multiple-connection contention test.
+`npm test`: 72 passing tests, including real handler/middleware contracts and disposable embedded PostgreSQL (PGlite 0.5.8) executing the existing SQL. Database tests verify both table ACLs, all v1 revocations, foreign-owner denial, valid registered-owner access, payload atomicity, stale/equal timestamp rejection, recurring occurrences, and cancellation via a newer empty snapshot. This is not a multiple-connection contention test.
 
 `npm run typecheck:release`: edited source files clean against master; 368 existing repository errors remain visible and are not claimed fixed.
 
@@ -26,7 +32,7 @@ Dependencies included for integration testing: password JSON-bootstrap #73 at `d
 
 ## Human gates and rollback
 
-1. Review/approve #73, #74, then #44 and authorize their production merge/deploy. For the known #73 production regression, confirm password JSON login in the production browser after its authorized deployment. Reuse T0057's Google callback PASS; do not reopen it without new evidence.
+1. #73 and #74 are accepted on master. Review/approve #44 and separately authorize its production merge/deploy. Reuse existing production login/callback acceptance unless new evidence requires reopening it.
 2. After approved site deployment, an authorized operator sets `CALENDAR_SYNC_SECRET` in the Worker and the matching Apps Script property, without placing either in Git, docs or chat. Until configured, sync deliberately returns 503.
 3. Review/accept companion `takraw369/ace-schedule-gas#2`, authorize its Calendar scope, and run one manual sync. Confirm event count, `source_synced_at`, timed/all-day/recurring events and freshness on MASA's desktop/mobile. Then enable the existing trigger.
 4. Production rollback: disable the Apps Script trigger first; use the recorded pre-Calendar Worker version if needed. Keep v2 authorization/RLS and v1 revocations in place. Do not roll back the DB hardening or delete Google Calendar facts.
