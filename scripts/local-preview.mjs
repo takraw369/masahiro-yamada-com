@@ -32,7 +32,7 @@ async function buildIsolatedPreview(root, env) {
   }
 }
 
-export async function startPreview(port = 8787, vars = {}) {
+export async function startPreview(port = 8787, { vars = {} } = {}) {
   const root = process.cwd();
   await mkdir('work', { recursive: true });
   const directory = await mkdtemp(resolve('work/preview-'));

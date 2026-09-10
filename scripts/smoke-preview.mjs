@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto';
 import { once } from 'node:events';
 import { createServer as createHttpServer } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
+import { createLineFixture, smokeLineObservability } from './smoke-line-observability.mjs';
 import { startPreview } from './local-preview.mjs';
 
 async function freePort() {
@@ -43,6 +44,7 @@ const ownerKey = createHmac('sha256', sessionKey).update('masahiro-yamada.com:da
 const calendarSyncSecret = 'calendar-preview-bearer';
 const validPassword = 'preview-password-123';
 const resetPassword = 'preview-reset-password-456';
+const fixture = await createLineFixture(sessionKey);
 const resetBodies = [];
 const calendarReplaceBodies = [];
 
@@ -63,6 +65,14 @@ const supabaseStub = createHttpServer(async (request, response) => {
     }
 
     const url = new URL(request.url || '/', stubBase);
+    if (request.method === 'POST' && url.pathname === '/rest/v1/rpc/masa_line_control_snapshot') {
+      const result = await fetch(fixture.vars.SUPABASE_URL + url.pathname, {
+        method: 'POST', body: await requestBody(request),
+      });
+      json(response, result.status, await result.json());
+      return;
+    }
+
     const authorization = request.headers.authorization || '';
     const isAdmin = authorization === 'Bearer admin-token';
     const isKnownUser = isAdmin || authorization === 'Bearer non-admin-token';
@@ -143,12 +153,12 @@ const previewFetch = (url, init = {}) => fetch(url, {
 });
 
 try {
-  child = await startPreview(port, {
+  child = await startPreview(port, { vars: {
     SUPABASE_URL: stubBase,
     SUPABASE_PUBLISHABLE_KEY: publishableKey,
     DASHBOARD_PASSWORD: sessionKey,
     CALENDAR_SYNC_SECRET: calendarSyncSecret,
-  });
+  } });
   child.stdout.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
   child.stderr.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
   child.on('error', (error) => { startupError = error; });
@@ -166,6 +176,8 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
   assert.ok(ready, logs || 'Worker preview did not answer the readiness probe within the bounded startup window.');
+
+  await smokeLineObservability(base, fixture);
 
   for (const path of ['/', '/contact', '/faq', '/tips', '/library', '/gate']) {
     const res = await previewFetch(base + path);
@@ -345,4 +357,5 @@ try {
   }
   supabaseStub.close();
   await once(supabaseStub, 'close');
+  await fixture.close();
 }
