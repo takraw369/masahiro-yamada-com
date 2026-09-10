@@ -5,9 +5,9 @@ import { getSiteStorageEnv, supabaseRpc } from '../../../lib/siteStorage';
 export const POST = async ({ request, locals, cookies }: APIContext) => {
   const env = getSiteStorageEnv(locals);
 
-  let body: { password?: string } = {};
+  let body: unknown;
   try {
-    body = (await request.json()) as { password?: string };
+    body = await request.json();
   } catch {
     return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
       status: 400,
@@ -15,7 +15,7 @@ export const POST = async ({ request, locals, cookies }: APIContext) => {
     });
   }
 
-  const password = String(body.password || '');
+  const password = body && typeof body === 'object' && !Array.isArray(body) && 'password' in body && typeof body.password === 'string' ? body.password : '';
   if (!password || password.length > 128) {
     return new Response(JSON.stringify({ ok: false, error: 'invalid_password' }), {
       status: 400,
@@ -30,7 +30,7 @@ export const POST = async ({ request, locals, cookies }: APIContext) => {
       { p_password: password },
     );
 
-    if (!valid) {
+    if (valid !== true) {
       return new Response(JSON.stringify({ ok: false, error: 'invalid_credentials' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
