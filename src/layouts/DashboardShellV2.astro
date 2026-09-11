@@ -7,55 +7,47 @@ export interface Props {
 const { title, eyebrow = 'MASA OS' } = Astro.props;
 const pathname = Astro.url.pathname;
 
-// Preserve existing groups and destinations; purpose labels and collapsed groups
-// explain where to go without presenting the complete tool list by default.
-const navGroups = [
-  {
-    label: 'NOW', purpose: '今日・反応・予定',
-    items: [
-      { href: '/dashboard/ui-v2', label: '今日の指揮台' },
-      { href: '/dashboard/voice', label: '顧客の声' },
-      { href: '/dashboard/schedule', label: '投稿予定' },
-    ],
-  },
-  {
-    label: 'CREATE', purpose: '制作する',
-    items: [
-      { href: '/dashboard/post', label: 'X Post' },
-      { href: '/dashboard/visual-prompt', label: 'Visual Prompt' },
-      { href: '/dashboard/funnel', label: 'Trinity Funnel' },
-    ],
-  },
-  {
-    label: 'THINK', purpose: '調べて考える',
-    items: [
-      { href: '/dashboard/intelligence', label: 'Intelligence' },
-      { href: '/dashboard/evidence', label: 'Evidence Lab' },
-      { href: '/dashboard/graph', label: 'Graph' },
-    ],
-  },
-  {
-    label: 'BUILD', purpose: '進めて育てる',
-    items: [
-      { href: '/dashboard/flow-09', label: '0→9 Flow' },
-      { href: '/dashboard/quest', label: 'Quest' },
-      { href: '/dashboard/lian', label: 'リアン' },
-    ],
-  },
-  {
-    label: 'ASSETS', purpose: '資産を確かめる',
-    items: [
-      { href: '/dashboard/treasury', label: 'Treasury' },
-      { href: '/dashboard/investment', label: 'Investment' },
-      { href: '/dashboard/wishlist', label: 'Wish List' },
-    ],
-  },
+const coreLinks = [
+  { href: '/dashboard/ui-v2', label: 'Today', purpose: '今やること' },
+  { href: '/dashboard/intelligence#intel-form', label: 'Capture', purpose: '残す' },
+  { href: '/dashboard/post', label: 'Output', purpose: '出す' },
+  { href: '/dashboard/intelligence#intel-list', label: 'Review', purpose: '見る' },
 ];
 
+const toolGroups = [
+  { label: 'OPERATE', items: [
+    { href: '/dashboard/voice', label: '顧客の声' },
+    { href: '/dashboard/schedule', label: '投稿予定' },
+  ] },
+  { label: 'CREATE', items: [
+    { href: '/dashboard/visual-prompt', label: 'Visual Prompt' },
+    { href: '/dashboard/funnel', label: 'Trinity Funnel' },
+  ] },
+  { label: 'THINK', items: [
+    { href: '/dashboard/evidence', label: 'Evidence Lab' },
+    { href: '/dashboard/graph', label: 'Graph' },
+  ] },
+  { label: 'BUILD', items: [
+    { href: '/dashboard/flow-09', label: '0→9 Flow' },
+    { href: '/dashboard/quest', label: 'Quest' },
+    { href: '/dashboard/lian', label: 'リアン' },
+  ] },
+  { label: 'ASSETS', items: [
+    { href: '/dashboard/treasury', label: 'Treasury' },
+    { href: '/dashboard/investment', label: 'Investment' },
+    { href: '/dashboard/wishlist', label: 'Wish List' },
+    { href: '/dashboard/os', label: 'MASA OS / Wealth' },
+  ] },
+];
+
+const stripHash = (href: string) => href.split('#')[0];
 function isActive(href: string): boolean {
-  if (href === '/dashboard/ui-v2') return pathname === href || pathname === `${href}/`;
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const route = stripHash(href);
+  if (route === '/dashboard/ui-v2') return pathname === route || pathname === `${route}/`;
+  if (route === '/dashboard/intelligence') return false;
+  return pathname === route || pathname.startsWith(`${route}/`);
 }
+const toolsActive = toolGroups.some(group => group.items.some(item => isActive(item.href)));
 ---
 <!doctype html>
 <html lang="ja">
@@ -77,15 +69,12 @@ function isActive(href: string): boolean {
         --panel-3: #211b16;
         --gold: #d5b579;
         --gold-muted: #bea374;
-        --gold-dim: #a78c66;
         --text: #e1d5bf;
         --muted: #b1a28c;
-        --dim: #ab9b84;
+        --dim: #968874;
         --line: #2d2822;
         --line-strong: #4a4034;
-        --success: #7ea482;
-        --warning: #c99a5c;
-        --sidebar: 228px;
+        --sidebar: 218px;
       }
       html { background: var(--bg); color-scheme: dark; }
       body {
@@ -101,138 +90,89 @@ function isActive(href: string): boolean {
       :global(a) { color: inherit; }
       :global(:focus-visible) { outline: 2px solid var(--gold); outline-offset: 3px; }
       .skip-link {
-        position: fixed;
-        top: 8px;
-        left: 8px;
-        z-index: 100;
-        padding: 12px 16px;
-        background: var(--gold);
-        color: var(--bg);
-        transform: translateY(-160%);
-        font-size: .875rem;
+        position: fixed; top: 8px; left: 8px; z-index: 100;
+        padding: 12px 16px; background: var(--gold); color: var(--bg);
+        transform: translateY(-160%); font-size: .82rem;
       }
       .skip-link:focus { transform: translateY(0); }
       .app { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-height: 100vh; }
-      .sidebar,
-      .mobile-nav[open] { display: flex; flex-direction: column; background: var(--panel); overflow-y: auto; }
       .sidebar {
-        position: fixed;
-        inset: 0 auto 0 0;
-        width: var(--sidebar);
-        border-right: 1px solid var(--line);
-        z-index: 50;
+        position: fixed; inset: 0 auto 0 0; z-index: 50;
+        width: var(--sidebar); display: flex; flex-direction: column;
+        background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto;
       }
-      .brand { padding: 22px 20px 18px; border-bottom: 1px solid var(--line); }
+      .brand { padding: 22px 18px 18px; border-bottom: 1px solid var(--line); }
       .brand-title {
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 1.72rem;
-        font-weight: 400;
-        color: var(--gold);
-        letter-spacing: .06em;
+        font-family: 'Cormorant Garamond', serif; font-size: 1.65rem; font-weight: 400;
+        color: var(--gold); letter-spacing: .06em;
       }
-      .brand-sub { margin-top: 4px; color: var(--dim); font-size: .75rem; letter-spacing: .04em; }
-      .nav { padding: 12px 12px 20px; }
-      .nav-group { border-bottom: 1px solid var(--line); }
-      .nav-label {
-        position: relative;
-        min-height: 60px;
-        display: grid;
-        align-content: center;
-        gap: 2px;
-        padding: 9px 26px 9px 9px;
-        color: var(--gold-muted);
-        cursor: pointer;
-        list-style: none;
+      .brand-sub { margin-top: 4px; color: var(--dim); font-size: .7rem; letter-spacing: .04em; }
+      .nav { padding: 14px 12px 20px; }
+      .core-nav { display: grid; gap: 5px; }
+      .core-link {
+        min-height: 48px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+        padding: 8px 10px; border: 1px solid transparent; color: var(--muted); text-decoration: none;
       }
-      .nav-label::-webkit-details-marker { display: none; }
-      .nav-label::after { content: '+'; position: absolute; right: 9px; top: 18px; color: var(--muted); }
-      .nav-group[open] > .nav-label::after { content: '−'; }
-      .nav-name { font-size: .75rem; font-weight: 500; letter-spacing: .13em; }
-      .nav-purpose { color: var(--muted); font-size: .75rem; }
-      .nav-items { padding-bottom: 8px; }
-      .nav-item {
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-        padding: 8px 9px;
-        border: 1px solid transparent;
-        color: var(--muted);
-        text-decoration: none;
-        font-size: .8125rem;
-        transition: border-color .18s ease, background .18s ease, color .18s ease;
+      .core-link:hover { color: var(--text); border-color: var(--line-strong); background: var(--panel-2); }
+      .core-link.active { color: var(--gold); border-color: var(--line-strong); background: var(--panel-3); border-left: 2px solid var(--gold); }
+      .core-link strong { font-size: .82rem; font-weight: 500; }
+      .core-link small { color: var(--dim); font-size: .68rem; }
+      .tools-wrap { margin-top: 14px; border-top: 1px solid var(--line); }
+      .tools-wrap > summary {
+        min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        padding: 10px; color: var(--gold-muted); cursor: pointer; list-style: none;
+        font-size: .72rem; letter-spacing: .1em;
       }
-      .nav-item:hover { color: var(--text); background: var(--panel-2); border-color: var(--line-strong); }
-      .nav-item.active {
-        color: var(--gold);
-        background: var(--panel-3);
-        border-color: var(--line-strong);
-        border-left: 2px solid var(--gold);
+      .tools-wrap > summary::-webkit-details-marker { display: none; }
+      .tools-wrap > summary::after { content: '+'; color: var(--muted); }
+      .tools-wrap[open] > summary::after { content: '−'; }
+      .tool-groups { padding: 0 8px 8px; }
+      .tool-group { padding: 10px 0; border-top: 1px solid var(--line); }
+      .tool-label { padding: 0 4px 5px; color: var(--dim); font-size: .64rem; letter-spacing: .12em; }
+      .tool-link {
+        min-height: 40px; display: flex; align-items: center; padding: 7px 6px;
+        color: var(--muted); text-decoration: none; font-size: .75rem;
       }
-      .sidebar-foot { margin-top: auto; padding: 12px 20px 16px; border-top: 1px solid var(--line); }
-      .legacy-link,
-      .logout-link { min-height: 44px; display: flex; align-items: center; color: var(--dim); font-size: .75rem; text-decoration: none; }
-      .legacy-link:hover,
-      .logout-link:hover { color: var(--text); text-decoration: underline; }
+      .tool-link:hover { color: var(--text); background: var(--panel-2); }
+      .tool-link.active { color: var(--gold); }
+      .sidebar-foot { margin-top: auto; padding: 12px 18px 16px; border-top: 1px solid var(--line); }
+      .legacy-link, .logout-link {
+        min-height: 40px; display: flex; align-items: center; color: var(--dim);
+        font-size: .7rem; text-decoration: none;
+      }
+      .legacy-link:hover, .logout-link:hover { color: var(--text); text-decoration: underline; }
       .main { grid-column: 2; min-width: 0; }
       .topbar {
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        min-height: 68px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 8px 28px;
-        background: var(--bg);
-        border-bottom: 1px solid var(--line);
+        position: sticky; top: 0; z-index: 30; min-height: 66px;
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 8px 28px; background: rgba(13,11,8,.97); border-bottom: 1px solid var(--line);
       }
       .page-meta { min-width: 0; }
-      .eyebrow { color: var(--gold-muted); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
-      .page-title { margin-top: 1px; color: var(--text); font-size: .875rem; font-weight: 400; }
+      .eyebrow { color: var(--gold-muted); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; }
+      .page-title { margin-top: 1px; color: var(--text); font-size: .82rem; font-weight: 400; }
       .top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-      .capture-link,
-      .command-button,
-      .menu-button,
-      .close-button {
-        min-height: 44px;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        border: 1px solid var(--line-strong);
-        background: var(--panel);
-        color: var(--muted);
-        cursor: pointer;
-        font-size: .75rem;
+      .capture-link, .command-button, .menu-button, .close-button {
+        min-height: 44px; display: inline-flex; justify-content: center; align-items: center;
+        border: 1px solid var(--line-strong); background: var(--panel); color: var(--muted);
+        cursor: pointer; font-size: .72rem;
       }
       .capture-link { padding: 0 12px; color: var(--gold); text-decoration: none; }
       .command-button { padding: 0 12px; gap: 8px; }
       .command-shortcut { color: var(--dim); font-family: inherit; }
-      .capture-link:hover,
-      .command-button:hover,
-      .menu-button:hover,
-      .close-button:hover { border-color: var(--gold); color: var(--text); }
-      .menu-button { display: none; min-width: 44px; font-size: 1.25rem; }
+      .capture-link:hover, .command-button:hover, .menu-button:hover, .close-button:hover { border-color: var(--gold); color: var(--text); }
+      .menu-button { display: none; min-width: 44px; font-size: 1.2rem; }
       .content { padding: 26px 28px 52px; scroll-margin-top: 88px; }
-      .content-inner { max-width: 1380px; margin: 0 auto; }
+      .content-inner { max-width: 1320px; margin: 0 auto; }
       .mobile-nav {
-        position: fixed;
-        inset: 0 auto 0 0;
-        margin: 0;
-        width: min(320px, calc(100vw - 32px));
-        max-width: none;
-        height: 100vh;
-        height: 100dvh;
-        max-height: none;
-        padding: 0;
-        border: 0;
-        border-right: 1px solid var(--line-strong);
-        color: var(--text);
-        overscroll-behavior: contain;
+        position: fixed; inset: 0 auto 0 0; margin: 0;
+        width: min(320px, calc(100vw - 32px)); max-width: none;
+        height: 100dvh; max-height: none; padding: 0; border: 0; border-right: 1px solid var(--line-strong);
+        color: var(--text); background: var(--panel); overflow-y: auto; overscroll-behavior: contain;
       }
-      .mobile-nav::backdrop { background: rgba(0, 0, 0, .72); }
+      .mobile-nav[open] { display: flex; flex-direction: column; }
+      .mobile-nav::backdrop { background: rgba(0,0,0,.72); }
       .mobile-brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-      .close-button { min-width: 44px; flex-shrink: 0; font-size: 1.25rem; }
+      .close-button { min-width: 44px; flex-shrink: 0; font-size: 1.2rem; }
       @media (max-width: 900px) {
         .app { display: block; }
         .sidebar { display: none; }
@@ -244,17 +184,13 @@ function isActive(href: string): boolean {
       @media (max-width: 560px) {
         .topbar { padding: 8px 14px; flex-wrap: wrap; gap: 6px; }
         .page-meta { width: 100%; }
-        .page-title { font-size: .8125rem; }
         .top-actions { width: 100%; }
-        .capture-link { flex: 1; }
-        .command-button { flex: 1; }
+        .capture-link, .command-button { flex: 1; }
         .content { scroll-margin-top: 144px; }
       }
       @media (prefers-reduced-motion: reduce) {
         :global(*), :global(*::before), :global(*::after) {
-          animation: none !important;
-          transition: none !important;
-          scroll-behavior: auto !important;
+          animation: none !important; transition: none !important; scroll-behavior: auto !important;
         }
       }
     </style>
@@ -265,28 +201,36 @@ function isActive(href: string): boolean {
       <aside class="sidebar">
         <div class="brand">
           <div class="brand-title">MASA OS</div>
-          <div class="brand-sub">Command Center · V2 Preview</div>
+          <div class="brand-sub">Daily Command Center · V2.1</div>
         </div>
         <nav class="nav" aria-label="Dashboard ナビゲーション">
-          {navGroups.map(group => (
-            <details class="nav-group" open={group.label === 'NOW' || group.items.some(item => isActive(item.href))}>
-              <summary class="nav-label">
-                <span class="nav-name">{group.label}</span>
-                <span class="nav-purpose">{group.purpose}</span>
-              </summary>
-              <div class="nav-items">
-                {group.items.map(item => (
-                  <a href={item.href} class:list={['nav-item', { active: isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
-                ))}
-              </div>
-            </details>
-          ))}
+          <div class="core-nav">
+            {coreLinks.map(item => (
+              <a href={item.href} class:list={['core-link', { active: isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>
+                <strong>{item.label}</strong><small>{item.purpose}</small>
+              </a>
+            ))}
+          </div>
+          <details class="tools-wrap" open={toolsActive}>
+            <summary>MORE TOOLS</summary>
+            <div class="tool-groups">
+              {toolGroups.map(group => (
+                <section class="tool-group" aria-label={group.label}>
+                  <p class="tool-label">{group.label}</p>
+                  {group.items.map(item => (
+                    <a href={item.href} class:list={['tool-link', { active: isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
+                  ))}
+                </section>
+              ))}
+            </div>
+          </details>
         </nav>
         <div class="sidebar-foot">
           <a class="legacy-link" href="/dashboard">現行Dashboardへ</a>
           <a class="logout-link" href="/dashboard/logout">ログアウト</a>
         </div>
       </aside>
+
       <div class="main">
         <header class="topbar">
           <div class="page-meta">
@@ -294,7 +238,7 @@ function isActive(href: string): boolean {
             <p class="page-title">{title}</p>
           </div>
           <div class="top-actions">
-            <a class="capture-link" href="/dashboard/intelligence#intel-form" data-capture-link>＋ Capture</a>
+            <a class="capture-link" href="/dashboard/intelligence#intel-form">＋ Capture</a>
             <button class="command-button" type="button" data-command-trigger aria-haspopup="dialog">Quick Jump <kbd class="command-shortcut">⌘ K</kbd></button>
             <button class="menu-button" id="dashboard-v2-menu" type="button" aria-label="ナビゲーションを開く" aria-haspopup="dialog" aria-controls="dashboard-v2-mobile-nav" aria-expanded="false">≡</button>
           </div>
@@ -304,34 +248,43 @@ function isActive(href: string): boolean {
         </main>
       </div>
     </div>
+
     <dialog class="mobile-nav" id="dashboard-v2-mobile-nav" aria-labelledby="mobile-nav-title">
       <div class="brand mobile-brand">
         <div>
           <h2 class="brand-title" id="mobile-nav-title">MASA OS</h2>
-          <p class="brand-sub">ナビゲーション</p>
+          <p class="brand-sub">4 core doors + more tools</p>
         </div>
         <button class="close-button" type="button" data-nav-close aria-label="ナビゲーションを閉じる" autofocus>×</button>
       </div>
       <nav class="nav" aria-label="モバイル Dashboard ナビゲーション">
-        {navGroups.map(group => (
-          <details class="nav-group" open={group.label === 'NOW' || group.items.some(item => isActive(item.href))}>
-            <summary class="nav-label">
-              <span class="nav-name">{group.label}</span>
-              <span class="nav-purpose">{group.purpose}</span>
-            </summary>
-            <div class="nav-items">
-              {group.items.map(item => (
-                <a href={item.href} class:list={['nav-item', { active: isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
-              ))}
-            </div>
-          </details>
-        ))}
+        <div class="core-nav">
+          {coreLinks.map(item => (
+            <a href={item.href} class:list={['core-link', { active: isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>
+              <strong>{item.label}</strong><small>{item.purpose}</small>
+            </a>
+          ))}
+        </div>
+        <details class="tools-wrap" open={toolsActive}>
+          <summary>MORE TOOLS</summary>
+          <div class="tool-groups">
+            {toolGroups.map(group => (
+              <section class="tool-group" aria-label={group.label}>
+                <p class="tool-label">{group.label}</p>
+                {group.items.map(item => (
+                  <a href={item.href} class:list={['tool-link', { active: isActive(item.href) }]}>{item.label}</a>
+                ))}
+              </section>
+            ))}
+          </div>
+        </details>
       </nav>
       <div class="sidebar-foot">
         <a class="legacy-link" href="/dashboard">現行Dashboardへ</a>
         <a class="logout-link" href="/dashboard/logout">ログアウト</a>
       </div>
     </dialog>
+
     <script>
       const navigation = document.querySelector<HTMLDialogElement>('#dashboard-v2-mobile-nav');
       const menu = document.querySelector<HTMLButtonElement>('#dashboard-v2-menu');
@@ -355,7 +308,6 @@ function isActive(href: string): boolean {
       });
       navigation?.querySelector('[data-nav-close]')?.addEventListener('click', () => closeNavigation());
       navigation?.addEventListener('click', event => {
-        // Backdrop clicks target the dialog; its own padding is still content.
         if (event.target !== navigation) return;
         const bounds = navigation.getBoundingClientRect();
         if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeNavigation();
