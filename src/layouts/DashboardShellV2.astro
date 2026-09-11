@@ -7,52 +7,54 @@ export interface Props {
 const { title, eyebrow = 'MASA OS' } = Astro.props;
 const pathname = Astro.url.pathname;
 
+// Preserve existing groups and destinations; purpose labels and collapsed groups
+// explain where to go without presenting the complete tool list by default.
 const navGroups = [
   {
-    label: 'NOW',
+    label: 'NOW', purpose: '今日・反応・予定',
     items: [
-      { href: '/dashboard/ui-v2', label: 'Today', mark: '01' },
-      { href: '/dashboard/voice', label: 'Voice Inbox', mark: '02' },
-      { href: '/dashboard/schedule', label: 'Calendar', mark: '03' },
+      { href: '/dashboard/ui-v2', label: '今日の指揮台' },
+      { href: '/dashboard/voice', label: '顧客の声' },
+      { href: '/dashboard/schedule', label: '投稿予定' },
     ],
   },
   {
-    label: 'CREATE',
+    label: 'CREATE', purpose: '制作する',
     items: [
-      { href: '/dashboard/post', label: 'X Post', mark: '04' },
-      { href: '/dashboard/visual-prompt', label: 'Visual Prompt', mark: '05' },
-      { href: '/dashboard/funnel', label: 'Trinity Funnel', mark: '06' },
+      { href: '/dashboard/post', label: 'X Post' },
+      { href: '/dashboard/visual-prompt', label: 'Visual Prompt' },
+      { href: '/dashboard/funnel', label: 'Trinity Funnel' },
     ],
   },
   {
-    label: 'THINK',
+    label: 'THINK', purpose: '調べて考える',
     items: [
-      { href: '/dashboard/intelligence', label: 'Intelligence', mark: '07' },
-      { href: '/dashboard/evidence', label: 'Evidence Lab', mark: '08' },
-      { href: '/dashboard/graph', label: 'Graph', mark: '09' },
+      { href: '/dashboard/intelligence', label: 'Intelligence' },
+      { href: '/dashboard/evidence', label: 'Evidence Lab' },
+      { href: '/dashboard/graph', label: 'Graph' },
     ],
   },
   {
-    label: 'BUILD',
+    label: 'BUILD', purpose: '進めて育てる',
     items: [
-      { href: '/dashboard/flow-09', label: '0→9 Flow', mark: '10' },
-      { href: '/dashboard/quest', label: 'Quest', mark: '11' },
-      { href: '/dashboard/lian', label: 'リアン', mark: '12' },
+      { href: '/dashboard/flow-09', label: '0→9 Flow' },
+      { href: '/dashboard/quest', label: 'Quest' },
+      { href: '/dashboard/lian', label: 'リアン' },
     ],
   },
   {
-    label: 'ASSETS',
+    label: 'ASSETS', purpose: '資産を確かめる',
     items: [
-      { href: '/dashboard/treasury', label: 'Treasury', mark: '13' },
-      { href: '/dashboard/investment', label: 'Investment', mark: '14' },
-      { href: '/dashboard/wishlist', label: 'Wish List', mark: '15' },
+      { href: '/dashboard/treasury', label: 'Treasury' },
+      { href: '/dashboard/investment', label: 'Investment' },
+      { href: '/dashboard/wishlist', label: 'Wish List' },
     ],
   },
 ];
 
 function isActive(href: string): boolean {
-  if (href === '/dashboard/ui-v2') return pathname === href;
-  return pathname.startsWith(href);
+  if (href === '/dashboard/ui-v2') return pathname === href || pathname === `${href}/`;
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 ---
 <!doctype html>
@@ -64,277 +66,315 @@ function isActive(href: string): boolean {
     <title>{title} — MASA OS V2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" rel="stylesheet" />
     <style>
-      *, *::before, *::after { box-sizing: border-box; }
-      * { margin: 0; }
+      :global(*), :global(*::before), :global(*::after) { box-sizing: border-box; }
+      :global(*) { margin: 0; }
       :root {
         --bg: #0d0b08;
         --panel: #15120f;
         --panel-2: #1b1713;
         --panel-3: #211b16;
-        --gold: #c9a96e;
-        --gold-muted: #8b7355;
-        --gold-dim: #5a4d3a;
+        --gold: #d5b579;
+        --gold-muted: #bea374;
+        --gold-dim: #a78c66;
         --text: #e1d5bf;
-        --muted: #9a8d7a;
-        --dim: #665b4d;
+        --muted: #b1a28c;
+        --dim: #ab9b84;
         --line: #2d2822;
         --line-strong: #4a4034;
         --success: #7ea482;
         --warning: #c99a5c;
         --sidebar: 228px;
       }
-
       html { background: var(--bg); color-scheme: dark; }
       body {
         min-height: 100vh;
-        background:
-          radial-gradient(circle at 18% 0%, rgba(201,169,110,.05), transparent 34%),
-          var(--bg);
+        background: var(--bg);
         color: var(--text);
         font-family: 'Zen Kaku Gothic New', sans-serif;
-        font-weight: 300;
+        font-weight: 400;
+        line-height: 1.5;
         letter-spacing: .01em;
       }
-      button, a { font: inherit; }
-      a { color: inherit; }
-
-      .app {
-        display: grid;
-        grid-template-columns: var(--sidebar) minmax(0, 1fr);
-        min-height: 100vh;
+      :global(button), :global(a) { font: inherit; }
+      :global(a) { color: inherit; }
+      :global(:focus-visible) { outline: 2px solid var(--gold); outline-offset: 3px; }
+      .skip-link {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        z-index: 100;
+        padding: 12px 16px;
+        background: var(--gold);
+        color: var(--bg);
+        transform: translateY(-160%);
+        font-size: .875rem;
       }
-
+      .skip-link:focus { transform: translateY(0); }
+      .app { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-height: 100vh; }
+      .sidebar,
+      .mobile-nav[open] { display: flex; flex-direction: column; background: var(--panel); overflow-y: auto; }
       .sidebar {
         position: fixed;
         inset: 0 auto 0 0;
         width: var(--sidebar);
-        display: flex;
-        flex-direction: column;
-        background: rgba(21,18,15,.96);
         border-right: 1px solid var(--line);
         z-index: 50;
-        overflow-y: auto;
       }
-
-      .brand {
-        padding: 26px 20px 20px;
-        border-bottom: 1px solid var(--line);
-      }
+      .brand { padding: 22px 20px 18px; border-bottom: 1px solid var(--line); }
       .brand-title {
         font-family: 'Cormorant Garamond', serif;
         font-size: 1.72rem;
-        font-weight: 300;
+        font-weight: 400;
         color: var(--gold);
         letter-spacing: .06em;
       }
-      .brand-sub {
-        margin-top: 4px;
-        color: var(--dim);
-        font-size: .64rem;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-      }
-
-      .nav { padding: 16px 12px 24px; }
-      .nav-group + .nav-group { margin-top: 18px; }
+      .brand-sub { margin-top: 4px; color: var(--dim); font-size: .75rem; letter-spacing: .04em; }
+      .nav { padding: 12px 12px 20px; }
+      .nav-group { border-bottom: 1px solid var(--line); }
       .nav-label {
-        padding: 0 9px 7px;
-        color: var(--dim);
-        font-family: 'Cormorant Garamond', serif;
-        font-size: .63rem;
-        letter-spacing: .2em;
-      }
-      .nav-item {
-        min-height: 40px;
+        position: relative;
+        min-height: 60px;
         display: grid;
-        grid-template-columns: 26px 1fr;
+        align-content: center;
+        gap: 2px;
+        padding: 9px 26px 9px 9px;
+        color: var(--gold-muted);
+        cursor: pointer;
+        list-style: none;
+      }
+      .nav-label::-webkit-details-marker { display: none; }
+      .nav-label::after { content: '+'; position: absolute; right: 9px; top: 18px; color: var(--muted); }
+      .nav-group[open] > .nav-label::after { content: '−'; }
+      .nav-name { font-size: .75rem; font-weight: 500; letter-spacing: .13em; }
+      .nav-purpose { color: var(--muted); font-size: .75rem; }
+      .nav-items { padding-bottom: 8px; }
+      .nav-item {
+        min-height: 44px;
+        display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 0 9px;
+        padding: 8px 9px;
         border: 1px solid transparent;
         color: var(--muted);
         text-decoration: none;
-        font-size: .78rem;
+        font-size: .8125rem;
         transition: border-color .18s ease, background .18s ease, color .18s ease;
       }
-      .nav-item:hover {
-        color: var(--text);
-        background: rgba(201,169,110,.045);
-        border-color: var(--line);
-      }
+      .nav-item:hover { color: var(--text); background: var(--panel-2); border-color: var(--line-strong); }
       .nav-item.active {
         color: var(--gold);
-        background: rgba(201,169,110,.07);
-        border-color: rgba(201,169,110,.22);
+        background: var(--panel-3);
+        border-color: var(--line-strong);
+        border-left: 2px solid var(--gold);
       }
-      .nav-mark {
-        color: var(--gold-dim);
-        font-family: 'Cormorant Garamond', serif;
-        font-size: .72rem;
-      }
-
-      .sidebar-foot {
-        margin-top: auto;
-        padding: 14px 20px 18px;
-        border-top: 1px solid var(--line);
-      }
+      .sidebar-foot { margin-top: auto; padding: 12px 20px 16px; border-top: 1px solid var(--line); }
       .legacy-link,
-      .logout-link {
-        display: block;
-        padding: 8px 0;
-        color: var(--dim);
-        font-size: .7rem;
-        text-decoration: none;
-      }
+      .logout-link { min-height: 44px; display: flex; align-items: center; color: var(--dim); font-size: .75rem; text-decoration: none; }
       .legacy-link:hover,
-      .logout-link:hover { color: var(--muted); }
-
-      .main {
-        grid-column: 2;
-        min-width: 0;
-      }
-
+      .logout-link:hover { color: var(--text); text-decoration: underline; }
+      .main { grid-column: 2; min-width: 0; }
       .topbar {
         position: sticky;
         top: 0;
         z-index: 30;
-        min-height: 58px;
+        min-height: 68px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 18px;
-        padding: 0 28px;
-        background: rgba(13,11,8,.9);
+        gap: 16px;
+        padding: 8px 28px;
+        background: var(--bg);
         border-bottom: 1px solid var(--line);
-        backdrop-filter: blur(12px);
       }
       .page-meta { min-width: 0; }
-      .eyebrow {
-        color: var(--gold-muted);
-        font-family: 'Cormorant Garamond', serif;
-        font-size: .63rem;
-        letter-spacing: .2em;
-        text-transform: uppercase;
-      }
-      .page-title {
-        margin-top: 1px;
-        color: var(--text);
-        font-size: .88rem;
-        font-weight: 400;
-      }
-      .top-actions { display: flex; align-items: center; gap: 8px; }
+      .eyebrow { color: var(--gold-muted); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+      .page-title { margin-top: 1px; color: var(--text); font-size: .875rem; font-weight: 400; }
+      .top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+      .capture-link,
       .command-button,
-      .menu-button {
-        min-height: 36px;
-        border: 1px solid var(--line);
+      .menu-button,
+      .close-button {
+        min-height: 44px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid var(--line-strong);
         background: var(--panel);
         color: var(--muted);
         cursor: pointer;
+        font-size: .75rem;
       }
-      .command-button { padding: 0 12px; font-size: .7rem; }
+      .capture-link { padding: 0 12px; color: var(--gold); text-decoration: none; }
+      .command-button { padding: 0 12px; gap: 8px; }
+      .command-shortcut { color: var(--dim); font-family: inherit; }
+      .capture-link:hover,
       .command-button:hover,
-      .menu-button:hover { border-color: var(--gold-dim); color: var(--text); }
-      .menu-button {
-        display: none;
-        width: 38px;
-        place-items: center;
-        font-size: 1rem;
-      }
-
-      .content { padding: 26px 28px 52px; }
+      .menu-button:hover,
+      .close-button:hover { border-color: var(--gold); color: var(--text); }
+      .menu-button { display: none; min-width: 44px; font-size: 1.25rem; }
+      .content { padding: 26px 28px 52px; scroll-margin-top: 88px; }
       .content-inner { max-width: 1380px; margin: 0 auto; }
-
-      .overlay {
-        display: none;
+      .mobile-nav {
         position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.58);
-        z-index: 40;
+        inset: 0 auto 0 0;
+        margin: 0;
+        width: min(320px, calc(100vw - 32px));
+        max-width: none;
+        height: 100vh;
+        height: 100dvh;
+        max-height: none;
+        padding: 0;
+        border: 0;
+        border-right: 1px solid var(--line-strong);
+        color: var(--text);
+        overscroll-behavior: contain;
       }
-      .overlay.visible { display: block; }
-
+      .mobile-nav::backdrop { background: rgba(0, 0, 0, .72); }
+      .mobile-brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .close-button { min-width: 44px; flex-shrink: 0; font-size: 1.25rem; }
       @media (max-width: 900px) {
         .app { display: block; }
-        .sidebar {
-          transform: translateX(-100%);
-          transition: transform .22s ease;
-        }
-        .sidebar.open { transform: translateX(0); }
-        .main { min-width: 0; }
-        .menu-button { display: grid; }
-        .topbar { padding: 0 16px; }
+        .sidebar { display: none; }
+        .menu-button { display: inline-flex; }
+        .topbar { padding: 8px 16px; gap: 12px; }
         .content { padding: 20px 14px 42px; }
-        .command-button { display: none; }
+        .command-shortcut { display: none; }
+      }
+      @media (max-width: 560px) {
+        .topbar { padding: 8px 14px; flex-wrap: wrap; gap: 6px; }
+        .page-meta { width: 100%; }
+        .page-title { font-size: .8125rem; }
+        .top-actions { width: 100%; }
+        .capture-link { flex: 1; }
+        .command-button { flex: 1; }
+        .content { scroll-margin-top: 144px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        :global(*), :global(*::before), :global(*::after) {
+          animation: none !important;
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="overlay" id="dashboard-v2-overlay"></div>
+    <a class="skip-link" href="#main-content">本文へ移動</a>
     <div class="app">
-      <aside class="sidebar" id="dashboard-v2-sidebar">
+      <aside class="sidebar">
         <div class="brand">
           <div class="brand-title">MASA OS</div>
           <div class="brand-sub">Command Center · V2 Preview</div>
         </div>
-
-        <nav class="nav" aria-label="Dashboard navigation">
+        <nav class="nav" aria-label="Dashboard ナビゲーション">
           {navGroups.map(group => (
-            <section class="nav-group">
-              <p class="nav-label">{group.label}</p>
-              {group.items.map(item => (
-                <a href={item.href} class:list={['nav-item', { active: isActive(item.href) }]}>
-                  <span class="nav-mark">{item.mark}</span>
-                  <span>{item.label}</span>
-                </a>
-              ))}
-            </section>
+            <details class="nav-group" open={group.label === 'NOW' || group.items.some(item => isActive(item.href))}>
+              <summary class="nav-label">
+                <span class="nav-name">{group.label}</span>
+                <span class="nav-purpose">{group.purpose}</span>
+              </summary>
+              <div class="nav-items">
+                {group.items.map(item => (
+                  <a href={item.href} class:list={['nav-item', { active: isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
+                ))}
+              </div>
+            </details>
           ))}
         </nav>
-
         <div class="sidebar-foot">
           <a class="legacy-link" href="/dashboard">現行Dashboardへ</a>
           <a class="logout-link" href="/dashboard/logout">ログアウト</a>
         </div>
       </aside>
-
-      <main class="main">
+      <div class="main">
         <header class="topbar">
           <div class="page-meta">
             <p class="eyebrow">{eyebrow}</p>
             <p class="page-title">{title}</p>
           </div>
           <div class="top-actions">
-            <button class="command-button" type="button" data-command-trigger>⌘ K · Quick Jump</button>
-            <button class="menu-button" id="dashboard-v2-menu" type="button" aria-label="メニューを開く">≡</button>
+            <a class="capture-link" href="/dashboard/intelligence#intel-form" data-capture-link>＋ Capture</a>
+            <button class="command-button" type="button" data-command-trigger aria-haspopup="dialog">Quick Jump <kbd class="command-shortcut">⌘ K</kbd></button>
+            <button class="menu-button" id="dashboard-v2-menu" type="button" aria-label="ナビゲーションを開く" aria-haspopup="dialog" aria-controls="dashboard-v2-mobile-nav" aria-expanded="false">≡</button>
           </div>
         </header>
-
-        <div class="content">
-          <div class="content-inner">
-            <slot />
-          </div>
-        </div>
-      </main>
+        <main class="content" id="main-content" tabindex="-1">
+          <div class="content-inner"><slot /></div>
+        </main>
+      </div>
     </div>
-
+    <dialog class="mobile-nav" id="dashboard-v2-mobile-nav" aria-labelledby="mobile-nav-title">
+      <div class="brand mobile-brand">
+        <div>
+          <h2 class="brand-title" id="mobile-nav-title">MASA OS</h2>
+          <p class="brand-sub">ナビゲーション</p>
+        </div>
+        <button class="close-button" type="button" data-nav-close aria-label="ナビゲーションを閉じる" autofocus>×</button>
+      </div>
+      <nav class="nav" aria-label="モバイル Dashboard ナビゲーション">
+        {navGroups.map(group => (
+          <details class="nav-group" open={group.label === 'NOW' || group.items.some(item => isActive(item.href))}>
+            <summary class="nav-label">
+              <span class="nav-name">{group.label}</span>
+              <span class="nav-purpose">{group.purpose}</span>
+            </summary>
+            <div class="nav-items">
+              {group.items.map(item => (
+                <a href={item.href} class:list={['nav-item', { active: isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
+              ))}
+            </div>
+          </details>
+        ))}
+      </nav>
+      <div class="sidebar-foot">
+        <a class="legacy-link" href="/dashboard">現行Dashboardへ</a>
+        <a class="logout-link" href="/dashboard/logout">ログアウト</a>
+      </div>
+    </dialog>
     <script>
-      const sidebar = document.getElementById('dashboard-v2-sidebar');
-      const overlay = document.getElementById('dashboard-v2-overlay');
-      const menu = document.getElementById('dashboard-v2-menu');
+      const navigation = document.querySelector<HTMLDialogElement>('#dashboard-v2-mobile-nav');
+      const menu = document.querySelector<HTMLButtonElement>('#dashboard-v2-menu');
+      const mobileViewport = window.matchMedia('(max-width: 900px)');
+      let previousOverflow = '';
+      let restoreMenuFocus = true;
 
-      const open = () => {
-        sidebar?.classList.add('open');
-        overlay?.classList.add('visible');
-      };
-      const close = () => {
-        sidebar?.classList.remove('open');
-        overlay?.classList.remove('visible');
+      const closeNavigation = (restoreFocus = true) => {
+        if (!navigation?.open) return;
+        restoreMenuFocus = restoreFocus;
+        navigation.close();
       };
 
-      menu?.addEventListener('click', open);
-      overlay?.addEventListener('click', close);
+      menu?.addEventListener('click', () => {
+        if (!navigation || !mobileViewport.matches || document.querySelector('dialog[open]')) return;
+        previousOverflow = document.body.style.overflow;
+        restoreMenuFocus = true;
+        navigation.showModal();
+        document.body.style.overflow = 'hidden';
+        menu.setAttribute('aria-expanded', 'true');
+      });
+      navigation?.querySelector('[data-nav-close]')?.addEventListener('click', () => closeNavigation());
+      navigation?.addEventListener('click', event => {
+        // Backdrop clicks target the dialog; its own padding is still content.
+        if (event.target !== navigation) return;
+        const bounds = navigation.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeNavigation();
+      });
+      navigation?.addEventListener('cancel', event => {
+        event.preventDefault();
+        closeNavigation();
+      });
+      navigation?.addEventListener('close', () => {
+        document.body.style.overflow = previousOverflow;
+        menu?.setAttribute('aria-expanded', 'false');
+        if (restoreMenuFocus && mobileViewport.matches) menu?.focus();
+      });
+      mobileViewport.addEventListener('change', event => {
+        if (!event.matches && navigation?.open) {
+          closeNavigation(false);
+          document.querySelector<HTMLAnchorElement>('.sidebar [aria-current="page"]')?.focus();
+        }
+      });
     </script>
   </body>
 </html>

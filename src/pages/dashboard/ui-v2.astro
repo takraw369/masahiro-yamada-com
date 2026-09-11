@@ -1,128 +1,77 @@
 ---
 import DashboardShellV2 from '../../layouts/DashboardShellV2.astro';
 
-const now = new Date();
 const dateLabel = new Intl.DateTimeFormat('ja-JP', {
-  timeZone: 'Asia/Tokyo',
-  month: 'long',
-  day: 'numeric',
-  weekday: 'short',
-}).format(now);
+  timeZone: 'Asia/Tokyo', month: 'long', day: 'numeric', weekday: 'short',
+}).format(new Date());
 
-const loops = [
-  {
-    label: '01',
-    name: 'Social Growth Sprint 30D',
-    state: 'NOW',
-    centerPin: '適合する実在見込み客を発生させる',
-    next: '既存素材を1本公開 → 3〜5会話 → 適合者1名へ勝ち筋OSを具体提案',
-    href: '/dashboard/post',
-  },
-  {
-    label: '02',
-    name: 'ACE｜実利用 E2E',
-    state: 'NOW',
-    centerPin: 'ログイン後に「1回使って変化が記録される」ループを通す',
-    next: 'Google Login → My ACE → Action / Quest → progress → next を1本だけ通す',
-    href: '/dashboard/quest',
-  },
-  {
-    label: '∞',
-    name: 'Idea → Asset → Reuse',
-    state: 'ALWAYS',
-    centerPin: '湧いたものを既存の正本へ接続して出口を1つ付ける',
-    next: '思いつく → Inbox → 既存正本へ統合 → 使える出口を1つ決める',
-    href: '/dashboard/voice',
-  },
-];
-
+// These are existing destinations, not new capture or publishing contracts.
 const quickActions = [
-  { label: 'CAPTURE', title: '声で残す', detail: 'Voice Inboxへ', href: '/dashboard/voice' },
-  { label: 'THINK', title: '調べて考える', detail: 'Intelligenceへ', href: '/dashboard/intelligence' },
-  { label: 'CREATE', title: '投稿を作る', detail: 'X Postへ', href: '/dashboard/post' },
-  { label: 'TIME', title: '予定を見る', detail: 'Calendarへ', href: '/dashboard/schedule' },
+  { label: 'CAPTURE', title: 'メモ・URLを残す', detail: 'Intelligenceの入力欄へ', href: '/dashboard/intelligence#intel-form' },
+  { label: 'THINK', title: '保存した情報を読む', detail: 'Intelligenceの一覧へ', href: '/dashboard/intelligence#intel-list' },
+  { label: 'CREATE', title: '投稿文を作る', detail: 'X Postへ', href: '/dashboard/post' },
+  { label: 'TIME', title: '投稿予定を見る', detail: '投稿スケジュールへ', href: '/dashboard/schedule' },
 ];
 
 const workspaces = [
-  {
-    label: 'Create',
-    description: '発信・導線・表現をつくる',
-    links: [
-      { label: 'X Post', href: '/dashboard/post' },
-      { label: 'Visual Prompt', href: '/dashboard/visual-prompt' },
-      { label: 'Trinity Funnel', href: '/dashboard/funnel' },
-    ],
-  },
-  {
-    label: 'Think',
-    description: '情報を拾い、意味と根拠へ変える',
-    links: [
-      { label: 'Intelligence', href: '/dashboard/intelligence' },
-      { label: 'Evidence Lab', href: '/dashboard/evidence' },
-      { label: 'Graph', href: '/dashboard/graph' },
-    ],
-  },
-  {
-    label: 'Build',
-    description: '学習・成長・事業の流れを組む',
-    links: [
-      { label: '0→9 Flow', href: '/dashboard/flow-09' },
-      { label: 'Quest', href: '/dashboard/quest' },
-      { label: 'リアン', href: '/dashboard/lian' },
-    ],
-  },
-  {
-    label: 'Assets',
-    description: 'お金・保有・欲しい未来を管理する',
-    links: [
-      { label: 'Treasury', href: '/dashboard/treasury' },
-      { label: 'Investment', href: '/dashboard/investment' },
-      { label: 'Wish List', href: '/dashboard/wishlist' },
-    ],
-  },
+  { label: 'CREATE', purpose: '発信をつくる', links: [
+    { label: '投稿文を作る', tool: 'X Post', href: '/dashboard/post' },
+    { label: '画像の指示を組む', tool: 'Visual Prompt', href: '/dashboard/visual-prompt' },
+    { label: '発信の導線を組む', tool: 'Trinity Funnel', href: '/dashboard/funnel' },
+  ] },
+  { label: 'THINK', purpose: '情報を読み解く', links: [
+    { label: '保存した情報を読む', tool: 'Intelligence', href: '/dashboard/intelligence#intel-list' },
+    { label: '根拠を確かめる', tool: 'Evidence Lab', href: '/dashboard/evidence' },
+    { label: 'つながりを見る', tool: 'Graph', href: '/dashboard/graph' },
+  ] },
+  { label: 'BUILD', purpose: '学び・事業を育てる', links: [
+    { label: '事業の流れを組む', tool: '0→9 Flow', href: '/dashboard/flow-09' },
+    { label: '学習テーマを選ぶ', tool: 'Quest', href: '/dashboard/quest' },
+    { label: 'リアンを開く', tool: 'リアン', href: '/dashboard/lian' },
+  ] },
+  { label: 'ASSETS', purpose: 'お金・保有を整える', links: [
+    { label: 'お金の流れを見る', tool: 'Treasury', href: '/dashboard/treasury' },
+    { label: '投資を確認する', tool: 'Investment', href: '/dashboard/investment' },
+    { label: '欲しいものを整理する', tool: 'Wish List', href: '/dashboard/wishlist' },
+  ] },
 ];
+const quickHrefs = new Set(quickActions.map(item => item.href));
+const otherDestinations = workspaces.flatMap(space => space.links).filter(link => !quickHrefs.has(link.href));
 ---
 
-<DashboardShellV2 title="Today" eyebrow="MASA OS · COMMAND CENTER">
-  <div class="today-head">
-    <div>
-      <p class="date">{dateLabel}</p>
-      <h1>今日、どこを動かす？</h1>
-      <p class="intro">全部を見る場所ではなく、次の一手を決める場所。必要な詳細は各Workspaceへ降りる。</p>
-    </div>
-    <div class="preview-badge">V2 PREVIEW</div>
-  </div>
+<DashboardShellV2 title="今日の一手" eyebrow="DAILY COMMAND CENTER">
+  <header class="today-head">
+    <h1>今日の一手</h1>
+    <p class="date">{dateLabel}<span>V2 PREVIEW</span></p>
+  </header>
 
   <section class="next-action" aria-labelledby="next-action-title">
     <div class="next-copy">
-      <p class="section-label">NEXT ACTION</p>
-      <h2 id="next-action-title">まず、1本出す。</h2>
-      <p>Social Growth Sprintのセンターピンは「見込み客が発生すること」。Dashboardを眺めるより、市場へ1回出して反応を回収する。</p>
+      <div class="action-summary">
+        <p class="section-label">NEXT ACTION</p>
+        <p class="action-context">Social Growth Sprint 30D</p>
+        <h2 id="next-action-title">既存素材を1本、<br />投稿文にする。</h2>
+        <p class="next-instruction">伝えたい要点を1つ選び、X Postで文章にする。</p>
+      </div>
+      <div class="action-entry">
+        <a class="primary-cta" href="/dashboard/post">投稿画面を開く <span aria-hidden="true">→</span></a>
+        <p class="source-note">現行Dashboardの方針をもとにした提案</p>
+      </div>
     </div>
-    <div class="next-side">
-      <div class="next-step">
-        <span>01</span>
-        <strong>既存素材を1本公開</strong>
+    <details class="action-background">
+      <summary>この一手の理由・その先</summary>
+      <div class="disclosed-copy">
+        <p>目指すのは、適合する実在見込み客が生まれること。まずは既存素材を使って、市場へ出す1本を準備する。</p>
+        <p>投稿後の流れ：反応をもとに3〜5会話 → 適合者1名へ勝ち筋OSを具体提案。</p>
+        <p>現在の完了状況や優先順位は未連携。この提案は自動更新されません。</p>
       </div>
-      <div class="next-step">
-        <span>02</span>
-        <strong>3〜5会話を起こす</strong>
-      </div>
-      <div class="next-step">
-        <span>03</span>
-        <strong>適合者1名へ提案</strong>
-      </div>
-      <a class="primary-cta" href="/dashboard/post">X Postを開く →</a>
-    </div>
+    </details>
   </section>
 
   <section class="quick-section" aria-labelledby="quick-title">
     <div class="section-heading">
-      <div>
-        <p class="section-label">QUICK START</p>
-        <h2 id="quick-title">入口を4つに絞る</h2>
-      </div>
-      <p>迷ったら「残す・考える・作る・予定」のどれか。</p>
+      <h2 id="quick-title">別のことを始める</h2>
+      <p class="section-label">QUICK START</p>
     </div>
     <div class="quick-grid">
       {quickActions.map(item => (
@@ -130,313 +79,200 @@ const workspaces = [
           <span class="quick-label">{item.label}</span>
           <strong>{item.title}</strong>
           <small>{item.detail}</small>
-          <span class="arrow">→</span>
+          <span class="arrow" aria-hidden="true">→</span>
         </a>
       ))}
     </div>
+    <details class="capture-help">
+      <summary>Captureで残せるもの</summary>
+      <div class="disclosed-copy">
+        <p>思いつき・メモ・URLは、Intelligenceの既存入力欄からFeedへ追加。タイトルだけでも残せます。音声は、対応端末の音声入力で文字にして残せます。</p>
+        <p>録音ファイルの受け付けや自動AI処理は未対応。残した情報は、あとから既存の「SNS / AI種」「Evidence化」などの操作へつなげられます。</p>
+      </div>
+    </details>
   </section>
 
   <section class="loop-section" aria-labelledby="loop-title">
     <div class="section-heading">
-      <div>
-        <p class="section-label">ACTIVE LOOPS</p>
-        <h2 id="loop-title">今動かしているものだけ</h2>
+      <h2 id="loop-title">次に触る候補</h2>
+      <p class="section-label">ACTIVE LOOPS</p>
+    </div>
+    <p class="section-note">現行Dashboardの方針から。進捗・期限による自動選定は未連携。</p>
+    <article class="loop-row">
+      <div class="loop-main">
+        <p class="loop-name">Idea → Asset → Reuse</p>
+        <h3>使える素材を1つ選ぶ</h3>
+        <p>新しく作る前に、残した情報から再利用する。</p>
       </div>
-      <p>詳細説明を常時展開せず、「Center Pin」と「Next」だけ残す。</p>
-    </div>
-
-    <div class="loop-list">
-      {loops.map(loop => (
-        <a class="loop-row" href={loop.href}>
-          <div class="loop-index">{loop.label}</div>
-          <div class="loop-main">
-            <div class="loop-title-row">
-              <strong>{loop.name}</strong>
-              <span>{loop.state}</span>
-            </div>
-            <p>{loop.centerPin}</p>
-          </div>
-          <div class="loop-next">
-            <small>NEXT</small>
-            <p>{loop.next}</p>
-          </div>
-          <div class="loop-arrow">→</div>
-        </a>
-      ))}
-    </div>
+      <a class="secondary-cta" href="/dashboard/intelligence#intel-list">保存した情報へ <span aria-hidden="true">→</span></a>
+    </article>
+    <details class="other-focus">
+      <summary>もう1つの方針：ACE｜実利用 E2E</summary>
+      <div class="disclosed-copy">
+        <p>次の確認：Google Login → My ACE → Action / Quest → progress → next を1本だけ通す。</p>
+        <p>実利用の確認先はこのプレビューに未接続です。DashboardのQuestは学習テーマの一覧です。</p>
+        <a href="/dashboard">現行Dashboardで方針を確認する <span aria-hidden="true">→</span></a>
+      </div>
+    </details>
   </section>
 
-  <section class="workspace-section" aria-labelledby="workspace-title">
-    <div class="section-heading">
-      <div>
-        <p class="section-label">WORKSPACES</p>
-        <h2 id="workspace-title">機能ではなく、目的で探す</h2>
-      </div>
-      <p>15個の機能を横並びにせず、4つの仕事へまとめる。</p>
-    </div>
-
+  <details class="workspace-section">
+    <summary>ほかの仕事を探す <span>CREATE / THINK / BUILD / ASSETS</span></summary>
     <div class="workspace-grid">
       {workspaces.map(space => (
-        <article class="workspace-card">
-          <p class="workspace-label">{space.label}</p>
-          <p class="workspace-description">{space.description}</p>
+        <section class="workspace-card" aria-label={`${space.label}：${space.purpose}`}>
+          <h2>{space.label}</h2>
+          <p>{space.purpose}</p>
           <div class="workspace-links">
             {space.links.map(link => (
-              <a href={link.href}>{link.label}<span>→</span></a>
+              <a href={link.href}>{link.label}<small>{link.tool}</small></a>
             ))}
           </div>
-        </article>
+        </section>
       ))}
     </div>
-  </section>
+  </details>
 
-  <section class="principle">
-    <p class="section-label">DESIGN PRINCIPLE</p>
-    <p><strong>Dashboardは情報倉庫ではない。</strong>「今 → 次 → 詳細」の3階層にして、トップでは判断だけを助ける。</p>
-    <a href="/dashboard">現行Dashboardと比較する →</a>
-  </section>
+  <footer class="preview-foot">
+    <p>V2 · 隔離プレビュー</p>
+    <a href="/dashboard">現行Dashboardと比較する <span aria-hidden="true">→</span></a>
+  </footer>
 
-  <dialog class="command-dialog" id="command-dialog">
-    <form method="dialog">
-      <div class="command-head">
-        <div>
-          <p class="section-label">QUICK JUMP</p>
-          <h2>どこへ行く？</h2>
-        </div>
-        <button value="cancel" aria-label="閉じる">×</button>
-      </div>
-      <div class="command-links">
-        {quickActions.map(item => <a href={item.href}>{item.title}<span>{item.detail}</span></a>)}
-        {workspaces.flatMap(space => space.links).map(link => <a href={link.href}>{link.label}<span>Workspace</span></a>)}
-      </div>
-    </form>
+  <dialog class="command-dialog" id="command-dialog" aria-labelledby="command-title">
+    <div class="command-head">
+      <h2 id="command-title">行き先を選ぶ</h2>
+      <form method="dialog"><button aria-label="行き先を閉じる" autofocus>×</button></form>
+    </div>
+    <nav class="command-links" aria-label="行き先一覧">
+      {quickActions.map(item => <a href={item.href}>{item.title}<span>{item.label} · {item.detail}</span></a>)}
+      {otherDestinations.map(link => <a href={link.href}>{link.label}<span>{link.tool}</span></a>)}
+      <a href="/dashboard/voice">顧客の声を整理する<span>Voice Inbox</span></a>
+    </nav>
   </dialog>
-
-  <style>
-    .today-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 24px;
-      padding: 8px 0 28px;
-    }
-    .date, .section-label {
-      color: var(--gold-muted);
-      font-family: 'Cormorant Garamond', serif;
-      font-size: .68rem;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-    }
-    h1, h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 300;
-      color: var(--text);
-    }
-    h1 {
-      margin-top: 7px;
-      font-size: clamp(2.2rem, 5vw, 4.1rem);
-      line-height: .96;
-      letter-spacing: -.025em;
-    }
-    .intro {
-      max-width: 690px;
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: .83rem;
-      line-height: 1.85;
-    }
-    .preview-badge {
-      flex: 0 0 auto;
-      padding: 7px 10px;
-      border: 1px solid rgba(201,169,110,.22);
-      color: var(--gold-muted);
-      font-size: .58rem;
-      letter-spacing: .14em;
-    }
-
-    .next-action {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(330px, .7fr);
-      min-height: 310px;
-      border: 1px solid rgba(201,169,110,.28);
-      background: linear-gradient(120deg, rgba(201,169,110,.08), rgba(21,18,15,.82) 48%, var(--panel));
-    }
-    .next-copy {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: clamp(26px, 5vw, 56px);
-      border-right: 1px solid var(--line);
-    }
-    .next-copy h2 {
-      margin-top: 8px;
-      font-size: clamp(2.1rem, 4vw, 3.7rem);
-    }
-    .next-copy > p:last-child {
-      max-width: 680px;
-      margin-top: 16px;
-      color: var(--muted);
-      font-size: .86rem;
-      line-height: 1.9;
-    }
-    .next-side { padding: 24px; display: grid; align-content: center; gap: 1px; }
-    .next-step {
-      display: grid;
-      grid-template-columns: 28px 1fr;
-      align-items: center;
-      gap: 10px;
-      min-height: 52px;
-      padding: 0 12px;
-      background: rgba(255,255,255,.012);
-      border-bottom: 1px solid var(--line);
-    }
-    .next-step span { color: var(--gold-dim); font-family: 'Cormorant Garamond', serif; font-size: .72rem; }
-    .next-step strong { color: var(--text); font-size: .78rem; font-weight: 400; }
-    .primary-cta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 48px;
-      margin-top: 16px;
-      padding: 0 14px;
-      background: var(--gold-muted);
-      color: var(--bg);
-      text-decoration: none;
-      font-size: .75rem;
-      font-weight: 500;
-    }
-    .primary-cta:hover { background: var(--gold); }
-
-    .quick-section, .loop-section, .workspace-section { margin-top: 42px; }
-    .section-heading {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 22px;
-      margin-bottom: 15px;
-    }
-    .section-heading h2 { margin-top: 3px; font-size: 1.65rem; }
-    .section-heading > p { color: var(--dim); font-size: .7rem; text-align: right; }
-
-    .quick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-    .quick-card {
-      position: relative;
-      min-height: 126px;
-      display: flex;
-      flex-direction: column;
-      padding: 16px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      text-decoration: none;
-      transition: border-color .18s ease, background .18s ease;
-    }
-    .quick-card:hover { border-color: var(--gold-dim); background: var(--panel-2); }
-    .quick-label { color: var(--gold-muted); font-size: .58rem; letter-spacing: .15em; }
-    .quick-card strong { margin-top: 13px; color: var(--text); font-size: .9rem; font-weight: 400; }
-    .quick-card small { margin-top: 4px; color: var(--dim); font-size: .66rem; }
-    .quick-card .arrow { position: absolute; right: 15px; bottom: 13px; color: var(--gold-dim); }
-
-    .loop-list { border-top: 1px solid var(--line); }
-    .loop-row {
-      display: grid;
-      grid-template-columns: 42px minmax(220px, .7fr) minmax(300px, 1.3fr) 20px;
-      gap: 18px;
-      align-items: center;
-      min-height: 106px;
-      padding: 15px 8px;
-      border-bottom: 1px solid var(--line);
-      text-decoration: none;
-      transition: background .18s ease;
-    }
-    .loop-row:hover { background: rgba(201,169,110,.035); }
-    .loop-index { color: var(--gold-dim); font-family: 'Cormorant Garamond', serif; font-size: 1rem; }
-    .loop-title-row { display: flex; align-items: center; gap: 9px; }
-    .loop-title-row strong { color: var(--text); font-size: .84rem; font-weight: 400; }
-    .loop-title-row span { padding: 2px 6px; border: 1px solid var(--line-strong); color: var(--gold-muted); font-size: .5rem; letter-spacing: .1em; }
-    .loop-main > p { margin-top: 7px; color: var(--muted); font-size: .73rem; line-height: 1.6; }
-    .loop-next small { color: var(--gold-muted); font-size: .52rem; letter-spacing: .12em; }
-    .loop-next p { margin-top: 5px; color: var(--text); font-size: .72rem; line-height: 1.65; }
-    .loop-arrow { color: var(--gold-dim); }
-
-    .workspace-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-    .workspace-card { min-height: 224px; padding: 18px; border: 1px solid var(--line); background: var(--panel); }
-    .workspace-label { color: var(--gold); font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; }
-    .workspace-description { min-height: 48px; margin-top: 8px; color: var(--muted); font-size: .7rem; line-height: 1.7; }
-    .workspace-links { margin-top: 18px; border-top: 1px solid var(--line); }
-    .workspace-links a { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); color: var(--muted); text-decoration: none; font-size: .72rem; }
-    .workspace-links a:hover { color: var(--text); }
-    .workspace-links span { color: var(--gold-dim); }
-
-    .principle {
-      display: grid;
-      grid-template-columns: 150px 1fr auto;
-      gap: 22px;
-      align-items: center;
-      margin-top: 42px;
-      padding: 18px 0;
-      border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-    }
-    .principle > p:nth-child(2) { color: var(--muted); font-size: .75rem; line-height: 1.7; }
-    .principle strong { color: var(--text); font-weight: 400; }
-    .principle a { color: var(--gold-muted); text-decoration: none; font-size: .68rem; }
-
-    .command-dialog {
-      width: min(640px, calc(100vw - 28px));
-      max-height: min(720px, calc(100vh - 40px));
-      margin: auto;
-      padding: 0;
-      border: 1px solid var(--line-strong);
-      background: var(--panel);
-      color: var(--text);
-    }
-    .command-dialog::backdrop { background: rgba(0,0,0,.72); backdrop-filter: blur(4px); }
-    .command-dialog form { padding: 20px; }
-    .command-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-    .command-head h2 { margin-top: 3px; font-size: 1.7rem; }
-    .command-head button { width: 34px; height: 34px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
-    .command-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding-top: 14px; }
-    .command-links a { display: flex; flex-direction: column; min-height: 58px; padding: 10px; border: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: .75rem; }
-    .command-links span { margin-top: 4px; color: var(--dim); font-size: .58rem; }
-
-    @media (max-width: 1080px) {
-      .quick-grid, .workspace-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .next-action { grid-template-columns: 1fr; }
-      .next-copy { border-right: 0; border-bottom: 1px solid var(--line); }
-      .loop-row { grid-template-columns: 36px 1fr 20px; }
-      .loop-next { grid-column: 2 / 3; }
-    }
-
-    @media (max-width: 640px) {
-      .today-head { display: block; }
-      .preview-badge { display: inline-block; margin-top: 16px; }
-      .next-copy { padding: 26px 20px; }
-      .next-side { padding: 16px; }
-      .section-heading { display: block; }
-      .section-heading > p { margin-top: 6px; text-align: left; line-height: 1.6; }
-      .quick-grid, .workspace-grid { grid-template-columns: 1fr; }
-      .quick-card { min-height: 105px; }
-      .loop-row { grid-template-columns: 30px 1fr 16px; gap: 10px; }
-      .loop-next { grid-column: 2 / 3; }
-      .principle { grid-template-columns: 1fr; gap: 8px; }
-      .command-links { grid-template-columns: 1fr; }
-    }
-  </style>
-
-  <script>
-    const dialog = document.getElementById('command-dialog');
-    const triggers = document.querySelectorAll('[data-command-trigger]');
-
-    function openCommand() {
-      if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal();
-    }
-
-    triggers.forEach(trigger => trigger.addEventListener('click', openCommand));
-    document.addEventListener('keydown', event => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault();
-        openCommand();
-      }
-    });
-  </script>
 </DashboardShellV2>
+
+<style>
+  .today-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  h1 { font-size: 1.05rem; font-weight: 500; }
+  .date { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: .8rem; }
+  .date span { color: var(--gold-muted); font-size: .75rem; letter-spacing: .07em; }
+  .section-label, .quick-label { color: var(--gold); font-size: .75rem; letter-spacing: .12em; font-weight: 500; }
+  .next-action { border: 1px solid var(--gold-muted); background: var(--panel); }
+  .next-copy { padding: 28px 32px 22px; }
+  .action-context { margin-top: 12px; color: var(--muted); font-size: .85rem; }
+  .next-copy h2 { margin-top: 10px; font-size: clamp(1.75rem, 3.2vw, 2.8rem); line-height: 1.4; font-weight: 500; letter-spacing: .025em; }
+  .next-instruction { margin-top: 14px; color: var(--muted); font-size: .9rem; line-height: 1.75; }
+  .primary-cta { display: flex; align-items: center; justify-content: space-between; gap: 30px; width: min(100%, 340px); min-height: 48px; margin-top: 22px; padding: 12px 18px; color: var(--bg); background: var(--gold); text-decoration: none; font-size: .95rem; font-weight: 500; }
+  .primary-cta:hover { background: var(--text); }
+  .source-note { margin-top: 12px; font-size: .75rem; line-height: 1.6; color: var(--muted); }
+  summary { cursor: pointer; font-size: .85rem; min-height: 44px; padding: 12px 0; line-height: 1.6; color: var(--muted); }
+  summary:hover { color: var(--text); }
+  .action-background { border-top: 1px solid var(--line); padding: 0 32px; }
+  .disclosed-copy { padding-bottom: 18px; color: var(--muted); font-size: .85rem; line-height: 1.85; }
+  .disclosed-copy p + p { margin-top: 10px; }
+  .disclosed-copy a { display: inline-flex; align-items: center; min-height: 44px; color: var(--gold); text-underline-offset: 4px; }
+  .quick-section, .loop-section { margin-top: 28px; }
+  .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .section-heading h2 { font-size: 1rem; font-weight: 500; }
+  .quick-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; }
+  .quick-card { min-width: 0; display: flex; position: relative; flex-direction: column; padding: 14px; padding-bottom: 20px; border: 1px solid var(--line-strong); background: var(--panel); text-decoration: none; }
+  .quick-card:hover { border-color: var(--gold); background: var(--panel-2); }
+  .quick-card strong { margin-top: 10px; font-size: .9rem; font-weight: 500; line-height: 1.6; }
+  .quick-card small { margin-top: 4px; padding-right: 12px; font-size: .75rem; line-height: 1.6; color: var(--muted); }
+  .arrow { position: absolute; right: 12px; bottom: 12px; color: var(--gold); }
+  .capture-help { margin-top: 6px; }
+  .section-note { color: var(--muted); font-size: .8rem; line-height: 1.75; margin-bottom: 12px; }
+  .loop-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 0; border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
+  .loop-name { color: var(--gold-muted); font-size: .8rem; }
+  .loop-main h3 { font-size: 1rem; font-weight: 500; margin-top: 6px; }
+  .loop-main > p:last-child { margin-top: 6px; color: var(--muted); font-size: .85rem; line-height: 1.7; }
+  .secondary-cta { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 18px; min-height: 44px; padding: 10px 14px; border: 1px solid var(--line-strong); color: var(--gold); text-decoration: none; font-size: .85rem; }
+  .secondary-cta:hover { border-color: var(--gold); }
+  .other-focus { border-bottom: 1px solid var(--line); }
+  .workspace-section { margin-top: 24px; border: 1px solid var(--line-strong); padding: 0 16px; }
+  .workspace-section > summary { color: var(--text); }
+  .workspace-section > summary span { margin-left: 12px; color: var(--muted); font-size: .75rem; }
+  .workspace-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 20px; padding: 16px 0; border-top: 1px solid var(--line); }
+  .workspace-card { min-width: 0; }
+  .workspace-card h2 { color: var(--gold); font-family: 'Cormorant Garamond',serif; font-size: 1.3rem; font-weight: 400; }
+  .workspace-card > p { color: var(--muted); font-size: .8rem; margin-top: 6px; }
+  .workspace-links { margin-top: 12px; }
+  .workspace-links a { display: flex; flex-direction: column; padding: 10px 0; font-size: .85rem; border-top: 1px solid var(--line); text-decoration: none; }
+  .workspace-links a:hover { color: var(--gold); }
+  .workspace-links small { color: var(--muted); font-size: .75rem; margin-top: 2px; }
+  .preview-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 22px; color: var(--muted); font-size: .75rem; }
+  .preview-foot a { display: inline-flex; align-items: center; min-height: 44px; text-underline-offset: 4px; }
+  .command-dialog { width: min(640px,calc(100% - 28px)); max-height: calc(100dvh - 32px); margin: auto; padding: 20px; border: 1px solid var(--gold-muted); color: var(--text); background: var(--panel); }
+  .command-dialog::backdrop { background: rgb(0 0 0 / .8); }
+  .command-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .command-head h2 { font-size: 1.2rem; font-weight: 500; }
+  .command-head button { min-width: 44px; min-height: 44px; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text); cursor: pointer; font-size: 1.25rem; }
+  .command-links { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .command-links a { display: flex; flex-direction: column; padding: 12px; border: 1px solid var(--line-strong); text-decoration: none; font-size: .85rem; }
+  .command-links a:hover { border-color: var(--gold); }
+  .command-links span { margin-top: 4px; color: var(--muted); font-size: .75rem; }
+  @media (min-width: 1200px) {
+    .next-copy { display: grid; grid-template-columns: minmax(0,1fr) 340px; align-items: end; gap: 28px; }
+    .primary-cta { margin-top: 0; }
+  }
+  @media (max-width: 1150px) { .quick-grid, .workspace-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+  @media (max-width: 640px) {
+    .today-head { align-items: flex-start; margin-bottom: 12px; }
+    .date { flex-direction: column; align-items: flex-end; gap: 3px; font-size: .75rem; }
+    .date span { font-size: .75rem; }
+    .next-copy { padding: 20px 18px 16px; }
+    .next-copy h2 { font-size: clamp(1.6rem,6.5vw,2.25rem); }
+    .next-instruction { font-size: .85rem; margin-top: 10px; }
+    .primary-cta { width: 100%; margin-top: 16px; }
+    .action-background { padding: 0 18px; }
+    .quick-card { padding: 12px; padding-bottom: 20px; }
+    .quick-card strong { font-size: .85rem; }
+    .section-heading { gap: 8px; }
+    .section-heading .section-label { font-size: .75rem; letter-spacing: .06em; }
+    .loop-row { align-items: stretch; flex-direction: column; gap: 12px; }
+    .workspace-section > summary span { display: block; margin: 4px 0 0; }
+    .workspace-grid, .command-links { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<script>
+  const dialog = document.getElementById('command-dialog');
+  const triggers = document.querySelectorAll<HTMLButtonElement>('[data-command-trigger]');
+  let previousFocus: HTMLElement | null = null;
+  let previousOverflow = '';
+
+  function openCommand() {
+    if (!(dialog instanceof HTMLDialogElement) || document.querySelector('dialog[open]')) return;
+    previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    previousOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    triggers.forEach(trigger => trigger.setAttribute('aria-expanded', 'true'));
+  }
+
+  triggers.forEach(trigger => {
+    trigger.setAttribute('aria-controls', 'command-dialog');
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.addEventListener('click', openCommand);
+  });
+  dialog?.addEventListener('close', () => {
+    document.body.style.overflow = previousOverflow;
+    triggers.forEach(trigger => trigger.setAttribute('aria-expanded', 'false'));
+    // A breakpoint can hide the invoking control; only restore to a visible target.
+    if (previousFocus?.getClientRects().length) previousFocus.focus();
+  });
+  dialog?.addEventListener('click', event => {
+    if (!(dialog instanceof HTMLDialogElement) || event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.isComposing || event.altKey || event.repeat || event.defaultPrevented) return;
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      openCommand();
+    }
+  });
+</script>
