@@ -1,0 +1,279 @@
+---
+import DashboardShellV2 from '../../layouts/DashboardShellV2.astro';
+
+const dateLabel = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: 'Asia/Tokyo', month: 'long', day: 'numeric', weekday: 'short',
+}).format(new Date());
+
+const quickActions = [
+  { label: 'CAPTURE', title: '残す', detail: '思いつき・メモ・URL', href: '/dashboard/intelligence#intel-form' },
+  { label: 'OUTPUT', title: '出す', detail: '投稿文をつくる', href: '/dashboard/post' },
+  { label: 'REVIEW', title: '見る', detail: '保存した情報を読み返す', href: '/dashboard/intelligence#intel-list' },
+];
+
+const workspaces = [
+  { label: 'CREATE', purpose: '発信をつくる', links: [
+    { label: '画像の指示を組む', tool: 'Visual Prompt', href: '/dashboard/visual-prompt' },
+    { label: '発信の導線を組む', tool: 'Trinity Funnel', href: '/dashboard/funnel' },
+  ] },
+  { label: 'THINK', purpose: '確かめて考える', links: [
+    { label: '根拠を確かめる', tool: 'Evidence Lab', href: '/dashboard/evidence' },
+    { label: 'つながりを見る', tool: 'Graph', href: '/dashboard/graph' },
+  ] },
+  { label: 'BUILD', purpose: '学び・事業を育てる', links: [
+    { label: '事業の流れを組む', tool: '0→9 Flow', href: '/dashboard/flow-09' },
+    { label: '学習テーマを選ぶ', tool: 'Quest', href: '/dashboard/quest' },
+    { label: 'リアンを開く', tool: 'リアン', href: '/dashboard/lian' },
+  ] },
+  { label: 'OPERATE', purpose: '予定・反応を扱う', links: [
+    { label: '顧客の声を整理する', tool: 'Voice Inbox', href: '/dashboard/voice' },
+    { label: '投稿予定を見る', tool: 'Content Schedule', href: '/dashboard/schedule' },
+  ] },
+  { label: 'ASSETS', purpose: '資産を確かめる', links: [
+    { label: 'お金の流れを見る', tool: 'Treasury', href: '/dashboard/treasury' },
+    { label: '投資を確認する', tool: 'Investment', href: '/dashboard/investment' },
+    { label: '欲しいものを整理する', tool: 'Wish List', href: '/dashboard/wishlist' },
+    { label: 'Wealth / OSを見る', tool: 'MASA OS', href: '/dashboard/os' },
+  ] },
+];
+
+const otherDestinations = workspaces.flatMap(space => space.links);
+---
+
+<DashboardShellV2 title="今日" eyebrow="DAILY COMMAND CENTER">
+  <header class="today-head">
+    <div>
+      <p class="section-label">TODAY</p>
+      <h1>迷わず、1つ動かす。</h1>
+    </div>
+    <p class="date">{dateLabel}<span>V2.1 PREVIEW</span></p>
+  </header>
+
+  <section class="next-action" aria-labelledby="next-action-title">
+    <div class="next-copy">
+      <div class="action-summary">
+        <div class="proposal-line">
+          <p class="section-label">NEXT MOVE · PROPOSAL</p>
+          <span class="truth-badge">CURRENT STATE 未連携</span>
+        </div>
+        <p class="action-context">Social Growth Sprint 30D</p>
+        <h2 id="next-action-title">既存素材を1本、<br />投稿文にする。</h2>
+        <p class="next-instruction">固定方針から出している候補。現在地を自動判定した「今日の正解」ではありません。</p>
+      </div>
+      <div class="action-entry">
+        <a class="primary-cta" href="/dashboard/post">この一手を進める <span aria-hidden="true">→</span></a>
+        <button class="quiet-action" type="button" data-command-trigger>別の一手を選ぶ</button>
+      </div>
+    </div>
+    <details class="action-background">
+      <summary>なぜこの候補？</summary>
+      <div class="disclosed-copy">
+        <p>現行Dashboardにある「既存素材を1本公開 → 会話 → 適合者へ具体提案」という方針から、最初の実行だけを前に出しています。</p>
+        <p>完了状況・期限・市場反応からの自動優先順位づけは未接続。そこが繋がるまでは、候補は候補として扱います。</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="quick-section" aria-labelledby="quick-title">
+    <div class="section-heading">
+      <div>
+        <p class="section-label">START</p>
+        <h2 id="quick-title">3つの入口</h2>
+      </div>
+      <p class="section-note">迷ったら「残す → 出す → 見る」。</p>
+    </div>
+    <div class="quick-grid">
+      {quickActions.map(item => (
+        <a class="quick-card" href={item.href}>
+          <span class="quick-label">{item.label}</span>
+          <strong>{item.title}</strong>
+          <small>{item.detail}</small>
+          <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <details class="candidate-section">
+    <summary>ほかの候補を見る <span>RESUME / CHECK</span></summary>
+    <div class="candidate-list">
+      <article class="candidate-row">
+        <div>
+          <p class="candidate-name">Idea → Asset → Reuse</p>
+          <h3>使える素材を1つ選ぶ</h3>
+          <p>新しく作る前に、残した情報から再利用する。</p>
+        </div>
+        <a href="/dashboard/intelligence#intel-list">保存した情報へ →</a>
+      </article>
+      <article class="candidate-row">
+        <div>
+          <p class="candidate-name">ACE｜実利用 E2E</p>
+          <h3>実利用ループを1本通す</h3>
+          <p>Google Login → My ACE → Action / Quest → progress → next。確認先はこのプレビューには未接続。</p>
+        </div>
+      </article>
+    </div>
+  </details>
+
+  <details class="workspace-section">
+    <summary>すべてのツール <span>必要な時だけ開く</span></summary>
+    <div class="workspace-grid">
+      {workspaces.map(space => (
+        <section class="workspace-card" aria-label={`${space.label}：${space.purpose}`}>
+          <h2>{space.label}</h2>
+          <p>{space.purpose}</p>
+          <div class="workspace-links">
+            {space.links.map(link => (
+              <a href={link.href}>{link.label}<small>{link.tool}</small></a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </details>
+
+  <footer class="preview-foot">
+    <p>V2.1 · 隔離プレビュー · Production未変更</p>
+    <a href="/dashboard">現行Dashboardと比較する <span aria-hidden="true">→</span></a>
+  </footer>
+
+  <dialog class="command-dialog" id="command-dialog" aria-labelledby="command-title">
+    <div class="command-head">
+      <div>
+        <p class="section-label">QUICK JUMP</p>
+        <h2 id="command-title">何をする？</h2>
+      </div>
+      <form method="dialog"><button aria-label="行き先を閉じる" autofocus>×</button></form>
+    </div>
+    <nav class="command-links" aria-label="行き先一覧">
+      {quickActions.map(item => <a href={item.href}>{item.title}<span>{item.label} · {item.detail}</span></a>)}
+      {otherDestinations.map(link => <a href={link.href}>{link.label}<span>{link.tool}</span></a>)}
+    </nav>
+  </dialog>
+</DashboardShellV2>
+
+<style>
+  .today-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+  .today-head h1 { margin-top: 4px; font-size: clamp(1.35rem, 2vw, 1.8rem); font-weight: 500; }
+  .date { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .8rem; }
+  .date span { color: var(--gold-muted); font-size: .72rem; letter-spacing: .07em; }
+  .section-label, .quick-label { color: var(--gold); font-size: .72rem; letter-spacing: .12em; font-weight: 500; }
+  .next-action { border: 1px solid var(--gold-muted); background: var(--panel); }
+  .next-copy { padding: 28px 32px 22px; }
+  .proposal-line { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .truth-badge { padding: 4px 7px; border: 1px solid var(--line-strong); color: var(--muted); font-size: .68rem; letter-spacing: .04em; }
+  .action-context { margin-top: 14px; color: var(--muted); font-size: .82rem; }
+  .next-copy h2 { margin-top: 8px; font-size: clamp(1.75rem, 3.2vw, 2.8rem); line-height: 1.35; font-weight: 500; letter-spacing: .02em; }
+  .next-instruction { max-width: 720px; margin-top: 14px; color: var(--muted); font-size: .86rem; line-height: 1.8; }
+  .action-entry { display: grid; gap: 8px; align-content: end; }
+  .primary-cta, .quiet-action { min-height: 48px; width: min(100%, 340px); padding: 12px 18px; font-size: .9rem; }
+  .primary-cta { display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--bg); background: var(--gold); text-decoration: none; font-weight: 500; }
+  .primary-cta:hover { background: var(--text); }
+  .quiet-action { border: 1px solid var(--line-strong); background: transparent; color: var(--muted); cursor: pointer; text-align: left; }
+  .quiet-action:hover { border-color: var(--gold); color: var(--text); }
+  summary { cursor: pointer; min-height: 44px; padding: 12px 0; color: var(--muted); font-size: .84rem; line-height: 1.6; }
+  summary:hover { color: var(--text); }
+  .action-background { border-top: 1px solid var(--line); padding: 0 32px; }
+  .disclosed-copy { padding-bottom: 18px; color: var(--muted); font-size: .84rem; line-height: 1.85; }
+  .disclosed-copy p + p { margin-top: 10px; }
+  .quick-section { margin-top: 28px; }
+  .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+  .section-heading h2 { margin-top: 3px; font-size: 1rem; font-weight: 500; }
+  .section-note { color: var(--muted); font-size: .78rem; }
+  .quick-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+  .quick-card { min-width: 0; min-height: 118px; display: flex; position: relative; flex-direction: column; padding: 15px 16px 22px; border: 1px solid var(--line-strong); background: var(--panel); text-decoration: none; }
+  .quick-card:hover { border-color: var(--gold); background: var(--panel-2); }
+  .quick-card strong { margin-top: 9px; font-size: 1rem; font-weight: 500; }
+  .quick-card small { margin-top: 4px; padding-right: 14px; color: var(--muted); font-size: .76rem; line-height: 1.6; }
+  .arrow { position: absolute; right: 14px; bottom: 12px; color: var(--gold); }
+  .candidate-section, .workspace-section { margin-top: 20px; border: 1px solid var(--line-strong); padding: 0 16px; }
+  .candidate-section > summary, .workspace-section > summary { color: var(--text); }
+  .candidate-section > summary span, .workspace-section > summary span { margin-left: 10px; color: var(--muted); font-size: .72rem; }
+  .candidate-list { border-top: 1px solid var(--line); }
+  .candidate-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .candidate-row:last-child { border-bottom: 0; }
+  .candidate-name { color: var(--gold-muted); font-size: .75rem; }
+  .candidate-row h3 { margin-top: 4px; font-size: .95rem; font-weight: 500; }
+  .candidate-row p:last-child { margin-top: 4px; color: var(--muted); font-size: .8rem; line-height: 1.65; }
+  .candidate-row a { flex-shrink: 0; min-height: 44px; display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid var(--line-strong); color: var(--gold); text-decoration: none; font-size: .8rem; }
+  .workspace-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 18px; padding: 16px 0; border-top: 1px solid var(--line); }
+  .workspace-card { min-width: 0; }
+  .workspace-card h2 { color: var(--gold); font-family: 'Cormorant Garamond',serif; font-size: 1.2rem; font-weight: 400; }
+  .workspace-card > p { margin-top: 4px; color: var(--muted); font-size: .75rem; }
+  .workspace-links { margin-top: 10px; }
+  .workspace-links a { display: flex; flex-direction: column; padding: 9px 0; border-top: 1px solid var(--line); font-size: .8rem; text-decoration: none; }
+  .workspace-links a:hover { color: var(--gold); }
+  .workspace-links small { margin-top: 2px; color: var(--muted); font-size: .7rem; }
+  .preview-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 22px; color: var(--muted); font-size: .72rem; }
+  .preview-foot a { min-height: 44px; display: inline-flex; align-items: center; text-underline-offset: 4px; }
+  .command-dialog { width: min(680px,calc(100% - 28px)); max-height: calc(100dvh - 32px); margin: auto; padding: 20px; border: 1px solid var(--gold-muted); color: var(--text); background: var(--panel); }
+  .command-dialog::backdrop { background: rgb(0 0 0 / .8); }
+  .command-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .command-head h2 { margin-top: 3px; font-size: 1.2rem; font-weight: 500; }
+  .command-head button { min-width: 44px; min-height: 44px; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--text); cursor: pointer; font-size: 1.25rem; }
+  .command-links { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .command-links a { display: flex; flex-direction: column; padding: 12px; border: 1px solid var(--line-strong); text-decoration: none; font-size: .84rem; }
+  .command-links a:hover { border-color: var(--gold); }
+  .command-links span { margin-top: 4px; color: var(--muted); font-size: .72rem; }
+  @media (min-width: 1120px) {
+    .next-copy { display: grid; grid-template-columns: minmax(0,1fr) 340px; align-items: end; gap: 28px; }
+  }
+  @media (max-width: 1150px) { .workspace-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+  @media (max-width: 760px) {
+    .quick-grid { grid-template-columns: 1fr; }
+    .quick-card { min-height: 96px; }
+    .workspace-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  }
+  @media (max-width: 640px) {
+    .today-head { align-items: flex-start; margin-bottom: 12px; }
+    .date { flex-direction: column; align-items: flex-end; gap: 3px; font-size: .74rem; }
+    .next-copy { padding: 20px 18px 16px; }
+    .next-copy h2 { font-size: clamp(1.6rem,6.5vw,2.25rem); }
+    .action-background { padding: 0 18px; }
+    .primary-cta, .quiet-action { width: 100%; }
+    .candidate-row { align-items: stretch; flex-direction: column; gap: 10px; }
+    .candidate-section > summary span, .workspace-section > summary span { display: block; margin: 3px 0 0; }
+    .workspace-grid, .command-links { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<script>
+  const dialog = document.getElementById('command-dialog');
+  const triggers = document.querySelectorAll<HTMLButtonElement>('[data-command-trigger]');
+  let previousFocus: HTMLElement | null = null;
+  let previousOverflow = '';
+
+  function openCommand() {
+    if (!(dialog instanceof HTMLDialogElement) || document.querySelector('dialog[open]')) return;
+    previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    previousOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    triggers.forEach(trigger => trigger.setAttribute('aria-expanded', 'true'));
+  }
+
+  triggers.forEach(trigger => {
+    trigger.setAttribute('aria-controls', 'command-dialog');
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.addEventListener('click', openCommand);
+  });
+  dialog?.addEventListener('close', () => {
+    document.body.style.overflow = previousOverflow;
+    triggers.forEach(trigger => trigger.setAttribute('aria-expanded', 'false'));
+    if (previousFocus?.getClientRects().length) previousFocus.focus();
+  });
+  dialog?.addEventListener('click', event => {
+    if (!(dialog instanceof HTMLDialogElement) || event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.isComposing || event.altKey || event.repeat || event.defaultPrevented) return;
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      openCommand();
+    }
+  });
+</script>
