@@ -4,8 +4,7 @@ import { once } from 'node:events';
 import { createDashboardSession, dashboardOwnerKey } from '../src/lib/dashboardAuth.ts';
 
 // Synthetic fixture only. No inherited credentials or production requests.
-const password = 'local-line-observability-fixture';
-export async function createLineFixture() {
+export async function createLineFixture(password = 'local-line-observability-fixture') {
   const owner = await dashboardOwnerKey(password);
   const empty = { generated_at: '2026-09-09T02:00:00Z', summary: { line_contacts: 1, total_xp: 0, active_enrollments: 1, active_sequences: 1, draft_sequences: 0, messages_24h: 3, inbound_7d: 1, outbound_7d: 2 },
     sequences: [], recent_messages: [], progress: [], active_hours: [], sources: [], automation_runs: [] };

@@ -46,8 +46,10 @@ export async function startPreview(port = 8787, { vars = {} } = {}) {
     if (typeof config.assets?.directory === 'string') {
       config.assets.directory = resolve(root, config.assets.directory);
     }
+    // Only caller-supplied preview values are injected. Process env remains
+    // allowlisted above, so CI/local production credentials are never inherited.
+    config.vars = { ...(config.vars || {}), ...vars };
     delete config.$schema;
-    config.vars = { ...config.vars, ...vars }; // Explicit synthetic test bindings only.
 
     const configPath = join(directory, 'wrangler.json');
     await writeFile(configPath, JSON.stringify(config, null, 2));
