@@ -402,7 +402,7 @@ const commandItems = [
       const navClose = document.querySelector('[data-nav-close]');
       const command = document.getElementById('dashboard-command');
       const commandTriggers = document.querySelectorAll('[data-command-trigger]');
-      let previousFocus = null;
+      let previousFocus: HTMLElement | null = null;
       let previousOverflow = '';
 
       function lockBody() {
