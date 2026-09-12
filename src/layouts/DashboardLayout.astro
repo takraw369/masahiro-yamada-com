@@ -2,335 +2,470 @@
 export interface Props {
   title: string;
   fullHeight?: boolean;
+  eyebrow?: string;
 }
-const { title, fullHeight = false } = Astro.props;
+
+const { title, fullHeight = false, eyebrow = 'MASA OS' } = Astro.props;
 const pathname = Astro.url.pathname;
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
-  { href: '/dashboard/graph', label: 'Graph', icon: '◌', exact: false },
-  { href: '/dashboard/voice', label: 'Voice Inbox', icon: '◍', exact: false },
-  { href: '/dashboard/intelligence', label: 'Intelligence', icon: '✧', exact: false },
-  { href: '/dashboard/evidence', label: 'Evidence Lab', icon: '◇', exact: false },
-  { href: '/dashboard/visual-prompt', label: 'Visual Prompt', icon: '✦', exact: false },
-  { href: '/dashboard/flow-09', label: '0→9 Flow', icon: '◉', exact: false },
-  { href: '/dashboard/funnel', label: 'Trinity Funnel', icon: '◎', exact: false },
-  { href: '/dashboard/post', label: 'X Post', icon: '𝕏', exact: false },
-  { href: '/dashboard/lian', label: 'リアン', icon: '💚', exact: false },
-  { href: '/dashboard/schedule', label: 'Calendar', icon: '📅', exact: false },
-  { href: '/dashboard/quest', label: 'Quest', icon: '⚔️', exact: false },
-  { href: '/dashboard/treasury', label: 'Treasury', icon: '💰', exact: false },
-  { href: '/dashboard/investment', label: 'Investment', icon: '◈', exact: false },
-  { href: '/dashboard/wishlist', label: 'Wish List', icon: '🎁', exact: false },
+const coreLinks = [
+  { href: '/dashboard', label: 'Today', purpose: '今やること', kind: 'today' },
+  { href: '/dashboard/intelligence#intel-form', label: 'Capture', purpose: '残す', kind: 'capture' },
+  { href: '/dashboard#output', label: 'Output', purpose: '出す', kind: 'output' },
+  { href: '/dashboard/intelligence#intel-list', label: 'Review', purpose: '見る', kind: 'review' },
 ];
 
-function isActive(item: { href: string; exact: boolean }): boolean {
-  if (item.exact) return pathname === item.href;
-  return pathname.startsWith(item.href);
+const toolGroups = [
+  { label: 'OPERATE', items: [
+    { href: '/dashboard/line', label: 'LINE Flow' },
+    { href: '/dashboard/voice', label: 'Voice Inbox' },
+    { href: '/dashboard/schedule', label: 'Calendar' },
+  ] },
+  { label: 'CREATE', items: [
+    { href: '/dashboard/post', label: 'X Post' },
+    { href: '/dashboard/visual-prompt', label: 'Visual Prompt' },
+    { href: '/dashboard/funnel', label: 'Trinity Funnel' },
+  ] },
+  { label: 'THINK', items: [
+    { href: '/dashboard/intelligence', label: 'Intelligence' },
+    { href: '/dashboard/evidence', label: 'Evidence Lab' },
+    { href: '/dashboard/graph', label: 'Graph' },
+  ] },
+  { label: 'BUILD', items: [
+    { href: '/dashboard/flow-09', label: '0→9 Flow' },
+    { href: '/dashboard/quest', label: 'Quest' },
+    { href: '/dashboard/lian', label: 'リアン' },
+  ] },
+  { label: 'ASSETS', items: [
+    { href: '/dashboard/treasury', label: 'Treasury' },
+    { href: '/dashboard/investment', label: 'Investment' },
+    { href: '/dashboard/wishlist', label: 'Wish List' },
+    { href: '/dashboard/os', label: 'MASA OS / Wealth' },
+  ] },
+];
+
+const stripHash = (href: string) => href.split('#')[0];
+function isToolActive(href: string): boolean {
+  const route = stripHash(href);
+  return pathname === route || pathname.startsWith(`${route}/`);
 }
+function isCoreActive(kind: string): boolean {
+  return kind === 'today' && (pathname === '/dashboard' || pathname === '/dashboard/');
+}
+const toolsActive = toolGroups.some(group => group.items.some(item => isToolActive(item.href)));
+const commandItems = [
+  ...coreLinks.map(item => ({ href: item.href, label: item.label, meta: item.purpose })),
+  ...toolGroups.flatMap(group => group.items.map(item => ({ href: item.href, label: item.label, meta: group.label }))),
+];
 ---
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{title} — MASA OS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{title} — MASA OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      * { margin: 0; }
 
-    :root {
-      --bg-void:        #0D0B08;
-      --bg-surface:     #1A1612;
-      --bg-elevated:    #241F1A;
-      --gold-pure:      #C9A96E;
-      --gold-muted:     #8B7355;
-      --gold-dim:       #5A4D3A;
-      --gold-glow:      rgba(201,169,110,0.08);
-      --text-primary:   #D4C5A9;
-      --text-muted:     #7A6F5F;
-      --text-dim:       #4A4030;
-      --border-default: #2E2822;
-      --border-hover:   #8B7355;
-      --border-accent:  rgba(201,169,110,0.2);
-      --sidebar-width:  240px;
-    }
+      :root {
+        --bg-void: #f3f1ed;
+        --bg-surface: #ffffff;
+        --bg-elevated: #fbfaf8;
+        --gold-pure: #a56c22;
+        --gold-muted: #8b5b2c;
+        --gold-dim: #b79c75;
+        --gold-glow: rgba(165,108,34,.08);
+        --text-primary: #17191c;
+        --text-muted: #626b75;
+        --text-dim: #8b929a;
+        --border-default: #d8d4cd;
+        --border-hover: #b9b1a5;
+        --border-accent: rgba(165,108,34,.3);
+        --state-green: #138a55;
+        --sidebar-width: 220px;
+      }
 
-    html { font-size: 16px; }
+      html { background: var(--bg-void); color-scheme: light; }
+      body {
+        min-height: 100vh;
+        background: var(--bg-void);
+        color: var(--text-primary);
+        font-family: 'Zen Kaku Gothic New', sans-serif;
+        font-weight: 400;
+        line-height: 1.55;
+      }
+      button, a { font: inherit; }
+      a { color: inherit; }
+      :focus-visible { outline: 3px solid rgba(165,108,34,.36); outline-offset: 3px; }
 
-    body {
-      background: var(--bg-void);
-      color: var(--text-primary);
-      font-family: 'Zen Kaku Gothic New', sans-serif;
-      font-weight: 300;
-      min-height: 100vh;
-      display: flex;
-    }
+      .skip-link {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        z-index: 100;
+        padding: 10px 14px;
+        color: #fff;
+        background: var(--gold-pure);
+        transform: translateY(-160%);
+        font-size: .8rem;
+      }
+      .skip-link:focus { transform: translateY(0); }
 
-    .sidebar {
-      width: var(--sidebar-width);
-      flex-shrink: 0;
-      background: var(--bg-surface);
-      border-right: 1px solid var(--border-default);
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      display: flex;
-      flex-direction: column;
-      z-index: 50;
-      overflow-y: auto;
-    }
-
-    .sidebar-logo {
-      padding: 28px 24px 24px;
-      border-bottom: 1px solid var(--border-default);
-    }
-
-    .sidebar-logo-text {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2rem;
-      font-weight: 300;
-      color: var(--gold-pure);
-      line-height: 1;
-      letter-spacing: 0.05em;
-    }
-
-    .sidebar-logo-sub {
-      font-family: 'Zen Kaku Gothic New', sans-serif;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .sidebar-nav {
-      flex: 1;
-      padding: 16px 0;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 24px;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-family: 'Zen Kaku Gothic New', sans-serif;
-      font-size: 0.875rem;
-      font-weight: 400;
-      transition: color 0.2s, background 0.2s, border-color 0.2s;
-      border-left: 2px solid transparent;
-      min-height: 44px;
-    }
-
-    .nav-item:hover {
-      color: var(--text-primary);
-      background: var(--gold-glow);
-    }
-
-    .nav-item.active {
-      color: var(--gold-pure);
-      border-left-color: var(--gold-pure);
-      background: var(--gold-glow);
-    }
-
-    .nav-icon {
-      font-size: 1rem;
-      width: 20px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-
-    .sidebar-footer {
-      padding: 16px 24px;
-      border-top: 1px solid var(--border-default);
-    }
-
-    .logout-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-dim);
-      text-decoration: none;
-      font-size: 0.8rem;
-      font-family: 'Zen Kaku Gothic New', sans-serif;
-      padding: 10px 0;
-      transition: color 0.2s;
-      min-height: 44px;
-    }
-
-    .logout-link:hover {
-      color: var(--text-muted);
-    }
-
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 40;
-    }
-
-    .sidebar-overlay.visible {
-      display: block;
-    }
-
-    .content-wrap {
-      margin-left: var(--sidebar-width);
-      flex: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .mobile-header {
-      display: none;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 20px;
-      background: var(--bg-surface);
-      border-bottom: 1px solid var(--border-default);
-      position: sticky;
-      top: 0;
-      z-index: 30;
-      min-height: 56px;
-    }
-
-    .hamburger {
-      background: none;
-      border: 1px solid var(--border-default);
-      color: var(--text-muted);
-      width: 40px;
-      height: 40px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      flex-shrink: 0;
-      transition: border-color 0.2s;
-    }
-
-    .hamburger:hover {
-      border-color: var(--border-hover);
-    }
-
-    .hamburger-bar {
-      width: 18px;
-      height: 1.5px;
-      background: var(--text-muted);
-    }
-
-    .mobile-page-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.2rem;
-      font-weight: 300;
-      color: var(--gold-pure);
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 32px 36px;
-    }
-
-    .main-content.full-height {
-      padding: 0;
-      overflow: hidden;
-    }
-
-    @media (max-width: 768px) {
+      .app { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); min-height: 100vh; }
       .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-      }
-
-      .sidebar.open {
-        transform: translateX(0);
-      }
-
-      .content-wrap {
-        margin-left: 0;
-      }
-
-      .mobile-header {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 50;
+        width: var(--sidebar-width);
+        height: 100vh;
         display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        background: #fbfaf8;
+        border-right: 1px solid var(--border-default);
+      }
+      .brand { padding: 22px 18px 18px; border-bottom: 1px solid #e2ded7; }
+      .brand-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.65rem;
+        font-weight: 600;
+        letter-spacing: .05em;
+        color: #754a16;
+      }
+      .brand-sub { margin-top: 3px; color: #68707a; font-size: .68rem; }
+
+      .nav { padding: 14px 12px 20px; }
+      .core-nav { display: grid; gap: 5px; }
+      .core-link {
+        min-height: 50px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border: 1px solid transparent;
+        color: #505964;
+        text-decoration: none;
+      }
+      .core-link strong { font-size: .84rem; font-weight: 700; }
+      .core-link small { color: #7b838c; font-size: .68rem; }
+      .core-link:hover { background: #f2efe9; border-color: #d7d0c5; }
+      .core-link.active {
+        color: #67400f;
+        background: #f3eadc;
+        border-color: #dcc9aa;
+        border-left: 3px solid var(--gold-pure);
       }
 
-      .main-content {
-        padding: 20px 16px;
+      .tools-wrap { margin-top: 12px; padding-top: 8px; border-top: 1px solid #e2ded7; }
+      .tools-wrap > summary {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4px;
+        color: #745b39;
+        font-size: .7rem;
+        letter-spacing: .08em;
+        cursor: pointer;
+        list-style: none;
       }
+      .tools-wrap > summary::-webkit-details-marker { display: none; }
+      .tools-wrap > summary::after { content: '+'; color: #7b838c; }
+      .tools-wrap[open] > summary::after { content: '−'; }
+      .tool-group { padding: 9px 0; border-top: 1px solid #ebe7e1; }
+      .tool-label { padding: 0 4px 5px; color: #94908a; font-size: .61rem; letter-spacing: .12em; }
+      .tool-link {
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        padding: 6px 7px;
+        color: #65707b;
+        text-decoration: none;
+        font-size: .74rem;
+      }
+      .tool-link:hover { color: var(--text-primary); background: #f2efe9; }
+      .tool-link.active { color: #754a16; font-weight: 700; }
 
-      .main-content.full-height {
+      .sidebar-foot { margin-top: auto; padding: 14px 18px; border-top: 1px solid #e2ded7; }
+      .logout-link { min-height: 40px; display: flex; align-items: center; color: #707782; font-size: .72rem; text-decoration: none; }
+      .logout-link:hover { color: var(--text-primary); text-decoration: underline; }
+
+      .main { grid-column: 2; min-width: 0; }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        min-height: 66px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 9px 28px;
+        background: rgba(251,250,248,.94);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid #ddd9d2;
+      }
+      .eyebrow { color: #8b5b2c; font-size: .67rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+      .page-title { margin-top: 1px; color: #3c434b; font-size: .82rem; }
+      .top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+      .capture-link, .command-button, .menu-button, .close-button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #cfc8bd;
+        background: #fff;
+        color: #56606a;
+        cursor: pointer;
+        font-size: .73rem;
+        text-decoration: none;
+      }
+      .capture-link { padding: 0 12px; color: #754a16; font-weight: 700; }
+      .command-button { padding: 0 12px; gap: 8px; }
+      .command-shortcut { color: #8b929a; }
+      .capture-link:hover, .command-button:hover, .menu-button:hover, .close-button:hover { border-color: #b58a53; color: var(--text-primary); }
+      .menu-button { display: none; min-width: 42px; font-size: 1.2rem; }
+
+      .content { padding: 28px 30px 54px; scroll-margin-top: 86px; }
+      .content.full-height { padding: 0; overflow: hidden; min-height: calc(100vh - 66px); }
+      .content-inner { max-width: 1320px; margin: 0 auto; }
+      .content.full-height .content-inner { max-width: none; height: 100%; }
+
+      .mobile-nav {
+        position: fixed;
+        inset: 0 auto 0 0;
+        margin: 0;
+        width: min(320px, calc(100vw - 28px));
+        max-width: none;
+        height: 100dvh;
+        max-height: none;
         padding: 0;
+        border: 0;
+        border-right: 1px solid var(--border-default);
+        color: var(--text-primary);
+        background: #fbfaf8;
+        overflow-y: auto;
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+      .mobile-nav[open] { display: flex; flex-direction: column; }
+      .mobile-nav::backdrop, .command-dialog::backdrop { background: rgba(23,25,28,.42); backdrop-filter: blur(2px); }
+      .mobile-brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .close-button { min-width: 42px; flex-shrink: 0; font-size: 1.15rem; }
 
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-text">DASHBOARD</div>
-      <div class="sidebar-logo-sub">MASA OS</div>
+      .command-dialog {
+        width: min(660px, calc(100vw - 28px));
+        max-height: min(78vh, 760px);
+        margin: auto;
+        padding: 0;
+        border: 1px solid #cfc8bd;
+        background: #fff;
+        color: var(--text-primary);
+        box-shadow: 0 24px 80px rgba(35,29,22,.18);
+      }
+      .command-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 20px; border-bottom: 1px solid #e5e1db; }
+      .command-head h2 { margin-top: 3px; font-size: 1.15rem; }
+      .command-close { width: 42px; height: 42px; border: 1px solid #d5cfc6; background: #fff; cursor: pointer; font-size: 1.1rem; }
+      .command-links { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0; padding: 8px; overflow-y: auto; }
+      .command-links a { min-height: 68px; display: flex; flex-direction: column; justify-content: center; padding: 10px 12px; border: 1px solid transparent; text-decoration: none; }
+      .command-links a:hover { background: #f7f4ef; border-color: #ddd6cc; }
+      .command-links strong { font-size: .83rem; }
+      .command-links span { margin-top: 3px; color: #7b838c; font-size: .7rem; }
+
+      @media (max-width: 900px) {
+        .app { display: block; }
+        .sidebar { display: none; }
+        .main { min-width: 0; }
+        .menu-button { display: inline-flex; }
+        .topbar { padding: 8px 15px; gap: 10px; }
+        .content { padding: 20px 14px 42px; }
+        .content.full-height { padding: 0; }
+        .command-shortcut { display: none; }
+      }
+      @media (max-width: 560px) {
+        .topbar { flex-wrap: wrap; }
+        .page-meta { width: 100%; }
+        .top-actions { width: 100%; }
+        .capture-link, .command-button { flex: 1; }
+        .content { scroll-margin-top: 138px; }
+        .command-links { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">本文へ移動</a>
+
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-title">MASA OS</div>
+          <div class="brand-sub">Daily Command Center</div>
+        </div>
+        <nav class="nav" aria-label="Dashboard ナビゲーション">
+          <div class="core-nav">
+            {coreLinks.map(item => (
+              <a href={item.href} class:list={['core-link', { active: isCoreActive(item.kind) }]} aria-current={isCoreActive(item.kind) ? 'page' : undefined}>
+                <strong>{item.label}</strong><small>{item.purpose}</small>
+              </a>
+            ))}
+          </div>
+          <details class="tools-wrap" open={toolsActive}>
+            <summary>MORE TOOLS</summary>
+            <div>
+              {toolGroups.map(group => (
+                <section class="tool-group" aria-label={group.label}>
+                  <p class="tool-label">{group.label}</p>
+                  {group.items.map(item => (
+                    <a href={item.href} class:list={['tool-link', { active: isToolActive(item.href) }]} aria-current={isToolActive(item.href) ? 'page' : undefined}>{item.label}</a>
+                  ))}
+                </section>
+              ))}
+            </div>
+          </details>
+        </nav>
+        <div class="sidebar-foot"><a class="logout-link" href="/dashboard/logout">ログアウト</a></div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="page-meta">
+            <p class="eyebrow">{eyebrow}</p>
+            <p class="page-title">{title}</p>
+          </div>
+          <div class="top-actions">
+            <a class="capture-link" href="/dashboard/intelligence#intel-form">＋ Capture</a>
+            <button class="command-button" type="button" data-command-trigger aria-haspopup="dialog">Quick Jump <kbd class="command-shortcut">⌘ K</kbd></button>
+            <button class="menu-button" id="dashboard-menu" type="button" aria-label="ナビゲーションを開く" aria-haspopup="dialog" aria-controls="dashboard-mobile-nav" aria-expanded="false">≡</button>
+          </div>
+        </header>
+
+        <main class:list={['content', { 'full-height': fullHeight }]} id="main-content" tabindex="-1">
+          <div class="content-inner"><slot /></div>
+        </main>
+      </div>
     </div>
 
-    <nav class="sidebar-nav">
-      {navItems.map(item => (
-        <a
-          href={item.href}
-          class:list={['nav-item', { active: isActive(item) }]}
-        >
-          <span class="nav-icon">{item.icon}</span>
-          <span>{item.label}</span>
-        </a>
-      ))}
-    </nav>
+    <dialog class="mobile-nav" id="dashboard-mobile-nav" aria-labelledby="mobile-nav-title">
+      <div class="brand mobile-brand">
+        <div>
+          <h2 class="brand-title" id="mobile-nav-title">MASA OS</h2>
+          <p class="brand-sub">4 core doors + more tools</p>
+        </div>
+        <button class="close-button" type="button" data-nav-close aria-label="ナビゲーションを閉じる" autofocus>×</button>
+      </div>
+      <nav class="nav" aria-label="モバイル Dashboard ナビゲーション">
+        <div class="core-nav">
+          {coreLinks.map(item => (
+            <a href={item.href} class:list={['core-link', { active: isCoreActive(item.kind) }]} aria-current={isCoreActive(item.kind) ? 'page' : undefined}>
+              <strong>{item.label}</strong><small>{item.purpose}</small>
+            </a>
+          ))}
+        </div>
+        <details class="tools-wrap" open={toolsActive}>
+          <summary>MORE TOOLS</summary>
+          <div>
+            {toolGroups.map(group => (
+              <section class="tool-group" aria-label={group.label}>
+                <p class="tool-label">{group.label}</p>
+                {group.items.map(item => <a href={item.href} class:list={['tool-link', { active: isToolActive(item.href) }]}>{item.label}</a>)}
+              </section>
+            ))}
+          </div>
+        </details>
+      </nav>
+      <div class="sidebar-foot"><a class="logout-link" href="/dashboard/logout">ログアウト</a></div>
+    </dialog>
 
-    <div class="sidebar-footer">
-      <a href="/dashboard/logout" class="logout-link">
-        <span>⎋</span>
-        <span>ログアウト</span>
-      </a>
-    </div>
-  </aside>
+    <dialog class="command-dialog" id="dashboard-command" aria-labelledby="command-title">
+      <div class="command-head">
+        <div>
+          <p class="eyebrow">QUICK JUMP</p>
+          <h2 id="command-title">何をする？</h2>
+        </div>
+        <form method="dialog"><button class="command-close" aria-label="Quick Jumpを閉じる">×</button></form>
+      </div>
+      <nav class="command-links" aria-label="行き先一覧">
+        {commandItems.map(item => <a href={item.href}><strong>{item.label}</strong><span>{item.meta}</span></a>)}
+      </nav>
+    </dialog>
 
-  <div class="content-wrap">
-    <div class="mobile-header">
-      <button class="hamburger" id="hamburger" aria-label="メニューを開く">
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-      </button>
-      <span class="mobile-page-title">{title}</span>
-    </div>
+    <script>
+      const mobileNav = document.getElementById('dashboard-mobile-nav');
+      const menuButton = document.getElementById('dashboard-menu');
+      const navClose = document.querySelector('[data-nav-close]');
+      const command = document.getElementById('dashboard-command');
+      const commandTriggers = document.querySelectorAll('[data-command-trigger]');
+      let previousFocus: HTMLElement | null = null;
+      let previousOverflow = '';
 
-    <main class:list={['main-content', { 'full-height': fullHeight }]}>
-      <slot />
-    </main>
-  </div>
+      function lockBody() {
+        previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+      }
+      function unlockBody() {
+        document.body.style.overflow = previousOverflow;
+      }
+      function openMobileNav() {
+        if (!(mobileNav instanceof HTMLDialogElement) || document.querySelector('dialog[open]')) return;
+        previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        mobileNav.showModal();
+        lockBody();
+        menuButton?.setAttribute('aria-expanded', 'true');
+      }
+      function closeMobileNav() {
+        if (mobileNav instanceof HTMLDialogElement && mobileNav.open) mobileNav.close();
+      }
+      function openCommand() {
+        if (!(command instanceof HTMLDialogElement) || document.querySelector('dialog[open]')) return;
+        previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        command.showModal();
+        lockBody();
+        commandTriggers.forEach(trigger => trigger.setAttribute('aria-expanded', 'true'));
+      }
 
-  <script>
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const hamburger = document.getElementById('hamburger');
+      menuButton?.addEventListener('click', openMobileNav);
+      navClose?.addEventListener('click', closeMobileNav);
+      mobileNav?.addEventListener('close', () => {
+        unlockBody();
+        menuButton?.setAttribute('aria-expanded', 'false');
+        if (previousFocus instanceof HTMLElement && previousFocus.getClientRects().length) previousFocus.focus();
+      });
+      mobileNav?.addEventListener('click', event => {
+        if (!(mobileNav instanceof HTMLDialogElement) || event.target !== mobileNav) return;
+        const bounds = mobileNav.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) mobileNav.close();
+      });
 
-    function openSidebar() {
-      sidebar?.classList.add('open');
-      overlay?.classList.add('visible');
-    }
-
-    function closeSidebar() {
-      sidebar?.classList.remove('open');
-      overlay?.classList.remove('visible');
-    }
-
-    hamburger?.addEventListener('click', openSidebar);
-    overlay?.addEventListener('click', closeSidebar);
-  </script>
-</body>
+      commandTriggers.forEach(trigger => {
+        trigger.setAttribute('aria-controls', 'dashboard-command');
+        trigger.setAttribute('aria-haspopup', 'dialog');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.addEventListener('click', openCommand);
+      });
+      command?.addEventListener('close', () => {
+        unlockBody();
+        commandTriggers.forEach(trigger => trigger.setAttribute('aria-expanded', 'false'));
+        if (previousFocus instanceof HTMLElement && previousFocus.getClientRects().length) previousFocus.focus();
+      });
+      command?.addEventListener('click', event => {
+        if (!(command instanceof HTMLDialogElement) || event.target !== command) return;
+        const bounds = command.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) command.close();
+      });
+      document.addEventListener('keydown', event => {
+        if (event.isComposing || event.altKey || event.repeat || event.defaultPrevented) return;
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+          event.preventDefault();
+          openCommand();
+        }
+      });
+    </script>
+  </body>
 </html>

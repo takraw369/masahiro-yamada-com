@@ -1,207 +1,187 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
-import VisualPromptCards from '../../components/dashboard/VisualPromptCards.astro';
-import AiOperatingMetrics from '../../components/dashboard/AiOperatingMetrics.astro';
-import { getSiteStorageEnv, getDashboardOwnerKey, hasSupabase, supabaseRpc } from '../../lib/siteStorage';
 
-let aiMetrics: Record<string, unknown> | null = null;
-let aiMetricsError: string | null = null;
+const dateLabel = new Intl.DateTimeFormat('ja-JP', {
+  timeZone: 'Asia/Tokyo',
+  month: 'long',
+  day: 'numeric',
+  weekday: 'short',
+}).format(new Date());
 
-try {
-  const env = getSiteStorageEnv(Astro.locals);
-  if (!hasSupabase(env)) {
-    aiMetricsError = 'supabase_not_configured';
-  } else {
-    const ownerKey = await getDashboardOwnerKey(env);
-    aiMetrics = await supabaseRpc<Record<string, unknown>>(env, 'masa_ai_os_metrics_v1', {
-      p_owner_key: ownerKey,
-    });
-  }
-} catch (error) {
-  aiMetricsError = String(error).slice(0, 180);
-}
-
-const focusItems = [
-  {
-    rank: '01',
-    title: 'Social Growth Sprint 30D',
-    status: 'NOW',
-    centerPin: '適合する実在見込み客を発生させる',
-    tippingPoint: '本番有償顧客1名が生まれ、購入 / 非購入理由を学習データとして取得する',
-    nextTask: '既存素材を1本公開 → 3〜5会話 → 適合者1名へ勝ち筋OSを具体提案',
-  },
-  {
-    rank: '02',
-    title: 'ACE｜実利用 E2E',
-    status: 'NOW',
-    centerPin: 'ログイン後に「1回使って変化が記録される」ループを通す',
-    tippingPoint: '実ユーザーが開発者介入なしで My ACE → Action / Quest → 進捗反映 → 次の行動まで完走する',
-    nextTask: 'Google Login → My ACE → Action / Quest → progress → next を1本だけ通す',
-  },
-  {
-    rank: '∞',
-    title: 'Idea → Asset → Reuse',
-    status: 'ALWAYS',
-    centerPin: '湧いたものを新規ファイル化せず、既存の正本へ接続して出口を1つ付ける',
-    tippingPoint: '同じ素材が SNS / note / Quest / Product のどれかで1回以上再利用される',
-    nextTask: '思いつく → Chat / Inbox → 既存正本へ統合 → 使える出口を1つ決める',
-  },
-];
-
-const media = [
-  { platform: 'X', account: '@MASAHIRO_501', role: '個人メイン｜仮説・会話', href: 'https://x.com/MASAHIRO_501', status: 'ACTIVE' },
-  { platform: 'X', account: '@kodomo_athlete', role: '子ども×アスリート教育', href: 'https://x.com/kodomo_athlete', status: 'ACTIVE' },
-  { platform: 'Instagram', account: '@kodomo_athlete', role: 'Reels・視覚・信頼', href: 'https://www.instagram.com/kodomo_athlete/', status: 'ACTIVE' },
-  { platform: 'Instagram', account: '@sunlovesflow', role: 'SLF世界観', href: 'https://www.instagram.com/sunlovesflow/', status: 'VERIFY' },
-  { platform: 'note', account: 'masahiroyamada', role: '個人長文・信頼資産', href: 'https://note.com/masahiroyamada', status: 'VERIFY' },
-  { platform: 'note', account: 'sunlovesflow', role: 'SLF思想資産', href: 'https://note.com/sunlovesflow', status: 'VERIFY' },
-  { platform: 'Website', account: 'masahiroyamada.com', role: '個人の城・Authority', href: 'https://masahiroyamada.com/', status: 'OWNED' },
-  { platform: 'Website', account: 'sunlovesflow.com', role: 'ブランドの城', href: 'https://sunlovesflow.com/', status: 'OWNED' },
-  { platform: 'note', account: 'takraw501', role: 'Legacy・セパタクロー', href: 'https://note.com/takraw501', status: 'ARCHIVE' },
-  { platform: 'X', account: '@somehowanyways', role: '政治・社会｜別レーン', href: 'https://x.com/somehowanyways', status: 'VERIFY' },
-];
-
-const pendingMedia = [
-  { platform: 'Threads', note: '公開URL未登録' },
-  { platform: 'TikTok', note: '公開URL未登録' },
+const quickActions = [
+  { label: 'CAPTURE', title: '残す', detail: '思いつき・メモ・URL', href: '/dashboard/intelligence#intel-form' },
+  { label: 'OUTPUT', title: '出す', detail: 'X・LINEなどの発信', href: '#output' },
+  { label: 'REVIEW', title: '見る', detail: '保存した情報を読み返す', href: '/dashboard/intelligence#intel-list' },
 ];
 ---
 
-<DashboardLayout title="Dashboard">
-  <div class="dash-shell">
-    <header class="hero">
+<DashboardLayout title="今日" eyebrow="DAILY COMMAND CENTER">
+  <div class="today-shell">
+    <header class="today-head">
       <div>
-        <p class="eyebrow">MASA OS · CURRENT STATE</p>
-        <h1>予定ではなく、<span>今どこを動かすか。</span></h1>
-        <p class="lead">PROJECT → Center Pin → Tipping Point → Next Task。予定通り進むことではなく、センターピンが動いたかで判断する。</p>
+        <p class="kicker">TODAY</p>
+        <h1>迷わず、1つ動かす。</h1>
+        <p class="intro">Dashboardは全部を見る場所ではなく、次の行動へ入るための操作面。</p>
       </div>
-      <a class="calendar-link" href="/dashboard/schedule">固定予定を見る →</a>
+      <p class="date">{dateLabel}</p>
     </header>
 
-    <section class="section">
-      <div class="section-head">
-        <div>
-          <p class="section-kicker">NOW</p>
-          <h2>Center Pins</h2>
+    <section class="next-card" aria-labelledby="next-title">
+      <div class="next-copy">
+        <div class="status-line">
+          <span class="kicker">NEXT MOVE · PROPOSAL</span>
+          <span class="neutral-badge">CURRENT STATE 未連携</span>
         </div>
-        <p class="section-note">Taskは増やさない。各PROJECTの「次の1個」だけ。</p>
+        <p class="context">Social Growth Sprint 30D</p>
+        <h2 id="next-title">既存素材を1本、投稿文にする。</h2>
+        <p class="body-copy">固定方針から出している候補です。現在地・期限・市場反応から自動判定した「今日の正解」ではありません。</p>
       </div>
-
-      <div class="focus-grid">
-        {focusItems.map(item => (
-          <article class="focus-card">
-            <div class="focus-top">
-              <span class="rank">{item.rank}</span>
-              <span class:list={['status', item.status === 'NOW' ? 'status-now' : 'status-always']}>{item.status}</span>
-            </div>
-            <h3>{item.title}</h3>
-            <dl>
-              <div>
-                <dt>Center Pin</dt>
-                <dd>{item.centerPin}</dd>
-              </div>
-              <div>
-                <dt>Tipping Point</dt>
-                <dd>{item.tippingPoint}</dd>
-              </div>
-              <div class="next">
-                <dt>Next Task</dt>
-                <dd>{item.nextTask}</dd>
-              </div>
-            </dl>
-          </article>
-        ))}
+      <div class="next-actions">
+        <a class="primary" href="/dashboard/post">この一手を進める <span aria-hidden="true">→</span></a>
+        <a class="secondary" href="/dashboard/intelligence#intel-list">素材から選び直す</a>
       </div>
     </section>
 
-    <AiOperatingMetrics metrics={aiMetrics} error={aiMetricsError} />
-
-    <VisualPromptCards />
-
-    <section class="section media-section">
+    <section class="quick-section" aria-labelledby="quick-title">
       <div class="section-head">
-        <div>
-          <p class="section-kicker">DISTRIBUTION</p>
-          <h2>発信媒体 Hub</h2>
-        </div>
-        <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1429YnqTU2-WOjX-EALGo6DSeNdHjqBGDsx8HgBVhsH4/edit" target="_blank" rel="noopener noreferrer">Distribution OS ↗</a>
+        <div><p class="kicker">START</p><h2 id="quick-title">3つの入口</h2></div>
+        <p>迷ったら「残す → 出す → 見る」。</p>
       </div>
-
-      <div class="media-grid">
-        {media.map(item => (
-          <a class="media-card" href={item.href} target="_blank" rel="noopener noreferrer">
-            <div class="media-meta">
-              <span class="platform">{item.platform}</span>
-              <span class="media-status">{item.status}</span>
-            </div>
-            <strong>{item.account}</strong>
-            <span class="media-role">{item.role}</span>
-            <span class="open">開く ↗</span>
+      <div class="quick-grid">
+        {quickActions.map(item => (
+          <a class="quick-card" href={item.href}>
+            <span>{item.label}</span>
+            <strong>{item.title}</strong>
+            <small>{item.detail}</small>
+            <b aria-hidden="true">→</b>
           </a>
         ))}
-        {pendingMedia.map(item => (
-          <div class="media-card media-pending">
-            <div class="media-meta">
-              <span class="platform">{item.platform}</span>
-              <span class="media-status">PENDING</span>
-            </div>
-            <strong>URL未登録</strong>
-            <span class="media-role">{item.note}</span>
-            <span class="open">登録後にリンク化</span>
-          </div>
-        ))}
       </div>
     </section>
 
-    <section class="rule-box">
-      <div>
-        <p class="section-kicker">RULE</p>
-        <h2>Calendarは「制約」。Task表ではない。</h2>
+    <section class="output-section" id="output" aria-labelledby="output-title">
+      <div class="section-head">
+        <div><p class="kicker">OUTPUT</p><h2 id="output-title">どこへ出す？</h2></div>
+        <p>媒体名より「何を動かすか」から入る。</p>
       </div>
-      <p>仕事・家族・移動・締切など動かせない予定だけ確認する。空いている時間へTaskを詰め込まない。湧いたものは止めずに資産化し、SNSだけは市場との接点としてコツコツ継続する。</p>
+      <div class="channel-grid">
+        <a class="channel-card" href="/dashboard/post">
+          <span class="channel-mark">X</span>
+          <div><strong>X / Social</strong><small>投稿を作る・市場へ出す</small></div>
+          <span class="chevron" aria-hidden="true">→</span>
+        </a>
+        <a class="channel-card line-card" href="/dashboard/line">
+          <span class="channel-mark line">L</span>
+          <div><strong>LINE Flow</strong><small>配信・教育Flow・顧客導線を扱う</small></div>
+          <span class="live-badge">LIVE</span>
+          <span class="chevron" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <p class="safety-note">LINE Flowの編集と一斉配信は別。送信・有効化など影響の大きい操作は、画面上の確認を残す。</p>
     </section>
+
+    <details class="candidate-section">
+      <summary>ほかの候補を見る <span>RESUME / CHECK</span></summary>
+      <div class="candidate-list">
+        <article class="candidate-row">
+          <div>
+            <p class="candidate-name">Idea → Asset → Reuse</p>
+            <h3>新しく作る前に、使える素材を1つ選ぶ。</h3>
+            <p>湧いたものを既存の正本へつなぎ、SNS / note / Quest / Product のどれかへ出口を付ける。</p>
+          </div>
+          <a href="/dashboard/intelligence#intel-list">保存した情報へ →</a>
+        </article>
+        <article class="candidate-row">
+          <div>
+            <p class="candidate-name">ACE｜実利用 E2E</p>
+            <h3>実利用ループを1本通す。</h3>
+            <p>Google Login → My ACE → Action / Quest → progress → next。必要な時だけ再開する。</p>
+          </div>
+        </article>
+      </div>
+    </details>
+
+    <footer class="today-foot">
+      <p>V2.2 · Warm Light Workbench · canonical</p>
+      <span>詳しい機能は左の MORE TOOLS / Quick Jump から。</span>
+    </footer>
   </div>
 </DashboardLayout>
 
 <style>
-  .dash-shell { max-width: 1320px; margin: 0 auto; padding-bottom: 64px; }
-  .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; padding: 14px 0 38px; border-bottom: 1px solid var(--border-default); }
-  .eyebrow, .section-kicker { color: var(--gold-muted); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; }
-  h1 { margin-top: 8px; font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(2.3rem, 5vw, 4.5rem); line-height: .98; color: var(--text-primary); }
-  h1 span { color: var(--gold-pure); }
-  .lead { max-width: 780px; margin-top: 18px; color: var(--text-muted); font-size: .94rem; line-height: 1.9; }
-  .calendar-link, .sheet-link { flex-shrink: 0; color: var(--gold-pure); text-decoration: none; border: 1px solid var(--border-accent); padding: 11px 16px; font-size: .78rem; transition: border-color .2s, background .2s; }
-  .calendar-link:hover, .sheet-link:hover { border-color: var(--gold-muted); background: var(--gold-glow); }
-  .section { margin-top: 44px; }
-  .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
-  .section h2, .rule-box h2 { margin-top: 4px; font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--text-primary); }
-  .section-note { color: var(--text-dim); font-size: .78rem; }
-  .focus-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-  .focus-card { background: var(--bg-surface); border: 1px solid var(--border-default); padding: 22px; min-height: 390px; }
-  .focus-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-  .rank { font-family: 'Cormorant Garamond', serif; color: var(--gold-dim); font-size: 1.2rem; }
-  .status { font-size: .62rem; letter-spacing: .12em; padding: 4px 8px; border: 1px solid var(--border-default); }
-  .status-now { color: var(--gold-pure); border-color: var(--border-accent); }
-  .status-always { color: var(--text-muted); }
-  .focus-card h3 { font-size: 1rem; font-weight: 500; color: var(--text-primary); margin-bottom: 20px; }
-  dl { display: grid; gap: 18px; }
-  dt { color: var(--gold-muted); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
-  dd { color: var(--text-muted); font-size: .85rem; line-height: 1.75; }
-  .next { padding-top: 16px; border-top: 1px solid var(--border-default); }
-  .next dd { color: var(--text-primary); }
-  .media-section { margin-top: 54px; }
-  .media-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-  .media-card { display: flex; flex-direction: column; min-height: 150px; padding: 16px; background: var(--bg-surface); border: 1px solid var(--border-default); color: inherit; text-decoration: none; transition: transform .18s, border-color .18s, background .18s; }
-  a.media-card:hover { transform: translateY(-2px); border-color: var(--border-hover); background: var(--bg-elevated); }
-  .media-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
-  .platform { color: var(--gold-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; }
-  .media-status { color: var(--text-dim); font-size: .56rem; letter-spacing: .08em; }
-  .media-card strong { font-size: .88rem; color: var(--text-primary); font-weight: 500; overflow-wrap: anywhere; }
-  .media-role { margin-top: 7px; color: var(--text-muted); font-size: .72rem; line-height: 1.55; }
-  .open { margin-top: auto; padding-top: 14px; color: var(--gold-pure); font-size: .68rem; }
-  .media-pending { opacity: .55; border-style: dashed; }
-  .rule-box { margin-top: 54px; padding: 24px; display: grid; grid-template-columns: minmax(230px, .7fr) 1.3fr; gap: 30px; border: 1px solid var(--border-accent); background: var(--gold-glow); }
-  .rule-box p:last-child { color: var(--text-muted); line-height: 1.9; font-size: .84rem; align-self: end; }
-  @media (max-width: 1080px) { .focus-grid { grid-template-columns: 1fr; } .focus-card { min-height: 0; } .media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .hero { align-items: flex-start; flex-direction: column; padding-top: 4px; } .calendar-link { width: 100%; text-align: center; } .section-head { align-items: flex-start; flex-direction: column; } .media-grid { grid-template-columns: 1fr; } .rule-box { grid-template-columns: 1fr; } }
+  .today-shell { max-width: 1180px; margin: 0 auto; padding-bottom: 40px; }
+  .today-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+  .kicker { color: var(--gold-muted); font-size: .7rem; letter-spacing: .12em; font-weight: 700; }
+  .today-head h1 { margin-top: 4px; color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 2.5rem); line-height: 1.25; font-weight: 700; }
+  .intro { max-width: 620px; margin-top: 7px; color: var(--text-muted); font-size: .84rem; }
+  .date { flex-shrink: 0; color: var(--text-muted); font-size: .82rem; }
+
+  .next-card { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(260px,.5fr); gap: 32px; align-items: end; padding: 30px 32px; background: var(--bg-surface); border: 1px solid #ccb891; box-shadow: 0 10px 34px rgba(55,45,32,.05); }
+  .status-line { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .neutral-badge { padding: 4px 7px; border: 1px solid var(--border-default); color: var(--text-muted); background: #faf9f6; font-size: .66rem; letter-spacing: .04em; }
+  .context { margin-top: 13px; color: var(--text-muted); font-size: .82rem; }
+  .next-card h2 { margin-top: 6px; color: var(--text-primary); font-size: clamp(1.8rem, 4vw, 3.1rem); line-height: 1.28; font-weight: 700; letter-spacing: .01em; }
+  .body-copy { max-width: 720px; margin-top: 13px; color: var(--text-muted); font-size: .85rem; line-height: 1.8; }
+  .next-actions { display: grid; gap: 8px; }
+  .primary, .secondary { min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; text-decoration: none; font-size: .85rem; }
+  .primary { color: #fff; background: var(--gold-pure); font-weight: 700; }
+  .primary:hover { background: #7f511b; }
+  .secondary { color: #5b626a; background: #fff; border: 1px solid var(--border-default); }
+  .secondary:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+  .quick-section, .output-section { margin-top: 30px; }
+  .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 12px; }
+  .section-head h2 { margin-top: 3px; color: var(--text-primary); font-size: 1.05rem; font-weight: 700; }
+  .section-head > p { color: var(--text-muted); font-size: .76rem; }
+  .quick-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+  .quick-card { position: relative; min-height: 118px; display: flex; flex-direction: column; padding: 16px; border: 1px solid var(--border-default); background: var(--bg-surface); text-decoration: none; }
+  .quick-card:hover { border-color: #b58a53; background: #fbf8f3; }
+  .quick-card > span { color: var(--gold-muted); font-size: .68rem; letter-spacing: .1em; font-weight: 700; }
+  .quick-card strong { margin-top: 8px; font-size: 1rem; }
+  .quick-card small { margin-top: 4px; padding-right: 18px; color: var(--text-muted); font-size: .76rem; }
+  .quick-card b { position: absolute; right: 15px; bottom: 12px; color: var(--gold-pure); font-weight: 500; }
+
+  .output-section { scroll-margin-top: 92px; }
+  .channel-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .channel-card { min-height: 96px; display: grid; grid-template-columns: 48px minmax(0,1fr) auto auto; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid var(--border-default); background: #fff; text-decoration: none; }
+  .channel-card:hover { border-color: #b58a53; box-shadow: 0 8px 24px rgba(55,45,32,.05); }
+  .channel-mark { width: 44px; height: 44px; display: grid; place-items: center; color: #fff; background: #17191c; font-weight: 700; }
+  .channel-mark.line { background: var(--state-green); }
+  .channel-card strong { display: block; font-size: .93rem; }
+  .channel-card small { display: block; margin-top: 3px; color: var(--text-muted); font-size: .73rem; }
+  .live-badge { padding: 3px 7px; color: #0d6e43; background: #e8f5ee; border: 1px solid #b8dfca; font-size: .62rem; font-weight: 700; letter-spacing: .08em; }
+  .chevron { color: var(--gold-pure); }
+  .safety-note { margin-top: 8px; color: var(--text-dim); font-size: .69rem; }
+
+  .candidate-section { margin-top: 24px; border: 1px solid var(--border-default); background: rgba(255,255,255,.55); padding: 0 16px; }
+  .candidate-section > summary { min-height: 48px; display: flex; align-items: center; color: var(--text-primary); cursor: pointer; font-size: .82rem; font-weight: 500; }
+  .candidate-section > summary span { margin-left: 10px; color: var(--text-muted); font-size: .66rem; letter-spacing: .08em; }
+  .candidate-list { border-top: 1px solid var(--border-default); }
+  .candidate-row { display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: 17px 0; border-bottom: 1px solid var(--border-default); }
+  .candidate-row:last-child { border-bottom: 0; }
+  .candidate-name { color: var(--gold-muted); font-size: .7rem; }
+  .candidate-row h3 { margin-top: 4px; font-size: .91rem; font-weight: 700; }
+  .candidate-row p:last-child { max-width: 720px; margin-top: 4px; color: var(--text-muted); font-size: .76rem; line-height: 1.65; }
+  .candidate-row a { flex-shrink: 0; min-height: 42px; display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid var(--border-default); color: var(--gold-pure); background: #fff; text-decoration: none; font-size: .75rem; }
+
+  .today-foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 24px; padding-top: 15px; border-top: 1px solid var(--border-default); color: var(--text-dim); font-size: .68rem; }
+
+  @media (max-width: 860px) {
+    .next-card { grid-template-columns: 1fr; gap: 20px; }
+    .next-actions { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  }
+  @media (max-width: 720px) {
+    .quick-grid, .channel-grid { grid-template-columns: 1fr; }
+    .quick-card { min-height: 96px; }
+  }
+  @media (max-width: 600px) {
+    .today-head, .section-head { align-items: flex-start; flex-direction: column; }
+    .next-card { padding: 22px 18px; }
+    .next-actions { grid-template-columns: 1fr; }
+    .channel-card { grid-template-columns: 44px minmax(0,1fr) auto; }
+    .live-badge { display: none; }
+    .candidate-row { align-items: stretch; flex-direction: column; gap: 11px; }
+    .candidate-section > summary span { display: block; margin-left: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 </style>
