@@ -1,0 +1,255 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Question Lab">
+  <div class="lab-shell">
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">HUMAN GRAPH · QUESTION / ANSWER LAYER</p>
+        <h1>Question Lab</h1>
+        <p class="lead">質問から人を見る。人から回答を見る。回答から、次の問いを見つける。</p>
+      </div>
+      <div class="status-pill" id="sync-status">Supabase · loading</div>
+    </header>
+
+    <section class="stats" aria-label="Question Lab summary">
+      <article><span id="stat-questions">—</span><small>QUESTIONS</small></article>
+      <article><span id="stat-answered">—</span><small>ANSWERED QUESTIONS</small></article>
+      <article><span id="stat-answers">—</span><small>ANSWERS</small></article>
+      <article><span id="stat-people">—</span><small>PEOPLE</small></article>
+      <article><span id="stat-sessions">—</span><small>SESSIONS</small></article>
+    </section>
+
+    <nav class="tabs" aria-label="Question Lab views">
+      <button class="tab active" data-tab="questions">Question <span>質問→回答</span></button>
+      <button class="tab" data-tab="people">People <span>人→回答</span></button>
+      <button class="tab" data-tab="reverse">Reverse <span>回答→人</span></button>
+    </nav>
+
+    <section class="view active" id="view-questions">
+      <div class="toolbar">
+        <label class="search"><span>⌕</span><input id="question-search" placeholder="質問・カテゴリを検索" /></label>
+        <select id="domain-filter" aria-label="domain filter"><option value="">全Domain</option></select>
+        <button class="btn" id="question-refresh">再読込</button>
+      </div>
+      <div class="split">
+        <div class="list-card">
+          <div class="section-title"><strong>QUESTION BANK</strong><span id="question-count-label">—</span></div>
+          <div id="question-list" class="scroll-list"><p class="empty">読み込み中…</p></div>
+        </div>
+        <div class="detail-card" id="question-detail">
+          <div class="placeholder">
+            <b>質問を選択</b>
+            <p>回答人数・選択肢分布・平均・自由記述・誰がどう答えたかをここに表示します。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-people">
+      <div class="toolbar">
+        <label class="search"><span>⌕</span><input id="people-search" placeholder="名前 / SLF-000001 で検索" /></label>
+        <button class="btn" id="people-refresh">再読込</button>
+      </div>
+      <div class="split">
+        <div class="list-card">
+          <div class="section-title"><strong>PEOPLE WITH ANSWERS</strong><span id="people-count-label">—</span></div>
+          <div id="people-list" class="scroll-list"><p class="empty">回答者が入るとここに表示されます。</p></div>
+        </div>
+        <div class="detail-card" id="person-detail">
+          <div class="placeholder">
+            <b>人物を選択</b>
+            <p>その人が、いつ、どんな問いに、どう答えてきたかを時系列で逆引きできます。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-reverse">
+      <div class="reverse-hero">
+        <p class="eyebrow">ANSWER → PERSON / QUESTION</p>
+        <h2>回答から逆引き</h2>
+        <p>例：「自信」「緊張」「日本代表」「継続できない」など。回答文・選択肢・質問・人物を横断して探します。</p>
+        <div class="reverse-search">
+          <input id="reverse-search" placeholder="回答・選択肢・人物・質問を検索" />
+          <button class="btn accent" id="reverse-run">検索</button>
+        </div>
+      </div>
+      <div id="reverse-results" class="reverse-results"><p class="empty">検索すると該当回答がここに並びます。</p></div>
+    </section>
+  </div>
+</DashboardLayout>
+
+<style>
+  .lab-shell{max-width:1500px;margin:0 auto}.page-head{display:flex;justify-content:space-between;gap:28px;align-items:flex-start;margin-bottom:26px}.eyebrow{font-size:.66rem;letter-spacing:.18em;color:var(--gold-muted);text-transform:uppercase}.page-head h1{font:300 clamp(2.4rem,5vw,4.2rem)/.95 'Cormorant Garamond',serif;color:var(--gold-pure);margin:5px 0 8px}.lead{color:var(--text-muted);font-size:.9rem}.status-pill{border:1px solid var(--border-default);padding:8px 11px;color:var(--text-muted);font-size:.7rem;white-space:nowrap}.status-pill.ok{border-color:var(--border-accent);color:var(--gold-pure)}.status-pill.error{color:#c98e7f}.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:20px}.stats article{border:1px solid var(--border-default);background:var(--bg-surface);padding:18px}.stats span{display:block;font:400 1.85rem 'Cormorant Garamond',serif;color:var(--gold-pure)}.stats small{font-size:.58rem;letter-spacing:.12em;color:var(--text-dim)}.tabs{display:flex;border-bottom:1px solid var(--border-default);margin-bottom:20px;overflow-x:auto}.tab{border:0;border-bottom:2px solid transparent;background:transparent;color:var(--text-muted);padding:13px 18px;cursor:pointer;text-align:left;min-width:160px;font:400 .86rem 'Zen Kaku Gothic New',sans-serif}.tab span{display:block;font-size:.62rem;color:var(--text-dim);margin-top:2px}.tab.active{color:var(--gold-pure);border-bottom-color:var(--gold-pure);background:var(--gold-glow)}.view{display:none}.view.active{display:block}.toolbar{display:flex;gap:10px;margin-bottom:12px}.search{height:42px;display:flex;align-items:center;gap:8px;flex:1;border:1px solid var(--border-default);background:var(--bg-surface);padding:0 12px}.search input,.reverse-search input{border:0;outline:0;background:transparent;color:var(--text-primary);font:inherit;width:100%}.toolbar select{min-width:180px;border:1px solid var(--border-default);background:var(--bg-surface);color:var(--text-muted);padding:0 12px}.btn{border:1px solid var(--border-default);background:var(--bg-surface);color:var(--text-muted);padding:9px 14px;cursor:pointer;font:inherit}.btn:hover,.btn.accent{border-color:var(--gold-muted);color:var(--gold-pure)}.split{display:grid;grid-template-columns:minmax(340px,.85fr) minmax(0,1.6fr);gap:12px;min-height:620px}.list-card,.detail-card,.reverse-results{border:1px solid var(--border-default);background:var(--bg-surface)}.section-title{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 15px;border-bottom:1px solid var(--border-default);font-size:.65rem;letter-spacing:.1em;color:var(--gold-muted)}.section-title span{color:var(--text-dim)}.scroll-list{max-height:680px;overflow:auto}.row-btn{width:100%;display:grid;grid-template-columns:1fr auto;gap:10px;text-align:left;border:0;border-bottom:1px solid var(--border-default);background:transparent;color:var(--text-primary);padding:14px 15px;cursor:pointer}.row-btn:hover,.row-btn.active{background:var(--gold-glow)}.row-main b{display:block;font-size:.82rem;font-weight:400;line-height:1.55}.row-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.chip{font-size:.58rem;border:1px solid var(--border-default);color:var(--text-muted);padding:2px 6px}.count{min-width:48px;text-align:right}.count strong{display:block;font:400 1.15rem 'Cormorant Garamond',serif;color:var(--gold-pure)}.count small{font-size:.55rem;color:var(--text-dim)}.detail-card{padding:22px;min-width:0}.placeholder{min-height:420px;display:grid;place-content:center;text-align:center;max-width:520px;margin:auto;color:var(--text-muted)}.placeholder b{font:300 1.6rem 'Cormorant Garamond',serif;color:var(--gold-muted);margin-bottom:8px}.detail-head{padding-bottom:18px;border-bottom:1px solid var(--border-default)}.detail-head h2{font:400 1.55rem/1.45 'Cormorant Garamond',serif;color:var(--text-primary);margin:5px 0}.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}.metric{border:1px solid var(--border-default);padding:11px}.metric strong{display:block;font:400 1.25rem 'Cormorant Garamond',serif;color:var(--gold-pure)}.metric small{font-size:.55rem;color:var(--text-dim)}.subhead{font-size:.65rem;letter-spacing:.12em;color:var(--gold-muted);margin:22px 0 10px}.option-row{margin:10px 0}.option-line{display:flex;justify-content:space-between;gap:10px;font-size:.74rem}.bar{height:5px;background:#2e2822;margin-top:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--gold-muted)}.answer-card{border-top:1px solid var(--border-default);padding:12px 0}.answer-top{display:flex;justify-content:space-between;gap:10px;font-size:.65rem;color:var(--text-muted)}.answer-body{font-size:.8rem;line-height:1.7;margin-top:5px;white-space:pre-wrap;word-break:break-word}.person-link{color:var(--gold-pure);cursor:pointer}.empty{padding:24px;color:var(--text-dim);font-size:.78rem;text-align:center}.reverse-hero{border:1px solid var(--border-default);background:linear-gradient(120deg,var(--bg-surface),var(--bg-elevated));padding:28px;margin-bottom:12px}.reverse-hero h2{font:300 2rem 'Cormorant Garamond',serif;color:var(--gold-pure);margin:4px 0}.reverse-hero>p:not(.eyebrow){color:var(--text-muted);font-size:.82rem}.reverse-search{display:flex;gap:8px;margin-top:18px}.reverse-search input{height:44px;border:1px solid var(--border-default);background:var(--bg-void);padding:0 12px}.reverse-results{padding:0 20px}.reverse-item{padding:16px 0;border-bottom:1px solid var(--border-default)}.reverse-q{font-size:.7rem;color:var(--gold-muted);margin-bottom:5px}.reverse-a{font-size:.86rem;line-height:1.7}.reverse-meta{font-size:.62rem;color:var(--text-dim);margin-top:7px}.loading{opacity:.55;pointer-events:none}@media(max-width:1000px){.stats{grid-template-columns:repeat(3,1fr)}.split{grid-template-columns:1fr}.scroll-list{max-height:420px}.detail-card{min-height:480px}}@media(max-width:650px){.page-head{display:block}.status-pill{display:inline-block;margin-top:12px}.stats{grid-template-columns:repeat(2,1fr)}.toolbar{flex-wrap:wrap}.toolbar select{height:42px;min-width:0;flex:1}.split{display:block}.list-card{margin-bottom:12px}.detail-grid{grid-template-columns:repeat(2,1fr)}.tab{min-width:135px;padding:11px}.reverse-search{display:block}.reverse-search .btn{width:100%;margin-top:8px}}
+</style>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c] || c));
+  const fmtNum = (value, digits = 0) => value === null || value === undefined || value === '' ? '—' : Number(value).toLocaleString('ja-JP', { maximumFractionDigits: digits });
+  const fmtDate = (value) => value ? new Date(value).toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+  const api = async (params) => {
+    const query = new URLSearchParams(params);
+    const res = await fetch(`/api/dashboard/question-lab?${query}`);
+    const body = await res.json();
+    if (!res.ok || !body.ok) throw new Error(body.error || `HTTP ${res.status}`);
+    return body.data;
+  };
+
+  let overview = null;
+  let selectedQuestion = '';
+  let selectedPerson = '';
+  let questionTimer;
+  let peopleTimer;
+
+  function setStatus(text, mode = '') {
+    const el = $('sync-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `status-pill ${mode}`;
+  }
+
+  function answerText(a) {
+    if (Array.isArray(a?.selected_options) && a.selected_options.length) return a.selected_options.join(' / ');
+    if (a?.text_value) return a.text_value;
+    if (a?.numeric_value !== null && a?.numeric_value !== undefined) return String(a.numeric_value);
+    if (a?.boolean_value !== null && a?.boolean_value !== undefined) return a.boolean_value ? 'はい' : 'いいえ';
+    const v = a?.response_value;
+    if (v && typeof v === 'object' && Object.keys(v).length) return JSON.stringify(v);
+    return '—';
+  }
+
+  async function loadOverview() {
+    setStatus('Supabase · loading');
+    const search = $('question-search')?.value?.trim() || '';
+    const domain = $('domain-filter')?.value || '';
+    try {
+      overview = await api({ mode:'overview', q:search, domain, limit:'500' });
+      renderSummary(overview?.summary || {});
+      renderDomains(overview?.domains || []);
+      renderQuestions(overview?.questions || []);
+      setStatus('Supabase · live', 'ok');
+    } catch (e) {
+      setStatus('load error', 'error');
+      if ($('question-list')) $('question-list').innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+    }
+  }
+
+  function renderSummary(s) {
+    $('stat-questions').textContent = fmtNum(s.question_count);
+    $('stat-answered').textContent = fmtNum(s.answered_question_count);
+    $('stat-answers').textContent = fmtNum(s.answer_count);
+    $('stat-people').textContent = fmtNum(s.people_answered);
+    $('stat-sessions').textContent = fmtNum(s.session_count);
+  }
+
+  function renderDomains(domains) {
+    const select = $('domain-filter');
+    if (!select || select.dataset.ready === '1') return;
+    select.insertAdjacentHTML('beforeend', domains.map(d => `<option value="${esc(d.domain)}">${esc(d.domain)} (${fmtNum(d.question_count)})</option>`).join(''));
+    select.dataset.ready = '1';
+  }
+
+  function renderQuestions(items) {
+    const list = $('question-list');
+    $('question-count-label').textContent = `${items.length} questions`;
+    if (!items.length) { list.innerHTML = '<p class="empty">該当する質問がありません。</p>'; return; }
+    list.innerHTML = items.map(q => `
+      <button class="row-btn ${q.question_key === selectedQuestion ? 'active' : ''}" data-question-key="${esc(q.question_key)}">
+        <span class="row-main"><b>${esc(q.short_label || q.question_text)}</b><span class="row-meta"><i class="chip">${esc(q.domain || '—')}</i><i class="chip">${esc(q.category || '—')}</i><i class="chip">${esc(q.answer_type)}</i></span></span>
+        <span class="count"><strong>${fmtNum(q.answer_count)}</strong><small>answers</small></span>
+      </button>`).join('');
+    list.querySelectorAll('[data-question-key]').forEach(btn => btn.addEventListener('click', () => loadQuestion(btn.dataset.questionKey)));
+  }
+
+  async function loadQuestion(key) {
+    selectedQuestion = key;
+    renderQuestions(overview?.questions || []);
+    const detail = $('question-detail');
+    detail.innerHTML = '<p class="empty">回答データを読み込み中…</p>';
+    try {
+      const data = await api({ mode:'question', key, limit:'300' });
+      renderQuestionDetail(data);
+    } catch (e) {
+      detail.innerHTML = `<p class="empty">${esc(e.message)}</p>`;
+    }
+  }
+
+  function renderQuestionDetail(data) {
+    const q = data?.question || {};
+    const options = data?.options || [];
+    const answers = data?.answers || [];
+    const optionHtml = options.length ? `<h3 class="subhead">ANSWER DISTRIBUTION</h3>${options.map(o => `
+      <div class="option-row"><div class="option-line"><span>${esc(o.option_label)}</span><span>${fmtNum(o.selection_count)}人 · ${fmtNum(o.selection_pct,1)}%</span></div><div class="bar"><i style="width:${Math.max(0,Math.min(100,Number(o.selection_pct)||0))}%"></i></div></div>`).join('')}` : '';
+    const answerHtml = answers.length ? `<h3 class="subhead">RECENT ANSWERS</h3>${answers.map(a => `
+      <article class="answer-card"><div class="answer-top"><span class="person-link" data-person-id="${esc(a.person_id || '')}">${esc(a.display_name || a.serial_code || '匿名')}</span><span>${fmtDate(a.answered_at)}</span></div><div class="answer-body">${esc(answerText(a))}</div></article>`).join('')}` : '<p class="empty">まだ回答はありません。最初の回答が入ると分布と人物履歴がここに育ちます。</p>';
+    $('question-detail').innerHTML = `
+      <div class="detail-head"><p class="eyebrow">${esc(q.domain || 'QUESTION')} · ${esc(q.category || '')}</p><h2>${esc(q.question_text || '')}</h2><div class="row-meta"><i class="chip">${esc(q.answer_type || '')}</i><i class="chip">${esc(q.source_type || 'manual')}</i></div></div>
+      <div class="detail-grid"><div class="metric"><strong>${fmtNum(q.answer_count)}</strong><small>ANSWERS</small></div><div class="metric"><strong>${fmtNum(q.person_count)}</strong><small>PEOPLE</small></div><div class="metric"><strong>${fmtNum(q.numeric_avg,2)}</strong><small>AVERAGE</small></div><div class="metric"><strong>${fmtDate(q.last_answered_at)}</strong><small>LAST</small></div></div>
+      ${optionHtml}${answerHtml}`;
+    $('question-detail').querySelectorAll('[data-person-id]').forEach(el => el.addEventListener('click', () => { if (el.dataset.personId) openPerson(el.dataset.personId); }));
+  }
+
+  async function loadPeople() {
+    const q = $('people-search')?.value?.trim() || '';
+    const list = $('people-list');
+    list.innerHTML = '<p class="empty">読み込み中…</p>';
+    try {
+      const people = await api({ mode:'people', q, limit:'300' });
+      $('people-count-label').textContent = `${people.length} people`;
+      if (!people.length) { list.innerHTML = '<p class="empty">人物に紐づいた回答はまだありません。</p>'; return; }
+      list.innerHTML = people.map(p => `
+        <button class="row-btn ${p.person_id === selectedPerson ? 'active' : ''}" data-person-id="${esc(p.person_id)}"><span class="row-main"><b>${esc(p.display_name || p.serial_code || '名称未設定')}</b><span class="row-meta"><i class="chip">${esc(p.serial_code || 'no serial')}</i><i class="chip">${esc(p.lifecycle_stage || '—')}</i></span></span><span class="count"><strong>${fmtNum(p.answer_count)}</strong><small>answers</small></span></button>`).join('');
+      list.querySelectorAll('[data-person-id]').forEach(btn => btn.addEventListener('click', () => openPerson(btn.dataset.personId)));
+    } catch (e) { list.innerHTML = `<p class="empty">${esc(e.message)}</p>`; }
+  }
+
+  async function openPerson(personId) {
+    selectedPerson = personId;
+    document.querySelector('[data-tab="people"]')?.click();
+    const detail = $('person-detail');
+    detail.innerHTML = '<p class="empty">人物の回答履歴を読み込み中…</p>';
+    try {
+      const data = await api({ mode:'person', personId, limit:'1000' });
+      const p = data?.person || {};
+      const answers = data?.answers || [];
+      detail.innerHTML = `
+        <div class="detail-head"><p class="eyebrow">${esc(p.serial_code || 'HUMAN GRAPH')}</p><h2>${esc(p.display_name || '名称未設定')}</h2><div class="row-meta"><i class="chip">${esc(p.lifecycle_stage || '—')}</i><i class="chip">${esc(p.source_channel || '—')}</i><i class="chip">${answers.length} answers</i></div></div>
+        <h3 class="subhead">ANSWER HISTORY</h3>
+        ${answers.length ? answers.map(a => `<article class="answer-card"><div class="answer-top"><span>${esc(a.domain || '—')} · ${esc(a.category || '—')}</span><span>${fmtDate(a.answered_at)}</span></div><div class="reverse-q">${esc(a.question_text)}</div><div class="answer-body">${esc(answerText(a))}</div></article>`).join('') : '<p class="empty">回答履歴はありません。</p>'}`;
+      await loadPeople();
+    } catch (e) { detail.innerHTML = `<p class="empty">${esc(e.message)}</p>`; }
+  }
+
+  async function runReverse() {
+    const q = $('reverse-search')?.value?.trim() || '';
+    const results = $('reverse-results');
+    if (!q) { results.innerHTML = '<p class="empty">検索語を入力してください。</p>'; return; }
+    results.innerHTML = '<p class="empty">検索中…</p>';
+    try {
+      const items = await api({ mode:'reverse', q, limit:'300' });
+      if (!items.length) { results.innerHTML = '<p class="empty">該当する回答はありません。</p>'; return; }
+      results.innerHTML = items.map(a => `<article class="reverse-item"><div class="reverse-q">${esc(a.question_text)}</div><div class="reverse-a">${esc(answerText(a))}</div><div class="reverse-meta"><span class="person-link" data-person-id="${esc(a.person_id || '')}">${esc(a.display_name || a.serial_code || '匿名')}</span> · ${esc(a.domain || '—')} · ${fmtDate(a.answered_at)}</div></article>`).join('');
+      results.querySelectorAll('[data-person-id]').forEach(el => el.addEventListener('click', () => { if (el.dataset.personId) openPerson(el.dataset.personId); }));
+    } catch (e) { results.innerHTML = `<p class="empty">${esc(e.message)}</p>`; }
+  }
+
+  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    $(`view-${tab.dataset.tab}`)?.classList.add('active');
+    if (tab.dataset.tab === 'people') loadPeople();
+  }));
+  $('question-search')?.addEventListener('input', () => { clearTimeout(questionTimer); questionTimer = setTimeout(loadOverview, 260); });
+  $('domain-filter')?.addEventListener('change', loadOverview);
+  $('question-refresh')?.addEventListener('click', loadOverview);
+  $('people-search')?.addEventListener('input', () => { clearTimeout(peopleTimer); peopleTimer = setTimeout(loadPeople, 260); });
+  $('people-refresh')?.addEventListener('click', loadPeople);
+  $('reverse-run')?.addEventListener('click', runReverse);
+  $('reverse-search')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') runReverse(); });
+
+  loadOverview();
+</script>
