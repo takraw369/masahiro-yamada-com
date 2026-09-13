@@ -28,6 +28,12 @@ custom_domain = true
 pattern = "yamadamasahiro.jp"
 custom_domain = true
 
+# Private Worker-to-Worker RPC. The Flow Runner has no public HTTP surface and
+# keeps external-service credentials in its own Cloudflare Worker Secrets.
+[[services]]
+binding = "FLOW_RUNNER"
+service = "masa-flow-runner"
+
 # Add www / legacy host custom domains after their registrar nameserver cutover.
 # Host-based 301 logic is already implemented in src/middleware.ts.
 
