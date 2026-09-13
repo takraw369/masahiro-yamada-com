@@ -1,0 +1,59 @@
+import type { APIContext } from 'astro';
+import {
+  getDashboardOwnerKey,
+  getSiteStorageEnv,
+  supabaseRpc,
+} from '../../../lib/siteStorage';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+  status,
+  headers: {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store',
+  },
+});
+
+export const GET = async ({ request, locals }: APIContext) => {
+  const env = getSiteStorageEnv(locals);
+  const url = new URL(request.url);
+  const query = (url.searchParams.get('q') || '').trim().slice(0, 240);
+  const itemId = (url.searchParams.get('id') || '').trim();
+  const relatedId = (url.searchParams.get('related') || '').trim();
+  const rawLimit = Number(url.searchParams.get('limit') || '20');
+  const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(Math.round(rawLimit), 50)) : 20;
+
+  try {
+    const ownerKey = await getDashboardOwnerKey(env);
+
+    if (itemId) {
+      if (!UUID_RE.test(itemId)) return json({ ok: false, error: 'invalid_item_id' }, 400);
+      const data = await supabaseRpc(env, 'masa_flow_mind_item_v1', {
+        p_owner_key: ownerKey,
+        p_knowledge_id: itemId,
+      });
+      return json({ ok: true, mode: 'item', data });
+    }
+
+    if (relatedId) {
+      if (!UUID_RE.test(relatedId)) return json({ ok: false, error: 'invalid_related_id' }, 400);
+      const data = await supabaseRpc(env, 'masa_flow_mind_related_v1', {
+        p_owner_key: ownerKey,
+        p_knowledge_id: relatedId,
+        p_limit: limit,
+      });
+      return json({ ok: true, mode: 'related', data });
+    }
+
+    const data = await supabaseRpc(env, 'masa_flow_mind_search_v1', {
+      p_owner_key: ownerKey,
+      p_query: query || null,
+      p_limit: limit,
+    });
+    return json({ ok: true, mode: 'search', data });
+  } catch (error) {
+    console.error('flow_mind_read_failed', error);
+    return json({ ok: false, error: 'knowledge_read_unavailable' }, 503);
+  }
+};
