@@ -47,6 +47,7 @@
   }
 
   function setReaderView(item, sources, related) {
+    if (item?.id) reader.dataset.knowledgeId = String(item.id);
     const title = reader.querySelector('.ko-reader-title');
     const meta = reader.querySelector('.ko-reader-meta');
     const article = reader.querySelector('.ko-article');
