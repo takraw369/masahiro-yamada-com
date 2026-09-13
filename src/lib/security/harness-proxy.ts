@@ -26,6 +26,13 @@ async function readLimited(stream: ReadableStream<Uint8Array> | null, limit: num
   }
 }
 
+function upstreamMessage(provider: 'x' | 'line', code: 'unavailable' | 'timeout' | 'failed') {
+  const product = provider === 'line' ? 'LINE Harness' : 'X Harness';
+  if (code === 'unavailable') return `${product}の接続設定を確認できません。少し待ってから再接続してください。`;
+  if (code === 'timeout') return `${product}の応答に時間がかかっています。少し待ってから再接続してください。`;
+  return `${product}に接続できませんでした。少し待ってから再接続してください。`;
+}
+
 // Port the narrow action contract from PR #6, retaining master's admin login.
 // Production callers pass Cloudflare's direct env binding. The locals fallback is
 // retained only for the Node-native regression harness, where Astro runtime locals
@@ -46,7 +53,13 @@ export async function handleHarnessProxy(
   if (url.search) return jsonResponse({ error: 'query_not_allowed' }, 400);
   const base = resolveHarnessBaseUrl(env, provider);
   const key = resolveHarnessApiKey(env, provider);
-  if (!base || !key) return jsonResponse({ error: 'upstream_unavailable' }, 503);
+  if (!base || !key) {
+    return jsonResponse({
+      error: 'upstream_unavailable',
+      message: upstreamMessage(provider, 'unavailable'),
+      retryable: true,
+    }, 503);
+  }
 
   let body;
   if (action.body) {
@@ -77,7 +90,12 @@ export async function handleHarnessProxy(
     const payload = await readLimited(upstream.body, 1_000_000);
     return jsonResponse(JSON.parse(payload), upstream.status);
   } catch {
-    return jsonResponse({ error: 'upstream_request_failed' }, 502);
+    const aborted = controller.signal.aborted;
+    return jsonResponse({
+      error: aborted ? 'upstream_timeout' : 'upstream_request_failed',
+      message: upstreamMessage(provider, aborted ? 'timeout' : 'failed'),
+      retryable: true,
+    }, aborted ? 504 : 502);
   } finally {
     clearTimeout(timeout);
   }
