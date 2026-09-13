@@ -1,0 +1,73 @@
+name: Probe Cloudflare Workers Builds API
+
+on:
+  push:
+    branches:
+      - chore/cloudflare-builds-api-probe
+    paths:
+      - ".github/workflows/cloudflare-workers-builds-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe Workers Builds capability without exposing credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+
+          api_get() {
+            local path="$1"
+            local out="$2"
+            curl --silent --show-error --output "$out" --write-out "%{http_code}" \
+              --header "$AUTH" \
+              "${BASE}${path}"
+          }
+
+          workers_code=$(api_get "/workers/scripts" /tmp/workers.json)
+          echo "workers_scripts_http=${workers_code}"
+          if [ "$workers_code" != "200" ]; then
+            jq -c '{success, errors: [.errors[]? | {code, message}]}' /tmp/workers.json
+            exit 1
+          fi
+
+          flow_tag=$(jq -r '.result[]? | select(.id == "masa-flow-runner") | .tag // empty' /tmp/workers.json | head -1)
+          line_tag=$(jq -r '.result[]? | select(.id == "masa-line-dispatch-cron") | .tag // empty' /tmp/workers.json | head -1)
+          echo "masa_flow_runner_present=$([ -n "$flow_tag" ] && echo yes || echo no)"
+          echo "line_dispatch_present=$([ -n "$line_tag" ] && echo yes || echo no)"
+
+          if [ -n "$line_tag" ]; then
+            line_triggers_code=$(api_get "/builds/workers/${line_tag}/triggers" /tmp/line-triggers.json)
+            echo "line_triggers_http=${line_triggers_code}"
+            if [ "$line_triggers_code" = "200" ]; then
+              jq -c '{count: (.result | length), triggers: [.result[]? | {trigger_name, trigger_uuid, root_directory, branch_includes, path_includes, repo_name: .repo_connection.repo_name, repo_id: .repo_connection.repo_id, provider_account_name: .repo_connection.provider_account_name, repo_connection_uuid: .repo_connection.repo_connection_uuid, has_build_token: (.build_token_uuid != null)}]}' /tmp/line-triggers.json
+            else
+              jq -c '{success, errors: [.errors[]? | {code, message}]}' /tmp/line-triggers.json
+            fi
+          fi
+
+          tokens_code=$(api_get "/builds/tokens" /tmp/build-tokens.json)
+          echo "build_tokens_http=${tokens_code}"
+          if [ "$tokens_code" = "200" ]; then
+            jq -c '{count: (.result | length), tokens: [.result[]? | {build_token_name, build_token_uuid}]}' /tmp/build-tokens.json
+          else
+            jq -c '{success, errors: [.errors[]? | {code, message}]}' /tmp/build-tokens.json
+          fi
+
+          if [ -n "$flow_tag" ]; then
+            flow_triggers_code=$(api_get "/builds/workers/${flow_tag}/triggers" /tmp/flow-triggers.json)
+            echo "flow_triggers_http=${flow_triggers_code}"
+            if [ "$flow_triggers_code" = "200" ]; then
+              jq -c '{count: (.result | length), triggers: [.result[]? | {trigger_name, trigger_uuid, root_directory, branch_includes, path_includes, repo_name: .repo_connection.repo_name, repo_id: .repo_connection.repo_id, provider_account_name: .repo_connection.provider_account_name, repo_connection_uuid: .repo_connection.repo_connection_uuid, has_build_token: (.build_token_uuid != null)}]}' /tmp/flow-triggers.json
+            else
+              jq -c '{success, errors: [.errors[]? | {code, message}]}' /tmp/flow-triggers.json
+            fi
+          fi
