@@ -1,0 +1,134 @@
+name: Bootstrap masa-flow-runner Workers Build
+
+on:
+  push:
+    branches:
+      - chore/cloudflare-builds-api-probe
+    paths:
+      - ".github/workflows/cloudflare-flow-runner-bootstrap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create production trigger and prove one deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+
+          get_json() {
+            curl --fail-with-body --silent --show-error --header "$AUTH" "${BASE}$1"
+          }
+
+          workers=$(get_json "/workers/scripts")
+          flow_tag=$(jq -r '.result[]? | select(.id == "masa-flow-runner") | .tag // empty' <<<"$workers" | head -1)
+          line_tag=$(jq -r '.result[]? | select(.id == "masa-line-dispatch-cron") | .tag // empty' <<<"$workers" | head -1)
+          test -n "$flow_tag" || { echo "masa-flow-runner not found"; exit 1; }
+          test -n "$line_tag" || { echo "masa-line-dispatch-cron not found"; exit 1; }
+
+          existing=$(get_json "/builds/workers/${flow_tag}/triggers")
+          existing_prod=$(jq -r '.result[]? | select((.branch_includes // []) | index("main")) | .trigger_uuid // empty' <<<"$existing" | head -1)
+          if [ -n "$existing_prod" ]; then
+            echo "production_trigger_already_exists=yes"
+            trigger_uuid="$existing_prod"
+            created_here=no
+          else
+            line_triggers=$(get_json "/builds/workers/${line_tag}/triggers")
+            repo_connection_uuid=$(jq -r '.result[]? | select((.branch_includes // []) | index("main")) | .repo_connection.repo_connection_uuid // empty' <<<"$line_triggers" | head -1)
+            build_token_uuid=$(jq -r '.result[]? | select((.branch_includes // []) | index("main")) | .build_token_uuid // empty' <<<"$line_triggers" | head -1)
+            test -n "$repo_connection_uuid" || { echo "repository connection missing"; exit 1; }
+            test -n "$build_token_uuid" || { echo "build token missing"; exit 1; }
+
+            payload=$(jq -nc \
+              --arg flow "$flow_tag" \
+              --arg repo "$repo_connection_uuid" \
+              --arg token "$build_token_uuid" \
+              '{
+                external_script_id: $flow,
+                repo_connection_uuid: $repo,
+                build_token_uuid: $token,
+                trigger_name: "Deploy production",
+                build_command: "npm ci && npm run check && npm run types && npx tsc --noEmit && npm test",
+                deploy_command: "npx wrangler deploy",
+                root_directory: "flow-runner",
+                branch_includes: ["main"],
+                branch_excludes: [],
+                path_includes: ["flow-runner/**"],
+                path_excludes: [],
+                build_caching_enabled: true
+              }')
+
+            create_code=$(curl --silent --show-error --output /tmp/create-trigger.json --write-out "%{http_code}" \
+              --header "$AUTH" \
+              --header "Content-Type: application/json" \
+              --request POST \
+              --data "$payload" \
+              "${BASE}/builds/triggers")
+            echo "create_trigger_http=${create_code}"
+            if [ "$create_code" != "200" ]; then
+              jq -c '{success, errors: [.errors[]? | {code, message}]}' /tmp/create-trigger.json
+              exit 1
+            fi
+            trigger_uuid=$(jq -r '.result.trigger_uuid // empty' /tmp/create-trigger.json)
+            test -n "$trigger_uuid" || { echo "trigger uuid missing"; exit 1; }
+            created_here=yes
+            echo "production_trigger_created=yes"
+          fi
+
+          build_code=$(curl --silent --show-error --output /tmp/start-build.json --write-out "%{http_code}" \
+            --header "$AUTH" \
+            --header "Content-Type: application/json" \
+            --request POST \
+            --data '{"branch":"main"}' \
+            "${BASE}/builds/triggers/${trigger_uuid}/builds")
+          echo "start_build_http=${build_code}"
+          if [ "$build_code" != "200" ]; then
+            jq -c '{success, errors: [.errors[]? | {code, message}]}' /tmp/start-build.json
+            if [ "$created_here" = yes ]; then
+              curl --silent --show-error --output /dev/null --request DELETE --header "$AUTH" "${BASE}/builds/triggers/${trigger_uuid}" || true
+              echo "failed_trigger_removed=yes"
+            fi
+            exit 1
+          fi
+
+          build_uuid=$(jq -r '.result.build_uuid // empty' /tmp/start-build.json)
+          test -n "$build_uuid" || { echo "build uuid missing"; exit 1; }
+          echo "build_started=yes"
+
+          outcome=""
+          for _ in $(seq 1 90); do
+            sleep 5
+            get_json "/builds/builds/${build_uuid}" > /tmp/build.json
+            status=$(jq -r '.result.status // empty' /tmp/build.json)
+            outcome=$(jq -r '.result.build_outcome // empty' /tmp/build.json)
+            echo "build_status=${status:-unknown} outcome=${outcome:-pending}"
+            if [ "$status" = "stopped" ]; then
+              break
+            fi
+          done
+
+          if [ "$outcome" != "success" ]; then
+            echo "masa-flow-runner build failed: ${outcome:-timeout}"
+            logs_code=$(curl --silent --show-error --output /tmp/build-logs.json --write-out "%{http_code}" \
+              --header "$AUTH" \
+              "${BASE}/builds/builds/${build_uuid}/logs")
+            if [ "$logs_code" = "200" ]; then
+              jq -r '.result.lines[-80:][]? | if type == "array" then .[-1] else . end' /tmp/build-logs.json | sed -E 's/(Bearer|token|secret)[=: ]+[^ ]+/\1=[REDACTED]/Ig'
+            fi
+            if [ "$created_here" = yes ]; then
+              curl --silent --show-error --output /dev/null --request DELETE --header "$AUTH" "${BASE}/builds/triggers/${trigger_uuid}" || true
+              echo "failed_trigger_removed=yes"
+            fi
+            exit 1
+          fi
+
+          echo "masa_flow_runner_deployed=yes"
+          echo "production_git_trigger_persisted=yes"
