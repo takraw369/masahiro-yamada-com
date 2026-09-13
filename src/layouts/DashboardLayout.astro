@@ -2,12 +2,14 @@
 export interface Props {
   title: string;
   fullHeight?: boolean;
+  focusMode?: boolean;
 }
-const { title, fullHeight = false } = Astro.props;
+const { title, fullHeight = false, focusMode = false } = Astro.props;
 const pathname = Astro.url.pathname;
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
+  { href: '/dashboard/knowledge', label: 'FLOW MIND', icon: '◈', exact: false },
   { href: '/dashboard/graph', label: 'Graph', icon: '◌', exact: false },
   { href: '/dashboard/voice', label: 'Voice Inbox', icon: '◍', exact: false },
   { href: '/dashboard/intelligence', label: 'Intelligence', icon: '✧', exact: false },
@@ -243,6 +245,11 @@ function isActive(item: { href: string; exact: boolean }): boolean {
       overflow: hidden;
     }
 
+    body.focus-mode .sidebar,
+    body.focus-mode .sidebar-overlay,
+    body.focus-mode .mobile-header { display: none; }
+    body.focus-mode .content-wrap { margin-left: 0; }
+
     @media (max-width: 768px) {
       .sidebar {
         transform: translateX(-100%);
@@ -261,6 +268,8 @@ function isActive(item: { href: string; exact: boolean }): boolean {
         display: flex;
       }
 
+      body.focus-mode .mobile-header { display: none; }
+
       .main-content {
         padding: 20px 16px;
       }
@@ -271,7 +280,7 @@ function isActive(item: { href: string; exact: boolean }): boolean {
     }
   </style>
 </head>
-<body>
+<body class:list={[{ 'focus-mode': focusMode }]}>
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
   <aside class="sidebar" id="sidebar">
