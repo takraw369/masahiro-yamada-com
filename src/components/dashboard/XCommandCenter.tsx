@@ -125,23 +125,43 @@ export default function XCommandCenter() {
   const soft = '#f8f6f2';
   const gold = '#9a6d24';
 
+  const catPillStyle = (c: typeof CATEGORIES[number], active: boolean): React.CSSProperties => ({
+    padding: '7px 16px',
+    borderRadius: 99,
+    border: `1.5px solid ${active ? c.color : border}`,
+    background: active ? c.bg : surface,
+    color: active ? c.color : muted,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: '0.88rem',
+    fontWeight: 700,
+    transition: 'all 0.15s',
+  });
+
+  const modeBtnStyle = (active: boolean): React.CSSProperties => ({
+    flex: 1,
+    padding: '9px 0',
+    borderRadius: 8,
+    border: `1.5px solid ${active ? 'rgba(154,109,36,0.42)' : border}`,
+    background: active ? 'rgba(154,109,36,0.08)' : surface,
+    color: active ? gold : muted,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: '0.88rem',
+    fontWeight: 700,
+  });
+
   const s: Record<string, React.CSSProperties> = {
     section: { marginBottom: 28 },
     label: { fontSize: '0.78rem', color: muted, fontWeight: 700, marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' },
     tabRow: { display: 'flex', gap: 8, marginBottom: 24 },
     tab: { flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${border}`, background: surface, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.92rem', fontWeight: 700, transition: 'all 0.15s' },
-    catRow: { display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 14 },
-    catPill: (c: typeof CATEGORIES[number], active: boolean) => ({
-      padding: '7px 16px', borderRadius: 99, border: `1.5px solid ${active ? c.color : border}`,
-      background: active ? c.bg : surface, color: active ? c.color : muted,
-      cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.88rem', fontWeight: 700, transition: 'all 0.15s',
-    }),
-    kwRow: { display: 'flex', gap: 6, flexWrap: 'wrap' as const, marginBottom: 16, padding: '12px 14px', background: cat?.bg ?? soft, borderRadius: 10, border: `1px solid ${cat?.border ?? border}` },
+    catRow: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 },
+    kwRow: { display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16, padding: '12px 14px', background: cat?.bg ?? soft, borderRadius: 10, border: `1px solid ${cat?.border ?? border}` },
     kwChip: { padding: '4px 10px', borderRadius: 99, background: surface, border: `1px solid ${border}`, color: cat?.color ?? ink, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', transition: 'all 0.15s' },
-    textarea: { width: '100%', minHeight: 140, background: surface, border: `1px solid ${border}`, borderRadius: 12, color: ink, fontFamily: 'inherit', fontSize: '1rem', padding: '14px', resize: 'vertical' as const, outline: 'none', lineHeight: 1.7, boxShadow: '0 1px 2px rgba(37,33,29,0.03)' },
+    textarea: { width: '100%', minHeight: 140, background: surface, border: `1px solid ${border}`, borderRadius: 12, color: ink, fontFamily: 'inherit', fontSize: '1rem', padding: '14px', resize: 'vertical', outline: 'none', lineHeight: 1.7, boxShadow: '0 1px 2px rgba(37,33,29,0.03)' },
     countRow: { display: 'flex', justifyContent: 'flex-end', marginTop: 6, fontSize: '0.78rem', color: remaining < 20 ? '#b91c1c' : muted },
     modeRow: { display: 'flex', gap: 8, marginBottom: 16 },
-    modeBtn: (active: boolean) => ({ flex: 1, padding: '9px 0', borderRadius: 8, border: `1.5px solid ${active ? 'rgba(154,109,36,0.42)' : border}`, background: active ? 'rgba(154,109,36,0.08)' : surface, color: active ? gold : muted, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.88rem', fontWeight: 700 }),
     dateInput: { width: '100%', background: surface, border: `1px solid ${border}`, borderRadius: 8, color: ink, fontFamily: 'inherit', fontSize: '0.9rem', padding: '9px 12px', outline: 'none', marginBottom: 14 },
     postBtn: { width: '100%', padding: '13px 0', borderRadius: 10, background: '#b4863b', border: '1px solid #9a6d24', color: '#1f1a14', fontFamily: 'inherit', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.02em' },
     statusOk: { marginTop: 10, padding: '10px 14px', background: 'rgba(21,128,61,0.08)', border: '1px solid rgba(21,128,61,0.2)', borderRadius: 8, color: '#166534', fontSize: '0.88rem' },
@@ -154,7 +174,6 @@ export default function XCommandCenter() {
 
   return (
     <div style={{ paddingBottom: 40, color: ink }}>
-      {/* tabs */}
       <div style={s.tabRow}>
         {(['compose', 'scheduled'] as const).map(t => (
           <button key={t} style={{ ...s.tab, color: tab === t ? gold : muted, borderColor: tab === t ? 'rgba(154,109,36,0.38)' : border, background: tab === t ? 'rgba(154,109,36,0.07)' : surface }} onClick={() => setTab(t)}>
@@ -165,7 +184,6 @@ export default function XCommandCenter() {
 
       {tab === 'compose' && (
         <>
-          {/* account */}
           {accounts.length > 1 && (
             <div style={s.section}>
               <label style={s.label}>アカウント</label>
@@ -175,12 +193,11 @@ export default function XCommandCenter() {
             </div>
           )}
 
-          {/* category */}
           <div style={s.section}>
             <label style={s.label}>カテゴリ</label>
             <div style={s.catRow}>
               {CATEGORIES.map(c => (
-                <button key={c.id} style={s.catPill(c, activeCat === c.id)} onClick={() => setActiveCat(activeCat === c.id ? null : c.id)}>
+                <button key={c.id} style={catPillStyle(c, activeCat === c.id)} onClick={() => setActiveCat(activeCat === c.id ? null : c.id)}>
                   {c.label}
                 </button>
               ))}
@@ -194,7 +211,6 @@ export default function XCommandCenter() {
             )}
           </div>
 
-          {/* compose */}
           <div style={s.section}>
             <label style={s.label}>本文</label>
             <textarea
@@ -207,10 +223,9 @@ export default function XCommandCenter() {
             <div style={s.countRow}>{remaining}</div>
           </div>
 
-          {/* mode */}
           <div style={s.modeRow}>
-            <button style={s.modeBtn(mode === 'now')} onClick={() => setMode('now')}>今すぐ投稿</button>
-            <button style={s.modeBtn(mode === 'schedule')} onClick={() => setMode('schedule')}>予約投稿</button>
+            <button style={modeBtnStyle(mode === 'now')} onClick={() => setMode('now')}>今すぐ投稿</button>
+            <button style={modeBtnStyle(mode === 'schedule')} onClick={() => setMode('schedule')}>予約投稿</button>
           </div>
 
           {mode === 'schedule' && (
