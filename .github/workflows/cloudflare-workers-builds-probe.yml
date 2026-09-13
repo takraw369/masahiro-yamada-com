@@ -22,6 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+          API="https://api.cloudflare.com/client/v4"
           AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
 
           api_get() {
@@ -57,7 +58,20 @@ jobs:
           tokens_code=$(api_get "/builds/tokens" /tmp/build-tokens.json)
           echo "build_tokens_http=${tokens_code}"
           if [ "$tokens_code" = "200" ]; then
-            jq -c '{count: (.result | length), tokens: [.result[]? | {build_token_name, build_token_uuid}]}' /tmp/build-tokens.json
+            jq -c '{count: (.result | length), tokens: [.result[]? | {build_token_name, build_token_uuid, owner_type, has_cloudflare_token_id: (.cloudflare_token_id != null)}]}' /tmp/build-tokens.json
+
+            line_cf_token_id=$(jq -r '.result[]? | select(.build_token_name == "masa-line-dispatch-cron build token") | .cloudflare_token_id // empty' /tmp/build-tokens.json | head -1)
+            if [ -n "$line_cf_token_id" ]; then
+              details_code=$(curl --silent --show-error --output /tmp/token-details.json --write-out "%{http_code}" \
+                --header "$AUTH" \
+                "${API}/user/tokens/${line_cf_token_id}")
+              echo "line_build_token_details_http=${details_code}"
+              if [ "$details_code" = "200" ]; then
+                jq -c '{name: .result.name, status: .result.status, permissions: ([.result.policies[]?.permission_groups[]?.name] | unique), policy_count: (.result.policies | length)}' /tmp/token-details.json
+              else
+                jq -c '{success, errors: [.errors[]? | {code, message}]}' /tmp/token-details.json
+              fi
+            fi
           else
             jq -c '{success, errors: [.errors[]? | {code, message}]}' /tmp/build-tokens.json
           fi
