@@ -20,6 +20,11 @@ When the same class of learning appears twice:
 
 ## Current learnings
 
+### 2026-09-13 — Quest follow-up pressure
+- Corrected: Questの未実行フォローで、同じ催促や強いプッシュを日ごとに繰り返さない。未実行が続くほど切り口と頻度を変える。
+- Cause: 完了率だけを最適化すると、コーチングが「戻りやすい場」ではなく追い立てる通知になり、離脱や嫌悪につながる。
+- Rule: 未実行フォローは原則として「許可・最小化 → 選択・主体性 → 再解釈 → 自律・クールダウン」と角度を変え、反応がなければ頻度を落とす。罪悪感、連続記録喪失の恐怖、同文連投で行動を迫らない。
+
 ### 2026-09-08 — Source-of-truth mismatch
 - Corrected: treat executable project configuration as authoritative when repository documentation claims a different framework/runtime state.
 - Cause: documentation can remain correct in spirit while technical version details become stale.
