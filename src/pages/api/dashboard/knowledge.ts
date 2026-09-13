@@ -9,6 +9,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const URL_ONLY_RE = /^https?:\/\/\S+$/i;
 const MAX_CAPTURE_LENGTH = 12_000;
+const MAX_HIGHLIGHT_LENGTH = 6_000;
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status,
@@ -87,28 +88,47 @@ export const POST = async ({ request, locals }: APIContext) => {
     return json({ ok: false, error: 'invalid_body' }, 400);
   }
 
-  const rawText = (body as Record<string, unknown>).text;
+  const record = body as Record<string, unknown>;
+  const rawText = record.text;
+  const kind = record.kind === 'highlight' ? 'highlight' : 'capture';
   if (typeof rawText !== 'string') return json({ ok: false, error: 'text_required' }, 400);
 
   const text = rawText.trim();
-  if (!text || text.length > MAX_CAPTURE_LENGTH) {
-    return json({ ok: false, error: 'invalid_capture_length' }, 400);
+  const maxLength = kind === 'highlight' ? MAX_HIGHLIGHT_LENGTH : MAX_CAPTURE_LENGTH;
+  if (!text || text.length > maxLength) {
+    return json({ ok: false, error: kind === 'highlight' ? 'invalid_highlight_length' : 'invalid_capture_length' }, 400);
   }
 
-  if (URL_ONLY_RE.test(text)) {
+  if (kind === 'capture' && URL_ONLY_RE.test(text)) {
     return json({ ok: false, error: 'source_intake_required' }, 409);
+  }
+
+  const rawSourceId = record.sourceId;
+  const sourceId = typeof rawSourceId === 'string' && rawSourceId ? rawSourceId : null;
+  if (kind === 'highlight' && sourceId && !UUID_RE.test(sourceId)) {
+    return json({ ok: false, error: 'invalid_source_id' }, 400);
   }
 
   const env = getSiteStorageEnv(locals);
   try {
     const ownerKey = await getDashboardOwnerKey(env);
+
+    if (kind === 'highlight') {
+      const data = await supabaseRpc(env, 'masa_flow_mind_highlight_v1', {
+        p_owner_key: ownerKey,
+        p_text: text,
+        p_source_id: sourceId,
+      });
+      return json({ ok: true, mode: 'highlight', data }, 201);
+    }
+
     const data = await supabaseRpc(env, 'masa_flow_mind_capture_v1', {
       p_owner_key: ownerKey,
       p_text: text,
     });
     return json({ ok: true, mode: 'capture', data }, 201);
   } catch (error) {
-    console.error('flow_mind_capture_failed', error);
-    return json({ ok: false, error: 'knowledge_capture_unavailable' }, 503);
+    console.error(kind === 'highlight' ? 'flow_mind_highlight_failed' : 'flow_mind_capture_failed', error);
+    return json({ ok: false, error: kind === 'highlight' ? 'knowledge_highlight_unavailable' : 'knowledge_capture_unavailable' }, 503);
   }
 };
