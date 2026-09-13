@@ -1,40 +1,32 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 ---
-<DashboardLayout title="MASA Intelligence Feed">
+<DashboardLayout title="Intelligence" eyebrow="DISCOVER → TRUST → REUSE">
   <div class="intel-shell">
     <header class="hero">
       <div>
-        <p class="eyebrow">DISCOVER → TRUST → REUSE → OUTPUT</p>
-        <h1>MASA Intelligence Feed</h1>
-        <p class="lead">興味があること、進む方向、世界の変化をひとつのFeedへ。ACEは重要なレンズの1つ。情報を読むだけで終わらせず、Evidence・SNS種・Asset・Projectへ育てる。People Radarは「こんな人おるよ！」を3人までに絞って同じFeedへ届ける。</p>
+        <p class="eyebrow">INTELLIGENCE INBOX</p>
+        <h1>世界から、使うものだけ残す。</h1>
+        <p class="lead">収集は自動。ここでは選ぶ。Sourceを確かめ、今のMASAに必要なものだけをEvidence・Content・Assetへ進める。</p>
       </div>
-      <a class="lab-link" href="/dashboard/evidence">Evidence Lab →</a>
+      <div class="hero-actions">
+        <a class="quiet-link" href="/mind">FLOW MIND →</a>
+        <a class="quiet-link" href="/dashboard/evidence">Evidence →</a>
+      </div>
     </header>
 
     <div id="intel-error" class="error" hidden></div>
 
-    <section class="metrics" id="intel-metrics">
-      <div class="metric"><span>NEW</span><strong>—</strong><small>未処理</small></div>
-      <div class="metric"><span>HIGH SIGNAL</span><strong>—</strong><small>4.0+</small></div>
-      <div class="metric"><span>PEOPLE</span><strong>—</strong><small>People Radar</small></div>
-      <div class="metric"><span>TRUSTED</span><strong>—</strong><small>Verified / Evidence</small></div>
-      <div class="metric"><span>OUTPUT</span><strong>—</strong><small>Seed / Asset / Project</small></div>
+    <section class="metrics" id="intel-metrics" aria-label="Intelligence summary">
+      <div class="metric primary"><span>NEW</span><strong>—</strong><small>まだ見ていない</small></div>
+      <div class="metric primary"><span>HIGH SIGNAL</span><strong>—</strong><small>優先して見る</small></div>
+      <div class="metric secondary"><span>PEOPLE</span><strong>—</strong><small>人物候補</small></div>
+      <div class="metric primary"><span>TRUSTED</span><strong>—</strong><small>確認済み</small></div>
+      <div class="metric secondary"><span>OUTPUT</span><strong>—</strong><small>再利用候補</small></div>
     </section>
 
-    <section class="panel people-intro">
-      <div class="panel-head">
-        <div><p class="eyebrow">PEOPLE RADAR</p><h2>こんな人おるよ！</h2></div>
-        <span>有名さではなく、MASAとの接続・情報密度・新規性・橋渡し価値で見る。</span>
-      </div>
-      <p class="people-note">推薦は判断材料。Follow・DM・返信は自動実行しない。<strong>FOLLOWED</strong> はMASAが実際にフォローした後の手動記録だけ。</p>
-    </section>
-
-    <section class="panel intake-panel">
-      <div class="panel-head">
-        <div><p class="eyebrow">MANUAL INTAKE</p><h2>こちらから入れる</h2></div>
-        <span>URLだけでなく「気になった理由」も餌になる。</span>
-      </div>
+    <details class="capture-drawer" id="intake-drawer">
+      <summary><span>＋ Sourceを手動で追加</span><small>URL・気づき・仮説</small></summary>
       <form id="intel-form" class="intake-form">
         <label class="wide">タイトル / 気づき<input name="title" required maxlength="500" placeholder="例：AI Agentが教育コンテンツ制作をどう変えるか" /></label>
         <label class="wide">URL<input name="url" type="url" placeholder="https://...（任意）" /></label>
@@ -42,30 +34,47 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
           <option>Athlete / Education</option><option>AI / Build</option><option>Business / Revenue</option><option>Health / Human</option><option>Capital / Market</option><option>Society / Culture</option><option>Creativity / Media</option><option>Life / Place</option><option selected>General</option>
         </select></label>
         <label class="span-2">なぜ気になる？<input name="whyItMatters" maxlength="3000" placeholder="今のProject・人生・事業との接点" /></label>
-        <label class="wide">メモ / 引用ではない要点<textarea name="excerpt" maxlength="5000" placeholder="自分の言葉で要点や仮説を残す"></textarea></label>
-        <div class="submit-row wide"><span id="submit-state"></span><button type="submit">Feedへ追加</button></div>
+        <label class="wide">自分の言葉で要点<textarea name="excerpt" maxlength="5000" placeholder="引用を貼るより、何が重要だと思ったかを残す"></textarea></label>
+        <div class="submit-row wide"><span id="submit-state"></span><button type="submit">追加する</button></div>
       </form>
+    </details>
+
+    <section class="review-head" aria-labelledby="review-title">
+      <div><p class="eyebrow">REVIEW</p><h2 id="review-title">次に見るもの</h2></div>
+      <div id="intel-count" class="count">—</div>
     </section>
 
-    <section class="filters">
-      <input id="intel-query" type="search" placeholder="タイトル・人物・要点・Why・Lensを検索" />
-      <select id="intel-kind"><option value="all">すべて</option><option value="people">People</option><option value="intelligence">情報</option></select>
+    <section class="filters" aria-label="Intelligence filters">
+      <input id="intel-query" type="search" placeholder="検索：タイトル・人物・Why・Lens" />
       <select id="intel-topic"><option value="all">全領域</option></select>
       <select id="intel-status">
         <option value="all">全状態</option><option value="new">NEW</option><option value="saved">SAVE</option><option value="review">REVIEW</option><option value="verified">VERIFIED</option><option value="content_seed">SNS / AI種</option><option value="evidence">EVIDENCE</option><option value="asset">ASSET</option><option value="project">PROJECT</option><option value="archived">ARCHIVE</option>
       </select>
-      <select id="intel-impact"><option value="all">ACE影響すべて</option><option value="transformative">TRANSFORM</option><option value="direct">DIRECT</option><option value="adjacent">ADJACENT</option><option value="none">NONE</option></select>
-      <div id="intel-count" class="count">—</div>
+      <details class="advanced-filters">
+        <summary>絞り込み</summary>
+        <div class="advanced-grid">
+          <label>種類<select id="intel-kind"><option value="all">すべて</option><option value="people">People</option><option value="intelligence">情報</option></select></label>
+          <label>ACE影響<select id="intel-impact"><option value="all">すべて</option><option value="transformative">TRANSFORM</option><option value="direct">DIRECT</option><option value="adjacent">ADJACENT</option><option value="none">NONE</option></select></label>
+        </div>
+      </details>
     </section>
 
-    <section id="intel-list" class="intel-list"><div class="empty">Intelligence Feedを読み込み中…</div></section>
+    <section id="intel-list" class="intel-list"><div class="empty">Intelligenceを読み込み中…</div></section>
   </div>
 
   <style>
-    .intel-shell{max-width:1240px;margin:0 auto;padding-bottom:64px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;padding:10px 0 28px;border-bottom:1px solid var(--border-default)}.eyebrow{font-size:.66rem;letter-spacing:.18em;color:var(--gold-pure);font-weight:500}.hero h1,.panel h2{font-family:'Cormorant Garamond',serif;font-weight:300}.hero h1{font-size:clamp(2.5rem,5vw,4.2rem);line-height:1;margin-top:5px}.lead{max-width:820px;color:var(--text-muted);line-height:1.85;margin-top:12px;font-size:.88rem}.lab-link{color:var(--gold-pure);text-decoration:none;border:1px solid var(--border-accent);padding:11px 15px;font-size:.75rem;flex-shrink:0}.lab-link:hover{background:var(--gold-glow)}.error{border:1px solid rgba(220,80,80,.35);background:rgba(180,50,50,.08);padding:12px 14px;margin-top:16px;color:#dba8a0;font-size:.8rem}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:20px 0}.metric,.panel,.intel-card,.filters{background:var(--bg-surface);border:1px solid var(--border-default)}.metric{padding:16px}.metric span{display:block;color:var(--gold-muted);font-size:.62rem;letter-spacing:.14em}.metric strong{display:block;font-family:'Cormorant Garamond',serif;font-size:2.05rem;font-weight:400;margin-top:3px}.metric small{font-size:.66rem;color:var(--text-dim)}.panel{padding:18px;margin-bottom:12px}.panel-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:12px}.panel h2{font-size:1.6rem;margin-top:3px}.panel-head>span{font-size:.67rem;color:var(--text-dim)}.people-intro{border-color:var(--border-accent);background:linear-gradient(120deg,var(--gold-glow),var(--bg-surface))}.people-note{color:var(--text-muted);font-size:.74rem;line-height:1.7}.people-note strong{color:var(--text-primary)}.intake-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}.intake-form label{display:grid;gap:5px;color:var(--text-muted);font-size:.64rem;letter-spacing:.05em}.wide{grid-column:1/-1}.span-2{grid-column:span 2}.intake-form input,.intake-form textarea,.intake-form select,.filters input,.filters select{background:var(--bg-elevated);border:1px solid var(--border-default);color:var(--text-primary);font:inherit;padding:10px 11px;outline:none}.intake-form textarea{min-height:78px;resize:vertical}.intake-form input:focus,.intake-form textarea:focus,.intake-form select:focus,.filters input:focus,.filters select:focus{border-color:var(--border-hover)}.submit-row{display:flex;align-items:center;justify-content:flex-end;gap:10px}.submit-row span{font-size:.66rem;color:var(--text-dim)}button{font:inherit}.submit-row button,.action{cursor:pointer;border:1px solid var(--border-default);background:var(--bg-elevated);color:var(--text-muted);padding:8px 10px;font-size:.68rem}.submit-row button{border-color:var(--border-accent);background:var(--gold-glow);color:var(--gold-pure);padding:10px 15px}.action:hover{border-color:var(--border-hover);color:var(--text-primary)}.action.primary{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.action:disabled{opacity:.45;cursor:wait}.filters{display:grid;grid-template-columns:minmax(220px,1fr) auto auto auto auto auto;gap:8px;padding:11px;margin-bottom:12px}.count{display:flex;align-items:center;color:var(--text-dim);font-size:.7rem;padding:0 6px}.intel-list{display:grid;gap:10px}.intel-card{padding:18px}.intel-card.people-card{border-color:var(--border-accent)}.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.tag-row{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:.59rem;letter-spacing:.04em;padding:4px 7px;border:1px solid var(--border-default);color:var(--text-muted)}.tag.topic{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.tag.status{color:var(--text-primary)}.tag.discovery{border-color:var(--border-accent);color:var(--gold-pure);background:var(--gold-glow)}.tag.recommend{color:var(--text-primary)}.tag.ace-direct,.tag.ace-transformative{color:#d8bd86;border-color:rgba(216,189,134,.35)}.title{font-size:1.03rem;font-weight:500;margin-top:11px;line-height:1.5}.source{font-size:.66rem;color:var(--text-dim);margin-top:5px;line-height:1.6}.source a{color:var(--gold-muted);text-decoration:none}.source a:hover{color:var(--gold-pure)}.score-box{min-width:118px;text-align:right}.signal{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--gold-pure);line-height:1}.signal-label{font-size:.56rem;color:var(--text-dim);letter-spacing:.12em}.scores{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;margin-top:5px;font-size:.58rem;color:var(--text-muted)}.why{margin-top:13px;padding:11px 12px;border-left:2px solid var(--gold-dim);background:var(--gold-glow);font-size:.78rem;line-height:1.75;color:var(--text-primary)}.excerpt{margin-top:10px;color:var(--text-muted);font-size:.77rem;line-height:1.75;white-space:pre-wrap}.feedback{margin-top:10px;padding:8px 10px;border:1px dashed var(--border-default);font-size:.67rem;color:var(--text-muted)}.feedback strong{color:var(--gold-pure)}.outputs{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}.output{font-size:.58rem;color:var(--text-dim);border-bottom:1px solid var(--border-default);padding:2px 0}.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-default)}.seed{margin-top:10px;border:1px dashed var(--border-default);padding:11px;background:var(--bg-void)}.seed summary{cursor:pointer;color:var(--gold-muted);font-size:.68rem}.seed pre{white-space:pre-wrap;word-break:break-word;color:var(--text-muted);font:inherit;font-size:.72rem;line-height:1.65;margin-top:9px}.empty{padding:26px;border:1px dashed var(--border-default);color:var(--text-dim);text-align:center;font-size:.78rem}.time{font-size:.61rem;color:var(--text-dim);margin-top:5px}
-    @media(max-width:1000px){.metrics{grid-template-columns:repeat(3,1fr)}.filters{grid-template-columns:1fr 1fr 1fr}.filters input{grid-column:1/-1}.count{grid-column:1/-1}}
-    @media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.hero{align-items:flex-start;flex-direction:column}.intake-form{grid-template-columns:1fr 1fr}.span-2{grid-column:auto}.card-head{display:block}.score-box{text-align:left;margin-top:10px}.scores{justify-content:flex-start}.panel-head{align-items:flex-start;flex-direction:column}}
-    @media(max-width:560px){.metrics,.intake-form,.filters{grid-template-columns:1fr}.wide,.span-2{grid-column:auto}.hero h1{font-size:2.4rem}.lab-link{width:100%;text-align:center}.intel-card{padding:15px}}
+    .intel-shell{max-width:1060px;margin:0 auto;padding-bottom:64px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding:4px 0 22px}.eyebrow{font-size:.66rem;letter-spacing:.14em;color:var(--gold-muted);font-weight:700}.hero h1{margin-top:5px;font-size:clamp(1.8rem,4vw,3rem);line-height:1.18;color:var(--text-primary)}.lead{max-width:720px;color:var(--text-muted);line-height:1.8;margin-top:8px;font-size:.84rem}.hero-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.quiet-link{min-height:40px;display:inline-flex;align-items:center;padding:8px 11px;color:var(--text-muted);text-decoration:none;border:1px solid var(--border-default);background:var(--bg-surface);font-size:.72rem;white-space:nowrap}.quiet-link:hover{color:var(--text-primary);border-color:var(--border-hover)}.error{border:1px solid #ddbbb5;background:#fff5f3;padding:12px 14px;margin-bottom:12px;color:#8b4e45;font-size:.8rem}
+
+    .metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:4px 0 16px}.metric{min-height:82px;padding:12px 13px;background:var(--bg-surface);border:1px solid var(--border-default)}.metric span{display:block;color:var(--text-dim);font-size:.58rem;letter-spacing:.1em}.metric strong{display:block;font-size:1.6rem;line-height:1.15;margin-top:3px}.metric small{font-size:.63rem;color:var(--text-dim)}.metric.primary{border-color:#d3c2a5}.metric.primary span{color:var(--gold-muted)}.metric.secondary{background:rgba(255,255,255,.48)}
+
+    .capture-drawer{margin-bottom:26px;border:1px solid var(--border-default);background:rgba(255,255,255,.55)}.capture-drawer>summary{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 14px;cursor:pointer;list-style:none;color:var(--text-primary);font-size:.78rem}.capture-drawer>summary::-webkit-details-marker{display:none}.capture-drawer>summary:after{content:'＋';color:var(--gold-muted)}.capture-drawer[open]>summary:after{content:'−'}.capture-drawer>summary small{margin-left:auto;color:var(--text-dim);font-size:.66rem}.intake-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;padding:15px;border-top:1px solid var(--border-default);background:var(--bg-surface)}.intake-form label{display:grid;gap:5px;color:var(--text-muted);font-size:.64rem;letter-spacing:.03em}.wide{grid-column:1/-1}.span-2{grid-column:span 2}.intake-form input,.intake-form textarea,.intake-form select,.filters input,.filters select{min-height:42px;background:#fff;border:1px solid var(--border-default);color:var(--text-primary);font:inherit;padding:9px 10px;outline:none}.intake-form textarea{min-height:76px;resize:vertical}.intake-form input:focus,.intake-form textarea:focus,.intake-form select:focus,.filters input:focus,.filters select:focus{border-color:#b58a53}.submit-row{display:flex;align-items:center;justify-content:flex-end;gap:10px}.submit-row span{font-size:.66rem;color:var(--text-dim)}button{font:inherit}.submit-row button,.action{cursor:pointer;border:1px solid var(--border-default);background:#fff;color:var(--text-muted);padding:8px 10px;font-size:.68rem}.submit-row button{border-color:#c8a97a;background:#f3eadc;color:#754a16;padding:10px 15px;font-weight:700}
+
+    .review-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 0 9px}.review-head h2{margin-top:2px;font-size:1.06rem}.count{color:var(--text-muted);font-size:.7rem}.filters{display:grid;grid-template-columns:minmax(260px,1fr) minmax(150px,.35fr) minmax(150px,.35fr) auto;gap:7px;align-items:start;margin-bottom:10px}.advanced-filters{position:relative}.advanced-filters>summary{min-height:42px;display:flex;align-items:center;padding:0 11px;border:1px solid var(--border-default);background:#fff;color:var(--text-muted);cursor:pointer;list-style:none;font-size:.7rem;white-space:nowrap}.advanced-filters>summary::-webkit-details-marker{display:none}.advanced-filters[open] .advanced-grid{display:grid}.advanced-grid{position:absolute;right:0;z-index:10;width:300px;display:none;grid-template-columns:1fr;gap:9px;margin-top:4px;padding:12px;background:#fff;border:1px solid var(--border-default);box-shadow:0 12px 30px rgba(35,29,22,.1)}.advanced-grid label{display:grid;gap:4px;color:var(--text-muted);font-size:.63rem}
+
+    .intel-list{display:grid;gap:8px}.intel-card{padding:16px 17px;background:var(--bg-surface);border:1px solid var(--border-default)}.intel-card:hover{border-color:#c7b9a5}.intel-card.people-card{border-left:3px solid #b99760}.card-head{display:grid;grid-template-columns:minmax(0,1fr) 104px;gap:18px;align-items:start}.tag-row{display:flex;flex-wrap:wrap;gap:5px}.tag{font-size:.56rem;letter-spacing:.03em;padding:3px 6px;border:1px solid #ded9d1;color:var(--text-dim);background:#fff}.tag.topic{border-color:#d7c5aa;color:#7b511f;background:#fbf6ee}.tag.status{color:var(--text-primary);font-weight:600}.tag.discovery,.tag.recommend{color:#77552a}.tag.ace-direct,.tag.ace-transformative{color:#7d5e30}.title{font-size:1rem;font-weight:700;margin-top:9px;line-height:1.5;color:var(--text-primary)}.source{font-size:.64rem;color:var(--text-dim);margin-top:5px;line-height:1.6}.source a{color:var(--gold-muted);text-decoration:none}.source a:hover{text-decoration:underline}.score-box{text-align:right}.signal{font-size:1.8rem;font-weight:700;color:#80551d;line-height:1}.signal-label{font-size:.53rem;color:var(--text-dim);letter-spacing:.09em}.scores{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;margin-top:5px;font-size:.55rem;color:var(--text-dim)}.why{margin-top:11px;padding:9px 10px;border-left:2px solid #c7a46d;background:#fbf7f0;font-size:.75rem;line-height:1.65;color:var(--text-primary)}.why strong{font-size:.6rem;color:var(--gold-muted)}.excerpt{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;margin-top:8px;color:var(--text-muted);font-size:.74rem;line-height:1.7;white-space:pre-wrap}.feedback{margin-top:8px;padding:7px 9px;border:1px dashed var(--border-default);font-size:.65rem;color:var(--text-muted)}.feedback strong{color:#77552a}.outputs{display:none}.actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid #ebe7e1}.action{min-height:34px}.action:hover{border-color:var(--border-hover);color:var(--text-primary)}.action.primary{border-color:#c7a46d;color:#754a16;background:#fbf3e7;font-weight:600}.action:disabled{opacity:.45;cursor:wait}.seed{margin-top:8px;border-top:1px dashed var(--border-default);padding-top:9px}.seed summary{cursor:pointer;color:var(--gold-muted);font-size:.66rem}.seed pre{white-space:pre-wrap;word-break:break-word;color:var(--text-muted);font:inherit;font-size:.7rem;line-height:1.65;margin-top:8px}.empty{padding:26px;border:1px dashed var(--border-default);color:var(--text-dim);text-align:center;font-size:.78rem}.time{font-size:.59rem;color:var(--text-dim);margin-top:3px}
+
+    @media(max-width:900px){.metrics{grid-template-columns:repeat(3,1fr)}.metric.secondary{display:none}.hero{align-items:flex-start;flex-direction:column}.hero-actions{justify-content:flex-start}.intake-form{grid-template-columns:1fr 1fr}.span-2{grid-column:auto}.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.card-head{grid-template-columns:1fr}.score-box{text-align:left;display:flex;align-items:baseline;gap:7px}.scores{justify-content:flex-start}}
+    @media(max-width:560px){.metrics{grid-template-columns:repeat(3,1fr)}.metric{min-height:72px;padding:10px}.metric strong{font-size:1.35rem}.intake-form,.filters{grid-template-columns:1fr}.wide,.span-2{grid-column:auto}.hero h1{font-size:1.9rem}.quiet-link{flex:1;justify-content:center}.hero-actions{width:100%}.intel-card{padding:14px}.advanced-grid{position:static;width:auto;box-shadow:none}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.action{width:100%}.capture-drawer>summary small{display:none}}
   </style>
 
   <script>
@@ -101,6 +110,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const errorEl=requiredEl<HTMLElement>('intel-error');
     const form=requiredEl<HTMLFormElement>('intel-form');
     const submitState=requiredEl<HTMLElement>('submit-state');
+    const intakeDrawer=document.getElementById('intake-drawer');
 
     TOPICS.forEach(t=>topic.insertAdjacentHTML('beforeend',`<option value="${t}">${t}</option>`));
     const esc=(v:unknown='')=>String(v).replace(/[&<>'"]/g,c=>ESCAPE[c]??c);
@@ -116,6 +126,11 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const raw=(item.outputTargets||[]).find(x=>x.startsWith('people:'));
       return raw?raw.slice('people:'.length):'';
     };
+    const revealManualIntake=()=>{
+      if(location.hash==='#intel-form' && intakeDrawer instanceof HTMLDetailsElement) intakeDrawer.open=true;
+    };
+    revealManualIntake();
+    window.addEventListener('hashchange',revealManualIntake);
 
     function updateMetrics(){
       const values=[
@@ -152,10 +167,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         ${item.excerpt?`<div class="excerpt">${esc(item.excerpt.slice(0,1200))}${item.excerpt.length>1200?'…':''}</div>`:''}
         ${feedback?`<div class="feedback">現在の判断：<strong>${esc(PEOPLE_ACTION_LABEL[feedback]||feedback)}</strong></div>`:''}
         <div class="actions">
-          <button class="action" data-people-action="WATCH">👀 Watch</button>
-          <button class="action" data-people-action="DEEP_RESEARCH">⌕ Deep Research</button>
-          <button class="action primary" data-people-action="COLLAB_CANDIDATE">🤝 Collaboration候補</button>
-          <button class="action" data-people-action="FOLLOWED">✓ Followedを記録</button>
+          <button class="action" data-people-action="WATCH">Watch</button>
+          <button class="action" data-people-action="DEEP_RESEARCH">Deep Research</button>
+          <button class="action primary" data-people-action="COLLAB_CANDIDATE">Collaboration候補</button>
+          <button class="action" data-people-action="FOLLOWED">Followedを記録</button>
           <button class="action" data-people-action="SKIP">Skip</button>
         </div>
       </article>`;
@@ -174,12 +189,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         ${item.excerpt?`<div class="excerpt">${esc(item.excerpt.slice(0,1500))}${item.excerpt.length>1500?'…':''}</div>`:''}
         <div class="outputs">${outputs}</div>
         <div class="actions">
-          <button class="action" data-status="saved">☆ 保存</button>
-          <button class="action" data-status="verified">✓ 確認済み</button>
-          <button class="action primary" data-action="content_seed">✎ SNS / AI種</button>
-          <button class="action primary" data-action="promote_evidence">◇ Evidence化</button>
-          <button class="action" data-status="asset">◆ Asset候補</button>
-          <button class="action" data-status="project">→ Project候補</button>
+          <button class="action" data-status="saved">保存</button>
+          <button class="action" data-status="verified">確認済み</button>
+          <button class="action primary" data-action="promote_evidence">Evidence化</button>
+          <button class="action primary" data-action="content_seed">SNS / AI種</button>
+          <button class="action" data-status="asset">Asset候補</button>
+          <button class="action" data-status="project">Project候補</button>
           <button class="action" data-status="archived">Archive</button>
         </div>${seed}
       </article>`;
