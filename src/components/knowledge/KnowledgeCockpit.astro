@@ -1,0 +1,179 @@
+---
+const reviewItems = [
+  { source: 'CHAT · 2026-09-12', state: 'Insight', dot: 'insight', title: '採点から抜け出すと、天才性が始まる', body: '教育を「正解へ寄せる行為」ではなく、本人の資質を惹き出す環境設計として捉え直す。', meta: 'ACE · 教育 · 4 backlinks' },
+  { source: 'MEMO · 2026-09-09', state: 'Seed', dot: '', title: 'フロー＝名詞ではなく動詞', body: '状態の名前として固定するより、流れ続ける行為として定義すると既存のFLOW構想が一本につながる。', meta: 'FLOW · Philosophy · 7 backlinks' },
+  { source: 'RESEARCH · 2026-09-08', state: 'Insight', dot: 'insight', title: '学習は保存より再会で強くなる', body: '読む→忘れる→再会→再解釈→実践、までを一つの循環としてUIに埋め込む。', meta: 'Learning OS · 3 backlinks' },
+];
+---
+<div class="knowledge-os" id="knowledge-os">
+  <aside class="ko-rail">
+    <div class="ko-brand"><b>FLOW MIND</b><span>MASA Knowledge OS · v0.1</span></div>
+    <div class="ko-capture"><button type="button" data-open-capture>＋ Capture thought</button></div>
+    <nav class="ko-nav" aria-label="Knowledge OS">
+      <button class="active" type="button" data-view="today">Today <small>4</small></button>
+      <button type="button" data-view="inbox">Inbox <small id="inbox-count">12</small></button>
+      <button type="button" data-view="journal">Journal</button>
+      <button type="button" data-view="reader">Read <small>6</small></button>
+      <button type="button" data-view="review">Review <small>3</small></button>
+      <button type="button" data-view="projects">Projects</button>
+      <button type="button" data-view="canonical">Canonical <small>13</small></button>
+      <button type="button" data-view="publish">Publish <small>2</small></button>
+    </nav>
+    <div class="ko-rail-foot">Drive / Supabase が正本。<br />この画面は「考える・つなぐ・育てる」ためのCockpit。</div>
+  </aside>
+
+  <main class="ko-main">
+    <header class="ko-topbar">
+      <div class="ko-search"><button type="button" data-open-command>Search knowledge, people, projects…</button><span class="ko-kbd">⌘K</span></div>
+      <button class="ko-iconbtn" type="button" data-open-capture aria-label="Capture">＋</button>
+      <a class="ko-iconbtn" href="/dashboard" aria-label="Dashboard" style="display:grid;place-items:center;text-decoration:none">↗</a>
+    </header>
+
+    <div class="ko-canvas">
+      <section class="ko-view active" data-panel="today">
+        <p class="ko-eyebrow">Sunday · Today</p>
+        <h1 class="ko-title">What deserves attention?</h1>
+        <p class="ko-sub">全部を見る必要はない。今日もう一度触れる価値があるもの、資産へ育てるもの、外へ出せるものだけを前に出す。</p>
+
+        <div class="ko-section">
+          <div class="ko-section-head"><h2>Continue</h2><span class="ko-count">1 active</span></div>
+          <article class="ko-card">
+            <div class="ko-card-top"><span class="ko-source">PROJECT · FLOW KNOWLEDGE OS</span><span class="ko-state"><i class="ko-dot insight"></i>Insight</span></div>
+            <h3>Readwise / Logseq / Obsidian の良いところを「同じ脳の別入口」に変える</h3>
+            <p>ツール間の移動を設計するのではなく、Capture / Think / Read / Connect / Review / Build / Publish を一つの体験へ統合する。</p>
+            <div class="ko-meta"><span>Last touched: now</span><span>9 related units</span></div>
+            <div class="ko-row-actions"><button class="primary" type="button" data-view-target="reader">Open canvas</button><button type="button" data-ai-action="Find related">Find related</button></div>
+          </article>
+        </div>
+
+        <div class="ko-section">
+          <div class="ko-section-head"><h2>Review 3</h2><span class="ko-count">resurfaced by value × time</span></div>
+          {reviewItems.map((item) => (
+            <article class="ko-card">
+              <div class="ko-card-top"><span class="ko-source">{item.source}</span><span class="ko-state"><i class:list={['ko-dot', item.dot]}></i>{item.state}</span></div>
+              <h3>{item.title}</h3><p>{item.body}</p><div class="ko-meta"><span>{item.meta}</span></div>
+              <div class="ko-row-actions"><button type="button" data-ai-action="Connect">Connect</button><button type="button" data-ai-action="Grow">Grow</button></div>
+            </article>
+          ))}
+        </div>
+
+        <div class="ko-section">
+          <div class="ko-section-head"><h2>Promote 1</h2><span class="ko-count">highest leverage candidate</span></div>
+          <article class="ko-card" id="promote-card">
+            <div class="ko-card-top"><span class="ko-source">DEFINITION CANDIDATE</span><span class="ko-state" id="promote-state"><i class="ko-dot insight"></i>Insight</span></div>
+            <h3>Knowledge OS = 情報を貯める場所ではなく、知識が行動と資産へ育つ流れ</h3>
+            <p>Captureで終わらず、再会・関連・昇格・実践・発信まで一つのライフサイクルとして扱う。</p>
+            <div class="ko-row-actions"><button class="primary" type="button" id="promote-button">Make canonical</button><button type="button" data-ai-action="Compare with older definitions">Compare older</button></div>
+          </article>
+        </div>
+
+        <div class="ko-section">
+          <div class="ko-section-head"><h2>Publish 1</h2><span class="ko-count">ready to shape</span></div>
+          <article class="ko-card"><div class="ko-card-top"><span class="ko-source">CONTENT CANDIDATE · X / NOTE</span><span class="ko-state"><i class="ko-dot content"></i>Content</span></div><h3>「あとで読む」から「あとで人生に使う」へ。</h3><p>Readerを作る目的は保存量を増やすことではなく、過去の知識を現在の行動へ戻すこと。</p><div class="ko-row-actions"><button class="primary" type="button" data-ai-action="Draft post">Draft post</button><button type="button" data-ai-action="Build note outline">note outline</button></div></article>
+        </div>
+      </section>
+
+      <section class="ko-view" data-panel="reader">
+        <article class="ko-reader" id="reader-article">
+          <header class="ko-reader-head"><p class="ko-eyebrow">Internal note · FLOW Knowledge OS</p><h1 class="ko-reader-title">読む・考える・つなぐを、同じ場所で。</h1><div class="ko-reader-meta"><span>Source: MASA OS</span><span>State: Insight</span><span>9 related</span></div></header>
+          <div class="ko-article">
+            <p>これまでの知識管理ツールは、保存・整理・検索・執筆のどこか一つには強かった。しかしMASA OSで必要なのは、ツールを使い分けること自体ではない。外から入ってきた情報と、自分の中から出てきた一行の思考が、同じ知識ネットワークの中で出会うことだ。</p>
+            <p>Readwiseからは「読むこと」と「再会すること」を、Logseqからはブロック単位で思考が育つ構造を、Obsidianからはデータを自分で所有しリンクで移動できる思想を取り込む。ただし、どの製品もMASA OSの正本にはしない。</p>
+            <aside class="ko-note">Source of Truth は Drive / Supabase / GitHub に残す。FLOW Knowledge OSは、その上にある人間向けの認知インターフェース。</aside>
+            <p>だからKnowledge Graphも手作業で整える対象ではない。会話、メモ、記事、動画、研究、プロジェクトからKnowledge UnitとRelationを抽出し、GraphやWhiteboardはその関係を眺めるための派生ビューとして生成する。</p>
+            <p>重要なのは、一つの知識が Seed → Insight → Definition → Canonical と育ち、そこから Quest・Content・Productへ枝分かれできること。この変化そのものをUIで扱えるようにする。</p>
+          </div>
+          <div class="ko-row-actions"><button class="primary" type="button" id="save-selection">選択範囲をHighlight</button><button type="button" data-ai-action="Explain connections">Explain connections</button><button type="button" data-ai-action="Find contradiction">Find contradiction</button></div>
+        </article>
+      </section>
+
+      <section class="ko-view" data-panel="inbox"><p class="ko-eyebrow">Capture</p><h1 class="ko-title">Inbox</h1><p class="ko-sub">入口は雑でいい。整理はAIと昇格フローへ任せる。</p><div class="ko-section" id="capture-list"><article class="ko-card"><div class="ko-card-top"><span class="ko-source">RAINDROP · IMPORTED</span><span class="ko-state"><i class="ko-dot"></i>Seed</span></div><h3>保存した情報は、読む前に価値判定できるか？</h3><p>外部情報の大量流入をReaderへそのまま流さず、Project適合・新規性・再利用可能性で前処理する。</p></article></div></section>
+      <section class="ko-view" data-panel="journal"><p class="ko-eyebrow">Think</p><h1 class="ko-title">Journal</h1><p class="ko-sub">ページを作る意識なしで、今日の思考を一行ずつ置く。裏ではBlockとして扱う。</p><div class="ko-section"><article class="ko-card"><div class="ko-card-top"><span class="ko-source">TODAY · BLOCK 01</span><span class="ko-state"><i class="ko-dot"></i>Seed</span></div><h3 contenteditable="true" spellcheck="false">ここをクリックして、そのまま考えを書く。</h3><p>Enterで次のBlock、[[ でKnowledge Link、# で軽い状態タグ。将来ここを自動保存へ接続する。</p></article></div></section>
+      <section class="ko-view" data-panel="review"><p class="ko-eyebrow">Recall</p><h1 class="ko-title">Review</h1><p class="ko-sub">古いメモを均等に出すのではなく、「今のProjectとの接続価値 × 忘却時間」で再会させる。</p><div class="ko-section">{reviewItems.map((item) => <article class="ko-card"><div class="ko-card-top"><span class="ko-source">{item.source}</span><span class="ko-state"><i class:list={['ko-dot',item.dot]}></i>{item.state}</span></div><h3>{item.title}</h3><p>{item.body}</p></article>)}</div></section>
+      <section class="ko-view" data-panel="projects"><p class="ko-eyebrow">Connect</p><h1 class="ko-title">Projects</h1><p class="ko-sub">Project自体をここで二重管理しない。Drive/Supabase正本から「今この知識と何がつながるか」を投影するView。</p></section>
+      <section class="ko-view" data-panel="canonical"><p class="ko-eyebrow">Build</p><h1 class="ko-title">Canonical</h1><p class="ko-sub">何度も使う定義・原則・構造だけがここへ昇格する。保存量ではなく再利用価値を高める。</p></section>
+      <section class="ko-view" data-panel="publish"><p class="ko-eyebrow">Output</p><h1 class="ko-title">Publish</h1><p class="ko-sub">CanonicalやInsightをX / note / LINE /教材へ変換する出口。投稿管理ではなく、資産の再利用View。</p></section>
+    </div>
+
+    <nav class="ko-bottom"><button class="active" type="button" data-view="today">Today</button><button type="button" data-open-capture>Capture</button><button type="button" data-view="reader">Read</button><button type="button" data-view="review">Review</button></nav>
+  </main>
+
+  <aside class="ko-context">
+    <div class="ko-context-head">Context · Intelligence</div>
+    <div class="ko-context-body">
+      <section><h3>Related</h3><div class="ko-related"><button type="button">自信＝動詞<small>Definition · ACE</small></button><button type="button">FLOW＝動詞<small>Insight · Philosophy</small></button><button type="button">Idea → Asset → Reuse<small>Operating principle</small></button></div></section>
+      <section><h3>Backlinks</h3><div class="ko-related"><button type="button">ACE METHOD — 惹き出す、押し込まない<small>7 references</small></button><button type="button">YAKUZEN OS 30-day flow<small>2 references</small></button></div></section>
+      <section><h3>AI actions</h3><div class="ko-ai-grid"><button type="button" data-ai-action="Older version">Older version</button><button type="button" data-ai-action="Contradiction">Contradiction</button><button type="button" data-ai-action="Definition">Definition</button><button type="button" data-ai-action="Unused assets">Unused assets</button></div></section>
+      <section><h3>Highlights</h3><div id="highlight-list"><p style="font-size:.7rem;color:#776e64;line-height:1.6">Readerで文章を選択してHighlightすると、ここにKnowledge Unit候補として残る。</p></div></section>
+      <section><h3>Promote</h3><button class="ko-promo" type="button" data-ai-action="Promote current knowledge">Promote current knowledge →</button></section>
+      <section><h3>Provenance</h3><p style="font-size:.68rem;color:#81786d;line-height:1.7">Drive / Supabase / GitHub / Chat / Webの出典を保持。AI生成物も元Sourceへ辿れることを必須にする。</p></section>
+    </div>
+  </aside>
+</div>
+
+<div class="ko-modal" id="capture-modal" role="dialog" aria-modal="true" aria-label="Capture thought"><div class="ko-modal-card"><p class="ko-eyebrow">Universal Capture</p><h2>何が浮かんだ？</h2><textarea id="capture-text" placeholder="整理しなくていい。そのまま置く。"></textarea><div class="ko-modal-actions"><button class="ko-smallbtn" type="button" data-close-capture>Cancel</button><button class="ko-smallbtn primary" type="button" id="save-capture">Save as Seed</button></div></div></div>
+<div class="ko-command" id="command-modal"><div class="ko-command-card"><input id="command-input" type="search" placeholder="Search or run a command…" /><div class="ko-command-list"><div class="ko-command-item" data-command="capture"><span>Capture a thought</span><span>C</span></div><div class="ko-command-item" data-command="reader"><span>Open Reader</span><span>R</span></div><div class="ko-command-item" data-command="review"><span>Review resurfaced knowledge</span><span>V</span></div><div class="ko-command-item" data-command="canonical"><span>Open Canonical</span><span>K</span></div></div></div></div>
+<div class="ko-toast" id="ko-toast" role="status"></div>
+
+<script>
+  const root = document.getElementById('knowledge-os');
+  const toast = document.getElementById('ko-toast');
+  const captureModal = document.getElementById('capture-modal');
+  const commandModal = document.getElementById('command-modal');
+  const captureText = document.getElementById('capture-text');
+  const captureList = document.getElementById('capture-list');
+  const highlightList = document.getElementById('highlight-list');
+  const storageKey = 'flow-knowledge-os-v01';
+
+  function loadState(){try{return JSON.parse(localStorage.getItem(storageKey)||'{}')}catch{return {}}}
+  function saveState(patch){const next={...loadState(),...patch};localStorage.setItem(storageKey,JSON.stringify(next));return next}
+  function notify(message){if(!toast)return;toast.textContent=message;toast.classList.add('show');window.setTimeout(()=>toast.classList.remove('show'),1800)}
+
+  function showView(name){
+    root?.querySelectorAll('[data-panel]').forEach((el)=>el.classList.toggle('active',el.getAttribute('data-panel')===name));
+    root?.querySelectorAll('[data-view]').forEach((el)=>el.classList.toggle('active',el.getAttribute('data-view')===name));
+  }
+
+  root?.querySelectorAll('[data-view]').forEach((button)=>button.addEventListener('click',()=>showView(button.getAttribute('data-view')||'today')));
+  root?.querySelectorAll('[data-view-target]').forEach((button)=>button.addEventListener('click',()=>showView(button.getAttribute('data-view-target')||'today')));
+  document.querySelectorAll('[data-open-capture]').forEach((button)=>button.addEventListener('click',()=>{captureModal?.classList.add('open');window.setTimeout(()=>captureText?.focus(),30)}));
+  document.querySelectorAll('[data-close-capture]').forEach((button)=>button.addEventListener('click',()=>captureModal?.classList.remove('open')));
+  captureModal?.addEventListener('click',(event)=>{if(event.target===captureModal)captureModal.classList.remove('open')});
+
+  document.getElementById('save-capture')?.addEventListener('click',()=>{
+    const text=captureText?.value.trim();if(!text)return;
+    const state=loadState();const captures=[{text,at:new Date().toISOString()},...(state.captures||[])].slice(0,20);saveState({captures});
+    captureModal?.classList.remove('open');if(captureText)captureText.value='';renderCaptures();showView('inbox');notify('Seedとして保存しました');
+  });
+
+  function renderCaptures(){
+    if(!captureList)return;const captures=loadState().captures||[];
+    captureList.querySelectorAll('[data-local-capture]').forEach((el)=>el.remove());
+    captures.forEach((item)=>{const article=document.createElement('article');article.className='ko-card';article.setAttribute('data-local-capture','');article.innerHTML=`<div class="ko-card-top"><span class="ko-source">LOCAL CAPTURE · NOW</span><span class="ko-state"><i class="ko-dot"></i>Seed</span></div><h3></h3><div class="ko-meta"><span>Local prototype data</span></div>`;const title=article.querySelector('h3');if(title)title.textContent=item.text;captureList.prepend(article)});
+    const count=document.getElementById('inbox-count');if(count)count.textContent=String(12+captures.length);
+  }
+
+  document.getElementById('save-selection')?.addEventListener('click',()=>{
+    const selection=window.getSelection();const text=selection?.toString().trim();const article=document.getElementById('reader-article');
+    if(!text||!selection?.anchorNode||!article?.contains(selection.anchorNode)){notify('Reader本文を選択してください');return}
+    const state=loadState();const highlights=[text,...(state.highlights||[]).filter((item)=>item!==text)].slice(0,12);saveState({highlights});renderHighlights();selection.removeAllRanges();notify('HighlightをKnowledge Unit候補にしました');
+  });
+
+  function renderHighlights(){
+    if(!highlightList)return;const highlights=loadState().highlights||[];
+    if(!highlights.length)return;
+    highlightList.innerHTML='';highlights.forEach((text)=>{const div=document.createElement('div');div.className='ko-highlight';div.textContent=text;highlightList.appendChild(div)});
+  }
+
+  const promoteButton=document.getElementById('promote-button');
+  function renderPromote(){const promoted=Boolean(loadState().promoted);const state=document.getElementById('promote-state');if(promoted&&state){state.innerHTML='<i class="ko-dot canonical"></i>Canonical';if(promoteButton){promoteButton.textContent='Canonical saved';promoteButton.setAttribute('disabled','true')}}}
+  promoteButton?.addEventListener('click',()=>{saveState({promoted:true});renderPromote();notify('Canonicalへ昇格しました')});
+
+  document.querySelectorAll('[data-ai-action]').forEach((button)=>button.addEventListener('click',()=>notify(`${button.getAttribute('data-ai-action')} — AI action hook ready`)));
+  document.querySelectorAll('[data-open-command]').forEach((button)=>button.addEventListener('click',()=>commandModal?.classList.add('open')));
+  commandModal?.addEventListener('click',(event)=>{if(event.target===commandModal)commandModal.classList.remove('open')});
+  document.querySelectorAll('[data-command]').forEach((item)=>item.addEventListener('click',()=>{const command=item.getAttribute('data-command');commandModal?.classList.remove('open');if(command==='capture'){captureModal?.classList.add('open');captureText?.focus()}else if(command)showView(command)}));
+  document.addEventListener('keydown',(event)=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();commandModal?.classList.add('open');document.getElementById('command-input')?.focus()}if(event.key==='Escape'){captureModal?.classList.remove('open');commandModal?.classList.remove('open')}});
+
+  renderCaptures();renderHighlights();renderPromote();
+</script>
