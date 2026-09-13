@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { QUEST_GUARDRAILS, STARTER_RECIPES, type StarterRecipe } from '../../lib/line-flow-recipes';
 
 type LineAccount = { id: string; name?: string; displayName?: string; channelId?: string; isActive?: boolean };
 type Tag = { id: string; name: string; color?: string };
@@ -6,6 +7,7 @@ type TriggerType = 'friend_add' | 'tag_added' | 'manual';
 type DeliveryMode = 'relative' | 'elapsed' | 'absolute_time';
 type MessageType = 'text' | 'image' | 'flex';
 type ConditionType = '' | 'tag_exists' | 'tag_not_exists' | 'metadata_equals' | 'metadata_not_equals';
+type ConnectionState = 'loading' | 'connected' | 'partial' | 'offline';
 
 type Scenario = {
   id: string;
@@ -48,8 +50,6 @@ type ScenarioStats = {
   steps: Array<{ stepOrder: number; reachedCount: number; reachRate: number }>;
 };
 
-type ApiResponse<T> = { success: boolean; data: T; error?: string };
-
 type StepForm = {
   delayMinutes: number;
   offsetDays: number;
@@ -62,6 +62,8 @@ type StepForm = {
   nextStepOnFalse: string;
   onReachTagId: string;
 };
+
+type HarnessError = Error & { code?: string; status?: number; retryable?: boolean };
 
 const EMPTY_STEP: StepForm = {
   delayMinutes: 0,
@@ -88,16 +90,32 @@ const messageMeta: Record<MessageType, { icon: string; label: string }> = {
   flex: { icon: '▦', label: 'Flex' },
 };
 
+function fallbackHarnessMessage(code?: string) {
+  if (code === 'upstream_timeout') return 'LINE Harnessの応答に時間がかかっています。少し待ってから再接続してください。';
+  if (code === 'upstream_unavailable') return 'LINE Harnessの接続設定を確認できません。少し待ってから再接続してください。';
+  if (code === 'upstream_request_failed') return 'LINE Harnessに接続できませんでした。少し待ってから再接続してください。';
+  if (code === 'invalid_upstream_response') return 'LINE Harnessから正しい応答を受け取れませんでした。再接続してください。';
+  return 'LINEの処理を完了できませんでした。内容を確認してもう一度試してください。';
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api/line-harness/${path}`, {
     ...init,
     headers: init?.body ? { 'Content-Type': 'application/json', ...(init.headers ?? {}) } : init?.headers,
   });
-  const payload = await response.json().catch(() => ({ error: 'invalid_response' }));
+  const payload = await response.json().catch(() => ({ error: 'invalid_upstream_response' }));
   if (!response.ok || payload?.success === false) {
-    throw new Error(payload?.error || `HTTP ${response.status}`);
+    const error = new Error(payload?.message || fallbackHarnessMessage(payload?.error)) as HarnessError;
+    error.code = payload?.error;
+    error.status = response.status;
+    error.retryable = payload?.retryable === true || response.status >= 500;
+    throw error;
   }
-  return payload.data as T;
+  return (payload?.data ?? payload) as T;
+}
+
+function asError(value: unknown) {
+  return value instanceof Error ? value : new Error(String(value));
 }
 
 function accountName(account: LineAccount) {
@@ -113,9 +131,7 @@ function scheduleLabel(mode: DeliveryMode, step: ScenarioStep) {
     if (days === 0 && minutes === 0) return 'すぐ';
     return `${days ? `${days}日 ` : ''}${hours ? `${hours}時間 ` : ''}${rest ? `${rest}分 ` : ''}後`.trim();
   }
-  if (mode === 'absolute_time') {
-    return `${step.offsetDays ?? 0}日後 ${step.deliveryTime || '09:00'}`;
-  }
+  if (mode === 'absolute_time') return `${step.offsetDays ?? 0}日後 ${step.deliveryTime || '09:00'}`;
   const minutes = step.delayMinutes ?? 0;
   if (minutes === 0) return 'すぐ';
   if (minutes < 60) return `${minutes}分後`;
@@ -155,7 +171,9 @@ export default function LineFlowManager() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
+  const [connectionState, setConnectionState] = useState<ConnectionState>('loading');
   const [createOpen, setCreateOpen] = useState(false);
+  const [starterOpen, setStarterOpen] = useState(false);
   const [newScenario, setNewScenario] = useState({ name: '', description: '', triggerType: 'friend_add' as TriggerType, triggerTagId: '', deliveryMode: 'elapsed' as DeliveryMode });
 
   const visibleScenarios = useMemo(() => {
@@ -168,30 +186,55 @@ export default function LineFlowManager() {
 
   const flash = (message: string) => {
     setStatus(message);
-    window.setTimeout(() => setStatus(''), 2600);
+    window.setTimeout(() => setStatus(''), 2800);
   };
 
   const loadBase = async () => {
     setLoading(true);
+    setConnectionState((current) => current === 'connected' ? 'connected' : 'loading');
     setError('');
-    try {
-      const [accountData, tagData, scenarioData] = await Promise.all([
-        request<LineAccount[]>('line-accounts'),
-        request<Tag[]>('tags'),
-        request<Scenario[]>('scenarios'),
-      ]);
-      setAccounts(accountData ?? []);
-      setTags(tagData ?? []);
-      setScenarios(scenarioData ?? []);
-      const nextAccount = accountId || accountData?.[0]?.id || '';
-      setAccountId(nextAccount);
-      const eligible = (scenarioData ?? []).filter((item) => !nextAccount || item.lineAccountId == null || item.lineAccountId === nextAccount);
-      if (!scenarioId && eligible[0]) setScenarioId(eligible[0].id);
-    } catch (e) {
-      setError(`LINE Harnessを読み込めませんでした: ${String(e instanceof Error ? e.message : e)}`);
-    } finally {
-      setLoading(false);
+    const results = await Promise.allSettled([
+      request<LineAccount[]>('line-accounts'),
+      request<Tag[]>('tags'),
+      request<Scenario[]>('scenarios'),
+    ]);
+
+    const [accountResult, tagResult, scenarioResult] = results;
+    const failures: Error[] = [];
+
+    let nextAccounts = accounts;
+    let nextScenarios = scenarios;
+
+    if (accountResult.status === 'fulfilled') {
+      nextAccounts = accountResult.value ?? [];
+      setAccounts(nextAccounts);
+    } else failures.push(asError(accountResult.reason));
+
+    if (tagResult.status === 'fulfilled') setTags(tagResult.value ?? []);
+    else failures.push(asError(tagResult.reason));
+
+    if (scenarioResult.status === 'fulfilled') {
+      nextScenarios = scenarioResult.value ?? [];
+      setScenarios(nextScenarios);
+    } else failures.push(asError(scenarioResult.reason));
+
+    const nextAccount = accountId || nextAccounts?.[0]?.id || '';
+    if (nextAccount !== accountId) setAccountId(nextAccount);
+
+    const eligible = (nextScenarios ?? []).filter((item) => !nextAccount || item.lineAccountId == null || item.lineAccountId === nextAccount);
+    if (!scenarioId && eligible[0]) setScenarioId(eligible[0].id);
+    if (eligible.length === 0) setStarterOpen(true);
+
+    if (failures.length === 0) {
+      setConnectionState('connected');
+    } else if (failures.length === results.length) {
+      setConnectionState('offline');
+      setError(`${failures[0]?.message || 'LINE Harnessに接続できませんでした。'} 画面の設計はそのまま使えます。再接続してから保存してください。`);
+    } else {
+      setConnectionState('partial');
+      setError('LINEの一部データだけ取得できませんでした。表示できている内容は残しています。再接続すると最新状態を取り直します。');
     }
+    setLoading(false);
   };
 
   const loadScenario = async (id: string) => {
@@ -201,7 +244,6 @@ export default function LineFlowManager() {
       return;
     }
     setDetailLoading(true);
-    setError('');
     try {
       const [detail, scenarioStats] = await Promise.all([
         request<ScenarioDetail>(`scenarios/${id}`),
@@ -215,14 +257,14 @@ export default function LineFlowManager() {
       setSelectedStepId(next?.id ?? null);
       setForm(next ? stepToForm(next) : EMPTY_STEP);
     } catch (e) {
-      setError(`Flowを読み込めませんでした: ${String(e instanceof Error ? e.message : e)}`);
+      setError(`Flowを開けませんでした。${asError(e).message}`);
     } finally {
       setDetailLoading(false);
     }
   };
 
   useEffect(() => { loadBase(); }, []);
-  useEffect(() => { if (scenarioId) loadScenario(scenarioId); }, [scenarioId]);
+  useEffect(() => { if (scenarioId && !starterOpen) loadScenario(scenarioId); }, [scenarioId, starterOpen]);
   useEffect(() => {
     if (!accountId) return;
     const eligible = scenarios.filter((item) => item.lineAccountId == null || item.lineAccountId === accountId);
@@ -262,7 +304,7 @@ export default function LineFlowManager() {
       await loadScenario(scenario.id);
       flash('✓ Stepを保存しました');
     } catch (e) {
-      setError(`保存できませんでした: ${String(e instanceof Error ? e.message : e)}`);
+      setError(`保存できませんでした。${asError(e).message}`);
     } finally {
       setSaving(false);
     }
@@ -275,7 +317,7 @@ export default function LineFlowManager() {
     setError('');
     try {
       const nextOrder = scenario.steps.length ? Math.max(...scenario.steps.map((step) => step.stepOrder)) + 1 : 1;
-      const payload: Record<string, unknown> = { stepOrder: nextOrder, messageType: 'text', messageContent: '新しいメッセージ' };
+      const payload: Record<string, unknown> = { stepOrder: nextOrder, messageType: 'text', messageContent: 'ここにメッセージを書く。' };
       if (deliveryMode === 'relative') payload.delayMinutes = 0;
       if (deliveryMode === 'elapsed') { payload.offsetDays = 0; payload.offsetMinutes = 0; }
       if (deliveryMode === 'absolute_time') { payload.offsetDays = 0; payload.deliveryTime = '09:00'; }
@@ -284,7 +326,7 @@ export default function LineFlowManager() {
       setSelectedStepId(created.id);
       flash('＋ Stepを追加しました');
     } catch (e) {
-      setError(`Stepを追加できませんでした: ${String(e instanceof Error ? e.message : e)}`);
+      setError(`Stepを追加できませんでした。${asError(e).message}`);
     } finally {
       setSaving(false);
     }
@@ -302,7 +344,7 @@ export default function LineFlowManager() {
       await loadScenario(scenario.id);
       flash('Stepを削除しました');
     } catch (e) {
-      setError(`削除できませんでした: ${String(e instanceof Error ? e.message : e)}`);
+      setError(`削除できませんでした。${asError(e).message}`);
     } finally {
       setSaving(false);
     }
@@ -328,7 +370,7 @@ export default function LineFlowManager() {
       await loadScenario(scenario.id);
       flash('順番を入れ替えました');
     } catch (e) {
-      setError(`並び替えできませんでした: ${String(e instanceof Error ? e.message : e)}`);
+      setError(`並び替えできませんでした。${asError(e).message}`);
     } finally {
       setSaving(false);
     }
@@ -345,7 +387,7 @@ export default function LineFlowManager() {
       await Promise.all([loadScenario(scenario.id), loadBase()]);
       flash(next ? '● Flowを稼働しました' : 'Ⅱ Flowを停止しました');
     } catch (e) {
-      setError(`状態を変更できませんでした: ${String(e instanceof Error ? e.message : e)}`);
+      setError(`状態を変更できませんでした。${asError(e).message}`);
     } finally {
       setSaving(false);
     }
@@ -379,9 +421,60 @@ export default function LineFlowManager() {
       setNewScenario({ name: '', description: '', triggerType: 'friend_add', triggerTagId: '', deliveryMode: 'elapsed' });
       await loadBase();
       setScenarioId(created.id);
+      setStarterOpen(false);
       flash('新しいFlowを「停止中」で作成しました');
     } catch (e) {
-      setError(`Flowを作成できませんでした: ${String(e instanceof Error ? e.message : e)}`);
+      setError(`Flowを作成できませんでした。${asError(e).message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const createRecipe = async (recipe: StarterRecipe) => {
+    if (!accountId) {
+      setError('LINEアカウントの接続後に、この型をFlowとして作成できます。');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    let created: Scenario | null = null;
+    try {
+      created = await request<Scenario>('scenarios', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: recipe.name,
+          description: recipe.purpose,
+          triggerType: recipe.triggerType,
+          triggerTagId: null,
+          lineAccountId: accountId,
+          deliveryMode: 'elapsed',
+          isActive: false,
+        }),
+      });
+      for (const [index, step] of recipe.steps.entries()) {
+        await request<ScenarioStep>(`scenarios/${created.id}/steps`, {
+          method: 'POST',
+          body: JSON.stringify({
+            stepOrder: index + 1,
+            offsetDays: step.offsetDays,
+            offsetMinutes: step.offsetMinutes ?? 0,
+            messageType: 'text',
+            messageContent: step.message,
+          }),
+        });
+      }
+      await loadBase();
+      setScenarioId(created.id);
+      setStarterOpen(false);
+      flash(`「${recipe.name}」を停止中で作成しました`);
+    } catch (e) {
+      const prefix = created ? 'Flow本体は停止中で作成済みですが、途中のStepを保存できなかった可能性があります。' : '';
+      setError(`${prefix}${asError(e).message} 再接続後にFlowを確認してください。`);
+      if (created) {
+        await loadBase();
+        setScenarioId(created.id);
+        setStarterOpen(false);
+      }
     } finally {
       setSaving(false);
     }
@@ -389,31 +482,35 @@ export default function LineFlowManager() {
 
   const statFor = (order: number) => stats?.steps.find((item) => item.stepOrder === order);
   const tagName = (id: string | null | undefined) => tags.find((tag) => tag.id === id)?.name || id || '—';
+  const connectionLabel = connectionState === 'connected' ? '接続済み' : connectionState === 'partial' ? '一部接続' : connectionState === 'offline' ? '未接続' : '確認中';
 
   return (
     <div className="line-flow-app">
       <style>{styles}</style>
       <header className="app-header">
         <div className="brand-block">
-          <a href="/dashboard/ui-v2-2" className="back">← MASA OS</a>
+          <a href="/dashboard" className="back">← MASA OS</a>
           <div className="brand-row"><span className="line-logo">L</span><div><p>OUTPUT · LINE</p><h1>LINE Flow</h1></div></div>
           <p className="brand-desc">顧客が動く流れを、見て・触って・整える。</p>
         </div>
         <div className="header-actions">
-          <label className="account-select"><span>LINE ACCOUNT</span><select value={accountId} onChange={(e) => setAccountId(e.target.value)}>{accounts.map((account) => <option key={account.id} value={account.id}>{accountName(account)}</option>)}</select></label>
-          <button className="ghost" onClick={loadBase} disabled={loading || saving}>↻ 更新</button>
+          <span className={`connection-pill ${connectionState}`}>{connectionLabel}</span>
+          <label className="account-select"><span>LINE ACCOUNT</span><select value={accountId} onChange={(e) => setAccountId(e.target.value)} disabled={accounts.length === 0}>{accounts.length === 0 && <option value="">未接続</option>}{accounts.map((account) => <option key={account.id} value={account.id}>{accountName(account)}</option>)}</select></label>
+          <button className="ghost" onClick={() => setStarterOpen(true)}>型から作る</button>
+          <button className="ghost" onClick={loadBase} disabled={loading || saving}>↻ 再接続</button>
           <button className="primary" onClick={() => setCreateOpen(true)} disabled={saving}>＋ Flow</button>
         </div>
       </header>
 
       {status && <div className="toast">{status}</div>}
-      {error && <div className="error-banner"><span>!</span><p>{error}</p><button onClick={() => setError('')} aria-label="閉じる">×</button></div>}
+      {error && <div className="error-banner"><span>!</span><p>{error}</p><button className="error-retry" onClick={loadBase} disabled={loading}>再接続</button><button className="error-close" onClick={() => setError('')} aria-label="閉じる">×</button></div>}
 
       <main className="workspace">
         <aside className="scenario-rail">
           <div className="rail-head"><div><span>FLOWS</span><strong>{visibleScenarios.length}</strong></div><button onClick={() => setCreateOpen(true)}>＋</button></div>
-          {loading ? <div className="empty">読み込み中…</div> : visibleScenarios.length === 0 ? <div className="empty"><span className="empty-icon">🌱</span><strong>Flowはまだありません</strong><small>最初のFlowを作る</small></div> : visibleScenarios.map((item) => (
-            <button key={item.id} className={`scenario-item ${scenarioId === item.id ? 'selected' : ''}`} onClick={() => setScenarioId(item.id)}>
+          <button className={`starter-link ${starterOpen ? 'selected' : ''}`} onClick={() => setStarterOpen(true)}><span>✦</span><span><strong>STARTER</strong><small>型と心理ガード</small></span></button>
+          {loading && scenarios.length === 0 ? <div className="empty mini">読み込み中…</div> : visibleScenarios.length === 0 ? <div className="empty"><span className="empty-icon">🌱</span><strong>Flowはまだありません</strong><small>まずは型から作れます</small></div> : visibleScenarios.map((item) => (
+            <button key={item.id} className={`scenario-item ${!starterOpen && scenarioId === item.id ? 'selected' : ''}`} onClick={() => { setScenarioId(item.id); setStarterOpen(false); }}>
               <span className={`status-dot ${item.isActive ? 'live' : ''}`} />
               <span className="scenario-copy"><strong>{item.name}</strong><small>{triggerMeta[item.triggerType]?.icon} {triggerMeta[item.triggerType]?.label} · {item.stepCount ?? '—'} steps</small></span>
               <span className="scenario-arrow">›</span>
@@ -422,7 +519,7 @@ export default function LineFlowManager() {
         </aside>
 
         <section className="flow-stage">
-          {!scenarioId ? <div className="stage-empty"><span>🌿</span><h2>Flowを選ぶか、新しく作る。</h2></div> : detailLoading || !scenario ? <div className="stage-empty"><span>◌</span><h2>Flowを読み込み中…</h2></div> : <>
+          {starterOpen ? <StarterLibrary accountReady={Boolean(accountId)} saving={saving} onCreate={createRecipe} /> : !scenarioId ? <StarterLibrary accountReady={Boolean(accountId)} saving={saving} onCreate={createRecipe} /> : detailLoading || !scenario ? <div className="stage-empty"><span>◌</span><h2>Flowを読み込み中…</h2></div> : <>
             <header className="flow-head">
               <div><div className="flow-title-line"><span className={`live-badge ${scenario.isActive ? 'on' : ''}`}>{scenario.isActive ? '● LIVE' : '○ STOPPED'}</span><span className="mode-badge">{deliveryMode === 'relative' ? '前Step基準' : deliveryMode === 'elapsed' ? '登録時点基準' : '時刻指定'}</span></div><h2>{scenario.name}</h2><p>{scenario.description || '説明なし'}</p></div>
               <div className="flow-actions"><button className={scenario.isActive ? 'stop-button' : 'start-button'} onClick={toggleActive} disabled={saving}>{scenario.isActive ? 'Ⅱ 停止する' : '▶ 稼働する'}</button></div>
@@ -462,7 +559,7 @@ export default function LineFlowManager() {
         </section>
 
         <aside className="inspector-panel">
-          {!scenario ? <div className="inspector-empty"><span>👈</span><strong>Flowを選ぶ</strong><small>右側でStepを編集できます。</small></div> : !selectedStep ? <div className="inspector-empty"><span>✨</span><strong>Stepを選ぶ</strong><small>中央のカードをタップ。</small></div> : <>
+          {starterOpen || !scenario ? <div className="inspector-guide"><span>PSYCHOLOGY GUARD</span><h2>惹き出す、押し込まない。</h2><p>未実行を「不足」として責めるのではなく、その時の状態に合わせて入口を変える。</p>{QUEST_GUARDRAILS.map((rule) => <div className="guard-mini" key={rule.when}><strong>{rule.when}</strong><small>{rule.then}</small></div>)}</div> : !selectedStep ? <div className="inspector-empty"><span>✨</span><strong>Stepを選ぶ</strong><small>中央のカードをタップ。</small></div> : <>
             <div className="inspector-head"><div><span>INSPECTOR</span><h2>Step {selectedStep.stepOrder}</h2></div><span className="big-icon">{messageMeta[selectedStep.messageType]?.icon}</span></div>
             {selectedStep.templateId && <div className="template-warning">このStepはテンプレ参照中。ここで保存すると直接入力へ切り替わります。</div>}
 
@@ -472,7 +569,7 @@ export default function LineFlowManager() {
               {deliveryMode === 'absolute_time' && <div className="field-grid"><label><span>登録から何日後？</span><input type="number" min="0" value={form.offsetDays} onChange={(e) => setForm({ ...form, offsetDays: Number(e.target.value) })} /></label><label><span>何時？</span><input type="time" value={form.deliveryTime} onChange={(e) => setForm({ ...form, deliveryTime: e.target.value })} /></label></div>}
             </fieldset>
 
-            <fieldset><legend>💬 DO</legend><label><span>メッセージ</span><select value={form.messageType} onChange={(e) => setForm({ ...form, messageType: e.target.value as MessageType })}><option value="text">💬 Text</option><option value="image">🖼️ Image JSON</option><option value="flex">▦ Flex JSON</option></select></label><label><span>{form.messageType === 'text' ? '本文' : 'JSON'}</span><textarea rows={8} value={form.messageContent} onChange={(e) => setForm({ ...form, messageContent: e.target.value })} /></label></fieldset>
+            <fieldset><legend>💬 DO</legend><label><span>メッセージ</span><select value={form.messageType} onChange={(e) => setForm({ ...form, messageType: e.target.value as MessageType })}><option value="text">💬 Text</option><option value="image">🖼️ Image JSON</option><option value="flex">▦ Flex JSON</option></select></label><label><span>{form.messageType === 'text' ? '本文' : 'JSON'}</span><textarea rows={8} value={form.messageContent} onChange={(e) => setForm({ ...form, messageContent: e.target.value })} /></label><p className="micro-copy">未実行フォローは、同じ言葉を毎日送らず「許可 → 選択 → 再解釈 → 自律」のように角度を変える。</p></fieldset>
 
             <fieldset><legend>◇ IF</legend><label><span>このStepを送る条件</span><select value={form.conditionType} onChange={(e) => setForm({ ...form, conditionType: e.target.value as ConditionType, conditionValue: '' })}><option value="">条件なし</option><option value="tag_exists">タグがある</option><option value="tag_not_exists">タグがない</option><option value="metadata_equals">情報が一致</option><option value="metadata_not_equals">情報が不一致</option></select></label>
               {(form.conditionType === 'tag_exists' || form.conditionType === 'tag_not_exists') && <label><span>タグ</span><select value={form.conditionValue} onChange={(e) => setForm({ ...form, conditionValue: e.target.value })}><option value="">選択…</option>{tags.map((tag) => <option key={tag.id} value={tag.id}>{tag.name}</option>)}</select></label>}
@@ -492,37 +589,55 @@ export default function LineFlowManager() {
   );
 }
 
+function StarterLibrary({ accountReady, saving, onCreate }: { accountReady: boolean; saving: boolean; onCreate: (recipe: StarterRecipe) => void }) {
+  return <div className="starter-library">
+    <div className="starter-intro"><span>STARTER FLOW</span><h2>ゼロから考えず、型を置いてから整える。</h2><p>下の型はすべて <strong>停止中</strong> で作成。勝手に配信しません。文章・間隔・条件は作成後に編集できます。</p></div>
+    <section className="guardrail-box"><header><span>IF → THEN</span><strong>Questの心理ガード</strong></header><div className="guardrail-grid">{QUEST_GUARDRAILS.map((rule) => <div key={rule.when}><b>{rule.when}</b><span>→</span><p>{rule.then}</p></div>)}</div><small>※「Quest未実行」の自動判定そのものは、今後 Quest側のタグ/イベントと接続してから有効化。ここでは安全なメッセージ設計を先に正本化します。</small></section>
+    <div className="recipe-grid">{STARTER_RECIPES.map((recipe) => <article className={`recipe-card ${recipe.id === 'quest-soft-return' ? 'featured' : ''}`} key={recipe.id}><header><span className="recipe-icon">{recipe.icon}</span><div><small>{recipe.triggerType === 'friend_add' ? 'FRIEND ADD' : 'MANUAL / SAFE'}</small><h3>{recipe.name}</h3></div></header><p>{recipe.purpose}</p><div className="recipe-steps">{recipe.steps.map((step, index) => <div key={`${recipe.id}-${index}`}><span className="recipe-day">{step.offsetDays === 0 ? 'NOW' : `DAY ${step.offsetDays}`}</span><span className="recipe-angle">{step.angle}</span><p>{step.message}</p></div>)}</div><button onClick={() => onCreate(recipe)} disabled={saving || !accountReady}>{accountReady ? (saving ? '作成中…' : '停止中でこの型を作る') : 'LINE接続後に作成'}</button></article>)}</div>
+  </div>;
+}
+
 const styles = `
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
-  .line-flow-app { min-height:100vh; background:#f3f1ed; color:#17191c; font-family:'Zen Kaku Gothic New',system-ui,sans-serif; }
+  .line-flow-app { min-height:100vh; background:#f3f1ed; color:#17191c; font-family:'Zen Kaku Gothic New',sans-serif; }
   button,select,input,textarea { font:inherit; }
   button { cursor:pointer; }
   .app-header { min-height:96px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:16px 24px; background:#fbfaf8; border-bottom:1px solid #d8d4cd; position:sticky; top:0; z-index:30; }
   .brand-block { min-width:240px; }
-  .back { color:#737b84; font-size:12px; text-decoration:none; }
+  .back { color:#737b84; font-size:11px; text-decoration:none; }
   .brand-row { display:flex; align-items:center; gap:12px; margin-top:5px; }
   .line-logo { width:38px; height:38px; border-radius:9px; display:grid; place-items:center; background:#06c755; color:#fff; font-weight:900; box-shadow:0 4px 12px rgba(6,199,85,.16); }
   .brand-row p,.brand-row h1,.brand-desc { margin:0; }
   .brand-row p { color:#138a55; font-size:10px; letter-spacing:.14em; font-weight:800; }
-  .brand-row h1 { font-family:'Cormorant Garamond',serif; font-size:27px; line-height:1; color:#4f3516; }
+  .brand-row h1 { font-family:'Cormorant Garamond',serif; font-size:27px; line-height:1; color:#4f3516; font-weight:600; }
   .brand-desc { margin-top:7px; color:#68707a; font-size:12px; }
   .header-actions { display:flex; align-items:flex-end; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+  .connection-pill { align-self:center; padding:5px 8px; border-radius:999px; background:#ece8e1; color:#726c64; font-size:9px; font-weight:800; }
+  .connection-pill.connected { background:#e4f7ec; color:#087c43; }
+  .connection-pill.partial { background:#fff3d7; color:#805a19; }
+  .connection-pill.offline { background:#f8e5e1; color:#93453b; }
   .account-select { display:grid; gap:4px; }
   .account-select span { color:#79818a; font-size:9px; font-weight:800; letter-spacing:.1em; }
   select,input,textarea { width:100%; border:1px solid #d7d2ca; border-radius:8px; background:#fff; color:#202329; padding:10px 11px; outline:none; }
   select:focus,input:focus,textarea:focus { border-color:#a56c22; box-shadow:0 0 0 3px rgba(165,108,34,.1); }
-  .account-select select { min-width:190px; padding:8px 32px 8px 10px; }
+  .account-select select { min-width:180px; padding:8px 32px 8px 10px; }
   .ghost,.primary,.start-button,.stop-button,.save-button { min-height:40px; border-radius:8px; padding:0 14px; font-weight:700; }
   .ghost { border:1px solid #d7d2ca; background:#fff; color:#4f5964; }
   .primary { border:1px solid #8e5e21; background:#a56c22; color:#fff; }
   .workspace { display:grid; grid-template-columns:250px minmax(440px,1fr) 340px; min-height:calc(100vh - 96px); }
   .scenario-rail { background:#fbfaf8; border-right:1px solid #ddd8d0; padding:14px 10px; overflow:auto; }
-  .rail-head { display:flex; justify-content:space-between; align-items:center; padding:6px 6px 12px; }
+  .rail-head { display:flex; justify-content:space-between; align-items:center; padding:6px 6px 10px; }
   .rail-head>div { display:flex; align-items:center; gap:8px; }
   .rail-head span { color:#7b838c; font-size:10px; letter-spacing:.12em; font-weight:800; }
   .rail-head strong { min-width:22px; height:22px; display:grid; place-items:center; border-radius:50%; background:#ebe7df; font-size:11px; }
   .rail-head button { width:30px; height:30px; border:1px solid #d7d2ca; border-radius:8px; background:#fff; color:#8a5b22; font-size:18px; }
+  .starter-link { width:100%; display:grid; grid-template-columns:32px 1fr; gap:8px; align-items:center; text-align:left; margin-bottom:8px; padding:10px; border:1px solid #dfd4c1; border-radius:10px; background:#f7f1e7; color:#5d4527; }
+  .starter-link>span:first-child { width:30px; height:30px; display:grid; place-items:center; border-radius:8px; background:#fff; }
+  .starter-link>span:last-child { display:grid; gap:2px; }
+  .starter-link strong { font-size:10px; letter-spacing:.08em; }
+  .starter-link small { color:#81735f; font-size:9px; }
+  .starter-link.selected { border-color:#b58b51; box-shadow:0 0 0 2px rgba(165,108,34,.07); }
   .scenario-item { width:100%; display:grid; grid-template-columns:10px 1fr 18px; gap:10px; align-items:center; text-align:left; padding:12px 10px; margin-bottom:5px; border:1px solid transparent; border-radius:10px; background:transparent; color:#24272c; }
   .scenario-item:hover { background:#f3efe8; }
   .scenario-item.selected { background:#fff; border-color:#d7c6aa; box-shadow:0 5px 18px rgba(71,50,22,.06); }
@@ -533,6 +648,7 @@ const styles = `
   .scenario-copy small { color:#7b838c; font-size:10px; }
   .scenario-arrow { color:#aaa49a; font-size:20px; }
   .empty,.stage-empty,.inspector-empty { min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:#78808a; text-align:center; }
+  .empty.mini { min-height:90px; }
   .empty-icon,.stage-empty>span,.inspector-empty>span { font-size:28px; }
   .empty strong,.stage-empty h2,.inspector-empty strong { color:#353a40; font-size:14px; margin:0; }
   .empty small,.inspector-empty small { font-size:11px; }
@@ -566,8 +682,8 @@ const styles = `
   .line-down { min-height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#aaa397; }
   .line-down span { font-size:20px; line-height:1; }
   .line-down small { margin-top:3px; color:#8d8273; font-size:9px; }
-  .step-card { display:grid; grid-template-columns:46px minmax(0,1fr) 54px; gap:13px; align-items:center; text-align:left; padding:13px 15px; transition:.15s ease; }
-  .step-card:hover { transform:translateY(-1px); border-color:#c6b18f; }
+  .step-card { display:grid; grid-template-columns:46px minmax(0,1fr) 54px; gap:13px; align-items:center; text-align:left; padding:13px 15px; transition:border-color .15s ease, box-shadow .15s ease; }
+  .step-card:hover { border-color:#c6b18f; }
   .step-card.selected { border-color:#a56c22; box-shadow:0 0 0 3px rgba(165,108,34,.09),0 10px 28px rgba(65,44,17,.08); }
   .step-main { min-width:0; }
   .step-meta { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
@@ -599,17 +715,55 @@ const styles = `
   label>span { color:#737b84; font-size:10px; font-weight:700; }
   textarea { resize:vertical; line-height:1.6; }
   .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .micro-copy { margin:8px 0 0; padding:8px 9px; border-left:2px solid #c6a16d; background:#f6f1e8; color:#766957; font-size:9px; line-height:1.6; }
   .inspector-actions { display:grid; gap:9px; margin-top:17px; padding-top:14px; border-top:1px solid #dfdbd4; }
   .save-button { width:100%; border:1px solid #8e5e21; background:#a56c22; color:#fff; }
   .inspector-actions>div { display:grid; grid-template-columns:42px 42px 1fr; gap:6px; }
   .tiny { min-height:35px; border:1px solid #d7d2ca; border-radius:7px; background:#fff; color:#5d6670; font-weight:800; }
   .tiny.danger { color:#a23b32; }
+  .inspector-guide>span { color:#8a5b22; font-size:9px; font-weight:900; letter-spacing:.13em; }
+  .inspector-guide h2 { margin:7px 0 8px; font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; color:#4f3516; }
+  .inspector-guide>p { margin:0 0 15px; color:#707780; font-size:11px; line-height:1.8; }
+  .guard-mini { display:grid; gap:3px; padding:10px 0; border-top:1px solid #e4e0d8; }
+  .guard-mini strong { font-size:10px; color:#3f444a; }
+  .guard-mini small { color:#777068; font-size:9px; line-height:1.6; }
   button:disabled { cursor:not-allowed; opacity:.5; }
   .toast { position:fixed; z-index:80; top:108px; left:50%; transform:translateX(-50%); padding:9px 14px; border-radius:999px; background:#26322b; color:#fff; font-size:11px; box-shadow:0 8px 25px rgba(0,0,0,.15); }
   .error-banner { margin:10px 18px 0; display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid #e6b9b3; border-radius:9px; background:#fff2f0; color:#8b332d; font-size:11px; }
   .error-banner>span { width:22px; height:22px; display:grid; place-items:center; border-radius:50%; background:#e8c0bb; font-weight:900; }
-  .error-banner p { flex:1; margin:0; }
-  .error-banner button { border:0; background:transparent; color:inherit; font-size:18px; }
+  .error-banner p { flex:1; margin:0; line-height:1.5; }
+  .error-retry { border:1px solid #d59c95; border-radius:7px; background:#fff; color:#8b332d; padding:6px 10px; font-size:10px; font-weight:800; }
+  .error-close { border:0; background:transparent; color:inherit; font-size:18px; }
+  .starter-library { max-width:900px; margin:0 auto; }
+  .starter-intro { padding:10px 4px 18px; }
+  .starter-intro>span { color:#8a5b22; font-size:9px; font-weight:900; letter-spacing:.14em; }
+  .starter-intro h2 { margin:7px 0 5px; font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:600; color:#4f3516; }
+  .starter-intro p { margin:0; color:#6f7780; font-size:11px; line-height:1.8; }
+  .guardrail-box { margin-bottom:16px; padding:15px; border:1px solid #d9c8ad; border-radius:13px; background:#fbf7f0; }
+  .guardrail-box header { display:flex; align-items:center; gap:9px; margin-bottom:10px; }
+  .guardrail-box header span { padding:4px 7px; border-radius:999px; background:#efe3cf; color:#82541d; font-size:8px; font-weight:900; letter-spacing:.08em; }
+  .guardrail-box header strong { font-size:13px; }
+  .guardrail-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+  .guardrail-grid>div { display:grid; grid-template-columns:auto 15px 1fr; gap:7px; align-items:start; padding:9px; border:1px solid #e5ddd1; border-radius:9px; background:#fff; }
+  .guardrail-grid b { font-size:9px; color:#4d5258; }
+  .guardrail-grid>div>span { color:#a56c22; font-size:10px; }
+  .guardrail-grid p { margin:0; color:#716b64; font-size:9px; line-height:1.55; }
+  .guardrail-box>small { display:block; margin-top:10px; color:#8a8176; font-size:8px; line-height:1.6; }
+  .recipe-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .recipe-card { display:flex; flex-direction:column; min-width:0; padding:14px; border:1px solid #ddd7ce; border-radius:13px; background:#fbfaf8; box-shadow:0 7px 20px rgba(42,35,25,.04); }
+  .recipe-card.featured { border-color:#bfa47b; background:#fffdf8; box-shadow:0 8px 24px rgba(87,59,22,.07); }
+  .recipe-card>header { display:flex; align-items:center; gap:9px; }
+  .recipe-icon { width:36px; height:36px; flex:0 0 auto; display:grid; place-items:center; border-radius:10px; background:#f0ece5; font-size:18px; }
+  .recipe-card header small { color:#928678; font-size:7px; font-weight:900; letter-spacing:.11em; }
+  .recipe-card h3 { margin:2px 0 0; font-size:13px; }
+  .recipe-card>p { min-height:46px; margin:10px 0; color:#737b84; font-size:9px; line-height:1.7; }
+  .recipe-steps { display:grid; gap:7px; flex:1; }
+  .recipe-steps>div { padding:8px; border-left:2px solid #d8c4a4; background:#f6f2ec; }
+  .recipe-day { display:inline-block; margin-right:5px; color:#895a20; font-size:7px; font-weight:900; letter-spacing:.08em; }
+  .recipe-angle { color:#77716a; font-size:8px; font-weight:800; }
+  .recipe-steps p { margin:5px 0 0; color:#545b62; font-size:9px; line-height:1.65; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .recipe-card>button { margin-top:12px; min-height:38px; border:1px solid #b5986d; border-radius:8px; background:#fff; color:#78501f; font-size:10px; font-weight:800; }
+  .recipe-card.featured>button { background:#a56c22; border-color:#8e5e21; color:#fff; }
   .modal-backdrop { position:fixed; inset:0; z-index:100; display:grid; place-items:center; padding:20px; background:rgba(36,31,25,.35); backdrop-filter:blur(5px); }
   .modal { width:min(560px,100%); max-height:90vh; overflow:auto; padding:20px; border-radius:16px; background:#fbfaf8; border:1px solid #d8d4cd; box-shadow:0 24px 80px rgba(34,28,20,.22); }
   .modal header { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
@@ -617,6 +771,6 @@ const styles = `
   .modal header h2 { margin:4px 0 0; font-size:20px; }
   .modal header button { border:0; background:transparent; color:#727982; font-size:22px; }
   .modal footer { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; padding-top:14px; border-top:1px solid #e0dcd5; }
-  @media (max-width:1180px) { .workspace { grid-template-columns:220px minmax(420px,1fr); } .inspector-panel { grid-column:1 / -1; border-left:0; border-top:1px solid #ddd8d0; display:grid; grid-template-columns:minmax(0,760px); justify-content:center; } }
-  @media (max-width:760px) { .app-header { position:relative; align-items:flex-start; flex-direction:column; padding:14px; } .header-actions { width:100%; justify-content:stretch; } .account-select { flex:1; } .account-select select { min-width:0; } .workspace { display:block; } .scenario-rail { border-right:0; border-bottom:1px solid #ddd8d0; white-space:nowrap; overflow-x:auto; } .rail-head { position:sticky; left:0; background:#fbfaf8; } .scenario-item { width:245px; display:inline-grid; margin-right:5px; vertical-align:top; white-space:normal; } .flow-stage { padding:16px 12px 45px; } .metric-row { grid-template-columns:1fr 1fr; } .step-card { grid-template-columns:42px minmax(0,1fr); } .reach { grid-column:2; display:flex; gap:5px; justify-content:flex-start; text-align:left; } .inspector-panel { padding:16px 12px 38px; } .field-grid { grid-template-columns:1fr; } .toast { top:16px; } }
+  @media (max-width:1180px) { .workspace { grid-template-columns:220px minmax(420px,1fr); } .inspector-panel { grid-column:1 / -1; border-left:0; border-top:1px solid #ddd8d0; display:grid; grid-template-columns:minmax(0,760px); justify-content:center; } .recipe-grid { grid-template-columns:1fr 1fr; } }
+  @media (max-width:760px) { .app-header { position:relative; align-items:flex-start; flex-direction:column; padding:14px; } .header-actions { width:100%; justify-content:stretch; } .connection-pill { align-self:flex-start; } .account-select { flex:1; min-width:150px; } .account-select select { min-width:0; } .workspace { display:block; } .scenario-rail { border-right:0; border-bottom:1px solid #ddd8d0; white-space:nowrap; overflow-x:auto; } .rail-head { position:sticky; left:0; background:#fbfaf8; } .starter-link,.scenario-item { width:245px; display:inline-grid; margin-right:5px; vertical-align:top; white-space:normal; } .flow-stage { padding:16px 12px 45px; } .metric-row { grid-template-columns:1fr 1fr; } .step-card { grid-template-columns:42px minmax(0,1fr); } .reach { grid-column:2; display:flex; gap:5px; justify-content:flex-start; text-align:left; } .inspector-panel { padding:16px 12px 38px; } .field-grid,.guardrail-grid,.recipe-grid { grid-template-columns:1fr; } .toast { top:16px; } .error-banner { margin:8px 10px 0; align-items:flex-start; flex-wrap:wrap; } .error-banner p { min-width:calc(100% - 50px); } .error-retry { margin-left:32px; } }
 `;
