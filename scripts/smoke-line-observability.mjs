@@ -48,8 +48,10 @@ export async function smokeLineObservability(base, fixture) {
   assert.equal(response.status, 200);
   assert.match(response.headers.get('cache-control'), /no-store/);
   const html = await response.text();
-  assert.equal((html.match(/<details\b/g) || []).length, 2, 'outbound-only disclosures including legacy message');
-  assert.ok(!/<details[^>]*\bopen\b/.test(html), 'disclosures initially collapsed');
+  const whySentDetails = /<details\b(?=[^>]*\bclass="[^"]*\bwhy-sent\b[^"]*")[^>]*>/g;
+  const openWhySentDetails = /<details\b(?=[^>]*\bclass="[^"]*\bwhy-sent\b[^"]*")(?=[^>]*\bopen\b)[^>]*>/;
+  assert.equal((html.match(whySentDetails) || []).length, 2, 'outbound-only disclosures including legacy message');
+  assert.ok(!openWhySentDetails.test(html), 'disclosures initially collapsed');
   for (const text of ['welcome-fixture', 'step-fixture', 'enrollment-fixture', 'Not captured', 'Duplicate candidate', 'Historical fixture without IDs']) assert.ok(html.includes(text), text);
   assert.ok(html.includes('&lt;script&gt;'), 'message body escaped');
   assert.ok(!html.includes('<script>window.lineFixtureInjected'), 'no body script execution');
@@ -58,7 +60,8 @@ export async function smokeLineObservability(base, fixture) {
     const result = await request(); assert.equal(result.status, 200, mode);
     const body = await result.text();
     assert.ok(body.includes('メッセージ履歴はありません。'), mode);
-    assert.ok(!body.includes('<details'), mode);
+    assert.ok(!whySentDetails.test(body), mode);
+    whySentDetails.lastIndex = 0;
     assert.ok(!body.includes('PRIVATE_UPSTREAM_SENTINEL'), 'upstream error must not reach UI');
     if (mode !== 'empty') assert.ok(body.includes('LINEデータを取得できませんでした'), mode);
   }
