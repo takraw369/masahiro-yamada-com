@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="FLOW MIND">
+  <rect width="512" height="512" rx="112" fill="#171513"/>
+  <circle cx="256" cy="256" r="154" fill="none" stroke="#C9A96E" stroke-width="18" opacity=".95"/>
+  <circle cx="256" cy="256" r="82" fill="none" stroke="#F4F0E8" stroke-width="12" opacity=".92"/>
+  <path d="M256 94c35 48 52 102 52 162s-17 114-52 162c-35-48-52-102-52-162s17-114 52-162Z" fill="none" stroke="#C9A96E" stroke-width="12"/>
+  <path d="M94 256c48-35 102-52 162-52s114 17 162 52c-48 35-102 52-162 52S142 291 94 256Z" fill="none" stroke="#C9A96E" stroke-width="12"/>
+  <circle cx="256" cy="256" r="18" fill="#F4F0E8"/>
+</svg>

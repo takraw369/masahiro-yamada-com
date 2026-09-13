@@ -1,0 +1,37 @@
+{
+  "id": "/mind",
+  "name": "FLOW MIND — MASA OS",
+  "short_name": "FLOW MIND",
+  "description": "MASA OS knowledge cockpit for capture, reading, review, connection and promotion.",
+  "start_url": "/mind",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#171513",
+  "theme_color": "#171513",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/flow-mind-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Capture",
+      "short_name": "Capture",
+      "url": "/mind?action=capture"
+    },
+    {
+      "name": "Reader",
+      "short_name": "Reader",
+      "url": "/mind?view=reader"
+    },
+    {
+      "name": "Review",
+      "short_name": "Review",
+      "url": "/mind?view=review"
+    }
+  ]
+}

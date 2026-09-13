@@ -32,6 +32,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const { pathname } = url;
+  const isFlowMindPage = pathname === '/mind';
   const isDashboardPage =
     pathname.startsWith('/dashboard') &&
     pathname !== '/dashboard/login' &&
@@ -40,7 +41,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith('/api/dashboard') &&
     !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname);
   const isHarnessApi = /^\/api\/(x|line)-harness(?:\/|$)/.test(pathname);
-  const isPrivate = pathname.startsWith('/dashboard') || pathname.startsWith('/api/dashboard') || isHarnessApi;
+  const isPrivate = isFlowMindPage || pathname.startsWith('/dashboard') || pathname.startsWith('/api/dashboard') || isHarnessApi;
 
   if (isPrivate && !isSameOriginRequest(context.request)) {
     return new Response(JSON.stringify({ ok: false, error: 'same_origin_required' }), {
@@ -48,7 +49,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     });
   }
 
-  if (isDashboardPage || isDashboardApi || isHarnessApi) {
+  if (isFlowMindPage || isDashboardPage || isDashboardApi || isHarnessApi) {
     const env = workerEnv as unknown as Record<string, string>;
     const password = env.DASHBOARD_PASSWORD ?? '';
     const cookie = context.cookies.get('ace-dash-auth')?.value;
@@ -63,9 +64,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return new Response(null, { status: 302, headers: privateHeaders({ Location: '/dashboard/login' }) });
     }
 
-    // Rolling session: every authenticated Dashboard access extends the cookie
-    // for another 24 hours. If the Dashboard is unused for 24 hours, login is
-    // required again.
+    // Rolling session: every authenticated Dashboard/FLOW MIND access extends the cookie
+    // for another 24 hours. If the private UI is unused for 24 hours, login is required again.
     context.cookies.set('ace-dash-auth', await createDashboardSession(password, url.origin), dashboardCookieOptions);
   }
 
