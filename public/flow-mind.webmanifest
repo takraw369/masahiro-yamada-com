@@ -1,10 +1,10 @@
 {
-  "id": "/dashboard/knowledge",
+  "id": "/mind",
   "name": "FLOW MIND — MASA OS",
   "short_name": "FLOW MIND",
   "description": "MASA OS knowledge cockpit for capture, reading, review, connection and promotion.",
-  "start_url": "/dashboard/knowledge",
-  "scope": "/dashboard/",
+  "start_url": "/mind",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#171513",
   "theme_color": "#171513",
@@ -21,17 +21,17 @@
     {
       "name": "Capture",
       "short_name": "Capture",
-      "url": "/dashboard/knowledge?action=capture"
+      "url": "/mind?action=capture"
     },
     {
       "name": "Reader",
       "short_name": "Reader",
-      "url": "/dashboard/knowledge?view=reader"
+      "url": "/mind?view=reader"
     },
     {
       "name": "Review",
       "short_name": "Review",
-      "url": "/dashboard/knowledge?view=review"
+      "url": "/mind?view=review"
     }
   ]
 }
