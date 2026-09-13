@@ -116,64 +116,140 @@ const reviewItems = [
 <div class="ko-toast" id="ko-toast" role="status"></div>
 
 <script>
+  type LocalCapture = { text: string; at: string };
+  type LocalState = { captures?: LocalCapture[]; highlights?: string[]; promoted?: boolean };
+
   const root = document.getElementById('knowledge-os');
   const toast = document.getElementById('ko-toast');
   const captureModal = document.getElementById('capture-modal');
   const commandModal = document.getElementById('command-modal');
-  const captureText = document.getElementById('capture-text');
+  const captureText = document.getElementById('capture-text') as HTMLTextAreaElement | null;
   const captureList = document.getElementById('capture-list');
   const highlightList = document.getElementById('highlight-list');
   const storageKey = 'flow-knowledge-os-v01';
 
-  function loadState(){try{return JSON.parse(localStorage.getItem(storageKey)||'{}')}catch{return {}}}
-  function saveState(patch){const next={...loadState(),...patch};localStorage.setItem(storageKey,JSON.stringify(next));return next}
-  function notify(message){if(!toast)return;toast.textContent=message;toast.classList.add('show');window.setTimeout(()=>toast.classList.remove('show'),1800)}
-
-  function showView(name){
-    root?.querySelectorAll('[data-panel]').forEach((el)=>el.classList.toggle('active',el.getAttribute('data-panel')===name));
-    root?.querySelectorAll('[data-view]').forEach((el)=>el.classList.toggle('active',el.getAttribute('data-view')===name));
+  function loadState(): LocalState {
+    try { return JSON.parse(localStorage.getItem(storageKey) || '{}') as LocalState; }
+    catch { return {}; }
+  }
+  function saveState(patch: Partial<LocalState>): LocalState {
+    const next: LocalState = { ...loadState(), ...patch };
+    localStorage.setItem(storageKey, JSON.stringify(next));
+    return next;
+  }
+  function notify(message: string) {
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    window.setTimeout(() => toast.classList.remove('show'), 1800);
   }
 
-  root?.querySelectorAll('[data-view]').forEach((button)=>button.addEventListener('click',()=>showView(button.getAttribute('data-view')||'today')));
-  root?.querySelectorAll('[data-view-target]').forEach((button)=>button.addEventListener('click',()=>showView(button.getAttribute('data-view-target')||'today')));
-  document.querySelectorAll('[data-open-capture]').forEach((button)=>button.addEventListener('click',()=>{captureModal?.classList.add('open');window.setTimeout(()=>captureText?.focus(),30)}));
-  document.querySelectorAll('[data-close-capture]').forEach((button)=>button.addEventListener('click',()=>captureModal?.classList.remove('open')));
-  captureModal?.addEventListener('click',(event)=>{if(event.target===captureModal)captureModal.classList.remove('open')});
+  function showView(name: string) {
+    root?.querySelectorAll('[data-panel]').forEach((el) => el.classList.toggle('active', el.getAttribute('data-panel') === name));
+    root?.querySelectorAll('[data-view]').forEach((el) => el.classList.toggle('active', el.getAttribute('data-view') === name));
+  }
 
-  document.getElementById('save-capture')?.addEventListener('click',()=>{
-    const text=captureText?.value.trim();if(!text)return;
-    const state=loadState();const captures=[{text,at:new Date().toISOString()},...(state.captures||[])].slice(0,20);saveState({captures});
-    captureModal?.classList.remove('open');if(captureText)captureText.value='';renderCaptures();showView('inbox');notify('Seedとして保存しました');
+  root?.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => showView(button.getAttribute('data-view') || 'today')));
+  root?.querySelectorAll('[data-view-target]').forEach((button) => button.addEventListener('click', () => showView(button.getAttribute('data-view-target') || 'today')));
+  document.querySelectorAll('[data-open-capture]').forEach((button) => button.addEventListener('click', () => { captureModal?.classList.add('open'); window.setTimeout(() => captureText?.focus(), 30); }));
+  document.querySelectorAll('[data-close-capture]').forEach((button) => button.addEventListener('click', () => captureModal?.classList.remove('open')));
+  captureModal?.addEventListener('click', (event) => { if (event.target === captureModal) captureModal.classList.remove('open'); });
+
+  document.getElementById('save-capture')?.addEventListener('click', () => {
+    const text = captureText?.value.trim();
+    if (!text) return;
+    const state = loadState();
+    const captures: LocalCapture[] = [{ text, at: new Date().toISOString() }, ...(state.captures || [])].slice(0, 20);
+    saveState({ captures });
+    captureModal?.classList.remove('open');
+    if (captureText) captureText.value = '';
+    renderCaptures();
+    showView('inbox');
+    notify('Seedとして保存しました');
   });
 
-  function renderCaptures(){
-    if(!captureList)return;const captures=loadState().captures||[];
-    captureList.querySelectorAll('[data-local-capture]').forEach((el)=>el.remove());
-    captures.forEach((item)=>{const article=document.createElement('article');article.className='ko-card';article.setAttribute('data-local-capture','');article.innerHTML=`<div class="ko-card-top"><span class="ko-source">LOCAL CAPTURE · NOW</span><span class="ko-state"><i class="ko-dot"></i>Seed</span></div><h3></h3><div class="ko-meta"><span>Local prototype data</span></div>`;const title=article.querySelector('h3');if(title)title.textContent=item.text;captureList.prepend(article)});
-    const count=document.getElementById('inbox-count');if(count)count.textContent=String(12+captures.length);
+  function renderCaptures() {
+    if (!captureList) return;
+    const captures: LocalCapture[] = loadState().captures || [];
+    captureList.querySelectorAll('[data-local-capture]').forEach((el) => el.remove());
+    captures.forEach((item: LocalCapture) => {
+      const article = document.createElement('article');
+      article.className = 'ko-card';
+      article.setAttribute('data-local-capture', '');
+      article.innerHTML = `<div class="ko-card-top"><span class="ko-source">LOCAL CAPTURE · NOW</span><span class="ko-state"><i class="ko-dot"></i>Seed</span></div><h3></h3><div class="ko-meta"><span>Local prototype data</span></div>`;
+      const title = article.querySelector('h3');
+      if (title) title.textContent = item.text;
+      captureList.prepend(article);
+    });
+    const count = document.getElementById('inbox-count');
+    if (count) count.textContent = String(12 + captures.length);
   }
 
-  document.getElementById('save-selection')?.addEventListener('click',()=>{
-    const selection=window.getSelection();const text=selection?.toString().trim();const article=document.getElementById('reader-article');
-    if(!text||!selection?.anchorNode||!article?.contains(selection.anchorNode)){notify('Reader本文を選択してください');return}
-    const state=loadState();const highlights=[text,...(state.highlights||[]).filter((item)=>item!==text)].slice(0,12);saveState({highlights});renderHighlights();selection.removeAllRanges();notify('HighlightをKnowledge Unit候補にしました');
+  document.getElementById('save-selection')?.addEventListener('click', () => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+    const article = document.getElementById('reader-article');
+    if (!text || !selection?.anchorNode || !article?.contains(selection.anchorNode)) {
+      notify('Reader本文を選択してください');
+      return;
+    }
+    const state = loadState();
+    const highlights: string[] = [text, ...(state.highlights || []).filter((item: string) => item !== text)].slice(0, 12);
+    saveState({ highlights });
+    renderHighlights();
+    selection.removeAllRanges();
+    notify('HighlightをKnowledge Unit候補にしました');
   });
 
-  function renderHighlights(){
-    if(!highlightList)return;const highlights=loadState().highlights||[];
-    if(!highlights.length)return;
-    highlightList.innerHTML='';highlights.forEach((text)=>{const div=document.createElement('div');div.className='ko-highlight';div.textContent=text;highlightList.appendChild(div)});
+  function renderHighlights() {
+    if (!highlightList) return;
+    const highlights: string[] = loadState().highlights || [];
+    if (!highlights.length) return;
+    highlightList.innerHTML = '';
+    highlights.forEach((text: string) => {
+      const div = document.createElement('div');
+      div.className = 'ko-highlight';
+      div.textContent = text;
+      highlightList.appendChild(div);
+    });
   }
 
-  const promoteButton=document.getElementById('promote-button');
-  function renderPromote(){const promoted=Boolean(loadState().promoted);const state=document.getElementById('promote-state');if(promoted&&state){state.innerHTML='<i class="ko-dot canonical"></i>Canonical';if(promoteButton){promoteButton.textContent='Canonical saved';promoteButton.setAttribute('disabled','true')}}}
-  promoteButton?.addEventListener('click',()=>{saveState({promoted:true});renderPromote();notify('Canonicalへ昇格しました')});
+  const promoteButton = document.getElementById('promote-button');
+  function renderPromote() {
+    const promoted = Boolean(loadState().promoted);
+    const state = document.getElementById('promote-state');
+    if (promoted && state) {
+      state.innerHTML = '<i class="ko-dot canonical"></i>Canonical';
+      if (promoteButton) {
+        promoteButton.textContent = 'Canonical saved';
+        promoteButton.setAttribute('disabled', 'true');
+      }
+    }
+  }
+  promoteButton?.addEventListener('click', () => { saveState({ promoted: true }); renderPromote(); notify('Canonicalへ昇格しました'); });
 
-  document.querySelectorAll('[data-ai-action]').forEach((button)=>button.addEventListener('click',()=>notify(`${button.getAttribute('data-ai-action')} — AI action hook ready`)));
-  document.querySelectorAll('[data-open-command]').forEach((button)=>button.addEventListener('click',()=>commandModal?.classList.add('open')));
-  commandModal?.addEventListener('click',(event)=>{if(event.target===commandModal)commandModal.classList.remove('open')});
-  document.querySelectorAll('[data-command]').forEach((item)=>item.addEventListener('click',()=>{const command=item.getAttribute('data-command');commandModal?.classList.remove('open');if(command==='capture'){captureModal?.classList.add('open');captureText?.focus()}else if(command)showView(command)}));
-  document.addEventListener('keydown',(event)=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();commandModal?.classList.add('open');document.getElementById('command-input')?.focus()}if(event.key==='Escape'){captureModal?.classList.remove('open');commandModal?.classList.remove('open')}});
+  document.querySelectorAll('[data-ai-action]').forEach((button) => button.addEventListener('click', () => notify(`${button.getAttribute('data-ai-action')} — AI action hook ready`)));
+  document.querySelectorAll('[data-open-command]').forEach((button) => button.addEventListener('click', () => commandModal?.classList.add('open')));
+  commandModal?.addEventListener('click', (event) => { if (event.target === commandModal) commandModal.classList.remove('open'); });
+  document.querySelectorAll('[data-command]').forEach((item) => item.addEventListener('click', () => {
+    const command = item.getAttribute('data-command');
+    commandModal?.classList.remove('open');
+    if (command === 'capture') { captureModal?.classList.add('open'); captureText?.focus(); }
+    else if (command) showView(command);
+  }));
+  document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      commandModal?.classList.add('open');
+      (document.getElementById('command-input') as HTMLInputElement | null)?.focus();
+    }
+    if (event.key === 'Escape') {
+      captureModal?.classList.remove('open');
+      commandModal?.classList.remove('open');
+    }
+  });
 
-  renderCaptures();renderHighlights();renderPromote();
+  renderCaptures();
+  renderHighlights();
+  renderPromote();
 </script>
