@@ -23,7 +23,7 @@ test('Raindrop curator proxy is narrow, bounded, and reversible', async () => {
   assert.match(endpoint, /'raindrop\.search'/);
   assert.match(endpoint, /'raindrop\.get'/);
   assert.match(endpoint, /'raindrop\.curate'/);
-  assert.match(endpoint, /operations\.length > 150/);
+  assert.match(endpoint, /value\.length > 150/);
   assert.match(endpoint, /expectedLink/);
   assert.match(endpoint, /'move', 'tag', 'trash'/);
   assert.doesNotMatch(endpoint, /deleteBookmark|method:\s*['"]DELETE['"]/);
