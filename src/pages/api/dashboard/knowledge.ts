@@ -6,6 +6,7 @@ import {
 } from '../../../lib/siteStorage';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const URL_ONLY_RE = /^https?:\/\/\S+$/i;
 const MAX_CAPTURE_LENGTH = 12_000;
 
@@ -23,11 +24,22 @@ export const GET = async ({ request, locals }: APIContext) => {
   const query = (url.searchParams.get('q') || '').trim().slice(0, 240);
   const itemId = (url.searchParams.get('id') || '').trim();
   const relatedId = (url.searchParams.get('related') || '').trim();
+  const view = (url.searchParams.get('view') || '').trim();
+  const date = (url.searchParams.get('date') || '').trim();
   const rawLimit = Number(url.searchParams.get('limit') || '20');
   const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(Math.round(rawLimit), 50)) : 20;
 
   try {
     const ownerKey = await getDashboardOwnerKey(env);
+
+    if (view === 'today') {
+      if (date && !DATE_RE.test(date)) return json({ ok: false, error: 'invalid_date' }, 400);
+      const data = await supabaseRpc(env, 'masa_flow_mind_today_v1', {
+        p_owner_key: ownerKey,
+        p_date: date || null,
+      });
+      return json({ ok: true, mode: 'today', data });
+    }
 
     if (itemId) {
       if (!UUID_RE.test(itemId)) return json({ ok: false, error: 'invalid_item_id' }, 400);
