@@ -88,6 +88,7 @@
       const payload = await response.json();
       if (!response.ok || !payload?.ok || !payload?.data?.item) throw new Error('item_unavailable');
       const item = payload.data.item;
+      reader.dataset.knowledgeId = String(item.id || id);
       const title = reader.querySelector('.ko-reader-title');
       const meta = reader.querySelector('.ko-reader-meta');
       const article = reader.querySelector('.ko-article');
