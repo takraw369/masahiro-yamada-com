@@ -4,25 +4,25 @@ const CATEGORIES = [
   {
     id: 'brain',
     label: '脳科学',
-    color: '#3B82F6',
-    bg: 'rgba(59,130,246,0.12)',
-    border: 'rgba(59,130,246,0.35)',
+    color: '#2563EB',
+    bg: 'rgba(37,99,235,0.08)',
+    border: 'rgba(37,99,235,0.24)',
     keywords: ['前頭前野', 'ドーパミン', '神経可塑性', '集中力', 'ADHD', '記憶定着', 'ワーキングメモリ', '睡眠と脳', 'フロー状態', '認知科学'],
   },
   {
     id: 'health',
     label: '健康',
-    color: '#22c55e',
-    bg: 'rgba(34,197,94,0.12)',
-    border: 'rgba(34,197,94,0.35)',
+    color: '#15803D',
+    bg: 'rgba(21,128,61,0.08)',
+    border: 'rgba(21,128,61,0.24)',
     keywords: ['呼吸法', '自律神経', 'パフォーマンス', '食事設計', '睡眠最適化', '体のリズム', '筋肉と脳', '回復力', 'バイオハック', 'コンディション'],
   },
   {
     id: 'relation',
     label: 'リレーション',
-    color: '#EC4899',
-    bg: 'rgba(236,72,153,0.12)',
-    border: 'rgba(236,72,153,0.35)',
+    color: '#BE185D',
+    bg: 'rgba(190,24,93,0.08)',
+    border: 'rgba(190,24,93,0.24)',
     keywords: ['コーチング', '信頼構築', '心理的安全性', 'コミュニティ', '選手との関係', '傾聴力', '影響力', 'チーム設計', '共感', 'メンター'],
   },
 ] as const;
@@ -118,40 +118,46 @@ export default function XCommandCenter() {
 
   const cat = CATEGORIES.find(c => c.id === activeCat);
   const remaining = MAX_CHARS - text.length;
+  const ink = '#25211d';
+  const muted = '#736b61';
+  const border = 'rgba(37,33,29,0.13)';
+  const surface = '#ffffff';
+  const soft = '#f8f6f2';
+  const gold = '#9a6d24';
 
   const s: Record<string, React.CSSProperties> = {
     section: { marginBottom: 28 },
-    label: { fontSize: '0.82rem', color: '#7070a0', fontWeight: 600, marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' },
+    label: { fontSize: '0.78rem', color: muted, fontWeight: 700, marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' },
     tabRow: { display: 'flex', gap: 8, marginBottom: 24 },
-    tab: { flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', fontWeight: 600, transition: 'all 0.15s' },
+    tab: { flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${border}`, background: surface, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.92rem', fontWeight: 700, transition: 'all 0.15s' },
     catRow: { display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 14 },
     catPill: (c: typeof CATEGORIES[number], active: boolean) => ({
-      padding: '7px 16px', borderRadius: 99, border: `1.5px solid ${active ? c.color : 'rgba(255,255,255,0.1)'}`,
-      background: active ? c.bg : 'none', color: active ? c.color : '#7070a0',
-      cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.15s',
+      padding: '7px 16px', borderRadius: 99, border: `1.5px solid ${active ? c.color : border}`,
+      background: active ? c.bg : surface, color: active ? c.color : muted,
+      cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.88rem', fontWeight: 700, transition: 'all 0.15s',
     }),
-    kwRow: { display: 'flex', gap: 6, flexWrap: 'wrap' as const, marginBottom: 16, padding: '12px 14px', background: cat?.bg ?? 'rgba(255,255,255,0.03)', borderRadius: 10, border: `1px solid ${cat?.border ?? 'rgba(255,255,255,0.06)'}` },
-    kwChip: { padding: '4px 10px', borderRadius: 99, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: cat?.color ?? '#e8e8f0', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.82rem', transition: 'all 0.15s' },
-    textarea: { width: '100%', minHeight: 120, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: '#e8e8f0', fontFamily: 'inherit', fontSize: '1rem', padding: '14px', resize: 'vertical' as const, outline: 'none', lineHeight: 1.6 },
-    countRow: { display: 'flex', justifyContent: 'flex-end', marginTop: 6, fontSize: '0.8rem', color: remaining < 20 ? '#ef4444' : '#7070a0' },
+    kwRow: { display: 'flex', gap: 6, flexWrap: 'wrap' as const, marginBottom: 16, padding: '12px 14px', background: cat?.bg ?? soft, borderRadius: 10, border: `1px solid ${cat?.border ?? border}` },
+    kwChip: { padding: '4px 10px', borderRadius: 99, background: surface, border: `1px solid ${border}`, color: cat?.color ?? ink, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', transition: 'all 0.15s' },
+    textarea: { width: '100%', minHeight: 140, background: surface, border: `1px solid ${border}`, borderRadius: 12, color: ink, fontFamily: 'inherit', fontSize: '1rem', padding: '14px', resize: 'vertical' as const, outline: 'none', lineHeight: 1.7, boxShadow: '0 1px 2px rgba(37,33,29,0.03)' },
+    countRow: { display: 'flex', justifyContent: 'flex-end', marginTop: 6, fontSize: '0.78rem', color: remaining < 20 ? '#b91c1c' : muted },
     modeRow: { display: 'flex', gap: 8, marginBottom: 16 },
-    modeBtn: (active: boolean) => ({ flex: 1, padding: '9px 0', borderRadius: 8, border: `1.5px solid ${active ? 'rgba(245,158,11,0.5)' : 'rgba(255,255,255,0.08)'}`, background: active ? 'rgba(245,158,11,0.1)' : 'none', color: active ? '#F59E0B' : '#7070a0', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem', fontWeight: 600 }),
-    dateInput: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#e8e8f0', fontFamily: 'inherit', fontSize: '0.9rem', padding: '9px 12px', outline: 'none', marginBottom: 14 },
-    postBtn: { width: '100%', padding: '13px 0', borderRadius: 10, background: 'linear-gradient(90deg,#F59E0B,#D97706)', border: 'none', color: '#0a0a1a', fontFamily: 'inherit', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.02em' },
-    statusOk: { marginTop: 10, padding: '10px 14px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 8, color: '#22c55e', fontSize: '0.9rem' },
-    statusErr: { marginTop: 10, padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#ef4444', fontSize: '0.9rem' },
-    schedCard: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '14px 16px', marginBottom: 10 },
-    schedText: { fontSize: '0.95rem', marginBottom: 8, lineHeight: 1.5 },
-    schedMeta: { fontSize: '0.8rem', color: '#7070a0' },
-    acctSelect: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#e8e8f0', fontFamily: 'inherit', fontSize: '0.9rem', padding: '9px 12px', width: '100%', outline: 'none', marginBottom: 16 },
+    modeBtn: (active: boolean) => ({ flex: 1, padding: '9px 0', borderRadius: 8, border: `1.5px solid ${active ? 'rgba(154,109,36,0.42)' : border}`, background: active ? 'rgba(154,109,36,0.08)' : surface, color: active ? gold : muted, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.88rem', fontWeight: 700 }),
+    dateInput: { width: '100%', background: surface, border: `1px solid ${border}`, borderRadius: 8, color: ink, fontFamily: 'inherit', fontSize: '0.9rem', padding: '9px 12px', outline: 'none', marginBottom: 14 },
+    postBtn: { width: '100%', padding: '13px 0', borderRadius: 10, background: '#b4863b', border: '1px solid #9a6d24', color: '#1f1a14', fontFamily: 'inherit', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.02em' },
+    statusOk: { marginTop: 10, padding: '10px 14px', background: 'rgba(21,128,61,0.08)', border: '1px solid rgba(21,128,61,0.2)', borderRadius: 8, color: '#166534', fontSize: '0.88rem' },
+    statusErr: { marginTop: 10, padding: '10px 14px', background: 'rgba(185,28,28,0.07)', border: '1px solid rgba(185,28,28,0.18)', borderRadius: 8, color: '#991b1b', fontSize: '0.88rem' },
+    schedCard: { background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: '14px 16px', marginBottom: 10, boxShadow: '0 1px 2px rgba(37,33,29,0.03)' },
+    schedText: { fontSize: '0.95rem', marginBottom: 8, lineHeight: 1.6, color: ink },
+    schedMeta: { fontSize: '0.78rem', color: muted },
+    acctSelect: { background: surface, border: `1px solid ${border}`, borderRadius: 8, color: ink, fontFamily: 'inherit', fontSize: '0.9rem', padding: '9px 12px', width: '100%', outline: 'none', marginBottom: 16 },
   };
 
   return (
-    <div style={{ paddingBottom: 40 }}>
+    <div style={{ paddingBottom: 40, color: ink }}>
       {/* tabs */}
       <div style={s.tabRow}>
         {(['compose', 'scheduled'] as const).map(t => (
-          <button key={t} style={{ ...s.tab, color: tab === t ? '#F59E0B' : '#7070a0', borderColor: tab === t ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)', background: tab === t ? 'rgba(245,158,11,0.06)' : 'none' }} onClick={() => setTab(t)}>
+          <button key={t} style={{ ...s.tab, color: tab === t ? gold : muted, borderColor: tab === t ? 'rgba(154,109,36,0.38)' : border, background: tab === t ? 'rgba(154,109,36,0.07)' : surface }} onClick={() => setTab(t)}>
             {t === 'compose' ? '✍️ 作成' : `📅 予約 (${scheduled.length})`}
           </button>
         ))}
@@ -222,7 +228,7 @@ export default function XCommandCenter() {
 
       {tab === 'scheduled' && (
         <>
-          {scheduled.length === 0 && <p style={{ color: '#7070a0', fontSize: '0.95rem' }}>予約投稿なし</p>}
+          {scheduled.length === 0 && <p style={{ color: muted, fontSize: '0.95rem' }}>予約投稿なし</p>}
           {scheduled.map(p => (
             <div key={p.id} style={s.schedCard}>
               <div style={s.schedText}>{p.text}</div>
