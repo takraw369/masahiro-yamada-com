@@ -29,3 +29,10 @@ entry point only. Public access is enforced by `src/content/config.ts`.
 See [the release evidence and dependency report](docs/release-conductor-2026-09-07.md)
 for known blockers and PR disposition. This report describes repository evidence;
 it does not replace the operational documents in MASA_OS.
+
+## Knowledge Flow MVP
+
+`/dashboard/knowledge` provides local-demo capture, Inbox, Library and structured
+Flow views behind existing Dashboard authentication. See
+[design, data model and Supabase integration plan](docs/knowledge-flow.md).
+For an isolated interactive preview use `npm run preview:knowledge` (Node 22.19+).

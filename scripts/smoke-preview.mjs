@@ -61,6 +61,17 @@ try {
   }
   const csrf = await previewFetch(base + '/api/x-harness/posts', { method: 'POST', headers: { Origin: 'https://other.example.test' } });
   assert.equal(csrf.status, 403);
+  const knowledgeAnonymous = await previewFetch(base + '/dashboard/knowledge', { redirect: 'manual' });
+  assert.equal(knowledgeAnonymous.status, 302);
+  assert.equal(knowledgeAnonymous.headers.get('location'), '/dashboard/login');
+  const knowledge = await previewFetch(base + '/dashboard/knowledge', { headers: { Cookie: await fixture.cookie(base) } });
+  assert.equal(knowledge.status, 200);
+  assert.match(knowledge.headers.get('cache-control'), /no-store/);
+  assert.match(knowledge.headers.get('x-robots-tag'), /noindex/);
+  const knowledgeHtml = await knowledge.text();
+  assert.match(knowledgeHtml, /name="robots" content="noindex,nofollow,noarchive"/);
+  assert.match(knowledgeHtml, /Knowledge Flow/);
+  assert.ok(!knowledgeHtml.includes('/scripts/flow-mind-'));
   await smokeLineObservability(base, fixture);
   console.log('Worker preview smoke passed: public pages, auth bootstrap and private boundaries.');
 } catch (error) {
