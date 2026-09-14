@@ -66,8 +66,9 @@ code bypasses authentication. Stop with Ctrl+C. Do not deploy the preview helper
   Thumbnails are local CSS fallbacks; provided image URLs are supported with an
   error fallback. No third-party image requests for fixture data.
 - `repository.ts`: asynchronous `KnowledgeRepository` (`load`, `save`) boundary.
-- `src/components/knowledge-flow/KnowledgeFlow.tsx`: reusable cards, dialog,
-  capture/editor, Flow projection, and workspace composition.
+- `src/components/knowledge-flow/KnowledgeFlow.tsx`: workspace composition.
+  `KnowledgeCard.tsx`, `KnowledgeDialogs.tsx`, `KnowledgePrimitives.tsx` and
+  `FlowView.tsx` hold reusable presentation and editing components.
 
 Local key: `masa:knowledge-flow:demo:v1`. First load uses fixtures; first successful
 edit persists a versioned snapshot. Reopening in the same origin/browser restores

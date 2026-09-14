@@ -4,7 +4,7 @@ Astro + React site and private MASA Dashboard deployed as a Cloudflare Worker.
 Production configuration is `wrangler.toml`; the canonical host is
 `masahiroyamada.com`. `master` pushes trigger production deployment.
 
-Use Node 22.18+ and `npm ci`, then:
+Use Node 22.19+ and `npm ci`, then:
 
 ```sh
 npm test
