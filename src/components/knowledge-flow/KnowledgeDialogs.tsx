@@ -5,7 +5,10 @@ import type {
   Snapshot,
   Status,
 } from "../../lib/knowledge-flow/model";
-import { statusLabels } from "../../lib/knowledge-flow/model";
+import {
+  destinationTypeLabels,
+  statusLabels,
+} from "../../lib/knowledge-flow/model";
 import { Icon } from "./KnowledgePrimitives";
 function Modal({
   title,
@@ -115,7 +118,7 @@ export function Capture({
           <input name="title" placeholder="何が気になった？" maxLength={240} />
         </label>
         <p className="kf-form-note">
-          この端末のデモに保存します。要約・画像・スコアは自動取得されません。
+          この端末のデモに保存します。保存後に「なぜ気になった？」を一言だけ残せます。
         </p>
         {error && (
           <p role="alert" className="kf-error">
@@ -165,9 +168,17 @@ export function ItemEditor({
           "このステータスには、接続先のProjectを選んでください。",
         );
       if (draft.status === "ready" && !draft.output.trim())
-        throw new Error("公開準備には、出力先を記入してください。");
+        throw new Error("公開準備には、Destinationを記入してください。");
       await onSave(
-        { ...draft, title: draft.title.trim(), summary: draft.summary.trim() },
+        {
+          ...draft,
+          title: draft.title.trim(),
+          summary: draft.summary.trim(),
+          why_saved: draft.why_saved.trim(),
+          connection_reason: draft.connection_reason.trim(),
+          output: draft.output.trim(),
+          next_action: draft.next_action.trim(),
+        },
         tags
           .split(/[,、]/)
           .map((t) => t.trim())
@@ -202,13 +213,23 @@ export function ItemEditor({
           />
         </label>
         <label>
-          この情報の意味
+          なぜ保存した？ <span>MASA自身の一次メモ</span>
+          <textarea
+            value={draft.why_saved}
+            onChange={(e) => update({ why_saved: e.target.value })}
+            rows={2}
+            maxLength={800}
+            placeholder="その瞬間、何が引っかかった？ 何に使えそうと思った？"
+          />
+        </label>
+        <label>
+          要約・この情報の意味 <span>将来はAI下書き＋本人編集</span>
           <textarea
             value={draft.summary}
             onChange={(e) => update({ summary: e.target.value })}
             rows={3}
             maxLength={1600}
-            placeholder="自分にとって、なぜ大切？"
+            placeholder="何が書いてあり、自分にとってどんな意味がある？"
           />
         </label>
         <div className="kf-form-grid">
@@ -267,14 +288,45 @@ export function ItemEditor({
           ))}
         </fieldset>
         <label>
-          出力先・育てるもの
-          <input
-            value={draft.output}
-            onChange={(e) => update({ output: e.target.value })}
-            placeholder="例：ACE / 導入セッションの草稿"
-            maxLength={240}
+          なぜここにつながる？ <span>接続の理由</span>
+          <textarea
+            value={draft.connection_reason}
+            onChange={(e) => update({ connection_reason: e.target.value })}
+            rows={2}
+            maxLength={1000}
+            placeholder="例：ACEの『選択権を本人へ戻す』考え方と、この研究の○○が重なる"
           />
         </label>
+        <div className="kf-form-grid">
+          <label>
+            Destination <span>次に何へ育てる？</span>
+            <select
+              aria-label="Destination type"
+              value={draft.destination_type}
+              onChange={(e) =>
+                update({
+                  destination_type: e.target
+                    .value as KnowledgeItem["destination_type"],
+                })
+              }
+            >
+              {Object.entries(destinationTypeLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Destinationの具体名
+            <input
+              value={draft.output}
+              onChange={(e) => update({ output: e.target.value })}
+              placeholder="例：ACE Research / note草稿 / Canonical候補"
+              maxLength={240}
+            />
+          </label>
+        </div>
         <label>
           次の一歩
           <input
@@ -312,7 +364,7 @@ export function ItemEditor({
           </label>
         </div>
         <p className="kf-form-note">
-          「公開準備OK」は候補の整理です。外部公開やCanonicalへの書き込みは行いません。
+          Destinationは「発信」だけではありません。Research・Project・Canonical・保留も同じ流れで扱います。
         </p>
         {error && (
           <p role="alert" className="kf-error">
