@@ -1,0 +1,109 @@
+---
+type Surface = 'X' | 'LINE' | 'LP';
+const { surface = 'X' } = Astro.props as { surface?: Surface };
+const driveUrl = 'https://docs.google.com/document/d/18kYPo7QtaBEdJZNbW_49D2J0zSDpSiWI66mRCHhDI5A/edit';
+const guides: Record<Surface, { primary: string; flow: string; note: string }> = {
+  X: {
+    primary: 'AIDA / フレーミング × AIDA',
+    flow: 'Hook → 気づき1つ → 具体例 → CTA',
+    note: '長文では Story / QUEST を足す。1投稿1メッセージ・1CTA。',
+  },
+  LINE: {
+    primary: 'QUEST × Story',
+    flow: '宛名 → 共感 → 教育 → 問い/体験 → 次Step',
+    note: '売り込みだけにせず、返信・観察・Questなど小さな参加行動を置く。',
+  },
+  LP: {
+    primary: '新PASONA / QUEST → PASONA',
+    flow: 'Hero → Problem → Affinity → Education → Solution → Proof → Offer → CTA',
+    note: '独自概念はフレーミングから入り、実績が強ければベネフィット＋Proofを前へ。',
+  },
+};
+const guide = guides[surface];
+---
+<details class="copy-os">
+  <summary>
+    <span class="copy-os__label">COPY OS</span>
+    <span>{surface}の型を見る</span>
+    <span class="copy-os__hint">PASONA / AIDA / QUEST / Story</span>
+  </summary>
+  <div class="copy-os__body">
+    <div class="copy-os__grid">
+      <div>
+        <small>第一候補</small>
+        <strong>{guide.primary}</strong>
+      </div>
+      <div>
+        <small>基本フロー</small>
+        <strong>{guide.flow}</strong>
+      </div>
+    </div>
+    <p>{guide.note}</p>
+    <div class="copy-os__check">Audience → Hook → Structure → Proof → Offer → CTA</div>
+    <a href={driveUrl} target="_blank" rel="noopener noreferrer">Drive正本を開く ↗</a>
+  </div>
+</details>
+
+<style>
+  .copy-os {
+    margin: 14px 0 20px;
+    border: 1px solid rgba(154,109,36,.24);
+    border-radius: 12px;
+    background: rgba(255,255,255,.72);
+    color: #25211d;
+    overflow: hidden;
+  }
+  .copy-os summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .copy-os summary::-webkit-details-marker { display: none; }
+  .copy-os__label {
+    color: #9a6d24;
+    letter-spacing: .08em;
+    font-size: 11px;
+  }
+  .copy-os__hint {
+    margin-left: auto;
+    color: #8a8177;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .copy-os__body {
+    padding: 0 14px 14px;
+    border-top: 1px solid rgba(37,33,29,.08);
+  }
+  .copy-os__grid {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 10px;
+    padding-top: 12px;
+  }
+  .copy-os__grid > div {
+    padding: 10px 12px;
+    background: rgba(154,109,36,.05);
+    border-radius: 8px;
+  }
+  .copy-os small { display:block; color:#8a8177; font-size:10px; margin-bottom:4px; }
+  .copy-os strong { font-size:12px; line-height:1.5; }
+  .copy-os p { color:#736b61; font-size:12px; line-height:1.7; margin:10px 0; }
+  .copy-os__check {
+    font-size: 11px;
+    color: #5f574f;
+    padding: 8px 10px;
+    border: 1px dashed rgba(154,109,36,.28);
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  .copy-os a { color:#9a6d24; font-size:12px; font-weight:700; text-decoration:none; }
+  @media (max-width: 640px) {
+    .copy-os__hint { display:none; }
+    .copy-os__grid { grid-template-columns: 1fr; }
+  }
+</style>
