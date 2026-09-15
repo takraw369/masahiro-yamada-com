@@ -1,15 +1,20 @@
 name: Deploy to Cloudflare Workers
 
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
+    inputs:
+      release_base_sha:
+        description: Commit SHA currently deployed to production
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/master'
+    environment: production
     runs-on: ubuntu-latest
     name: Deploy
     steps:
@@ -18,6 +23,13 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Validate release baseline
+        env:
+          RELEASE_BASE_SHA: ${{ inputs.release_base_sha }}
+        run: |
+          git cat-file -e "${RELEASE_BASE_SHA}^{commit}"
+          git merge-base --is-ancestor "$RELEASE_BASE_SHA" "$GITHUB_SHA"
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -33,7 +45,7 @@ jobs:
 
       - name: Typecheck release delta
         env:
-          TYPECHECK_BASE_REF: ${{ github.event.before || 'HEAD^' }}
+          TYPECHECK_BASE_SHA: ${{ inputs.release_base_sha }}
           TYPECHECK_HEAD_SHA: ${{ github.sha }}
         run: npm run typecheck:release
 
