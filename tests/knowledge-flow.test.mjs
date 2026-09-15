@@ -9,6 +9,7 @@ import { createFixture } from "../src/lib/knowledge-flow/fixtures.ts";
 import {
   localKnowledgeRepository,
   STORAGE_KEY,
+  validateSnapshot,
 } from "../src/lib/knowledge-flow/repository.ts";
 
 const query = {
@@ -30,6 +31,9 @@ test("capture retains source and accepts only web URLs without credentials", () 
   assert.equal(item.status, "inbox");
   assert.equal(item.asset_score, null);
   assert.equal(item.summary, "");
+  assert.equal(item.why_saved, "");
+  assert.equal(item.connection_reason, "");
+  assert.equal(item.destination_type, "hold");
   assert.equal(item.thumbnail_url, null);
   for (const url of [
     "javascript:alert(1)",
@@ -60,11 +64,37 @@ test("query composes keyword, status and relationship filters and uses last touc
     selectItems(s, { ...query, attention: "ready", project_id: "ace" }).length,
     0,
   );
+  assert.equal(
+    selectItems(s, { ...query, text: "選択権 ACE" }).length,
+    1,
+    "connection reason participates in search",
+  );
+  assert.equal(
+    selectItems(s, { ...query, text: "Canonical" }).length,
+    0,
+    "destination labels do not invent a canonical destination",
+  );
   s.items[8].updated_at = now.toISOString();
   assert.equal(
     selectItems(s, { ...query, attention: "dormant" }, now.getTime()).length,
     0,
   );
+});
+test("v1 browser snapshots migrate without losing existing edits", () => {
+  const current = createFixture(now);
+  const legacy = {
+    ...current,
+    version: 1,
+    items: current.items.map(({ why_saved, connection_reason, destination_type, ...item }) => item),
+  };
+  legacy.items[0].output = "既存の発信候補";
+  const migrated = validateSnapshot(legacy);
+  assert.equal(migrated.version, 2);
+  assert.equal(migrated.items[0].why_saved, "");
+  assert.equal(migrated.items[0].connection_reason, "");
+  assert.equal(migrated.items[0].destination_type, "content");
+  assert.equal(migrated.items[0].output, "既存の発信候補");
+  assert.equal(migrated.items[1].destination_type, "hold");
 });
 test("local adapter reloads writes and rejects stale revisions", async () => {
   const data = new Map();
@@ -82,12 +112,14 @@ test("local adapter reloads writes and rejects stale revisions", async () => {
     initial.revision,
   );
   assert.equal(saved.revision, 1);
+  assert.equal(saved.version, 2);
   assert.equal(
     (await localKnowledgeRepository(storage).load()).items[0].title,
     "New",
   );
   await assert.rejects(b.save(stale, stale.revision), /別のタブ/);
   assert.equal((await a.load()).items.length, 10);
+  assert.ok(data.has(STORAGE_KEY));
 });
 test("invalid storage and unavailable writes cannot erase data or report success", async () => {
   let raw = "{broken";
