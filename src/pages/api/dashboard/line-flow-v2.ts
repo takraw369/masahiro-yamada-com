@@ -63,8 +63,9 @@ export const POST = async (context: APIContext) => {
     if (!isUuidLike(body.stepId) || !Array.isArray(body.routes) || body.routes.length > 20 || !body.routes.every(validRoute)) {
       return jsonResponse({ error: 'invalid_input' }, 400);
     }
+    const routes = body.routes as ReplyRouteInput[];
     payload.stepId = body.stepId;
-    payload.routes = body.routes.map((route) => ({
+    payload.routes = routes.map((route) => ({
       matchType: route.matchType,
       matchValue: route.matchValue.trim(),
       toStepId: route.toStepId,
