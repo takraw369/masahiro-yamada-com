@@ -1,0 +1,354 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const questions = [
+  {
+    id: 'button-shape',
+    step: '01',
+    label: 'BUTTON',
+    title: 'どのボタンが押したくなる？',
+    hint: '角の強さだけで、ページの性格はかなり変わる。',
+    options: [
+      { id: 'edge', name: 'EDGE', note: '輪郭が明快。道具感が強い。' },
+      { id: 'soft', name: 'SOFT', note: '少し柔らかい。今のMASA OS寄り。' },
+      { id: 'pill', name: 'PILL', note: '軽い。ラベル・フィルタ向き。' },
+    ],
+  },
+  {
+    id: 'surface-depth',
+    step: '02',
+    label: 'SURFACE',
+    title: '情報の「面」はどれが気持ちいい？',
+    hint: 'カードを増やすのではなく、境界をどう感じさせるかを見る。',
+    options: [
+      { id: 'flat', name: 'FLAT', note: '背景と連続。静かで編集的。' },
+      { id: 'line', name: 'LINE', note: '細い境界だけ。整理と静けさの中間。' },
+      { id: 'float', name: 'FLOAT', note: '影で階層化。操作対象が分かりやすい。' },
+    ],
+  },
+  {
+    id: 'density',
+    step: '03',
+    label: 'SPACE',
+    title: 'どの情報密度なら疲れない？',
+    hint: '「たくさん見える」と「迷わない」は別。身体感覚で選ぶ。',
+    options: [
+      { id: 'airy', name: 'AIRY', note: '余白大。1つずつ考えやすい。' },
+      { id: 'balanced', name: 'BALANCED', note: '一覧性と余白の中間。' },
+      { id: 'compact', name: 'COMPACT', note: '情報量優先。操作盤向き。' },
+    ],
+  },
+  {
+    id: 'navigation',
+    step: '04',
+    label: 'NAVIGATION',
+    title: '「どこにいるか」はどう見えたい？',
+    hint: '機能数ではなく、現在地と次の行き先の認知負荷を見る。',
+    options: [
+      { id: 'rail', name: 'RAIL', note: '左に固定。道具箱として強い。' },
+      { id: 'tabs', name: 'TABS', note: '同階層の切替が速い。' },
+      { id: 'dock', name: 'DOCK', note: '主要行動だけを手元に残す。' },
+    ],
+  },
+  {
+    id: 'motion',
+    step: '05',
+    label: 'MOTION',
+    title: 'どのくらい「生きてる」のが好き？',
+    hint: 'Motionは飾りではなく、状態・流れ・反応を伝えるために使う。',
+    options: [
+      { id: 'still', name: 'STILL', note: 'ほぼ静止。集中しやすい。' },
+      { id: 'gentle', name: 'GENTLE', note: '呼吸する程度。Flowを感じる。' },
+      { id: 'responsive', name: 'RESPONSIVE', note: '触れた時だけしっかり返す。' },
+    ],
+  },
+];
+---
+
+<DashboardLayout title="Design Lab" eyebrow="MASA DESIGN INTELLIGENCE">
+  <div class="lab-shell">
+    <header class="lab-hero">
+      <div>
+        <p class="kicker">MASA DESIGN LAB · PREFERENCE PICKER v0.1</p>
+        <h1>触って選ぶ。<br /><span>理由は、あとから言葉にする。</span></h1>
+        <p class="lead">正解探しではなく、MASAが「使いたい」と感じるUIの共通点を集める実験室。5つ選ぶだけで、次のPrototypeに反映できる。</p>
+      </div>
+      <aside class="progress-card" aria-label="進捗">
+        <div class="progress-top"><span>YOUR SIGNAL</span><strong><span id="answer-count">0</span> / {questions.length}</strong></div>
+        <div class="progress-track"><i id="progress-bar"></i></div>
+        <p id="progress-copy">まずは直感で1つ選ぶ。</p>
+      </aside>
+    </header>
+
+    <div class="lab-grid">
+      <main class="experiments">
+        {questions.map((question, qIndex) => (
+          <section class="experiment" data-question={question.id}>
+            <div class="experiment-head">
+              <div class="step">{question.step}</div>
+              <div>
+                <p class="kicker">{question.label}</p>
+                <h2>{question.title}</h2>
+                <p>{question.hint}</p>
+              </div>
+            </div>
+
+            <div class:list={['choice-grid', `preview-${question.id}`]}>
+              {question.options.map((option, optionIndex) => (
+                <button
+                  class="choice"
+                  type="button"
+                  data-question={question.id}
+                  data-option={option.id}
+                  data-name={option.name}
+                  aria-pressed="false"
+                >
+                  <span class="choice-state">選ぶ</span>
+                  <div class="specimen" aria-hidden="true">
+                    {question.id === 'button-shape' && (
+                      <div class:list={['demo-button', `button-${option.id}`]}>次へ進む <b>→</b></div>
+                    )}
+                    {question.id === 'surface-depth' && (
+                      <div class:list={['demo-surface', `surface-${option.id}`]}>
+                        <span>NOW</span><strong>次の一手</strong><small>Graphを10分触って違和感を1つ残す</small>
+                      </div>
+                    )}
+                    {question.id === 'density' && (
+                      <div class:list={['demo-density', `density-${option.id}`]}>
+                        {[0,1,2].map(row => <div class="density-row"><i></i><span><b>{['Current','Direction','Next'][row]}</b><small>{['いまの状態','向かう方向','次の行動'][row]}</small></span></div>)}
+                      </div>
+                    )}
+                    {question.id === 'navigation' && option.id === 'rail' && (
+                      <div class="demo-nav nav-rail"><i></i><div><b>Today</b><span>Graph</span><span>Design</span></div><main>GRAPH</main></div>
+                    )}
+                    {question.id === 'navigation' && option.id === 'tabs' && (
+                      <div class="demo-nav nav-tabs"><nav><b>Today</b><span>Graph</span><span>Design</span></nav><main>GRAPH</main></div>
+                    )}
+                    {question.id === 'navigation' && option.id === 'dock' && (
+                      <div class="demo-nav nav-dock"><main>GRAPH</main><nav><span>⌂</span><b>◈</b><span>＋</span></nav></div>
+                    )}
+                    {question.id === 'motion' && (
+                      <div class:list={['demo-motion', `motion-${option.id}`]}>
+                        <span class="motion-node one">A</span><i></i><span class="motion-node two">B</span>
+                      </div>
+                    )}
+                  </div>
+                  <span class="choice-copy"><strong>{option.name}</strong><small>{option.note}</small></span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
+      </main>
+
+      <aside class="lab-side">
+        <div class="sticky-stack">
+          <section class="summary-card">
+            <p class="kicker">CURRENT TASTE</p>
+            <h2>いまの選択</h2>
+            <div id="summary-list" class="summary-list">
+              {questions.map(question => (
+                <div class="summary-row" data-summary={question.id}>
+                  <span>{question.label}</span><strong>未選択</strong>
+                </div>
+              ))}
+            </div>
+
+            <label class="note-label" for="taste-note">ひとこと残す <small>任意</small></label>
+            <textarea id="taste-note" rows="4" placeholder="例：角丸すぎるとアプリっぽすぎる。動きはGraphくらいが好き。"></textarea>
+
+            <button id="save-taste" class="save-button" type="button" disabled>5つ選んで保存</button>
+            <p id="save-status" class="save-status" aria-live="polite"></p>
+          </section>
+
+          <section class="rule-card">
+            <p class="kicker">RULE</p>
+            <p><strong>1回の選択は「好み候補」。</strong><br />別画面でも繰り返し選んだものだけ、MASA Design Grammar候補へ昇格する。</p>
+          </section>
+
+          <details class="history-card">
+            <summary><span><span class="kicker">HISTORY</span><strong>最近の選択を見る</strong></span><b>＋</b></summary>
+            <div id="history-list" class="history-list"><p>読み込み中…</p></div>
+          </details>
+        </div>
+      </aside>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  .lab-shell{--ink:#20262d;--muted:#69737d;--line:#d8d2c9;--soft:#f7f4ef;--gold:#9a641f;--purple:#6f5aa8;color:var(--ink);padding:10px 0 48px}
+  .lab-hero{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:44px;align-items:end;padding:24px 0 34px;border-bottom:1px solid var(--line)}
+  .kicker{color:#8b5b2c;font-size:.64rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+  .lab-hero h1{max-width:800px;margin-top:9px;font-family:'Cormorant Garamond',serif;font-size:clamp(2.3rem,5vw,4.8rem);font-weight:600;line-height:.92;letter-spacing:-.035em;color:#25292e}
+  .lab-hero h1 span{color:#8b857d}
+  .lead{max-width:720px;margin-top:20px;color:var(--muted);font-size:.82rem;line-height:1.8}
+  .progress-card{padding:18px;border:1px solid var(--line);background:#fff}
+  .progress-top{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#7b838b;font-size:.62rem;letter-spacing:.08em}
+  .progress-top strong{color:#403a32;font-size:.84rem;letter-spacing:0}
+  .progress-track{height:3px;margin-top:13px;background:#e9e4dd;overflow:hidden}
+  .progress-track i{display:block;width:0;height:100%;background:var(--gold);transition:width .25s ease}
+  .progress-card p{margin-top:10px;color:#777f88;font-size:.65rem}
+
+  .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:32px;padding-top:30px}
+  .experiments{display:grid;gap:54px;min-width:0}
+  .experiment{scroll-margin-top:90px}
+  .experiment-head{display:grid;grid-template-columns:42px minmax(0,1fr);gap:14px;align-items:start;margin-bottom:16px}
+  .step{width:38px;height:38px;display:grid;place-items:center;border:1px solid #cfc8bd;color:#89633b;background:#fff;font-size:.65rem;font-weight:700}
+  .experiment-head h2{margin-top:3px;font-size:1.12rem}
+  .experiment-head p:last-child{margin-top:4px;color:#777f87;font-size:.69rem;line-height:1.6}
+  .choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+  .choice{position:relative;min-width:0;display:grid;grid-template-rows:170px auto;gap:0;padding:0;border:1px solid var(--line);background:#fff;color:inherit;text-align:left;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+  .choice:hover{transform:translateY(-2px);border-color:#b69b78;box-shadow:0 10px 26px rgba(48,40,31,.06)}
+  .choice[aria-pressed="true"]{border-color:#9a641f;box-shadow:0 0 0 2px rgba(154,100,31,.1)}
+  .choice-state{position:absolute;z-index:4;right:8px;top:8px;padding:3px 7px;border:1px solid #d9d3ca;background:rgba(255,255,255,.92);color:#7d858d;font-size:.54rem;font-weight:700}
+  .choice[aria-pressed="true"] .choice-state{border-color:#9a641f;background:#9a641f;color:#fff}
+  .specimen{min-width:0;display:grid;place-items:center;overflow:hidden;background:#f5f3ef;border-bottom:1px solid #e3ded7}
+  .choice-copy{display:block;padding:12px 13px 14px}
+  .choice-copy strong{display:block;font-size:.72rem;letter-spacing:.08em}
+  .choice-copy small{display:block;margin-top:4px;color:#7a838c;font-size:.62rem;line-height:1.55}
+
+  .demo-button{min-width:146px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:11px 14px;background:#23282e;color:#fff;font-size:.67rem;font-weight:700;box-shadow:0 7px 17px rgba(32,38,45,.13)}
+  .button-edge{border-radius:0}.button-soft{border-radius:8px}.button-pill{border-radius:999px}
+  .demo-button b{font-weight:400}
+
+  .demo-surface{width:min(180px,80%);display:grid;gap:5px;padding:16px;background:#fff}
+  .surface-flat{background:transparent}.surface-line{border:1px solid #cfc8be}.surface-float{border-radius:10px;box-shadow:0 16px 32px rgba(40,34,28,.12)}
+  .demo-surface span{color:#9a641f;font-size:.52rem;font-weight:700;letter-spacing:.12em}.demo-surface strong{font-size:.78rem}.demo-surface small{color:#737c84;font-size:.56rem;line-height:1.5}
+
+  .demo-density{width:min(190px,84%);display:grid;background:#fff;border:1px solid #ded8d0}
+  .density-row{display:flex;align-items:center;gap:9px;border-bottom:1px solid #ece8e2}.density-row:last-child{border-bottom:0}.density-row i{width:5px;height:25px;background:#a56c22}.density-row span{display:grid}.density-row b{font-size:.6rem}.density-row small{color:#8b9299;font-size:.51rem}
+  .density-airy .density-row{padding:14px}.density-balanced .density-row{padding:9px 11px}.density-compact .density-row{padding:5px 8px}
+
+  .demo-nav{width:min(210px,88%);height:120px;position:relative;background:#fff;border:1px solid #dcd6ce;overflow:hidden;color:#747c84;font-size:.52rem}.demo-nav main{display:grid;place-items:center;color:#aaa39a;font-size:.64rem;letter-spacing:.12em}.demo-nav nav,.demo-nav div{display:flex}.demo-nav b{color:#6d4515}
+  .nav-rail{display:grid;grid-template-columns:58px 1fr}.nav-rail>i{display:none}.nav-rail>div{flex-direction:column;gap:9px;padding:14px 8px;background:#f6f3ee;border-right:1px solid #e1dbd3}.nav-rail main{height:100%}
+  .nav-tabs{display:grid;grid-template-rows:31px 1fr}.nav-tabs nav{align-items:center;gap:12px;padding:0 10px;border-bottom:1px solid #e2ddd6}.nav-tabs main{height:100%}
+  .nav-dock main{height:100%}.nav-dock nav{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);align-items:center;gap:16px;padding:7px 12px;border:1px solid #d8d1c8;border-radius:999px;background:#fff;box-shadow:0 5px 16px rgba(40,34,28,.08);font-size:.68rem}
+
+  .demo-motion{position:relative;width:190px;height:100px}.motion-node{position:absolute;top:35px;width:34px;height:34px;display:grid;place-items:center;border:1px solid #b6aa9b;border-radius:9px;background:#fff;color:#725022;font-size:.61rem;font-weight:700;z-index:2}.motion-node.one{left:24px}.motion-node.two{right:24px}.demo-motion i{position:absolute;left:57px;right:57px;top:51px;height:1px;background:#bfb7ad;transform-origin:left center}
+  .motion-gentle .one{animation:floatOne 4.8s ease-in-out infinite}.motion-gentle .two{animation:floatTwo 5.4s ease-in-out infinite}.motion-gentle i{animation:pulseLine 3.8s ease-in-out infinite}
+  .motion-responsive .motion-node,.motion-responsive i{transition:transform .18s ease,background .18s ease}.choice:hover .motion-responsive .one{transform:translate(-5px,-4px)}.choice:hover .motion-responsive .two{transform:translate(5px,4px);background:#faf1e5}.choice:hover .motion-responsive i{transform:scaleX(1.1)}
+  @keyframes floatOne{0%,100%{transform:translate(0,0)}50%{transform:translate(-4px,-5px)}}@keyframes floatTwo{0%,100%{transform:translate(0,0)}50%{transform:translate(5px,4px)}}@keyframes pulseLine{0%,100%{opacity:.35}50%{opacity:1}}
+
+  .lab-side{min-width:0}.sticky-stack{position:sticky;top:86px;display:grid;gap:10px}
+  .summary-card,.rule-card,.history-card{border:1px solid var(--line);background:#fff}
+  .summary-card{padding:17px}.summary-card h2{margin-top:3px;font-size:.95rem}.summary-list{display:grid;margin-top:14px;border-top:1px solid #e5e0d9}
+  .summary-row{min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #ece8e2;font-size:.59rem}.summary-row span{color:#858c93;letter-spacing:.08em}.summary-row strong{color:#3d454c;font-size:.62rem}.summary-row.complete strong{color:#875719}
+  .note-label{display:flex;align-items:center;justify-content:space-between;margin-top:16px;color:#626c75;font-size:.62rem;font-weight:700}.note-label small{color:#999fa5;font-weight:400}
+  textarea{width:100%;margin-top:6px;padding:9px;border:1px solid #d8d2c9;background:#faf9f6;color:#30373e;font:inherit;font-size:.64rem;line-height:1.6;resize:vertical;outline:0}textarea:focus{border-color:#ad8350;box-shadow:0 0 0 3px rgba(165,108,34,.08)}
+  .save-button{width:100%;min-height:43px;margin-top:9px;border:1px solid #96601c;background:#9a641f;color:#fff;cursor:pointer;font:inherit;font-size:.68rem;font-weight:700}.save-button:disabled{border-color:#ddd6cd;background:#e7e2dc;color:#97938e;cursor:not-allowed}.save-button:not(:disabled):hover{background:#805016}
+  .save-status{min-height:17px;margin-top:7px;color:#7a633f;font-size:.57rem;line-height:1.5}
+  .rule-card{padding:14px;background:#faf7f1}.rule-card>p:last-child{margin-top:6px;color:#69727b;font-size:.62rem;line-height:1.65}.rule-card strong{color:#4c453c}
+  .history-card{padding:0}.history-card summary{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;list-style:none;cursor:pointer}.history-card summary::-webkit-details-marker{display:none}.history-card summary span>strong{display:block;margin-top:2px;color:#4b535a;font-size:.66rem}.history-card[open] summary{border-bottom:1px solid #e9e4dd}.history-list{display:grid;gap:6px;padding:10px}.history-list p{color:#858d94;font-size:.59rem;line-height:1.55}.history-item{padding:8px;border:1px solid #ebe6df;background:#fbfaf8}.history-item strong{display:block;color:#505960;font-size:.59rem}.history-item time{display:block;margin-top:3px;color:#969da3;font-size:.52rem}
+
+  @media (max-width:1080px){.lab-grid{grid-template-columns:1fr}.lab-side{order:-1}.sticky-stack{position:static;grid-template-columns:2fr 1fr}.history-card{grid-column:1/-1}.lab-hero{grid-template-columns:1fr 240px}}
+  @media (max-width:760px){.lab-hero{grid-template-columns:1fr;gap:22px}.choice-grid{grid-template-columns:1fr}.choice{grid-template-rows:150px auto}.sticky-stack{grid-template-columns:1fr}.history-card{grid-column:auto}.experiments{gap:42px}}
+  @media (prefers-reduced-motion:reduce){.motion-gentle .one,.motion-gentle .two,.motion-gentle i{animation:none}}
+</style>
+
+<script define:vars={{ questions }}>
+  const selections = {};
+  const total = questions.length;
+  const choices = [...document.querySelectorAll('.choice')];
+  const answerCount = document.getElementById('answer-count');
+  const progressBar = document.getElementById('progress-bar');
+  const progressCopy = document.getElementById('progress-copy');
+  const saveButton = document.getElementById('save-taste');
+  const saveStatus = document.getElementById('save-status');
+  const tasteNote = document.getElementById('taste-note');
+  const historyList = document.getElementById('history-list');
+
+  function updateSummary() {
+    const count = Object.keys(selections).length;
+    answerCount.textContent = String(count);
+    progressBar.style.width = `${Math.round(count / total * 100)}%`;
+    progressCopy.textContent = count === total
+      ? 'Signalが揃った。保存すると次のPrototypeに使える。'
+      : count ? `あと${total - count}つ。考えすぎず、触った感じで。` : 'まずは直感で1つ選ぶ。';
+    saveButton.disabled = count !== total;
+    saveButton.textContent = count === total ? 'この5つをPreferenceとして保存' : `${total - count}つ選んで保存`;
+
+    questions.forEach(question => {
+      const row = document.querySelector(`[data-summary="${question.id}"]`);
+      const value = selections[question.id];
+      row?.classList.toggle('complete', Boolean(value));
+      const strong = row?.querySelector('strong');
+      if (strong) strong.textContent = value?.name || '未選択';
+    });
+  }
+
+  choices.forEach(choice => {
+    choice.addEventListener('click', () => {
+      const question = choice.dataset.question;
+      const option = choice.dataset.option;
+      const name = choice.dataset.name;
+      document.querySelectorAll(`.choice[data-question="${question}"]`).forEach(item => {
+        item.setAttribute('aria-pressed', item === choice ? 'true' : 'false');
+        const state = item.querySelector('.choice-state');
+        if (state) state.textContent = item === choice ? '選択中 ✓' : '選ぶ';
+      });
+      selections[question] = { option, name };
+      updateSummary();
+    });
+  });
+
+  async function postPreference() {
+    if (Object.keys(selections).length !== total) return;
+    saveButton.disabled = true;
+    saveStatus.textContent = '保存中…';
+    const snapshot = {
+      type: 'design_preference_snapshot',
+      version: '0.1',
+      selections,
+      note: tasteNote.value.trim(),
+      created_at: new Date().toISOString(),
+    };
+    try {
+      const response = await fetch('/api/dashboard/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          page: '/dashboard/design-lab',
+          message: `DESIGN LAB｜${Object.values(selections).map(value => value.name).join(' / ')}`,
+          context: JSON.stringify(snapshot),
+        }),
+      });
+      if (!response.ok) throw new Error('save_failed');
+      saveStatus.textContent = '保存しました。これは「好み候補」。繰り返し選ばれたものをGrammar候補にします。';
+      await loadHistory();
+    } catch {
+      saveStatus.textContent = '保存に失敗しました。もう一度試してください。';
+    } finally {
+      saveButton.disabled = false;
+    }
+  }
+
+  async function loadHistory() {
+    try {
+      const response = await fetch('/api/dashboard/feedback');
+      const data = await response.json();
+      const items = (data.items || []).filter(item => item.page === '/dashboard/design-lab').slice(0, 5);
+      historyList.innerHTML = '';
+      if (!items.length) {
+        historyList.innerHTML = '<p>まだ保存したPreferenceはありません。</p>';
+        return;
+      }
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        const strong = document.createElement('strong');
+        strong.textContent = item.message || 'DESIGN LAB';
+        const time = document.createElement('time');
+        time.textContent = new Date(item.created_at).toLocaleString('ja-JP');
+        div.append(strong, time);
+        historyList.appendChild(div);
+      });
+    } catch {
+      historyList.innerHTML = '<p>履歴を読み込めませんでした。</p>';
+    }
+  }
+
+  saveButton.addEventListener('click', postPreference);
+  updateSummary();
+  loadHistory();
+</script>
