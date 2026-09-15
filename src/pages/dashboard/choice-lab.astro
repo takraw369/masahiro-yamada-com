@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
 const labs=[
   {href:'/dashboard/design-lab',status:'ACTIVE',name:'DESIGN',title:'見た目・操作感を選ぶ',desc:'UI / UX / Motion / Layout / Typographyなどを、実物を触って比較する。'},
   {status:'NEXT',name:'WORDS',title:'言葉を選ぶ',desc:'名前、見出し、CTA、説明文、ブランド語彙を比較する。'},
@@ -8,15 +9,150 @@ const labs=[
   {status:'NEXT',name:'BRAND',title:'ブランド表現を選ぶ',desc:'世界観、写真、色、言葉、服、見せ方を比較する。'},
   {status:'NEXT',name:'SYSTEM',title:'仕組みを選ぶ',desc:'運用方法、ツール、画面構成、自動化方針などを比較する。'},
 ];
+
+const nowQuestions=[
+  {batch:1,id:'focus-now',area:'PRIORITY',title:'今週、いちばん前へ進めるなら？',why:'複数のProjectが同時進行している時ほど、中心を1つ決めると他の判断が速くなる。',options:[['control-plane','Dashboard / MASA OS','全体の使いやすさと判断速度を上げる'],['revenue','売上につながるOffer','販売・顧客・導線を先に前進'],['ace','ACE / 教育','教育資産とプログラムを育てる']]},
+  {batch:1,id:'next-lab',area:'CHOICE LAB',title:'Designの次に「選べる化」するなら？',why:'次のLabを1つ開くと、Choice Labが実際の判断装置として育ち始める。',options:[['priority','PRIORITY','今やる / 後 / 捨てるを比較'],['words','WORDS','名前・見出し・CTAを比較'],['offer','OFFER','価格・構成・入口を比較']]},
+  {batch:1,id:'brand-front',area:'BRAND',title:'個人ブランドの正面に何を置く？',why:'MASA / SLF / ACEの役割を整理すると、発信と商品導線の迷いが減る。',options:[['masa','MASA','本人を入口にして各世界へつなぐ'],['slf','Sun Loves Flow','思想・Flowを入口にする'],['ace','ACE','教育・Athleteを入口にする']]},
+  {batch:1,id:'offer-front',area:'OFFER',title:'最初に磨く「買える入口」は？',why:'商品を増やすより、まず1つの入口を強くした方が検証しやすい。',options:[['sprint','短期Sprint','短期間・明確な成果の入口'],['coaching','1対1 Coaching','深い伴走と高単価の入口'],['program','ACE / 教育Program','体系化された継続商品']]},
+  {batch:1,id:'choice-rhythm',area:'SYSTEM',title:'AIから「NOW 5」を出すタイミングは？',why:'多すぎる提案はノイズ。少なすぎると判断が滞る。',options:[['open','Choice Labを開いた時','自分のタイミングを優先'],['daily','1日1回','日次で小さく判断する'],['event','変化があった時','Projectや情報更新をTriggerにする']]},
+
+  {batch:2,id:'dashboard-home',area:'SYSTEM',title:'Dashboardの最初の画面で一番見たいのは？',why:'ホームの主役を決めると、情報を足しても散らかりにくい。',options:[['next','次のAction','今やることを最優先'],['state','今の状態','Project・生活・流れの俯瞰'],['signals','変化 / Signal','更新・異常・新着を優先']]},
+  {batch:2,id:'content-source',area:'CONTENT',title:'発信の起点をどこに置く？',why:'入口を決めると、複数SNSへ展開する時の重複作業が減る。',options:[['thinking','日々の思考 / 会話','会話から自然に資産化'],['project','Project進捗','実践ログを発信へ変換'],['library','Research / Drive','蓄積知識を編集して発信']]},
+  {batch:2,id:'graph-role',area:'GRAPH',title:'Brain Graphで最初に強く見たい関係は？',why:'全部の関係を同じ強さで見せない方が、Graphは道具として使いやすい。',options:[['now','今動いているもの','Current focusを中心へ'],['cause','原因 → 結果','因果とEvidenceを強調'],['flow','資産 → Output','知識が商品・発信へ流れる経路']]},
+  {batch:2,id:'asset-rule',area:'ASSET',title:'何を最優先で「資産」に昇格させる？',why:'保存量より再利用基準を決めた方が、DriveとKnowledge Graphが軽くなる。',options:[['reuse','再利用したもの','実際に2回以上使えた'],['evidence','Evidenceがあるもの','結果や根拠が返ってきた'],['core','Coreと整合するもの','Purpose / 原則との一致を優先']]},
+  {batch:2,id:'ai-autonomy',area:'AI',title:'AIはどこまで先回りしてよい？',why:'自動化の強さを決めると、便利さと主導権の境界が明確になる。',options:[['suggest','提案まで','実行は必ずMASAが選ぶ'],['prepare','下書き・準備まで','すぐ承認できる状態まで作る'],['safe-auto','安全な範囲は自動','可逆・低リスクのみ先に進める']]},
+
+  {batch:3,id:'proof-first',area:'OFFER',title:'商品ページで最初に見せるなら？',why:'説明より先に何を見せるかで、伝わり方が大きく変わる。',options:[['result','結果 / Before→After','変化を先に見せる'],['method','Method / Flow','どう進むかを先に見せる'],['belief','思想 / Why','なぜやるかを先に見せる']]},
+  {batch:3,id:'brand-tone',area:'BRAND',title:'MASAの発信の基本トーンは？',why:'内容ごとに変えても、基準となる声が1つあると全体がまとまる。',options:[['clear','明快・端的','余計な装飾を減らす'],['warm','温かい・寄り添う','人との距離を近くする'],['provoking','問いを投げる','考えたくなる余白を作る']]},
+  {batch:3,id:'social-lead',area:'DISTRIBUTION',title:'発信の主戦場を1つ決めるなら？',why:'全媒体を同時に最適化するより、1つを検証場にすると速い。',options:[['x','X','思考・速報・対話を主軸'],['instagram','Instagram','Visual・世界観・教育を主軸'],['note','note / Longform','体系化・深掘りを主軸']]},
+  {batch:3,id:'community-shape',area:'COMMUNITY',title:'人が集まる場の基本形は？',why:'囲うか、流動性を持たせるかで運営設計が変わる。',options:[['circle','小さなCircle','深い関係を少人数で'],['guild','Guild / Project型','目的ごとに集まり解散'],['open','Open Network','出入り自由で接点を広げる']]},
+  {batch:3,id:'feedback-speed',area:'LEARNING',title:'実装後、いつ評価する？',why:'評価時点を揃えると「初見」と「日常使用」を混同しにくい。',options:[['instant','その場','3秒 / 触感を重視'],['day','24時間後','一度離れて再評価'],['week','1週間使用後','習慣としての使いやすさを重視']]},
+
+  {batch:4,id:'automation-trigger',area:'SYSTEM',title:'自動化は何をTriggerに動くのが自然？',why:'時間起点か、出来事起点かでOS全体の感覚が変わる。',options:[['event','出来事','保存・投稿・完了などをTrigger'],['schedule','時間','朝・週次など一定リズム'],['hybrid','Hybrid','基本はEvent、Reviewだけ時間']]},
+  {batch:4,id:'notification-rule',area:'SYSTEM',title:'通知する価値があるのは？',why:'通知の基準を絞ると、重要Signalが埋もれにくい。',options:[['action','Actionが必要','返答・承認・期限がある'],['change','意味ある変化','状況が前回から変わった'],['risk','Risk / 異常','失敗・期限・矛盾を優先']]},
+  {batch:4,id:'archive-rule',area:'KNOWLEDGE',title:'「今は使わない知識」をどう扱う？',why:'全部を前面に置かず、Dormantに落とす基準があるとGraphが育てやすい。',options:[['fade','薄く残す','検索可能だが通常は目立たせない'],['archive','Archiveへ移す','明確に現役から外す'],['review','定期Review','一定期間ごとに再判定']]},
+  {batch:4,id:'decision-revisit',area:'CHOICE LAB',title:'過去の選択をいつ見直す？',why:'Choiceを永久Ruleにせず、Evidenceで更新できるようにする。',options:[['evidence','Evidenceが返った時','結果が出たら再判定'],['conflict','矛盾した時','別の選択とぶつかったら再判定'],['monthly','月1 Review','まとめて棚卸し']]},
+  {batch:4,id:'next-30',area:'OUTCOME',title:'次の30日で「進んだ」と言える状態は？',why:'成果の定義が1つあると、細かい優先順位をそこへ寄せられる。',options:[['revenue','売上が生まれた','顧客と取引のEvidence'],['system','OSが日常で回る','毎日使える運用状態'],['asset','資産が増え再利用された','知識→Outputの循環']]},
+];
+
+const totalBatches=Math.max(...nowQuestions.map(q=>q.batch));
 ---
+
 <DashboardLayout title="Choice Lab" eyebrow="MASA OS">
   <div class="shell">
-    <header><p>MASA CHOICE LAB · DECISION SURFACE v0.1</p><h1>考え続けるより、<br/><em>並べて、触って、選ぶ。</em></h1><span>選択が必要なものを「比較できる形」に変換する共通ラボ。Designは稼働中。ほかは必要になった時に同じ仕組みで足していく。</span></header>
+    <header class="hero">
+      <div><p>MASA CHOICE LAB · DECISION SURFACE v0.2</p><h1>考え続けるより、<br/><em>並べて、触って、選ぶ。</em></h1><span>選択が必要なものを「比較できる形」に変換する共通ラボ。1回の選択はRuleではなくSignal。使った結果まで戻して学習する。</span></div>
+      <a class="design-link" href="/dashboard/design-lab"><small>DESIGN LAB</small><strong>25 signals</strong><span>続きから選ぶ →</span></a>
+    </header>
+
+    <section class="now-five" data-now-five data-total-batches={totalBatches}>
+      <div class="now-head">
+        <div><p>AI CURATED · DECISION INBOX</p><h2>NOW 5</h2><span>今、決める価値が高そうなものだけ5つ。全部を決めなくていい。保留も1つの選択。</span></div>
+        <div class="batch-meter"><small>CURRENT BATCH</small><strong><b id="batch-number">1</b> / {totalBatches}</strong><i><b id="batch-bar"></b></i></div>
+      </div>
+
+      <div id="question-stage" class="question-stage">
+        {nowQuestions.map((q,index)=><article class="decision" data-decision={q.id} data-batch={q.batch} data-index={index}>
+          <div class="decision-meta"><span>{String((index%5)+1).padStart(2,'0')}</span><b>{q.area}</b></div>
+          <div class="decision-copy"><h3>{q.title}</h3><p>{q.why}</p></div>
+          <div class="decision-options">
+            {q.options.map(o=><button type="button" data-choice={o[0]} data-label={o[1]} aria-pressed="false"><strong>{o[1]}</strong><small>{o[2]}</small></button>)}
+            <button type="button" class="hold" data-choice="hold" data-label="保留" aria-pressed="false"><strong>まだ決めない</strong><small>今はEvidence不足 / 今じゃない</small></button>
+          </div>
+        </article>)}
+      </div>
+
+      <div class="now-footer">
+        <div><strong><b id="answered-count">0</b> / 5</strong><span id="now-status">選ぶたびにこの端末へ保持。</span></div>
+        <div class="now-actions"><button id="previous-batch" type="button">← 前の5問</button><button id="save-now" type="button" disabled>5つ選ぶ</button></div>
+      </div>
+    </section>
+
     <section class="loop"><b>QUESTION</b><i>→</i><b>COMPARE</b><i>→</i><b>CHOOSE</b><i>→</i><b>USE</b><i>→</i><b>LEARN</b></section>
-    <main>{labs.map(l=>l.href?<a class="lab active" href={l.href}><div><small>{l.status}</small><strong>{l.name}</strong></div><h2>{l.title}</h2><p>{l.desc}</p><span>開く →</span></a>:<article class="lab"><div><small>{l.status}</small><strong>{l.name}</strong></div><h2>{l.title}</h2><p>{l.desc}</p><span>必要になったら追加</span></article>)}</main>
-    <aside><strong>原則</strong><p>選択肢を増やして迷わせるのではなく、比較軸を1つずつ切り出す。1回の選択は結論ではなくSignal。実際に使った結果まで戻して、繰り返し有効なものだけRuleへ昇格する。</p></aside>
+
+    <section class="labs-section">
+      <div class="section-head"><p>SPECIALIZED LABS</p><h2>選ぶ対象ごとに、比較面を変える。</h2></div>
+      <main>{labs.map(l=>l.href?<a class="lab active" href={l.href}><div><small>{l.status}</small><strong>{l.name}</strong></div><h3>{l.title}</h3><p>{l.desc}</p><span>開く →</span></a>:<article class="lab"><div><small>{l.status}</small><strong>{l.name}</strong></div><h3>{l.title}</h3><p>{l.desc}</p><span>必要になったら追加</span></article>)}</main>
+    </section>
+
+    <aside class="principle"><strong>原則</strong><p>AIの役割は決めることではなく「今、決める価値がある問い」を比較できる状態にすること。MASAが選び、実使用の結果が戻った時だけRule候補へ進む。</p></aside>
   </div>
 </DashboardLayout>
+
+<script define:vars={{ nowQuestions, totalBatches }}>
+  const STORAGE='masa-choice-lab-now-v1';
+  const parse=()=>{try{return JSON.parse(localStorage.getItem(STORAGE)||'{}')}catch{return {}}};
+  const state=parse();
+  if(!state.answers) state.answers={};
+  if(!state.batch) state.batch=1;
+
+  const batchNumber=document.querySelector('#batch-number');
+  const batchBar=document.querySelector('#batch-bar');
+  const answeredCount=document.querySelector('#answered-count');
+  const status=document.querySelector('#now-status');
+  const save=document.querySelector('#save-now');
+  const prev=document.querySelector('#previous-batch');
+
+  const persist=()=>localStorage.setItem(STORAGE,JSON.stringify(state));
+  const questionsFor=(batch)=>nowQuestions.filter(q=>q.batch===batch);
+
+  function render(){
+    document.querySelectorAll('[data-decision]').forEach(el=>{el.hidden=Number(el.dataset.batch)!==state.batch});
+    const current=questionsFor(state.batch);
+    current.forEach(q=>{
+      document.querySelectorAll(`[data-decision="${q.id}"] [data-choice]`).forEach(btn=>{
+        const selected=state.answers[q.id]?.value===btn.dataset.choice;
+        btn.setAttribute('aria-pressed',selected?'true':'false');
+      });
+    });
+    const count=current.filter(q=>state.answers[q.id]).length;
+    answeredCount.textContent=String(count);
+    batchNumber.textContent=String(state.batch);
+    batchBar.style.width=`${(state.batch/totalBatches)*100}%`;
+    prev.disabled=state.batch===1;
+    save.disabled=count!==current.length;
+    save.textContent=count===current.length?(state.batch===totalBatches?'この5つを記録':'記録して次の5問 →'):`あと${current.length-count}つ選ぶ`;
+    status.textContent=count===current.length?'この5つは記録できる。選び直しも可能。':'選ぶたびにこの端末へ保持。';
+  }
+
+  document.querySelectorAll('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>{
+    const card=btn.closest('[data-decision]');
+    if(!card) return;
+    state.answers[card.dataset.decision]={value:btn.dataset.choice,label:btn.dataset.label,at:new Date().toISOString()};
+    persist(); render();
+  }));
+
+  prev?.addEventListener('click',()=>{if(state.batch>1){state.batch--;persist();render();window.scrollTo({top:0,behavior:'smooth'});}});
+
+  save?.addEventListener('click',async()=>{
+    const current=questionsFor(state.batch);
+    if(!current.every(q=>state.answers[q.id])) return;
+    save.disabled=true; save.textContent='記録中…'; status.textContent='Decision logへ保存中…';
+    const decisions=current.map(q=>({id:q.id,area:q.area,question:q.title,choice:state.answers[q.id].value,label:state.answers[q.id].label,at:state.answers[q.id].at}));
+    try{
+      const res=await fetch('/api/dashboard/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({page:'/dashboard/choice-lab',message:`CHOICE NOW 5 · BATCH ${state.batch}`,context:JSON.stringify({kind:'choice_now_5',version:1,batch:state.batch,decisions})})});
+      if(!res.ok) throw new Error('save_failed');
+      status.textContent='記録した。次の判断へ進める。';
+      if(state.batch<totalBatches){state.batch++;persist();setTimeout(()=>{render();window.scrollTo({top:0,behavior:'smooth'});},250)}
+      else{state.completedAt=new Date().toISOString();persist();save.textContent='記録済み';}
+    }catch{
+      status.textContent='端末には保持済み。サーバー記録だけ失敗したので後で再実行できる。';
+      save.disabled=false; save.textContent='もう一度記録';
+    }
+  });
+
+  render();
+</script>
+
 <style>
-.shell{max-width:1180px;margin:0 auto;padding:14px 0 50px;color:#22282e}.shell header{padding:28px 0 34px;border-bottom:1px solid #d8d2ca}.shell header>p{color:#8b5b2c;font-size:.65rem;font-weight:700;letter-spacing:.14em}.shell h1{margin-top:8px;font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5.5vw,5.2rem);line-height:.9;letter-spacing:-.04em}.shell h1 em{font-style:normal;color:#8e8982}.shell header>span{display:block;max-width:720px;margin-top:20px;color:#707982;font-size:.8rem;line-height:1.8}.loop{display:flex;gap:11px;align-items:center;overflow:auto;padding:18px 0;color:#82796c;font-size:.62rem;letter-spacing:.08em;border-bottom:1px solid #e5e0d9}.loop b{color:#5d6268}.loop i{font-style:normal;color:#b5ada3}.shell main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-top:26px}.lab{min-height:205px;display:flex;flex-direction:column;padding:18px;border:1px solid #ddd7cf;background:#fbfaf8;color:inherit;text-decoration:none}.lab>div{display:flex;align-items:center;justify-content:space-between}.lab small{color:#999;font-size:.54rem;font-weight:700;letter-spacing:.1em}.lab strong{color:#8b5b2c;font-size:.62rem;letter-spacing:.12em}.lab h2{margin-top:25px;font-size:1rem}.lab p{margin-top:7px;color:#737c84;font-size:.66rem;line-height:1.65}.lab>span{margin-top:auto;padding-top:16px;color:#8f969c;font-size:.61rem}.lab.active{background:#fff;border-color:#bfa27e;transition:.16s}.lab.active small{color:#16835a}.lab.active>span{color:#7b4d16;font-weight:700}.lab.active:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(43,35,28,.07)}.shell aside{display:grid;grid-template-columns:90px 1fr;gap:16px;margin-top:28px;padding:17px;border:1px solid #ddd7cf;background:#f6f2eb}.shell aside strong{font-size:.68rem;color:#79501f}.shell aside p{color:#6f7880;font-size:.66rem;line-height:1.7}@media(max-width:800px){.shell main{grid-template-columns:1fr 1fr}}@media(max-width:560px){.shell main{grid-template-columns:1fr}.shell aside{grid-template-columns:1fr}.loop{gap:8px}}
+.shell{--ink:#22282e;--muted:#707982;--line:#d8d2ca;--gold:#8b5b2c;max-width:1180px;margin:0 auto;padding:14px 0 50px;color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:34px;align-items:end;padding:28px 0 34px;border-bottom:1px solid var(--line)}.hero p,.now-head p,.section-head p{color:var(--gold);font-size:.62rem;font-weight:700;letter-spacing:.14em}.hero h1{margin-top:8px;font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5.5vw,5.2rem);line-height:.9;letter-spacing:-.04em}.hero h1 em{font-style:normal;color:#8e8982}.hero>div>span{display:block;max-width:720px;margin-top:20px;color:var(--muted);font-size:.78rem;line-height:1.8}.design-link{display:flex;min-height:128px;flex-direction:column;padding:15px;border:1px solid #d6cec3;background:#fbfaf8;color:inherit;text-decoration:none}.design-link small{color:#8e969d;font-size:.55rem;letter-spacing:.12em}.design-link strong{margin-top:12px;font-size:1.05rem}.design-link span{margin-top:auto;color:#79501f;font-size:.62rem;font-weight:700}
+.now-five{margin-top:26px;border:1px solid #cdbb9f;background:#fff}.now-head{display:grid;grid-template-columns:1fr 180px;gap:24px;padding:22px;border-bottom:1px solid #e1d9cf}.now-head h2{margin-top:4px;font-family:'Cormorant Garamond',serif;font-size:3rem;line-height:.9}.now-head>div>span{display:block;max-width:650px;margin-top:10px;color:#717a82;font-size:.7rem;line-height:1.7}.batch-meter{align-self:end}.batch-meter small{display:block;color:#949ba0;font-size:.52rem;letter-spacing:.1em}.batch-meter strong{display:block;margin-top:5px;font-size:.8rem}.batch-meter i{display:block;height:3px;margin-top:10px;background:#ece7e1;overflow:hidden}.batch-meter i b{display:block;height:100%;background:#95652b;transition:.25s}
+.question-stage{padding:0 22px}.decision{display:grid;grid-template-columns:86px minmax(220px,.72fr) minmax(0,1.28fr);gap:22px;padding:24px 0;border-bottom:1px solid #e7e2dc}.decision:last-child{border-bottom:0}.decision[hidden]{display:none}.decision-meta{display:flex;flex-direction:column;gap:8px}.decision-meta span{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#aaa199}.decision-meta b{font-size:.55rem;letter-spacing:.1em;color:#98662c}.decision-copy h3{font-size:1rem;line-height:1.45}.decision-copy p{margin-top:8px;color:#747d85;font-size:.65rem;line-height:1.65}.decision-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.decision-options button{min-height:72px;padding:10px 12px;border:1px solid #dcd6cf;background:#fbfaf8;text-align:left;color:inherit;cursor:pointer;transition:.15s}.decision-options button strong,.decision-options button small{display:block}.decision-options button strong{font-size:.68rem}.decision-options button small{margin-top:4px;color:#7e858b;font-size:.56rem;line-height:1.4}.decision-options button:hover{border-color:#bca17d;background:#fff}.decision-options button[aria-pressed="true"]{border-color:#9a6a31;background:#f5efe6;box-shadow:inset 3px 0 #9a6a31}.decision-options .hold{border-style:dashed;background:#fff}
+.now-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 22px;border-top:1px solid #ddd6ce;background:#f8f5f0}.now-footer>div:first-child{display:flex;align-items:center;gap:12px}.now-footer strong{font-size:.72rem}.now-footer span{color:#7a8288;font-size:.6rem}.now-actions{display:flex;gap:7px}.now-actions button{min-height:38px;padding:0 14px;border:1px solid #d5cec5;background:#fff;color:#555f67;font-size:.62rem;font-weight:700;cursor:pointer}.now-actions #save-now{min-width:154px;border-color:#8a5d28;background:#8a5d28;color:#fff}.now-actions button:disabled{opacity:.45;cursor:not-allowed}
+.loop{display:flex;gap:11px;align-items:center;overflow:auto;padding:18px 0;color:#82796c;font-size:.62rem;letter-spacing:.08em;border-bottom:1px solid #e5e0d9}.loop b{color:#5d6268}.loop i{font-style:normal;color:#b5ada3}.labs-section{padding-top:25px}.section-head h2{margin-top:5px;font-size:1rem}.labs-section main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-top:18px}.lab{min-height:195px;display:flex;flex-direction:column;padding:18px;border:1px solid #ddd7cf;background:#fbfaf8;color:inherit;text-decoration:none}.lab>div{display:flex;align-items:center;justify-content:space-between}.lab small{color:#999;font-size:.54rem;font-weight:700;letter-spacing:.1em}.lab strong{color:#8b5b2c;font-size:.62rem;letter-spacing:.12em}.lab h3{margin-top:25px;font-size:1rem}.lab p{margin-top:7px;color:#737c84;font-size:.66rem;line-height:1.65}.lab>span{margin-top:auto;padding-top:16px;color:#8f969c;font-size:.61rem}.lab.active{background:#fff;border-color:#bfa27e;transition:.16s}.lab.active small{color:#16835a}.lab.active>span{color:#7b4d16;font-weight:700}.lab.active:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(43,35,28,.07)}.principle{display:grid;grid-template-columns:90px 1fr;gap:16px;margin-top:28px;padding:17px;border:1px solid #ddd7cf;background:#f6f2eb}.principle strong{font-size:.68rem;color:#79501f}.principle p{color:#6f7880;font-size:.66rem;line-height:1.7}
+@media(max-width:900px){.decision{grid-template-columns:64px 1fr}.decision-options{grid-column:2}.labs-section main{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.hero{grid-template-columns:1fr}.design-link{min-height:100px}.now-head{grid-template-columns:1fr}.batch-meter{width:160px}.decision{grid-template-columns:46px 1fr;gap:12px;padding:19px 0}.decision-options{grid-column:1/-1}.now-footer{align-items:flex-start;flex-direction:column}.now-actions{width:100%}.now-actions button{flex:1}.labs-section main{grid-template-columns:1fr}.principle{grid-template-columns:1fr}}
+@media(max-width:480px){.question-stage,.now-head,.now-footer{padding-left:14px;padding-right:14px}.decision-options{grid-template-columns:1fr}.hero h1{font-size:2.8rem}}
 </style>
