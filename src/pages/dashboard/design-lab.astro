@@ -1,42 +1,61 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
-const rawQuestions = [
-  ['button-shape','BUTTON','どのボタンが押したくなる？','角の強さで道具感と軽さが変わる。','button',['edge','soft','pill'],['EDGE','SOFT','PILL']],
-  ['surface-depth','SURFACE','情報の「面」はどれが気持ちいい？','境界をどう感じさせるかを見る。','surface',['flat','line','float'],['FLAT','LINE','FLOAT']],
-  ['density','SPACE','どの情報密度なら疲れない？','一覧性と余白のバランスを見る。','density',['airy','balanced','compact'],['AIRY','BALANCED','COMPACT']],
-  ['navigation','NAVIGATION','「どこにいるか」はどう見えたい？','現在地と次の行き先の認知負荷を見る。','navigation',['rail','tabs','dock'],['RAIL','TABS','DOCK']],
-  ['motion','MOTION','どのくらい「生きてる」のが好き？','状態や流れを伝えるMotionの強さ。','motion',['still','gentle','responsive'],['STILL','GENTLE','RESPONSIVE']],
-  ['type-style','TYPE','文字の空気感はどれが好き？','情報と世界観の距離感を見る。','type',['sans','editorial','hybrid'],['SANS','EDITORIAL','HYBRID']],
-  ['title-scale','TITLE','見出しはどれくらい主張してほしい？','静かな階層か、明確な主役か。','title',['quiet','clear','hero'],['QUIET','CLEAR','HERO']],
-  ['color-mood','COLOR','画面の温度はどれが落ち着く？','色相より空気の温度で選ぶ。','color',['warm','cool','night'],['WARM','COOL','NIGHT']],
-  ['accent-use','ACCENT','アクセント色はどれくらい欲しい？','視線誘導に必要な強さを見る。','accent',['sparse','balanced','signal'],['SPARSE','BALANCED','SIGNAL']],
-  ['corner-system','CORNERS','角丸はどこまで欲しい？','全体の物性を決める。','corners',['square','soft','mixed'],['SQUARE','SOFT','MIXED']],
-  ['icon-style','ICON','アイコンはどんな存在感がいい？','記号と文字の主従を見る。','icon',['line','filled','label'],['LINE','FILLED','LABEL FIRST']],
-  ['feedback','FEEDBACK','押した反応はどの強さがいい？','操作の手応えを比べる。','feedback',['subtle','visible','physical'],['SUBTLE','VISIBLE','PHYSICAL']],
-  ['alignment','LAYOUT','レイアウトはどの整い方が好き？','秩序と余白の崩し方を見る。','alignment',['grid','asym','center'],['GRID','ASYMMETRY','CENTER']],
-  ['section-rhythm','RHYTHM','ページはどう区切られてほしい？','流れの連続性と場面転換を見る。','rhythm',['continuous','sectioned','scenes'],['CONTINUOUS','SECTIONED','SCENES']],
-  ['cta-hierarchy','CTA','行動ボタンはいくつ見えてよい？','迷わなさと選択自由度のバランス。','cta',['one','dual','context'],['ONE PRIMARY','PRIMARY + SECOND','CONTEXTUAL']],
-  ['border-strength','BORDER','境界線はどれくらい必要？','面を分ける強さを見る。','border',['none','hairline','defined'],['NONE','HAIRLINE','DEFINED']],
-  ['background','BACKGROUND','背景はどの質感が好き？','真っ白・紙感・光の差を比べる。','background',['pure','paper','gradient'],['PURE','PAPER','GRADIENT']],
-  ['selection-state','SELECT','選択中はどう分かるのがいい？','状態表示の方法を見る。','select',['check','highlight','marker'],['CHECK','HIGHLIGHT','MARKER']],
-  ['status','STATUS','状態ラベルはどう見せたい？','情報量を増やしすぎない表示。','status',['text','dot','badge'],['TEXT','DOT','BADGE']],
-  ['progress','PROGRESS','進捗はどう感じたい？','数字・道・世界変化の違い。','progress',['number','path','world'],['NUMBER','PATH','WORLD']],
-  ['search','SEARCH','検索はどこにいてほしい？','常時表示と必要時表示を比べる。','search',['always','command','context'],['ALWAYS','COMMAND','CONTEXT']],
-  ['overlay','OVERLAY','補助情報はどう開くのがいい？','画面を止めるか、横から差すか。','overlay',['dialog','drawer','inline'],['DIALOG','DRAWER','INLINE']],
-  ['mobile-nav','MOBILE','スマホの移動はどれが楽？','片手操作と画面占有の差。','mobile',['bottom','sheet','minimal'],['BOTTOM','SHEET','MINIMAL']],
-  ['graph-node','GRAPH','GraphのNodeはどれが好き？','地図としての密度と意味の見え方。','graph',['card','dot','label'],['CARD','DOT','LABEL']],
-  ['loading','LOADING','待ち時間はどう見えたい？','存在感の少ないFeedbackを選ぶ。','loading',['skeleton','pulse','text'],['SKELETON','PULSE','TEXT']],
-];
-
-const notes: Record<string,string> = {
-  edge:'輪郭が明快。道具感が強い。',soft:'少し柔らかい。汎用性が高い。',pill:'軽く、ラベル的。',flat:'背景と連続して静か。',line:'細い境界で整理。',float:'影で操作対象を分ける。',airy:'余白大。ひとつずつ見る。',balanced:'一覧性と余白の中間。',compact:'操作盤的に詰める。',rail:'左固定で道具箱的。',tabs:'同階層切替が速い。',dock:'主要行動を手元に残す。',still:'ほぼ静止。',gentle:'呼吸する程度。',responsive:'触れた時だけ反応。',sans:'機能的で明快。',editorial:'誌面的で余韻がある。',hybrid:'機能と世界観を混ぜる。',quiet:'見出しも静か。',clear:'主従が明快。',hero:'強い主役を置く。',warm:'生成り・温度感。',cool:'白〜灰の冷静さ。',night:'藍・暗部の没入感。',sparse:'必要箇所だけ。',signal:'強く導く。',square:'硬質で明快。',mixed:'用途で角を変える。',filled:'記号の存在感が強い。',label:'文字を主役にする。',subtle:'小さく返す。',visible:'しっかり返す。',physical:'押し込み感まで出す。',grid:'整列を優先。',asym:'非対称で余白を作る。',center:'中心に集中。',continuous:'流れを切らない。',sectioned:'明確に区切る。',scenes:'場面ごとに空気を変える。',one:'行動を1つに絞る。',dual:'主＋副を並べる。',context:'場所に応じて出す。',none:'線を極力使わない。',hairline:'細線だけ。',defined:'境界を明確に出す。',pure:'無地で静か。',paper:'紙のような柔らかさ。',gradient:'光で奥行きを作る。',check:'記号で明示。',highlight:'面全体を変える。',marker:'端に小さな印。',text:'言葉だけ。',dot:'小さな点。',badge:'囲って強調。',number:'数字で把握。',path:'道の進行で把握。',world:'景色の変化で把握。',always:'いつでも見える。',command:'必要時に呼ぶ。',context:'文脈に応じて出す。',dialog:'中央で集中。',drawer:'横から補助。',inline:'その場で展開。',bottom:'下部固定。',sheet:'必要時だけ開く。',minimal:'戻る＋少数導線。',card:'情報を持つNode。',dot:'点で密度を出す。',label:'文字中心。',skeleton:'構造を先に見せる。',pulse:'小さく脈動。',text:'短い言葉だけ。'
+type Option = { id: string; name: string; note: string };
+type Question = {
+  id: string;
+  label: string;
+  title: string;
+  hint: string;
+  demo: string;
+  step: string;
+  set: number;
+  options: Option[];
 };
 
-const questions = rawQuestions.map((q,index)=>({
+type RawQuestion = [
+  string,
+  string,
+  string,
+  string,
+  string,
+  [string, string, string],
+  [string, string, string],
+  [string, string, string],
+];
+
+const rawQuestions: RawQuestion[] = [
+  ['button-shape','BUTTON','どのボタンが押したくなる？','角の強さで道具感と軽さが変わる。','button',['edge','soft','pill'],['EDGE','SOFT','PILL'],['輪郭が明快。道具感が強い。','少し柔らかい。汎用性が高い。','軽く、ラベル的。']],
+  ['surface-depth','SURFACE','情報の「面」はどれが気持ちいい？','境界をどう感じさせるかを見る。','surface',['flat','line','float'],['FLAT','LINE','FLOAT'],['背景と連続して静か。','細い境界で整理。','影で操作対象を分ける。']],
+  ['density','SPACE','どの情報密度なら疲れない？','一覧性と余白のバランスを見る。','density',['airy','balanced','compact'],['AIRY','BALANCED','COMPACT'],['余白大。ひとつずつ見る。','一覧性と余白の中間。','操作盤的に詰める。']],
+  ['navigation','NAVIGATION','「どこにいるか」はどう見えたい？','現在地と次の行き先の認知負荷を見る。','navigation',['rail','tabs','dock'],['RAIL','TABS','DOCK'],['左固定で道具箱的。','同階層切替が速い。','主要行動を手元に残す。']],
+  ['motion','MOTION','どのくらい「生きてる」のが好き？','状態や流れを伝えるMotionの強さ。','motion',['still','gentle','responsive'],['STILL','GENTLE','RESPONSIVE'],['ほぼ静止。','呼吸する程度。','触れた時だけ反応。']],
+  ['type-style','TYPE','文字の空気感はどれが好き？','情報と世界観の距離感を見る。','type',['sans','editorial','hybrid'],['SANS','EDITORIAL','HYBRID'],['機能的で明快。','誌面的で余韻がある。','機能と世界観を混ぜる。']],
+  ['title-scale','TITLE','見出しはどれくらい主張してほしい？','静かな階層か、明確な主役か。','title',['quiet','clear','hero'],['QUIET','CLEAR','HERO'],['見出しも静か。','主従が明快。','強い主役を置く。']],
+  ['color-mood','COLOR','画面の温度はどれが落ち着く？','色相より空気の温度で選ぶ。','color',['warm','cool','night'],['WARM','COOL','NIGHT'],['生成り・温度感。','白〜灰の冷静さ。','藍・暗部の没入感。']],
+  ['accent-use','ACCENT','アクセント色はどれくらい欲しい？','視線誘導に必要な強さを見る。','accent',['sparse','balanced','signal'],['SPARSE','BALANCED','SIGNAL'],['必要箇所だけ。','要所に均等。','強く導く。']],
+  ['corner-system','CORNERS','角丸はどこまで欲しい？','全体の物性を決める。','corners',['square','soft','mixed'],['SQUARE','SOFT','MIXED'],['硬質で明快。','柔らかく統一。','用途で角を変える。']],
+  ['icon-style','ICON','アイコンはどんな存在感がいい？','記号と文字の主従を見る。','icon',['line','filled','label'],['LINE','FILLED','LABEL FIRST'],['線で軽く示す。','記号の存在感が強い。','文字を主役にする。']],
+  ['feedback','FEEDBACK','押した反応はどの強さがいい？','操作の手応えを比べる。','feedback',['subtle','visible','physical'],['SUBTLE','VISIBLE','PHYSICAL'],['小さく返す。','しっかり返す。','押し込み感まで出す。']],
+  ['alignment','LAYOUT','レイアウトはどの整い方が好き？','秩序と余白の崩し方を見る。','alignment',['grid','asym','center'],['GRID','ASYMMETRY','CENTER'],['整列を優先。','非対称で余白を作る。','中心に集中。']],
+  ['section-rhythm','RHYTHM','ページはどう区切られてほしい？','流れの連続性と場面転換を見る。','rhythm',['continuous','sectioned','scenes'],['CONTINUOUS','SECTIONED','SCENES'],['流れを切らない。','明確に区切る。','場面ごとに空気を変える。']],
+  ['cta-hierarchy','CTA','行動ボタンはいくつ見えてよい？','迷わなさと選択自由度のバランス。','cta',['one','dual','context'],['ONE PRIMARY','PRIMARY + SECOND','CONTEXTUAL'],['行動を1つに絞る。','主＋副を並べる。','場所に応じて出す。']],
+  ['border-strength','BORDER','境界線はどれくらい必要？','面を分ける強さを見る。','border',['none','hairline','defined'],['NONE','HAIRLINE','DEFINED'],['線を極力使わない。','細線だけ。','境界を明確に出す。']],
+  ['background','BACKGROUND','背景はどの質感が好き？','真っ白・紙感・光の差を比べる。','background',['pure','paper','gradient'],['PURE','PAPER','GRADIENT'],['無地で静か。','紙のような柔らかさ。','光で奥行きを作る。']],
+  ['selection-state','SELECT','選択中はどう分かるのがいい？','状態表示の方法を見る。','select',['check','highlight','marker'],['CHECK','HIGHLIGHT','MARKER'],['記号で明示。','面全体を変える。','端に小さな印。']],
+  ['status','STATUS','状態ラベルはどう見せたい？','情報量を増やしすぎない表示。','status',['text','dot','badge'],['TEXT','DOT','BADGE'],['言葉だけ。','小さな点。','囲って強調。']],
+  ['progress','PROGRESS','進捗はどう感じたい？','数字・道・世界変化の違い。','progress',['number','path','world'],['NUMBER','PATH','WORLD'],['数字で把握。','道の進行で把握。','景色の変化で把握。']],
+  ['search','SEARCH','検索はどこにいてほしい？','常時表示と必要時表示を比べる。','search',['always','command','context'],['ALWAYS','COMMAND','CONTEXT'],['いつでも見える。','必要時に呼ぶ。','文脈に応じて出す。']],
+  ['overlay','OVERLAY','補助情報はどう開くのがいい？','画面を止めるか、横から差すか。','overlay',['dialog','drawer','inline'],['DIALOG','DRAWER','INLINE'],['中央で集中。','横から補助。','その場で展開。']],
+  ['mobile-nav','MOBILE','スマホの移動はどれが楽？','片手操作と画面占有の差。','mobile',['bottom','sheet','minimal'],['BOTTOM','SHEET','MINIMAL'],['下部固定。','必要時だけ開く。','戻る＋少数導線。']],
+  ['graph-node','GRAPH','GraphのNodeはどれが好き？','地図としての密度と意味の見え方。','graph',['card','dot','label'],['CARD','DOT','LABEL'],['情報を持つNode。','点で密度を出す。','文字中心。']],
+  ['loading','LOADING','待ち時間はどう見えたい？','存在感の少ないFeedbackを選ぶ。','loading',['skeleton','pulse','text'],['SKELETON','PULSE','TEXT'],['構造を先に見せる。','小さく脈動。','短い言葉だけ。']],
+];
+
+const questions: Question[] = rawQuestions.map((q,index)=>({
   id:q[0], label:q[1], title:q[2], hint:q[3], demo:q[4],
   step:String(index+1).padStart(2,'0'), set:Math.floor(index/5)+1,
-  options:(q[5] as string[]).map((id,i)=>({id,name:(q[6] as string[])[i],note:notes[id] || '比較して直感で選ぶ。'}))
+  options:q[5].map((id,i)=>({id,name:q[6][i],note:q[7][i]})),
 }));
 const totalSets = Math.ceil(questions.length/5);
 ---
@@ -146,15 +165,15 @@ function render(){
   $$('.experiment').forEach(el=>el.hidden=Number(el.dataset.set)!==set);
   $$('.set-nav button').forEach(b=>{const n=Number(b.dataset.setJump);b.classList.toggle('active',n===set);b.classList.toggle('complete',answered(n)===setQuestions(n).length)});
   const all=Object.keys(state.selections).length; $('#all-count').textContent=String(all); $('#all-bar').style.width=`${Math.round(all/questions.length*100)}%`; $('#resume-copy').textContent=`SET ${set} · ${answered(set)} / ${setQuestions(set).length}`; $('#set-number').textContent=String(set);
-  const list=$('#summary-list'); list.innerHTML=''; setQuestions(set).forEach(q=>{const row=document.createElement('div');row.className='summary-row'+(state.selections[q.id]?' done':'');row.innerHTML=`<span>${q.label}</span><strong>${state.selections[q.id]?.name||'未選択'}</strong>`;list.appendChild(row)});
+  const list=$('#summary-list'); list.innerHTML=''; setQuestions(set).forEach(q=>{const row=document.createElement('div');row.className='summary-row'+(state.selections[q.id]?' done':'');const label=document.createElement('span');label.textContent=q.label;const strong=document.createElement('strong');strong.textContent=state.selections[q.id]?.name||'未選択';row.append(label,strong);list.appendChild(row)});
   $$('.choice').forEach(c=>{const v=state.selections[c.dataset.question];const on=v?.option===c.dataset.option;c.setAttribute('aria-pressed',on?'true':'false');const badge=c.querySelector('.choice-state');if(badge)badge.textContent=on?'選択中 ✓':'選ぶ'});
   const remain=setQuestions(set).length-answered(set); save.disabled=remain>0; save.textContent=remain?`あと${remain}つ選ぶ`:state.savedSets.includes(set)?'このSETは保存済み':'この5問を保存';
-  $('#prev-set').disabled=set===1; $('#next-set').disabled=set===totalSets; $('#next-set').textContent=set===totalSets?'ここまで完了':`次の5問 →`;
+  $('#prev-set').disabled=set===1; $('#next-set').disabled=set===totalSets; $('#next-set').textContent=set===totalSets?'ここまで完了':'次の5問 →';
 }
 $$('.choice').forEach(c=>c.addEventListener('click',()=>{const q=c.dataset.question;const question=questions.find(x=>x.id===q);state.selections[q]={option:c.dataset.option,name:c.dataset.name};state.savedSets=(state.savedSets||[]).filter(s=>s!==question.set);persist();status.textContent='この端末に保持しました。';render()}));
 $$('[data-set-jump]').forEach(b=>b.addEventListener('click',()=>{state.activeSet=Number(b.dataset.setJump);persist();status.textContent='';render();window.scrollTo({top:0,behavior:'smooth'})}));
 $('#prev-set').addEventListener('click',()=>{if(state.activeSet>1){state.activeSet--;persist();render();window.scrollTo({top:0,behavior:'smooth'})}});$('#next-set').addEventListener('click',()=>{if(state.activeSet<totalSets){state.activeSet++;persist();render();window.scrollTo({top:0,behavior:'smooth'})}});
-async function saveSet(){const set=state.activeSet;if(answered(set)!==setQuestions(set).length)return;save.disabled=true;status.textContent='保存中…';const subset={};setQuestions(set).forEach(q=>subset[q.id]=state.selections[q.id]);const snapshot={type:'design_preference_set',version:'0.2',set,selections:subset,note:note.value.trim(),created_at:new Date().toISOString()};try{const r=await fetch('/api/dashboard/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({page:'/dashboard/design-lab',message:`DESIGN LAB SET ${set}｜${Object.values(subset).map(v=>v.name).join(' / ')}`,context:JSON.stringify(snapshot)})});if(!r.ok)throw 0;state.savedSets=[...new Set([...(state.savedSets||[]),set])];persist();status.textContent=set<totalSets?'保存しました。次の5問へ進めます。':'保存しました。現時点の25問まで完了できます。';await loadHistory();if(set<totalSets){setTimeout(()=>{state.activeSet=set+1;persist();render();window.scrollTo({top:0,behavior:'smooth'})},450)}}catch{status.textContent='保存に失敗。端末上の選択は残っています。'}finally{render()}}
+async function saveSet(){const set=state.activeSet;if(answered(set)!==setQuestions(set).length)return;save.disabled=true;status.textContent='保存中…';const subset={};setQuestions(set).forEach(q=>subset[q.id]=state.selections[q.id]);const snapshot={type:'design_preference_set',version:'0.2',set,selections:subset,note:note.value.trim(),created_at:new Date().toISOString()};try{const r=await fetch('/api/dashboard/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({page:'/dashboard/design-lab',message:`DESIGN LAB SET ${set}｜${Object.values(subset).map(v=>v.name).join(' / ')}`,context:JSON.stringify(snapshot)})});if(!r.ok)throw new Error('save_failed');state.savedSets=[...new Set([...(state.savedSets||[]),set])];persist();status.textContent=set<totalSets?'保存しました。次の5問へ進めます。':'保存しました。現時点の25問まで完了できます。';await loadHistory();if(set<totalSets){setTimeout(()=>{state.activeSet=set+1;persist();render();window.scrollTo({top:0,behavior:'smooth'})},450)}}catch{status.textContent='保存に失敗。端末上の選択は残っています。'}finally{render()}}
 save.addEventListener('click',saveSet);
 async function loadHistory(){const box=$('#history-list');try{const r=await fetch('/api/dashboard/feedback');const d=await r.json();const items=(d.items||[]).filter(i=>i.page==='/dashboard/design-lab').slice(0,8);box.innerHTML='';if(!items.length){box.innerHTML='<p>まだSET保存はありません。</p>';return}items.forEach(i=>{const el=document.createElement('div');el.className='history-item';const s=document.createElement('strong');s.textContent=i.message||'DESIGN LAB';const t=document.createElement('time');t.textContent=new Date(i.created_at).toLocaleString('ja-JP');el.append(s,t);box.appendChild(el)})}catch{box.innerHTML='<p>履歴を読み込めませんでした。</p>'}}
 render();loadHistory();
