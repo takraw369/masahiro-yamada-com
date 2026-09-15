@@ -1,5 +1,9 @@
-import { normalizeUrl, statusLabels } from "./model.ts";
-import type { Snapshot } from "./model.ts";
+import {
+  destinationTypeLabels,
+  normalizeUrl,
+  statusLabels,
+} from "./model.ts";
+import type { KnowledgeItem, Snapshot } from "./model.ts";
 import { createFixture } from "./fixtures.ts";
 
 export const STORAGE_KEY = "masa:knowledge-flow:demo:v1";
@@ -13,11 +17,36 @@ const strings = (v: unknown): v is string[] =>
   Array.isArray(v) && v.every((x) => typeof x === "string");
 const date = (v: unknown) =>
   typeof v === "string" && Number.isFinite(Date.parse(v));
-export function validateSnapshot(value: unknown): Snapshot {
+
+function migrateSnapshot(value: unknown): Snapshot {
   if (!value || typeof value !== "object") throw invalid();
-  const s = value as Snapshot;
+  const raw = value as Record<string, unknown>;
+  if (raw.version !== 1 && raw.version !== 2) throw invalid();
+  if (!Array.isArray(raw.items)) throw invalid();
+  const items = raw.items.map((candidate) => {
+    if (!candidate || typeof candidate !== "object") throw invalid();
+    const item = candidate as Record<string, unknown>;
+    return {
+      ...item,
+      why_saved: typeof item.why_saved === "string" ? item.why_saved : "",
+      connection_reason:
+        typeof item.connection_reason === "string" ? item.connection_reason : "",
+      destination_type:
+        typeof item.destination_type === "string" &&
+        Object.hasOwn(destinationTypeLabels, item.destination_type)
+          ? item.destination_type
+          : typeof item.output === "string" && item.output.trim()
+            ? "content"
+            : "hold",
+    } as KnowledgeItem;
+  });
+  return { ...raw, version: 2, items } as Snapshot;
+}
+
+export function validateSnapshot(value: unknown): Snapshot {
+  const s = migrateSnapshot(value);
   if (
-    s.version !== 1 ||
+    s.version !== 2 ||
     !Number.isSafeInteger(s.revision) ||
     s.revision < 0 ||
     !Array.isArray(s.items)
@@ -46,10 +75,17 @@ export function validateSnapshot(value: unknown): Snapshot {
     if (
       !i ||
       typeof i.id !== "string" ||
-      !["title", "url", "summary", "output", "next_action"].every(
-        (k) => typeof i[k as keyof typeof i] === "string",
-      ) ||
+      ![
+        "title",
+        "url",
+        "summary",
+        "why_saved",
+        "connection_reason",
+        "output",
+        "next_action",
+      ].every((k) => typeof i[k as keyof typeof i] === "string") ||
       !Object.hasOwn(statusLabels, i.status) ||
+      !Object.hasOwn(destinationTypeLabels, i.destination_type) ||
       !["web", "youtube", "research", "pdf", "x"].includes(i.source_type) ||
       !(
         i.asset_score === null ||
@@ -107,6 +143,7 @@ export function localKnowledgeRepository(
         );
       const next = validateSnapshot({
         ...snapshot,
+        version: 2,
         revision: expectedRevision + 1,
       });
       try {
