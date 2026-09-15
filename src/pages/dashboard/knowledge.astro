@@ -1,14 +1,31 @@
 ---
-import DashboardLayout from '../../layouts/DashboardLayout.astro';
-import KnowledgeCockpit from '../../components/knowledge/KnowledgeCockpit.astro';
-import '../../styles/knowledge-os.css';
+import KnowledgeFlow from '../../components/knowledge-flow/KnowledgeFlow';
+// This on-demand route inherits the existing Dashboard session boundary.
+// Never prerender private pages or populate them from public content collections.
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
 ---
-<DashboardLayout title="FLOW MIND" fullHeight={true} focusMode={true}>
-  <KnowledgeCockpit />
-  <script is:inline src="/scripts/flow-mind-search.js"></script>
-  <script is:inline src="/scripts/flow-mind-capture.js"></script>
-  <script is:inline src="/scripts/flow-mind-today.js"></script>
-  <script is:inline src="/scripts/flow-mind-highlight.js"></script>
-  <script is:inline src="/scripts/flow-mind-journal.js"></script>
-  <script is:inline src="/scripts/flow-mind-launch.js"></script>
-</DashboardLayout>
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#f0f3ed" />
+    <title>Knowledge Flow — MASA OS</title>
+    <style is:global>
+      html, body { margin: 0; min-height: 100%; background: #f8f9f7; }
+      .kf-skip { position: fixed; top: -100px; left: 12px; z-index: 200; padding: 12px; background: #286d55; color: white; }
+      .kf-skip:focus { top: 10px; }
+    </style>
+  </head>
+  <body>
+    <a class="kf-skip" href="#knowledge-main">本文へ移動</a>
+    <main id="knowledge-main" tabindex="-1">
+      <KnowledgeFlow client:only="react">
+        <p slot="fallback">Knowledge Flowを読み込んでいます…</p>
+      </KnowledgeFlow>
+    </main>
+    <noscript>Knowledge Flowを使うにはJavaScriptを有効にしてください。<a href="/dashboard">Dashboardへ戻る</a></noscript>
+  </body>
+</html>
