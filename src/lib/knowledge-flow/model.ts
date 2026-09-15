@@ -12,6 +12,15 @@ export const statusLabels = {
   ready: "公開準備OK",
 } as const;
 export type Status = keyof typeof statusLabels;
+export const destinationTypeLabels = {
+  hold: "まだ決めない",
+  content: "発信・Content",
+  research: "Research",
+  project: "Project",
+  canonical: "Canonical",
+  other: "その他",
+} as const;
+export type DestinationType = keyof typeof destinationTypeLabels;
 export interface Project {
   id: string;
   name: string;
@@ -35,11 +44,17 @@ export interface KnowledgeItem {
   thumbnail_url: string | null;
   raw_content: string | null;
   summary: string;
+  /** MASA自身の一次メモ。AI要約とは分離して残す。 */
+  why_saved: string;
   status: Status;
   asset_score: number | null;
   tag_ids: string[];
   project_ids: string[];
   theme_id: string | null;
+  /** Project / Themeへ接続した理由。将来AI提案と本人判断を区別できる入口。 */
+  connection_reason: string;
+  /** 次に何へ育てるかの種類。outputはその具体名。 */
+  destination_type: DestinationType;
   output: string;
   next_action: string;
   created_at: string;
@@ -47,7 +62,7 @@ export interface KnowledgeItem {
   connected_at: string | null;
 }
 export interface Snapshot {
-  version: 1;
+  version: 2;
   revision: number;
   items: KnowledgeItem[];
   projects: Project[];
@@ -96,11 +111,14 @@ export function captureItem(
     thumbnail_url: null,
     raw_content: null,
     summary: "",
+    why_saved: "",
     status: "inbox",
     asset_score: null,
     tag_ids: [],
     project_ids: [],
     theme_id: null,
+    connection_reason: "",
+    destination_type: "hold",
     output: "",
     next_action: "意味をひとこと添える",
     created_at: now,
@@ -144,7 +162,10 @@ export function selectItems(
         item.title,
         item.url,
         item.summary,
+        item.why_saved,
+        item.connection_reason,
         item.output,
+        destinationTypeLabels[item.destination_type],
         item.next_action,
         statusLabels[item.status],
         ...snapshot.projects
