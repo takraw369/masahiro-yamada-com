@@ -1,47 +1,58 @@
 # Knowledge Flow — resume checkpoint
 
 ## Goal / acceptance
-Implement a usable, responsive TypeScript MVP at `/dashboard/knowledge`: capture,
-Inbox, Library, structured Flow, search, editable connections, and local persistence.
-Preserve public routes, existing authentication, Cloudflare bindings and live storage.
+Implemented a usable TypeScript MVP at `/dashboard/knowledge`: URL capture, rich
+Inbox, Library, structured Flow, search/filtering, editable connections and local
+persistence. Public routes, existing authentication, Cloudflare bindings and live
+storage remain unchanged.
 
-## Source / current state
-- Branch: `feat/knowledge-flow-mvp`, based on remote `master` (2026-09-15).
-- Astro 7, React 19, Cloudflare Workers. React uses `client:only="react"`.
-- Existing route duplicates FLOW MIND; `/mind` remains the existing live cockpit.
-- `src/middleware.ts` already authenticates all Dashboard pages and APIs.
-- Existing `/api/dashboard/knowledge` is an owner-scoped Supabase RPC boundary,
-  and rejects URL-only captures. Do not change its contract for the prototype.
-- Drive / MASA_OS remains canonical; local prototype is explicitly noncanonical.
-- No sitemap generator or sitemap file is present in the repository.
+## Source of truth / recoverable state
+- Repository: `takraw369/masahiro-yamada-com`.
+- Branch: `feat/knowledge-flow-mvp`; base `6586891` from `master`.
+- Draft PR: https://github.com/takraw369/masahiro-yamada-com/pull/92
+- Implementation milestones: `e98faea`, `13b8260`; mobile polish: `c8dfd9e`.
+- `docs/knowledge-flow.md`: design, logical data model, integration mapping,
+  Phase 2 priorities and validation receipt.
+- `src/components/knowledge-flow/`: reusable React workspace, cards, forms,
+  presentation primitives and ordered Flow.
+- `src/lib/knowledge-flow/`: types, nine editorial fixtures, query functions and
+  versioned repository adapter; no live API or secret access.
 
-## Decisions
-Use a route-scoped React workspace, local fixture data and a replaceable repository
-adapter. Respect MASA's explicit direction to design a new visual language here.
-Use ordered Source → Theme → Project → Output paths, never a free-node graph.
-Retain server-side auth; do not introduce a development bypass in application code.
+## Architecture decisions
+Astro 7 / React 19 client-only islands / Cloudflare Workers. Existing middleware
+continues to require signed Dashboard sessions. `/mind` remains the live FLOW MIND
+cockpit. The existing knowledge API and its URL-intake rejection remain intact.
+Drive / MASA_OS remains canonical. Demo browser storage is not canonical storage.
+The new route adds noindex meta/header and never joins public content collections.
+No sitemap generator is present. No package dependency or production binding added.
 
-## Completed / evidence
-Repository, layouts, knowledge contracts, API, middleware, deployment workflow,
-design rules and validation checklist inspected. Dedicated branch created.
+## Completed / verification
+- Capture → classify → Library → Flow → reload persistence verified in Chrome.
+- Desktop and iPhone emulation, mobile capture, duplicate reopening, search,
+  Escape, 320px overflow and five axe A/AA scans verified.
+- 76 tests, production build/config, release delta typecheck, isolated Worker
+  public/auth/knowledge smoke, audit and diff checks passed.
+- Full repo typecheck has 363 pre-existing errors; changed source files are clean.
+- GitHub CI test/build + secret scan passed on `13b8260`; consult current PR head
+  checks for final docs/mobile polish. No deployment was performed.
+- Actual iPhone Safari/VoiceOver and production runtime remain UNVERIFIED.
 
-## Open / next smallest action
-Implement types, fixtures, storage adapter and UI, then run unit tests, typecheck,
-build, isolated Worker auth/public-route smoke and authenticated browser checks.
-All implementation and runtime behavior currently UNVERIFIED.
+## Local preview / resume
+`npm run preview:knowledge` (Node 22.19+ or 24) rebuilds an isolated local Worker,
+using a local-only password verification fixture. Open
+`http://127.0.0.1:8787/dashboard/knowledge`, enter `knowledge-flow-local-demo`,
+then return to the knowledge URL after login. No production credentials required.
+The demo persists per browser/origin under `masa:knowledge-flow:demo:v1`; JSON
+export is available. Data remains in browser storage after logout.
+Local screenshots/test scripts: `work/knowledge-flow/` (not pushed, not required).
+
+## Open work / next smallest verifiable action
+Phase 1 code is ready for UX review. Review current PR checks and try saving one
+URL, adding a summary/project, setting its state to 育てる, and opening Library/Flow.
+For Phase 2, inspect live canonical schema + owner/RPC contracts before implementing
+an HTTP repository. Do not invent parallel Project/Canonical storage. Metadata,
+AI, semantic search, ingestion, publishing and Drive canonicalization are deferred.
 
 ## Human gate
-No gate for implementation. Do not merge to master: master pushes deploy production.
-No production deploy or database migration is part of this local UI MVP.
-
-## Implementation milestone
-+- Route-scoped React workspace, typed fixtures, query model and local repository implemented.
-+- URL capture, duplicate reopening, editable summaries/tags/theme/multiple projects,
-+  manual score, states, output intent, and next action implemented.
-+- Inbox/Library/Flow, attention filters, contextual rail and mobile navigation implemented.
-+- Design/data model/Phase 2 guide and isolated authenticated preview helper added.
-+- `npm test`: 76 passed. Production build + Worker config verification passed.
-+- Full Astro typecheck: 363 existing repository errors; new Knowledge Flow files
-+  have no errors. Release delta check and browser interactions still UNVERIFIED.
-+- Next: isolated Worker smoke, browser capture/edit/reload/Flow checks at desktop
-+  and iPhone widths; review diff, run release gate, publish working branch/draft PR.
+No implementation approval pending. Do not merge/deploy without release intent:
+`master` pushes automatically deploy the production Worker.

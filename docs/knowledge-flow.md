@@ -171,3 +171,30 @@ personal browser; it is not secure cross-device private knowledge storage.
 5. **Develop → Publish → Canonicalize:** real draft entities, destination adapters,
    explicit review before publication, actual output receipts, and Drive canonical
    references. Add item-level provenance back to original sources.
+
+## Verification receipt — 2026-09-15
+
+- Node 24.19.0; production build + Worker artifact verification passed.
+- 76 Node tests passed, including new URL/query/persistence/conflict/corruption tests.
+- Release typecheck: zero changed source files with errors. Full-repository
+  Astro check reports 363 existing errors, chiefly unrelated dashboard pages.
+- Worker smoke passed: public home/contact/FAQ/Tips/library/gate/login, anonymous
+  private redirects/API denials, authenticated Knowledge Flow, no-store/noindex.
+  One concurrent checker run exhausted the existing short readiness window;
+  a clean sequential rerun passed. No timeout was hidden or relaxed.
+- Chrome desktop 1440px and iPhone 13 emulation 390px: capture, edit tags/meaning/
+  theme/project/score/output, move to Library, Flow projection, reload persistence,
+  keyword search, duplicate URL reopening, Escape and mobile capture passed.
+  No browser JS errors. 320px Flow overflow check also passed.
+- axe-core 4.10.3 WCAG 2 A/AA + 2.1 AA: zero violations in desktop Inbox/editor/
+  Flow and mobile Flow/capture after contrast fixes. Automated checks do not
+  replace physical iPhone Safari / VoiceOver testing, which remains UNVERIFIED.
+- `npm run security:check`: zero vulnerabilities. `git diff --check`: passed.
+- Draft PR: [#92](https://github.com/takraw369/masahiro-yamada-com/pull/92).
+  GitHub CI test/build + secret scan passed on implementation commit `13b8260`.
+  Final documentation/mobile polish checks can be read on the PR.
+- No production deployment, Supabase migration, or live knowledge write performed.
+
+Local-only visual artifacts and browser checks are in `work/knowledge-flow/`
+(ignored by Git); they contain synthetic data only. They are supplementary evidence,
+not required runtime assets or a remote handoff dependency.
