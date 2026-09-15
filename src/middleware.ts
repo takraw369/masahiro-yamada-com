@@ -32,7 +32,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const { pathname } = url;
-  const isFlowMindPage = pathname === '/mind';
+  const isFlowMindPage = pathname === '/mind' || pathname.startsWith('/mind/');
   const isDashboardPage =
     pathname.startsWith('/dashboard') &&
     pathname !== '/dashboard/login' &&
