@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
 import { getSiteStorageEnv } from '../../lib/siteStorage';
 
 type EventRow = {
@@ -78,6 +79,8 @@ const cards = [
       </div>
       <a href="/trinity" target="_blank" rel="noopener noreferrer">診断ページを見る ↗</a>
     </div>
+
+    <CopyOsReference surface="LP" />
 
     {!dbReady ? (
       <section class="notice">
