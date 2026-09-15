@@ -15,165 +15,68 @@ const initialQuestions=fallbackChoiceNow(5);
 
 <DashboardLayout title="Choice Lab" eyebrow="MASA OS">
   <div class="shell">
-    <header class="hero">
-      <div><p>MASA CHOICE LAB · DECISION SURFACE v0.3</p><h1>考え続けるより、<br/><em>並べて、触って、選ぶ。</em></h1><span>選択が必要なものを「比較できる形」に変換する共通ラボ。1回の選択はRuleではなくSignal。使った結果まで戻して学習する。</span></div>
-      <a class="design-link" href="/dashboard/design-lab"><small>DESIGN LAB</small><strong>25 signals</strong><span>続きから選ぶ →</span></a>
-    </header>
+    <header class="hero"><div><p>MASA CHOICE LAB · DECISION SURFACE v0.3</p><h1>考え続けるより、<br/><em>並べて、触って、選ぶ。</em></h1><span>選択が必要なものを比較できる形に変える。1回の選択はRuleではなくSignal。使った結果まで戻して学習する。</span></div><a class="design-link" href="/dashboard/design-lab"><small>DESIGN LAB</small><strong>25 signals</strong><span>続きから選ぶ →</span></a></header>
 
-    <section class="now-five" data-now-five>
-      <div class="now-head">
-        <div><p id="rank-mode">CONTEXT RANKED · DECISION INBOX</p><h2>NOW 5</h2><span>最近の選択・Intelligence・Question Labの動きから、今決める価値が高そうな5問を優先。保留も1つの選択。</span><small id="context-note">Contextを読み込み中…</small></div>
-        <div class="batch-meter"><small>CURRENT SET</small><strong>#<b id="set-number">1</b></strong><i><b id="batch-bar"></b></i></div>
-      </div>
-
+    <section class="now-five">
+      <div class="now-head"><div><p id="rank-mode">CONTEXT RANKED · DECISION INBOX</p><h2>NOW 5</h2><span>最近の選択・Intelligence・Question Labの動きから、今決める価値が高そうな5問を優先。保留も1つの選択。</span><small id="context-note">Contextを読み込み中…</small></div><div class="set-meter"><small>CURRENT SET</small><strong>#<b id="set-number">1</b></strong><i><b id="set-bar"></b></i></div></div>
       <div id="question-stage" class="question-stage" aria-live="polite"></div>
-
-      <div class="now-footer">
-        <div><strong><b id="answered-count">0</b> / 5</strong><span id="now-status">選ぶたびにこの端末へ保持。</span></div>
-        <div class="now-actions"><button id="previous-set" type="button">← 前の5問</button><button id="save-now" type="button" disabled>5つ選ぶ</button></div>
-      </div>
+      <div class="now-footer"><div><strong><b id="answered-count">0</b> / 5</strong><span id="now-status">選ぶたびにこの端末へ保持。</span></div><div class="now-actions"><button id="previous-set" type="button">← 前の5問</button><button id="save-now" type="button" disabled>5つ選ぶ</button></div></div>
     </section>
 
     <section class="loop"><b>QUESTION</b><i>→</i><b>COMPARE</b><i>→</i><b>CHOOSE</b><i>→</i><b>USE</b><i>→</i><b>LEARN</b></section>
-
-    <section class="labs-section">
-      <div class="section-head"><p>SPECIALIZED LABS</p><h2>選ぶ対象ごとに、比較面を変える。</h2></div>
-      <main>{labs.map(l=>l.href?<a class="lab active" href={l.href}><div><small>{l.status}</small><strong>{l.name}</strong></div><h3>{l.title}</h3><p>{l.desc}</p><span>開く →</span></a>:<article class="lab"><div><small>{l.status}</small><strong>{l.name}</strong></div><h3>{l.title}</h3><p>{l.desc}</p><span>必要になったら追加</span></article>)}</main>
-    </section>
-
+    <section class="labs-section"><div class="section-head"><p>SPECIALIZED LABS</p><h2>選ぶ対象ごとに、比較面を変える。</h2></div><main>{labs.map(l=>l.href?<a class="lab active" href={l.href}><div><small>{l.status}</small><strong>{l.name}</strong></div><h3>{l.title}</h3><p>{l.desc}</p><span>開く →</span></a>:<article class="lab"><div><small>{l.status}</small><strong>{l.name}</strong></div><h3>{l.title}</h3><p>{l.desc}</p><span>必要になったら追加</span></article>)}</main></section>
     <aside class="principle"><strong>原則</strong><p>AIの役割は決めることではなく「今、決める価値がある問い」を比較できる状態にすること。MASAが選び、実使用の結果が戻った時だけRule候補へ進む。</p></aside>
   </div>
 </DashboardLayout>
 
 <script define:vars={{ initialQuestions }}>
-  const STORAGE='masa-choice-lab-now-v2';
-  const LEGACY='masa-choice-lab-now-v1';
-  const esc=(value)=>String(value??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));
-  const read=(key)=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
-  const legacy=read(LEGACY);
-  const state=read(STORAGE)||{answers:legacy?.answers||{},sets:[],cursor:0,recentIds:[]};
-  if(!state.answers) state.answers={};
-  if(!Array.isArray(state.sets)) state.sets=[];
-  if(!Array.isArray(state.recentIds)) state.recentIds=[];
-  if(!Number.isInteger(state.cursor)) state.cursor=0;
-
-  const stage=document.querySelector('#question-stage');
-  const setNumber=document.querySelector('#set-number');
-  const answeredCount=document.querySelector('#answered-count');
-  const status=document.querySelector('#now-status');
-  const save=document.querySelector('#save-now');
-  const prev=document.querySelector('#previous-set');
-  const rankMode=document.querySelector('#rank-mode');
-  const contextNote=document.querySelector('#context-note');
-  const batchBar=document.querySelector('#batch-bar');
-
+  const STORAGE='masa-choice-lab-now-v2', LEGACY='masa-choice-lab-now-v1';
+  const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));
+  const read=(k)=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
+  const legacy=read(LEGACY), state=read(STORAGE)||{answers:legacy?.answers||{},sets:[],cursor:0};
+  state.answers ||= {}; if(!Array.isArray(state.sets)) state.sets=[]; if(!Number.isInteger(state.cursor)) state.cursor=0;
+  const $=(q)=>document.querySelector(q), stage=$('#question-stage'), setNumber=$('#set-number'), answeredCount=$('#answered-count'), status=$('#now-status'), save=$('#save-now'), prev=$('#previous-set'), rankMode=$('#rank-mode'), contextNote=$('#context-note'), setBar=$('#set-bar');
   const persist=()=>localStorage.setItem(STORAGE,JSON.stringify(state));
   const currentSet=()=>state.sets[state.cursor]||null;
-  const answered=(questions)=>questions.filter(q=>state.answers[q.id]).length;
+  const answered=(qs)=>qs.filter(q=>state.answers[q.id]).length;
 
   function questionMarkup(q,index){
     const options=[...(q.options||[]),['hold','保留','今はEvidence不足 / 今じゃない']];
-    return `<article class="decision" data-decision="${esc(q.id)}">
-      <div class="decision-meta"><span>${String(index+1).padStart(2,'0')}</span><b>${esc(q.area)}</b></div>
-      <div class="decision-copy"><h3>${esc(q.title)}</h3><p>${esc(q.why)}</p></div>
-      <div class="decision-options">${options.map(o=>{
-        const selected=state.answers[q.id]?.value===o[0];
-        return `<button type="button" class="${o[0]==='hold'?'hold':''}" data-choice="${esc(o[0])}" data-label="${esc(o[1])}" aria-pressed="${selected?'true':'false'}"><strong>${o[0]==='hold'?'まだ決めない':esc(o[1])}</strong><small>${esc(o[2])}</small></button>`;
-      }).join('')}</div>
-    </article>`;
+    return `<article class="decision" data-decision="${esc(q.id)}"><div class="decision-meta"><span>${String(index+1).padStart(2,'0')}</span><b>${esc(q.area)}</b></div><div class="decision-copy"><h3>${esc(q.title)}</h3><p>${esc(q.why)}</p></div><div class="decision-options">${options.map(o=>`<button type="button" class="${o[0]==='hold'?'hold':''}" data-choice="${esc(o[0])}" data-label="${esc(o[1])}" aria-pressed="${state.answers[q.id]?.value===o[0]?'true':'false'}"><strong>${o[0]==='hold'?'まだ決めない':esc(o[1])}</strong><small>${esc(o[2])}</small></button>`).join('')}</div></article>`;
   }
-
-  function bindChoices(){
-    stage?.querySelectorAll('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>{
-      const card=btn.closest('[data-decision]');
-      if(!card) return;
-      state.answers[card.dataset.decision]={value:btn.dataset.choice,label:btn.dataset.label,at:new Date().toISOString()};
-      persist(); render();
-    }));
-  }
-
+  function bindChoices(){ stage?.querySelectorAll('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>{const card=btn.closest('[data-decision]');if(!card)return;state.answers[card.dataset.decision]={value:btn.dataset.choice,label:btn.dataset.label,at:new Date().toISOString()};persist();render();})); }
   function render(){
-    const set=currentSet();
-    const questions=set?.questions||[];
-    if(stage) stage.innerHTML=questions.length?questions.map(questionMarkup).join(''):'<p class="loading-note">今のContextから5問を選んでいます…</p>';
-    bindChoices();
-    const count=answered(questions);
-    if(answeredCount) answeredCount.textContent=String(count);
-    if(setNumber) setNumber.textContent=String(state.cursor+1);
-    if(batchBar) batchBar.style.width=`${Math.min(100,Math.max(12,(state.cursor+1)*20))}%`;
-    if(prev) prev.disabled=state.cursor===0;
-    if(save){save.disabled=questions.length!==5||count!==questions.length;save.textContent=count===questions.length?'この5つを記録 →':`あと${Math.max(0,questions.length-count)}つ選ぶ`;}
-    if(status) status.textContent=count===questions.length?'この5つは記録できる。選び直しも可能。':'選ぶたびにこの端末へ保持。';
-    if(rankMode) rankMode.textContent=set?.mode==='context-ranked'?'CONTEXT RANKED · DECISION INBOX':set?.mode==='fallback'?'FALLBACK · DECISION INBOX':'BASE RANKED · DECISION INBOX';
-    if(contextNote){
-      const s=set?.sourceSummary;
-      const signals=Array.isArray(set?.signals)&&set.signals.length?` · Signal: ${set.signals.slice(0,3).join(' / ')}`:'';
-      contextNote.textContent=s?`Feedback ${s.recentFeedbackCount||0} · Intelligence ${s.intelligenceCount||0} · Question Lab ${s.questionLabAvailable?'ON':'—'}${signals}`:'Contextを読み込み中…';
-    }
+    const set=currentSet(), qs=set?.questions||[], count=answered(qs);
+    if(stage) stage.innerHTML=qs.length?qs.map(questionMarkup).join(''):'<p class="loading-note">今のContextから5問を選んでいます…</p>'; bindChoices();
+    if(answeredCount) answeredCount.textContent=String(count); if(setNumber)setNumber.textContent=String(state.cursor+1); if(setBar)setBar.style.width=`${Math.min(100,Math.max(12,(state.cursor+1)*20))}%`; if(prev)prev.disabled=state.cursor===0;
+    if(save){save.disabled=qs.length!==5||count!==qs.length;save.textContent=count===qs.length?'この5つを記録 →':`あと${Math.max(0,qs.length-count)}つ選ぶ`;}
+    if(status)status.textContent=count===qs.length?'この5つは記録できる。選び直しも可能。':'選ぶたびにこの端末へ保持。';
+    if(rankMode)rankMode.textContent=set?.mode==='context-ranked'?'CONTEXT RANKED · DECISION INBOX':set?.mode==='fallback'?'FALLBACK · DECISION INBOX':'BASE RANKED · DECISION INBOX';
+    if(contextNote){const s=set?.sourceSummary, sig=Array.isArray(set?.signals)&&set.signals.length?` · Signal: ${set.signals.slice(0,3).join(' / ')}`:'';contextNote.textContent=s?`Feedback ${s.recentFeedbackCount||0} · Intelligence ${s.intelligenceCount||0} · Question Lab ${s.questionLabAvailable?'ON':'—'}${sig}`:'Contextを読み込み中…';}
   }
-
-  function recentExclude(){
-    const ids=[];
-    for(let i=state.sets.length-1;i>=0&&ids.length<10;i--){
-      if(!state.sets[i]?.completedAt) continue;
-      for(const q of state.sets[i].questions||[]) if(!ids.includes(q.id)&&ids.length<10) ids.push(q.id);
-    }
-    return ids;
+  function recentExclude(){const ids=[];for(let i=state.sets.length-1;i>=0&&ids.length<10;i--){if(!state.sets[i]?.completedAt)continue;for(const q of state.sets[i].questions||[])if(!ids.includes(q.id)&&ids.length<10)ids.push(q.id);}return ids;}
+  function insertSet(set,{replaceCurrent=false}={}){
+    if(replaceCurrent&&currentSet()&&!currentSet().completedAt){state.sets[state.cursor]=set;}
+    else{if(state.cursor<state.sets.length-1)state.sets=state.sets.slice(0,state.cursor+1);state.sets.push(set);state.cursor=state.sets.length-1;}
+    if(state.sets.length>12){state.sets=state.sets.slice(-12);state.cursor=state.sets.length-1;}persist();render();
   }
-
-  async function loadFreshSet(){
-    if(status) status.textContent='最近のContextからNOW 5を再ランキング中…';
-    try{
-      const exclude=recentExclude();
-      const res=await fetch(`/api/dashboard/choice-now?limit=5&exclude=${encodeURIComponent(exclude.join(','))}`);
-      const body=await res.json();
-      if(!res.ok||!body.ok||!Array.isArray(body.questions)||body.questions.length!==5) throw new Error('rank_failed');
-      const set={questions:body.questions,mode:body.mode,signals:body.signals||[],sourceSummary:body.sourceSummary||null,generatedAt:body.generatedAt,completedAt:null};
-      if(state.cursor<state.sets.length) state.sets=state.sets.slice(0,state.cursor);
-      state.sets.push(set);state.cursor=state.sets.length-1;
-    }catch{
-      const set={questions:initialQuestions,mode:'fallback',signals:[],sourceSummary:null,generatedAt:new Date().toISOString(),completedAt:null};
-      if(state.cursor<state.sets.length) state.sets=state.sets.slice(0,state.cursor);
-      state.sets.push(set);state.cursor=state.sets.length-1;
-    }
-    state.sets=state.sets.slice(-12);state.cursor=state.sets.length-1;persist();render();
+  async function loadFreshSet({replaceCurrent=false}={}){
+    if(status)status.textContent='最近のContextからNOW 5を再ランキング中…';
+    try{const exclude=recentExclude(),res=await fetch(`/api/dashboard/choice-now?limit=5&exclude=${encodeURIComponent(exclude.join(','))}`),body=await res.json();if(!res.ok||!body.ok||!Array.isArray(body.questions)||body.questions.length!==5)throw new Error('rank_failed');insertSet({questions:body.questions,mode:body.mode,signals:body.signals||[],sourceSummary:body.sourceSummary||null,generatedAt:body.generatedAt,completedAt:null},{replaceCurrent});}
+    catch{insertSet({questions:initialQuestions,mode:'fallback',signals:[],sourceSummary:null,generatedAt:new Date().toISOString(),completedAt:null},{replaceCurrent});}
   }
-
   prev?.addEventListener('click',()=>{if(state.cursor>0){state.cursor--;persist();render();window.scrollTo({top:0,behavior:'smooth'});}});
-
   save?.addEventListener('click',async()=>{
-    const set=currentSet();
-    const questions=set?.questions||[];
-    if(questions.length!==5||!questions.every(q=>state.answers[q.id])) return;
+    const set=currentSet(), qs=set?.questions||[]; if(qs.length!==5||!qs.every(q=>state.answers[q.id]))return;
     save.disabled=true;save.textContent='記録中…';if(status)status.textContent='Decision logへ保存中…';
-    const decisions=questions.map(q=>({id:q.id,area:q.area,question:q.title,choice:state.answers[q.id].value,label:state.answers[q.id].label,at:state.answers[q.id].at}));
-    try{
-      const res=await fetch('/api/dashboard/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({page:'/dashboard/choice-lab',message:`CHOICE NOW 5 · SET ${state.cursor+1}`,context:JSON.stringify({kind:'choice_now_5',version:2,rankingMode:set.mode,generatedAt:set.generatedAt,decisions})})});
-      if(!res.ok) throw new Error('save_failed');
-      set.completedAt=new Date().toISOString();persist();
-      if(state.cursor<state.sets.length-1){state.cursor++;persist();render();window.scrollTo({top:0,behavior:'smooth'});}
-      else await loadFreshSet();
-    }catch{
-      if(status)status.textContent='端末には保持済み。サーバー記録だけ失敗したので後で再実行できる。';
-      save.disabled=false;save.textContent='もう一度記録';
-    }
+    const decisions=qs.map(q=>({id:q.id,area:q.area,question:q.title,choice:state.answers[q.id].value,label:state.answers[q.id].label,at:state.answers[q.id].at}));
+    try{const res=await fetch('/api/dashboard/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({page:'/dashboard/choice-lab',message:`CHOICE NOW 5 · SET ${state.cursor+1}`,context:JSON.stringify({kind:'choice_now_5',version:2,rankingMode:set.mode,generatedAt:set.generatedAt,decisions})})});if(!res.ok)throw new Error('save_failed');set.completedAt=new Date().toISOString();persist();if(state.cursor<state.sets.length-1){state.cursor++;persist();render();window.scrollTo({top:0,behavior:'smooth'});}else await loadFreshSet();}
+    catch{if(status)status.textContent='端末には保持済み。サーバー記録だけ失敗したので後で再実行できる。';save.disabled=false;save.textContent='もう一度記録';}
   });
-
-  if(state.sets.length){
-    state.cursor=Math.min(Math.max(0,state.cursor),state.sets.length-1);render();
-  }else{
-    state.sets=[{questions:initialQuestions,mode:'base-ranked',signals:[],sourceSummary:null,generatedAt:new Date().toISOString(),completedAt:null}];state.cursor=0;persist();render();loadFreshSet();
-  }
+  if(state.sets.length){state.cursor=Math.min(Math.max(0,state.cursor),state.sets.length-1);render();}
+  else{state.sets=[{questions:initialQuestions,mode:'base-ranked',signals:[],sourceSummary:null,generatedAt:new Date().toISOString(),completedAt:null}];state.cursor=0;persist();render();loadFreshSet({replaceCurrent:true});}
 </script>
 
 <style>
-.shell{--ink:#22282e;--muted:#707982;--line:#d8d2ca;--gold:#8b5b2c;max-width:1180px;margin:0 auto;padding:14px 0 50px;color:var(--ink)}
-.hero{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:34px;align-items:end;padding:28px 0 34px;border-bottom:1px solid var(--line)}.hero p,.now-head p,.section-head p{color:var(--gold);font-size:.62rem;font-weight:700;letter-spacing:.14em}.hero h1{margin-top:8px;font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5.5vw,5.2rem);line-height:.9;letter-spacing:-.04em}.hero h1 em{font-style:normal;color:#8e8982}.hero>div>span{display:block;max-width:720px;margin-top:20px;color:var(--muted);font-size:.78rem;line-height:1.8}.design-link{display:flex;min-height:128px;flex-direction:column;padding:15px;border:1px solid #d6cec3;background:#fbfaf8;color:inherit;text-decoration:none}.design-link small{color:#8e969d;font-size:.55rem;letter-spacing:.12em}.design-link strong{margin-top:12px;font-size:1.05rem}.design-link span{margin-top:auto;color:#79501f;font-size:.62rem;font-weight:700}
-.now-five{margin-top:26px;border:1px solid #cdbb9f;background:#fff}.now-head{display:grid;grid-template-columns:1fr 180px;gap:24px;padding:22px;border-bottom:1px solid #e1d9cf}.now-head h2{margin-top:4px;font-family:'Cormorant Garamond',serif;font-size:3rem;line-height:.9}.now-head>div>span{display:block;max-width:650px;margin-top:10px;color:#717a82;font-size:.7rem;line-height:1.7}.now-head>div>small{display:block;margin-top:9px;color:#9a8b79;font-size:.56rem;letter-spacing:.03em}.batch-meter{align-self:end}.batch-meter small{display:block;color:#949ba0;font-size:.52rem;letter-spacing:.1em}.batch-meter strong{display:block;margin-top:5px;font-size:.8rem}.batch-meter i{display:block;height:3px;margin-top:10px;background:#ece7e1;overflow:hidden}.batch-meter i b{display:block;height:100%;background:#95652b;transition:.25s}
-.question-stage{padding:0 22px}.loading-note{padding:36px 0;color:#8a9298;font-size:.72rem}.decision{display:grid;grid-template-columns:86px minmax(220px,.72fr) minmax(0,1.28fr);gap:22px;padding:24px 0;border-bottom:1px solid #e7e2dc}.decision:last-child{border-bottom:0}.decision-meta{display:flex;flex-direction:column;gap:8px}.decision-meta span{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#aaa199}.decision-meta b{font-size:.55rem;letter-spacing:.1em;color:#98662c}.decision-copy h3{font-size:1rem;line-height:1.45}.decision-copy p{margin-top:8px;color:#747d85;font-size:.65rem;line-height:1.65}.decision-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.decision-options button{min-height:72px;padding:10px 12px;border:1px solid #dcd6cf;background:#fbfaf8;text-align:left;color:inherit;cursor:pointer;transition:.15s}.decision-options button strong,.decision-options button small{display:block}.decision-options button strong{font-size:.68rem}.decision-options button small{margin-top:4px;color:#7e858b;font-size:.56rem;line-height:1.4}.decision-options button:hover{border-color:#bca17d;background:#fff}.decision-options button[aria-pressed="true"]{border-color:#9a6a31;background:#f5efe6;box-shadow:inset 3px 0 #9a6a31}.decision-options .hold{border-style:dashed;background:#fff}
-.now-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 22px;border-top:1px solid #ddd6ce;background:#f8f5f0}.now-footer>div:first-child{display:flex;align-items:center;gap:12px}.now-footer strong{font-size:.72rem}.now-footer span{color:#7a8288;font-size:.6rem}.now-actions{display:flex;gap:7px}.now-actions button{min-height:38px;padding:0 14px;border:1px solid #d5cec5;background:#fff;color:#555f67;font-size:.62rem;font-weight:700;cursor:pointer}.now-actions #save-now{min-width:154px;border-color:#8a5d28;background:#8a5d28;color:#fff}.now-actions button:disabled{opacity:.45;cursor:not-allowed}
-.loop{display:flex;gap:11px;align-items:center;overflow:auto;padding:18px 0;color:#82796c;font-size:.62rem;letter-spacing:.08em;border-bottom:1px solid #e5e0d9}.loop b{color:#5d6268}.loop i{font-style:normal;color:#b5ada3}.labs-section{padding-top:25px}.section-head h2{margin-top:5px;font-size:1rem}.labs-section main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-top:18px}.lab{min-height:195px;display:flex;flex-direction:column;padding:18px;border:1px solid #ddd7cf;background:#fbfaf8;color:inherit;text-decoration:none}.lab>div{display:flex;align-items:center;justify-content:space-between}.lab small{color:#999;font-size:.54rem;font-weight:700;letter-spacing:.1em}.lab strong{color:#8b5b2c;font-size:.62rem;letter-spacing:.12em}.lab h3{margin-top:25px;font-size:1rem}.lab p{margin-top:7px;color:#737c84;font-size:.66rem;line-height:1.65}.lab>span{margin-top:auto;padding-top:16px;color:#8f969c;font-size:.61rem}.lab.active{background:#fff;border-color:#bfa27e;transition:.16s}.lab.active small{color:#16835a}.lab.active>span{color:#7b4d16;font-weight:700}.lab.active:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(43,35,28,.07)}.principle{display:grid;grid-template-columns:90px 1fr;gap:16px;margin-top:28px;padding:17px;border:1px solid #ddd7cf;background:#f6f2eb}.principle strong{font-size:.68rem;color:#79501f}.principle p{color:#6f7880;font-size:.66rem;line-height:1.7}
-@media(max-width:900px){.decision{grid-template-columns:64px 1fr}.decision-options{grid-column:2}.labs-section main{grid-template-columns:1fr 1fr}}
-@media(max-width:700px){.hero{grid-template-columns:1fr}.design-link{min-height:100px}.now-head{grid-template-columns:1fr}.batch-meter{width:160px}.decision{grid-template-columns:46px 1fr;gap:12px;padding:19px 0}.decision-options{grid-column:1/-1}.now-footer{align-items:flex-start;flex-direction:column}.now-actions{width:100%}.now-actions button{flex:1}.labs-section main{grid-template-columns:1fr}.principle{grid-template-columns:1fr}}
-@media(max-width:480px){.question-stage,.now-head,.now-footer{padding-left:14px;padding-right:14px}.decision-options{grid-template-columns:1fr}.hero h1{font-size:2.8rem}}
+.shell{--ink:#22282e;--muted:#707982;--line:#d8d2ca;--gold:#8b5b2c;max-width:1180px;margin:0 auto;padding:14px 0 50px;color:var(--ink)}.hero{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:34px;align-items:end;padding:28px 0 34px;border-bottom:1px solid var(--line)}.hero p,.now-head p,.section-head p{color:var(--gold);font-size:.62rem;font-weight:700;letter-spacing:.14em}.hero h1{margin-top:8px;font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5.5vw,5.2rem);line-height:.9;letter-spacing:-.04em}.hero h1 em{font-style:normal;color:#8e8982}.hero>div>span{display:block;max-width:720px;margin-top:20px;color:var(--muted);font-size:.78rem;line-height:1.8}.design-link{display:flex;min-height:128px;flex-direction:column;padding:15px;border:1px solid #d6cec3;background:#fbfaf8;color:inherit;text-decoration:none}.design-link small{color:#8e969d;font-size:.55rem;letter-spacing:.12em}.design-link strong{margin-top:12px;font-size:1.05rem}.design-link span{margin-top:auto;color:#79501f;font-size:.62rem;font-weight:700}.now-five{margin-top:26px;border:1px solid #cdbb9f;background:#fff}.now-head{display:grid;grid-template-columns:1fr 180px;gap:24px;padding:22px;border-bottom:1px solid #e1d9cf}.now-head h2{margin-top:4px;font-family:'Cormorant Garamond',serif;font-size:3rem;line-height:.9}.now-head>div>span{display:block;max-width:650px;margin-top:10px;color:#717a82;font-size:.7rem;line-height:1.7}.now-head>div>small{display:block;margin-top:9px;color:#9a8b79;font-size:.56rem}.set-meter{align-self:end}.set-meter small{display:block;color:#949ba0;font-size:.52rem;letter-spacing:.1em}.set-meter strong{display:block;margin-top:5px;font-size:.8rem}.set-meter i{display:block;height:3px;margin-top:10px;background:#ece7e1;overflow:hidden}.set-meter i b{display:block;height:100%;background:#95652b;transition:.25s}.question-stage{padding:0 22px}.loading-note{padding:36px 0;color:#8a9298;font-size:.72rem}.decision{display:grid;grid-template-columns:86px minmax(220px,.72fr) minmax(0,1.28fr);gap:22px;padding:24px 0;border-bottom:1px solid #e7e2dc}.decision:last-child{border-bottom:0}.decision-meta{display:flex;flex-direction:column;gap:8px}.decision-meta span{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#aaa199}.decision-meta b{font-size:.55rem;letter-spacing:.1em;color:#98662c}.decision-copy h3{font-size:1rem;line-height:1.45}.decision-copy p{margin-top:8px;color:#747d85;font-size:.65rem;line-height:1.65}.decision-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.decision-options button{min-height:72px;padding:10px 12px;border:1px solid #dcd6cf;background:#fbfaf8;text-align:left;color:inherit;cursor:pointer;transition:.15s}.decision-options button strong,.decision-options button small{display:block}.decision-options button strong{font-size:.68rem}.decision-options button small{margin-top:4px;color:#7e858b;font-size:.56rem;line-height:1.4}.decision-options button:hover{border-color:#bca17d;background:#fff}.decision-options button[aria-pressed="true"]{border-color:#9a6a31;background:#f5efe6;box-shadow:inset 3px 0 #9a6a31}.decision-options .hold{border-style:dashed;background:#fff}.now-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 22px;border-top:1px solid #ddd6ce;background:#f8f5f0}.now-footer>div:first-child{display:flex;align-items:center;gap:12px}.now-footer strong{font-size:.72rem}.now-footer span{color:#7a8288;font-size:.6rem}.now-actions{display:flex;gap:7px}.now-actions button{min-height:38px;padding:0 14px;border:1px solid #d5cec5;background:#fff;color:#555f67;font-size:.62rem;font-weight:700;cursor:pointer}.now-actions #save-now{min-width:154px;border-color:#8a5d28;background:#8a5d28;color:#fff}.now-actions button:disabled{opacity:.45;cursor:not-allowed}.loop{display:flex;gap:11px;align-items:center;overflow:auto;padding:18px 0;color:#82796c;font-size:.62rem;letter-spacing:.08em;border-bottom:1px solid #e5e0d9}.loop b{color:#5d6268}.loop i{font-style:normal;color:#b5ada3}.labs-section{padding-top:25px}.section-head h2{margin-top:5px;font-size:1rem}.labs-section main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-top:18px}.lab{min-height:195px;display:flex;flex-direction:column;padding:18px;border:1px solid #ddd7cf;background:#fbfaf8;color:inherit;text-decoration:none}.lab>div{display:flex;align-items:center;justify-content:space-between}.lab small{color:#999;font-size:.54rem;font-weight:700;letter-spacing:.1em}.lab strong{color:#8b5b2c;font-size:.62rem;letter-spacing:.12em}.lab h3{margin-top:25px;font-size:1rem}.lab p{margin-top:7px;color:#737c84;font-size:.66rem;line-height:1.65}.lab>span{margin-top:auto;padding-top:16px;color:#8f969c;font-size:.61rem}.lab.active{background:#fff;border-color:#bfa27e;transition:.16s}.lab.active small{color:#16835a}.lab.active>span{color:#7b4d16;font-weight:700}.lab.active:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(43,35,28,.07)}.principle{display:grid;grid-template-columns:90px 1fr;gap:16px;margin-top:28px;padding:17px;border:1px solid #ddd7cf;background:#f6f2eb}.principle strong{font-size:.68rem;color:#79501f}.principle p{color:#6f7880;font-size:.66rem;line-height:1.7}@media(max-width:900px){.decision{grid-template-columns:64px 1fr}.decision-options{grid-column:2}.labs-section main{grid-template-columns:1fr 1fr}}@media(max-width:700px){.hero{grid-template-columns:1fr}.design-link{min-height:100px}.now-head{grid-template-columns:1fr}.set-meter{width:160px}.decision{grid-template-columns:46px 1fr;gap:12px;padding:19px 0}.decision-options{grid-column:1/-1}.now-footer{align-items:flex-start;flex-direction:column}.now-actions{width:100%}.now-actions button{flex:1}.labs-section main{grid-template-columns:1fr}.principle{grid-template-columns:1fr}}@media(max-width:480px){.question-stage,.now-head,.now-footer{padding-left:14px;padding-right:14px}.decision-options{grid-template-columns:1fr}.hero h1{font-size:2.8rem}}
 </style>
