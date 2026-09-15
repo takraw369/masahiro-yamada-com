@@ -1,4 +1,5 @@
 import type { KnowledgeItem, Snapshot } from "../../lib/knowledge-flow/model";
+import { destinationTypeLabels } from "../../lib/knowledge-flow/model";
 import {
   Icon,
   Thumbnail,
@@ -42,9 +43,15 @@ export function KnowledgeCard({
         <button className="kf-title-button" onClick={() => onOpen(item)}>
           <h3>{item.title}</h3>
         </button>
+        {item.why_saved && (
+          <p className="kf-summary">
+            <strong>WHY — </strong>
+            {item.why_saved}
+          </p>
+        )}
         <p className={`kf-summary ${!item.summary ? "kf-muted" : ""}`}>
           {item.summary ||
-            "まだ意味づけされていません。気になった理由を、ひとこと残しましょう。"}
+            "まだ要約されていません。まずは『なぜ気になった？』だけ残してもOKです。"}
         </p>
         <div className="kf-tags">
           {item.tag_ids.map((id) => (
@@ -65,9 +72,20 @@ export function KnowledgeCard({
               </button>
             )}
             <Badge item={item} />
+            {item.destination_type !== "hold" && (
+              <span className="kf-project-pill">
+                {destinationTypeLabels[item.destination_type]}
+              </span>
+            )}
           </div>
           <Score value={item.asset_score} />
         </div>
+        {item.connection_reason && (
+          <button className="kf-next-action" onClick={() => onOpen(item)}>
+            <Icon name="link" size={14} />
+            <span>{item.connection_reason}</span>
+          </button>
+        )}
         <button className="kf-next-action" onClick={() => onOpen(item)}>
           <Icon name="arrow" size={14} />
           <span>{item.next_action || "次の一歩を決める"}</span>
