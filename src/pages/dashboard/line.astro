@@ -5,12 +5,10 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#f3f1ed" />
     <title>LINE Flow — MASA OS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
   </head>
   <body>
     <LineFlowManagerV2 client:load />
@@ -18,5 +16,79 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
 </html>
 
 <style is:global>
-  html, body { margin: 0; min-height: 100%; background: #f3f1ed; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #f3f1ed;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body,
+  .lf2 {
+    font-family:
+      -apple-system,
+      BlinkMacSystemFont,
+      "SF Pro Text",
+      "Hiragino Sans",
+      "Hiragino Kaku Gothic ProN",
+      "Yu Gothic",
+      "Noto Sans JP",
+      system-ui,
+      sans-serif !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "palt" 1;
+  }
+
+  .lf2 .metrics b,
+  .lf2 .step-stat,
+  .lf2 .badge,
+  .lf2 input[type="number"],
+  .lf2 input[type="time"] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lf2 button,
+  .lf2 select,
+  .lf2 input,
+  .lf2 textarea {
+    font: inherit;
+  }
+
+  .lf2 button,
+  .lf2 select {
+    touch-action: manipulation;
+  }
+
+  @media (max-width: 760px) {
+    .lf2 .top-actions button,
+    .lf2 .top-actions select,
+    .lf2 .inspect-actions button,
+    .lf2 .save,
+    .lf2 .mini-add {
+      min-height: 44px;
+    }
+
+    .lf2 .step {
+      grid-template-columns: 40px minmax(0, 1fr) 82px !important;
+    }
+
+    .lf2 .handle {
+      min-width: 40px;
+      min-height: 44px;
+      touch-action: none;
+    }
+
+    .lf2 .step-copy > b {
+      font-size: 12px !important;
+      line-height: 1.62 !important;
+    }
+
+    .lf2 textarea,
+    .lf2 input,
+    .lf2 select {
+      font-size: 16px !important;
+    }
+  }
 </style>
