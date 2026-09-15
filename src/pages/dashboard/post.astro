@@ -1,7 +1,9 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
 import XCommandCenter from '../../components/dashboard/XCommandCenter';
 ---
 <DashboardLayout title="X Post">
+  <CopyOsReference surface="X" />
   <XCommandCenter client:only="react" />
 </DashboardLayout>
