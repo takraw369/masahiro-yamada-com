@@ -1,0 +1,704 @@
+---
+// FLOW COMPASS 3D MVP — public, dependency-free interaction spike.
+// Canonical meaning stays in Google Drive; this page is a derived experience surface.
+---
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FLOW COMPASS 3D MVP | MASA</title>
+  <meta name="description" content="POINT → CONNECT → DEPTH → FLOW → VECTOR。出来事を点ではなく、関係・奥行き・循環・方向として触って捉えるFLOW COMPASSの3D実験。" />
+  <meta name="robots" content="noindex,follow" />
+  <meta property="og:title" content="FLOW COMPASS 3D MVP | MASA" />
+  <meta property="og:description" content="現在地を、点ではなく関係・奥行き・循環・方向として捉えるインタラクティブ実験。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://masahiroyamada.com/flow-compass-3d" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0D0B08;
+      --surface: #1A1612;
+      --surface-2: #241F1A;
+      --gold: #C9A96E;
+      --gold-muted: #8B7355;
+      --gold-dim: #5A4D3A;
+      --text: #D4C5A9;
+      --muted: #7A6F5F;
+      --dim: #4A4030;
+      --border: #2E2822;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(201, 169, 110, .06), transparent 36rem),
+        var(--bg);
+    }
+
+    a { color: inherit; }
+    button { font: inherit; }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      font-family: 'Cormorant Garamond', serif;
+      letter-spacing: 4px;
+      font-size: 11px;
+      color: var(--gold-muted);
+      text-transform: uppercase;
+    }
+
+    .back {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      border-bottom: 1px solid transparent;
+      transition: color .25s ease, border-color .25s ease;
+    }
+
+    .back:hover,
+    .back:focus-visible {
+      color: var(--gold);
+      border-bottom-color: var(--gold-muted);
+      outline: none;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 430px);
+      gap: 44px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      display: block;
+      margin-bottom: 12px;
+      color: var(--gold-muted);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(42px, 7vw, 92px);
+      font-weight: 300;
+      line-height: .9;
+      letter-spacing: -.02em;
+    }
+
+    .intro p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.95;
+    }
+
+    .experience {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      min-height: 620px;
+      border: 1px solid var(--border);
+      background: rgba(13, 11, 8, .78);
+      overflow: hidden;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 620px;
+      background:
+        linear-gradient(rgba(201, 169, 110, .025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201, 169, 110, .025) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(201,169,110,.045), transparent 42%);
+      background-size: 48px 48px, 48px 48px, auto;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .stage:active { cursor: grabbing; }
+
+    #flow-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 620px;
+    }
+
+    .stage-help {
+      position: absolute;
+      left: 18px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      color: var(--dim);
+      font-size: 10px;
+      letter-spacing: .05em;
+      pointer-events: none;
+    }
+
+    .stage-badge {
+      position: absolute;
+      top: 16px;
+      left: 18px;
+      color: var(--gold-dim);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      background: rgba(26, 22, 18, .9);
+    }
+
+    .panel-head {
+      padding: 28px 26px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .phase-index {
+      display: block;
+      color: var(--gold-muted);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 300;
+      letter-spacing: .02em;
+    }
+
+    .panel-summary {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+      min-height: 44px;
+    }
+
+    .panel-body {
+      display: grid;
+      gap: 18px;
+      padding: 24px 26px 28px;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--gold-dim);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .question,
+    .action {
+      margin: 0;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    .action { color: #AFA089; }
+
+    .phase-nav {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      border-top: 1px solid var(--border);
+    }
+
+    .phase-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 18px;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      cursor: pointer;
+      transition: background .25s ease, color .25s ease;
+    }
+
+    .phase-button:last-child { border-bottom: 0; }
+
+    .phase-button:hover,
+    .phase-button:focus-visible,
+    .phase-button[aria-current="true"] {
+      color: var(--gold);
+      background: rgba(201,169,110,.045);
+      outline: none;
+    }
+
+    .phase-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--gold-dim);
+    }
+
+    .phase-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      letter-spacing: 2px;
+    }
+
+    .principle {
+      margin: 22px 0 0;
+      padding: 18px 0 0;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    .noscript {
+      padding: 24px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    @media (max-width: 860px) {
+      .intro { grid-template-columns: 1fr; gap: 18px; }
+      .experience { grid-template-columns: 1fr; }
+      .stage, #flow-canvas { min-height: 500px; }
+      .panel { border-left: 0; border-top: 1px solid var(--border); }
+      .phase-nav { grid-template-columns: repeat(5, 1fr); }
+      .phase-button {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 12px 8px;
+        text-align: center;
+        border-right: 1px solid var(--border);
+        border-bottom: 0;
+      }
+      .phase-button:last-child { border-right: 0; }
+      .phase-name { font-size: 10px; letter-spacing: 1px; }
+    }
+
+    @media (max-width: 520px) {
+      .shell { width: min(100% - 20px, 1180px); padding-top: 18px; }
+      .topbar { margin-bottom: 24px; }
+      .intro { margin-bottom: 20px; }
+      h1 { font-size: clamp(44px, 16vw, 72px); }
+      .experience { min-height: 0; }
+      .stage, #flow-canvas { min-height: 420px; }
+      .panel-head, .panel-body { padding-left: 18px; padding-right: 18px; }
+      .stage-help { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <span class="brand">MASA / FLOW COMPASS</span>
+      <a class="back" href="/">← home</a>
+    </div>
+
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <span class="eyebrow">Spatial Prototype / v0</span>
+        <h1 id="page-title">FLOW<br />COMPASS</h1>
+      </div>
+      <p>
+        出来事を一個の点に固定せず、関係・奥行き・循環・方向として見る。
+        これは完成した「世界観」ではなく、次の一歩を選ぶための3D認知プロトタイプです。
+      </p>
+    </section>
+
+    <section class="experience" aria-label="FLOW COMPASS 3D prototype">
+      <div class="stage" id="flow-stage">
+        <canvas id="flow-canvas" aria-label="FLOW COMPASS 3D map. Drag to orbit, tap a node to inspect it."></canvas>
+        <span class="stage-badge">Derived interaction surface</span>
+        <div class="stage-help" aria-hidden="true">
+          <span>DRAG / ORBIT</span>
+          <span>TAP / SELECT</span>
+          <span>WHEEL / DEPTH</span>
+        </div>
+      </div>
+
+      <aside class="panel" aria-live="polite">
+        <div class="panel-head">
+          <span class="phase-index" id="phase-index">CENTER / NOW</span>
+          <h2 id="phase-title">SELF</h2>
+          <p class="panel-summary" id="phase-summary">まず「問題」ではなく、今ここにある現在地として置く。</p>
+        </div>
+
+        <div class="panel-body">
+          <div>
+            <span class="label">Question</span>
+            <p class="question" id="phase-question">今、いちばん気になっていることは？</p>
+          </div>
+          <div>
+            <span class="label">One action</span>
+            <p class="action" id="phase-action">答えを出さず、ひとつだけ名前を置く。</p>
+          </div>
+          <p class="principle">FLOWは固定状態ではなく運動。ここでは「正解」より、視点を増やせるかを試します。</p>
+        </div>
+
+        <nav class="phase-nav" aria-label="FLOW COMPASS phases">
+          <button class="phase-button" type="button" data-node="POINT" aria-current="false"><span class="phase-num">01</span><span class="phase-name">POINT</span></button>
+          <button class="phase-button" type="button" data-node="CONNECT" aria-current="false"><span class="phase-num">02</span><span class="phase-name">CONNECT</span></button>
+          <button class="phase-button" type="button" data-node="DEPTH" aria-current="false"><span class="phase-num">03</span><span class="phase-name">DEPTH</span></button>
+          <button class="phase-button" type="button" data-node="FLOW" aria-current="false"><span class="phase-num">04</span><span class="phase-name">FLOW</span></button>
+          <button class="phase-button" type="button" data-node="VECTOR" aria-current="false"><span class="phase-num">05</span><span class="phase-name">VECTOR</span></button>
+        </nav>
+      </aside>
+    </section>
+
+    <noscript>
+      <div class="noscript">このプロトタイプはJavaScriptで3D投影を行います。利用できない場合も、FLOW COMPASSの核は「POINT → CONNECT → DEPTH → FLOW → VECTOR」という5つの見方です。</div>
+    </noscript>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('flow-canvas');
+    const stage = document.getElementById('flow-stage');
+    const titleEl = document.getElementById('phase-title');
+    const indexEl = document.getElementById('phase-index');
+    const summaryEl = document.getElementById('phase-summary');
+    const questionEl = document.getElementById('phase-question');
+    const actionEl = document.getElementById('phase-action');
+    const phaseButtons = Array.from(document.querySelectorAll('.phase-button'));
+
+    if (canvas instanceof HTMLCanvasElement && stage instanceof HTMLElement) {
+      const ctx = canvas.getContext('2d');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const GOLD = '#C9A96E';
+      const GOLD_MUTED = '#8B7355';
+      const GOLD_DIM = '#5A4D3A';
+      const BORDER = '#2E2822';
+      const TEXT = '#D4C5A9';
+
+      const nodes = [
+        {
+          id: 'SELF', label: 'SELF', index: 'CENTER / NOW', x: 0, y: 0, z: 0, radius: 17,
+          summary: 'まず「問題」ではなく、今ここにある現在地として置く。',
+          question: '今、いちばん気になっていることは？',
+          action: '答えを出さず、ひとつだけ名前を置く。'
+        },
+        {
+          id: 'POINT', label: 'POINT', index: '01 / CURRENT', x: 0, y: 2.15, z: .75, radius: 12,
+          summary: '出来事と自分を同一化せず、現在地として見る。',
+          question: '今ここで、事実として起きていることは？',
+          action: '「問題」ではなく「現在地」と言い換える。'
+        },
+        {
+          id: 'CONNECT', label: 'CONNECT', index: '02 / RELATION', x: 2.2, y: .65, z: .1, radius: 12,
+          summary: '単独原因から離れ、何と何が影響し合っているかを見る。',
+          question: 'この出来事は、身体・人・時間・環境の何とつながる？',
+          action: '関係する要素を3つだけ挙げ、線を引く。'
+        },
+        {
+          id: 'DEPTH', label: 'DEPTH', index: '03 / PRINCIPLE', x: 1.35, y: -1.7, z: -.85, radius: 12,
+          summary: '表面の出来事から、欲求・価値・原理・PHASEへ奥行きを取る。',
+          question: '本当は何を守りたい、あるいは得たい？',
+          action: '「なぜ？」を3回まで重ね、深層の一語を仮置きする。'
+        },
+        {
+          id: 'FLOW', label: 'FLOW', index: '04 / TORUS', x: -1.35, y: -1.7, z: .55, radius: 12,
+          summary: '直線因果ではなく、INNER → ACTION → WORLD → FEEDBACKの循環として見る。',
+          question: 'どこが入口なら、最小の力でこの循環を変えられる？',
+          action: '身体→行動→世界→反応→身体の一周を描く。'
+        },
+        {
+          id: 'VECTOR', label: 'VECTOR', index: '05 / NEXT', x: -2.2, y: .65, z: -.15, radius: 12,
+          summary: '未来を一点に固定せず、時間と可能性の方向を選ぶ。',
+          question: '次にひとつ変えるなら、どこへ向きを変える？',
+          action: '大決断ではなく、今日変える1点を決める。'
+        }
+      ];
+
+      const phaseIds = ['POINT', 'CONNECT', 'DEPTH', 'FLOW', 'VECTOR'];
+      const ringPairs = phaseIds.map((id, index) => [id, phaseIds[(index + 1) % phaseIds.length]]);
+      let selectedId = 'SELF';
+      let yaw = -.35;
+      let pitch = -.16;
+      let cameraDistance = 7.4;
+      let dragging = false;
+      let moved = false;
+      let pointerX = 0;
+      let pointerY = 0;
+      let width = 1;
+      let height = 1;
+      let dpr = 1;
+      let lastTime = performance.now();
+      const screenNodes = new Map();
+
+      function nodeById(id) {
+        return nodes.find((node) => node.id === id);
+      }
+
+      function rotatePoint(point) {
+        const cosY = Math.cos(yaw);
+        const sinY = Math.sin(yaw);
+        const x1 = point.x * cosY - point.z * sinY;
+        const z1 = point.x * sinY + point.z * cosY;
+        const cosX = Math.cos(pitch);
+        const sinX = Math.sin(pitch);
+        return {
+          x: x1,
+          y: point.y * cosX - z1 * sinX,
+          z: point.y * sinX + z1 * cosX,
+        };
+      }
+
+      function project(point) {
+        const p = rotatePoint(point);
+        const depth = Math.max(2.8, cameraDistance + p.z);
+        const focal = Math.min(width, height) * .92;
+        const scale = focal / depth;
+        return {
+          x: width * .5 + p.x * scale,
+          y: height * .5 - p.y * scale,
+          z: p.z,
+          scale,
+        };
+      }
+
+      function resize() {
+        const rect = stage.getBoundingClientRect();
+        width = Math.max(1, rect.width);
+        height = Math.max(1, rect.height);
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+      }
+
+      function drawPolyline(points, alpha = .16, lineWidth = 1) {
+        if (!ctx || points.length < 2) return;
+        ctx.beginPath();
+        points.forEach((point, index) => {
+          const projected = project(point);
+          if (index === 0) ctx.moveTo(projected.x, projected.y);
+          else ctx.lineTo(projected.x, projected.y);
+        });
+        ctx.strokeStyle = `rgba(201,169,110,${alpha})`;
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+      }
+
+      function drawOrbitGuides() {
+        const horizontal = [];
+        const tilted = [];
+        for (let i = 0; i <= 80; i += 1) {
+          const a = (Math.PI * 2 * i) / 80;
+          horizontal.push({ x: Math.cos(a) * 2.85, y: 0, z: Math.sin(a) * 1.45 });
+          tilted.push({ x: Math.cos(a) * 1.45, y: Math.sin(a) * 2.45, z: Math.sin(a) * .55 });
+        }
+        drawPolyline(horizontal, .08, .75);
+        drawPolyline(tilted, .055, .75);
+      }
+
+      function drawConnection(aId, bId, alpha) {
+        if (!ctx) return;
+        const a = nodeById(aId);
+        const b = nodeById(bId);
+        if (!a || !b) return;
+        const pa = project(a);
+        const pb = project(b);
+        ctx.beginPath();
+        ctx.moveTo(pa.x, pa.y);
+        ctx.lineTo(pb.x, pb.y);
+        ctx.strokeStyle = `rgba(201,169,110,${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      function drawNode(node, now) {
+        if (!ctx) return;
+        const projected = project(node);
+        const selected = node.id === selectedId;
+        const depthFactor = Math.max(.72, Math.min(1.25, projected.scale / (Math.min(width, height) * .13)));
+        const breathe = reducedMotion ? 0 : Math.sin(now * .0014 + nodes.indexOf(node)) * 1.2;
+        const radius = Math.max(7, node.radius * depthFactor + (selected ? 2 : 0) + breathe);
+
+        screenNodes.set(node.id, { x: projected.x, y: projected.y, r: Math.max(radius + 10, 23), z: projected.z });
+
+        const glow = ctx.createRadialGradient(projected.x, projected.y, 0, projected.x, projected.y, radius * 3.2);
+        glow.addColorStop(0, selected ? 'rgba(201,169,110,.28)' : 'rgba(139,115,85,.14)');
+        glow.addColorStop(1, 'rgba(201,169,110,0)');
+        ctx.beginPath();
+        ctx.arc(projected.x, projected.y, radius * 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = node.id === 'SELF' ? 'rgba(13,11,8,.96)' : 'rgba(26,22,18,.94)';
+        ctx.fill();
+        ctx.strokeStyle = selected ? GOLD : (node.id === 'SELF' ? GOLD_MUTED : GOLD_DIM);
+        ctx.lineWidth = selected ? 1.6 : 1;
+        ctx.stroke();
+
+        ctx.fillStyle = selected ? GOLD : TEXT;
+        ctx.font = `${selected ? 500 : 400} ${Math.max(9, Math.min(12, radius * .72))}px 'Cormorant Garamond', serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(node.label, projected.x, projected.y + radius + 8);
+      }
+
+      function render(now) {
+        if (!ctx) return;
+        const delta = Math.min(40, now - lastTime);
+        lastTime = now;
+        if (!dragging && !reducedMotion) yaw += delta * .000035;
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+        screenNodes.clear();
+
+        drawOrbitGuides();
+        phaseIds.forEach((id) => drawConnection('SELF', id, id === selectedId ? .42 : .13));
+        ringPairs.forEach(([a, b]) => drawConnection(a, b, selectedId === a || selectedId === b ? .22 : .075));
+
+        const sorted = [...nodes].sort((a, b) => project(a).z - project(b).z);
+        sorted.forEach((node) => drawNode(node, now));
+        requestAnimationFrame(render);
+      }
+
+      function updatePanel(id) {
+        const node = nodeById(id);
+        if (!node) return;
+        selectedId = id;
+        if (titleEl) titleEl.textContent = node.label;
+        if (indexEl) indexEl.textContent = node.index;
+        if (summaryEl) summaryEl.textContent = node.summary;
+        if (questionEl) questionEl.textContent = node.question;
+        if (actionEl) actionEl.textContent = node.action;
+        phaseButtons.forEach((button) => {
+          const active = button.getAttribute('data-node') === id;
+          button.setAttribute('aria-current', active ? 'true' : 'false');
+        });
+      }
+
+      function selectAt(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        let best = null;
+        let bestDistance = Infinity;
+        screenNodes.forEach((screen, id) => {
+          const distance = Math.hypot(x - screen.x, y - screen.y);
+          if (distance <= screen.r && distance < bestDistance) {
+            best = id;
+            bestDistance = distance;
+          }
+        });
+        if (best) updatePanel(best);
+      }
+
+      stage.addEventListener('pointerdown', (event) => {
+        dragging = true;
+        moved = false;
+        pointerX = event.clientX;
+        pointerY = event.clientY;
+        stage.setPointerCapture?.(event.pointerId);
+      });
+
+      stage.addEventListener('pointermove', (event) => {
+        if (!dragging) return;
+        const dx = event.clientX - pointerX;
+        const dy = event.clientY - pointerY;
+        if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+        yaw += dx * .006;
+        pitch = Math.max(-1.05, Math.min(.9, pitch + dy * .0045));
+        pointerX = event.clientX;
+        pointerY = event.clientY;
+      });
+
+      stage.addEventListener('pointerup', (event) => {
+        if (!moved) selectAt(event.clientX, event.clientY);
+        dragging = false;
+      });
+
+      stage.addEventListener('pointercancel', () => { dragging = false; });
+
+      stage.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        cameraDistance = Math.max(5.4, Math.min(10.2, cameraDistance + event.deltaY * .006));
+      }, { passive: false });
+
+      phaseButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-node');
+          if (id) updatePanel(id);
+        });
+      });
+
+      window.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        const currentIndex = phaseIds.indexOf(selectedId);
+        const origin = currentIndex >= 0 ? currentIndex : 0;
+        const step = event.key === 'ArrowRight' ? 1 : -1;
+        const next = (origin + step + phaseIds.length) % phaseIds.length;
+        updatePanel(phaseIds[next]);
+      });
+
+      const resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(stage);
+      resize();
+      updatePanel('SELF');
+      requestAnimationFrame(render);
+    }
+  </script>
+</body>
+</html>
