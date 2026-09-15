@@ -48,6 +48,13 @@ try {
   assert.equal(dashboard.status, 302);
   assert.equal(dashboard.headers.get('location'), '/dashboard/login');
   assert.match(dashboard.headers.get('cache-control'), /no-store/);
+  for (const path of ['/mind', '/mind/']) {
+    const res = await previewFetch(base + path, { redirect: 'manual' });
+    assert.equal(res.status, 302, path);
+    assert.equal(res.headers.get('location'), '/dashboard/login', path);
+    assert.match(res.headers.get('cache-control'), /no-store/, path);
+    assert.equal(res.headers.get('referrer-policy'), 'no-referrer', path);
+  }
   for (const path of ['/api/dashboard/state', '/api/dashboard/voice', '/api/x-harness/x-accounts', '/api/line-harness/line-accounts']) {
     const res = await previewFetch(base + path);
     assert.equal(res.status, 401, path);

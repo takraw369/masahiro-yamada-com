@@ -32,18 +32,22 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const { pathname } = url;
-  const isFlowMindPage = pathname === '/mind';
+  const isFlowMindPage = pathname === '/mind' || pathname.startsWith('/mind/');
   const isDashboardPage =
     pathname.startsWith('/dashboard') &&
     pathname !== '/dashboard/login' &&
     !pathname.startsWith('/dashboard/logout');
+  // Machine-to-machine Calendar sync has its own Bearer-secret gate in the handler.
+  // Only this exact POST bypasses browser session / same-origin enforcement.
+  const isCalendarSyncApi = pathname === '/api/dashboard/calendar/sync' && context.request.method === 'POST';
   const isDashboardApi =
     pathname.startsWith('/api/dashboard') &&
-    !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname);
+    !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname) &&
+    !isCalendarSyncApi;
   const isHarnessApi = /^\/api\/(x|line)-harness(?:\/|$)/.test(pathname);
   const isPrivate = isFlowMindPage || pathname.startsWith('/dashboard') || pathname.startsWith('/api/dashboard') || isHarnessApi;
 
-  if (isPrivate && !isSameOriginRequest(context.request)) {
+  if (isPrivate && !isCalendarSyncApi && !isSameOriginRequest(context.request)) {
     return new Response(JSON.stringify({ ok: false, error: 'same_origin_required' }), {
       status: 403, headers: privateHeaders({ 'Content-Type': 'application/json' }),
     });

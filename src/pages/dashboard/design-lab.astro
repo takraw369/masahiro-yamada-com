@@ -1,0 +1,180 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+type Option = { id: string; name: string; note: string };
+type Question = {
+  id: string;
+  label: string;
+  title: string;
+  hint: string;
+  demo: string;
+  step: string;
+  set: number;
+  options: Option[];
+};
+
+type RawQuestion = [
+  string,
+  string,
+  string,
+  string,
+  string,
+  [string, string, string],
+  [string, string, string],
+  [string, string, string],
+];
+
+const rawQuestions: RawQuestion[] = [
+  ['button-shape','BUTTON','どのボタンが押したくなる？','角の強さで道具感と軽さが変わる。','button',['edge','soft','pill'],['EDGE','SOFT','PILL'],['輪郭が明快。道具感が強い。','少し柔らかい。汎用性が高い。','軽く、ラベル的。']],
+  ['surface-depth','SURFACE','情報の「面」はどれが気持ちいい？','境界をどう感じさせるかを見る。','surface',['flat','line','float'],['FLAT','LINE','FLOAT'],['背景と連続して静か。','細い境界で整理。','影で操作対象を分ける。']],
+  ['density','SPACE','どの情報密度なら疲れない？','一覧性と余白のバランスを見る。','density',['airy','balanced','compact'],['AIRY','BALANCED','COMPACT'],['余白大。ひとつずつ見る。','一覧性と余白の中間。','操作盤的に詰める。']],
+  ['navigation','NAVIGATION','「どこにいるか」はどう見えたい？','現在地と次の行き先の認知負荷を見る。','navigation',['rail','tabs','dock'],['RAIL','TABS','DOCK'],['左固定で道具箱的。','同階層切替が速い。','主要行動を手元に残す。']],
+  ['motion','MOTION','どのくらい「生きてる」のが好き？','状態や流れを伝えるMotionの強さ。','motion',['still','gentle','responsive'],['STILL','GENTLE','RESPONSIVE'],['ほぼ静止。','呼吸する程度。','触れた時だけ反応。']],
+  ['type-style','TYPE','文字の空気感はどれが好き？','情報と世界観の距離感を見る。','type',['sans','editorial','hybrid'],['SANS','EDITORIAL','HYBRID'],['機能的で明快。','誌面的で余韻がある。','機能と世界観を混ぜる。']],
+  ['title-scale','TITLE','見出しはどれくらい主張してほしい？','静かな階層か、明確な主役か。','title',['quiet','clear','hero'],['QUIET','CLEAR','HERO'],['見出しも静か。','主従が明快。','強い主役を置く。']],
+  ['color-mood','COLOR','画面の温度はどれが落ち着く？','色相より空気の温度で選ぶ。','color',['warm','cool','night'],['WARM','COOL','NIGHT'],['生成り・温度感。','白〜灰の冷静さ。','藍・暗部の没入感。']],
+  ['accent-use','ACCENT','アクセント色はどれくらい欲しい？','視線誘導に必要な強さを見る。','accent',['sparse','balanced','signal'],['SPARSE','BALANCED','SIGNAL'],['必要箇所だけ。','要所に均等。','強く導く。']],
+  ['corner-system','CORNERS','角丸はどこまで欲しい？','全体の物性を決める。','corners',['square','soft','mixed'],['SQUARE','SOFT','MIXED'],['硬質で明快。','柔らかく統一。','用途で角を変える。']],
+  ['icon-style','ICON','アイコンはどんな存在感がいい？','記号と文字の主従を見る。','icon',['line','filled','label'],['LINE','FILLED','LABEL FIRST'],['線で軽く示す。','記号の存在感が強い。','文字を主役にする。']],
+  ['feedback','FEEDBACK','押した反応はどの強さがいい？','操作の手応えを比べる。','feedback',['subtle','visible','physical'],['SUBTLE','VISIBLE','PHYSICAL'],['小さく返す。','しっかり返す。','押し込み感まで出す。']],
+  ['alignment','LAYOUT','レイアウトはどの整い方が好き？','秩序と余白の崩し方を見る。','alignment',['grid','asym','center'],['GRID','ASYMMETRY','CENTER'],['整列を優先。','非対称で余白を作る。','中心に集中。']],
+  ['section-rhythm','RHYTHM','ページはどう区切られてほしい？','流れの連続性と場面転換を見る。','rhythm',['continuous','sectioned','scenes'],['CONTINUOUS','SECTIONED','SCENES'],['流れを切らない。','明確に区切る。','場面ごとに空気を変える。']],
+  ['cta-hierarchy','CTA','行動ボタンはいくつ見えてよい？','迷わなさと選択自由度のバランス。','cta',['one','dual','context'],['ONE PRIMARY','PRIMARY + SECOND','CONTEXTUAL'],['行動を1つに絞る。','主＋副を並べる。','場所に応じて出す。']],
+  ['border-strength','BORDER','境界線はどれくらい必要？','面を分ける強さを見る。','border',['none','hairline','defined'],['NONE','HAIRLINE','DEFINED'],['線を極力使わない。','細線だけ。','境界を明確に出す。']],
+  ['background','BACKGROUND','背景はどの質感が好き？','真っ白・紙感・光の差を比べる。','background',['pure','paper','gradient'],['PURE','PAPER','GRADIENT'],['無地で静か。','紙のような柔らかさ。','光で奥行きを作る。']],
+  ['selection-state','SELECT','選択中はどう分かるのがいい？','状態表示の方法を見る。','select',['check','highlight','marker'],['CHECK','HIGHLIGHT','MARKER'],['記号で明示。','面全体を変える。','端に小さな印。']],
+  ['status','STATUS','状態ラベルはどう見せたい？','情報量を増やしすぎない表示。','status',['text','dot','badge'],['TEXT','DOT','BADGE'],['言葉だけ。','小さな点。','囲って強調。']],
+  ['progress','PROGRESS','進捗はどう感じたい？','数字・道・世界変化の違い。','progress',['number','path','world'],['NUMBER','PATH','WORLD'],['数字で把握。','道の進行で把握。','景色の変化で把握。']],
+  ['search','SEARCH','検索はどこにいてほしい？','常時表示と必要時表示を比べる。','search',['always','command','context'],['ALWAYS','COMMAND','CONTEXT'],['いつでも見える。','必要時に呼ぶ。','文脈に応じて出す。']],
+  ['overlay','OVERLAY','補助情報はどう開くのがいい？','画面を止めるか、横から差すか。','overlay',['dialog','drawer','inline'],['DIALOG','DRAWER','INLINE'],['中央で集中。','横から補助。','その場で展開。']],
+  ['mobile-nav','MOBILE','スマホの移動はどれが楽？','片手操作と画面占有の差。','mobile',['bottom','sheet','minimal'],['BOTTOM','SHEET','MINIMAL'],['下部固定。','必要時だけ開く。','戻る＋少数導線。']],
+  ['graph-node','GRAPH','GraphのNodeはどれが好き？','地図としての密度と意味の見え方。','graph',['card','dot','label'],['CARD','DOT','LABEL'],['情報を持つNode。','点で密度を出す。','文字中心。']],
+  ['loading','LOADING','待ち時間はどう見えたい？','存在感の少ないFeedbackを選ぶ。','loading',['skeleton','pulse','text'],['SKELETON','PULSE','TEXT'],['構造を先に見せる。','小さく脈動。','短い言葉だけ。']],
+];
+
+const questions: Question[] = rawQuestions.map((q,index)=>({
+  id:q[0], label:q[1], title:q[2], hint:q[3], demo:q[4],
+  step:String(index+1).padStart(2,'0'), set:Math.floor(index/5)+1,
+  options:q[5].map((id,i)=>({id,name:q[6][i],note:q[7][i]})),
+}));
+const totalSets = Math.ceil(questions.length/5);
+---
+
+<DashboardLayout title="Design Lab" eyebrow="MASA DESIGN INTELLIGENCE">
+  <div class="lab-shell">
+    <header class="hero">
+      <div>
+        <div class="hero-top"><a href="/dashboard/choice-lab">← CHOICE LAB</a><span>MASA DESIGN LAB · CONTINUOUS v0.2</span></div>
+        <h1>好きな方を、<br/><em>自分のタイミングで選び続ける。</em></h1>
+        <p>5問で終わる診断ではなく、5問＝1 SET。途中で閉じてもこの端末に即時保持され、次に開いた時そこから続けられる。</p>
+      </div>
+      <aside class="progress-card">
+        <div><span>ALL SIGNALS</span><strong><b id="all-count">0</b> / {questions.length}</strong></div>
+        <i><b id="all-bar"></b></i>
+        <p id="resume-copy">SET 1 から始める。</p>
+      </aside>
+    </header>
+
+    <nav class="set-nav" aria-label="設問セット">
+      {Array.from({length:totalSets},(_,i)=><button type="button" data-set-jump={i+1}>SET {i+1}<small>{i*5+1}–{Math.min((i+1)*5,questions.length)}</small></button>)}
+    </nav>
+
+    <div class="lab-grid">
+      <main class="experiments">
+        {questions.map(q=><section class="experiment" data-question={q.id} data-set={q.set}>
+          <div class="experiment-head"><span>{q.step}</span><div><p>{q.label}</p><h2>{q.title}</h2><small>{q.hint}</small></div></div>
+          <div class="choice-grid">
+            {q.options.map(o=><button class="choice" type="button" data-question={q.id} data-option={o.id} data-name={o.name} aria-pressed="false">
+              <span class="choice-state">選ぶ</span>
+              <div class="specimen" data-demo={q.demo} data-style={o.id} aria-hidden="true">
+                <div class="mini"><header><i></i><span>MASA</span><b>01</b></header><main><small>FLOW</small><strong>次の一手</strong><p>迷わず、今必要なものだけ。</p><div class="marks"><i></i><i></i><i></i></div><em>進む →</em></main></div>
+              </div>
+              <span class="choice-copy"><strong>{o.name}</strong><small>{o.note}</small></span>
+            </button>)}
+          </div>
+        </section>)}
+        <div class="set-finish">
+          <button id="prev-set" type="button">← 前の5問</button>
+          <button id="next-set" type="button">次の5問 →</button>
+        </div>
+      </main>
+
+      <aside class="lab-side"><div class="sticky">
+        <section class="summary">
+          <p class="kicker">CURRENT SET</p><h2>SET <span id="set-number">1</span></h2>
+          <div id="summary-list"></div>
+          <label for="taste-note">ひとこと <small>任意</small></label>
+          <textarea id="taste-note" rows="3" placeholder="例：角丸はSoftくらい。Motionは触った時だけ強く返る方が好き。"></textarea>
+          <button id="save-set" class="save" type="button" disabled>あと5つ選ぶ</button>
+          <p id="save-status" class="status" aria-live="polite"></p>
+          <p class="local-note">選択はクリックごとにこの端末へ自動保持。</p>
+        </section>
+        <section class="rule"><p class="kicker">LEARNING RULE</p><p>1回は好み候補。別の問いでも同じ傾向が続いたら、Design Grammar候補へ。</p></section>
+        <details class="history"><summary>最近のSET保存を見る <b>＋</b></summary><div id="history-list"><p>読み込み中…</p></div></details>
+      </div></aside>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+.lab-shell{--ink:#20262d;--muted:#707982;--line:#d9d3cb;--gold:#9a641f;padding:8px 0 46px;color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:38px;align-items:end;padding:22px 0 30px;border-bottom:1px solid var(--line)}.hero-top{display:flex;gap:14px;align-items:center;color:#8b5b2c;font-size:.61rem;font-weight:700;letter-spacing:.12em}.hero-top a{color:#6f7780;text-decoration:none}.hero h1{margin-top:10px;font-family:'Cormorant Garamond',serif;font-size:clamp(2.35rem,5vw,4.7rem);line-height:.92;letter-spacing:-.035em}.hero h1 em{font-style:normal;color:#8b857d}.hero>div>p:last-child{max-width:760px;margin-top:18px;color:var(--muted);font-size:.78rem;line-height:1.8}.progress-card{padding:17px;border:1px solid var(--line);background:#fff}.progress-card>div{display:flex;justify-content:space-between;color:#7d858d;font-size:.6rem;letter-spacing:.08em}.progress-card strong{color:#3d4349}.progress-card>i{display:block;height:3px;margin-top:12px;background:#ebe6df}.progress-card>i b{display:block;width:0;height:100%;background:var(--gold);transition:width .2s}.progress-card p{margin-top:9px;color:#858c93;font-size:.61rem}
+.set-nav{display:flex;gap:7px;overflow:auto;padding:14px 0;border-bottom:1px solid #e5e0d9}.set-nav button{min-width:92px;padding:8px 10px;border:1px solid #d8d2ca;background:#fff;color:#69727b;text-align:left;cursor:pointer;font-size:.64rem;font-weight:700}.set-nav button small{display:block;margin-top:2px;color:#9ba1a6;font-size:.52rem}.set-nav button.active{border-color:#9a641f;color:#744914;background:#fbf6ee}.set-nav button.complete::after{content:' ✓';color:#16835a}
+.lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:30px;padding-top:28px}.experiments{display:grid;gap:46px}.experiment[hidden]{display:none}.experiment-head{display:grid;grid-template-columns:40px 1fr;gap:13px}.experiment-head>span{width:38px;height:38px;display:grid;place-items:center;border:1px solid #cec7bd;background:#fff;color:#875719;font-size:.63rem;font-weight:700}.experiment-head p{color:#8b5b2c;font-size:.6rem;font-weight:700;letter-spacing:.12em}.experiment-head h2{margin-top:2px;font-size:1.08rem}.experiment-head small{display:block;margin-top:3px;color:#7b838b;font-size:.65rem}.choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:14px}.choice{position:relative;display:grid;grid-template-rows:168px auto;padding:0;border:1px solid var(--line);background:#fff;color:inherit;text-align:left;cursor:pointer;transition:.16s}.choice:hover{transform:translateY(-2px);border-color:#b99c77;box-shadow:0 10px 25px rgba(45,37,30,.06)}.choice[aria-pressed="true"]{border-color:#9a641f;box-shadow:0 0 0 2px rgba(154,100,31,.1)}.choice-state{position:absolute;right:8px;top:8px;z-index:3;padding:3px 7px;border:1px solid #d8d2ca;background:#fff;color:#808890;font-size:.52rem;font-weight:700}.choice[aria-pressed="true"] .choice-state{background:#9a641f;border-color:#9a641f;color:#fff}.specimen{display:grid;place-items:center;overflow:hidden;background:#f4f2ee;border-bottom:1px solid #e4ded6}.choice-copy{padding:11px 12px 13px}.choice-copy strong{display:block;font-size:.68rem;letter-spacing:.08em}.choice-copy small{display:block;margin-top:3px;color:#7e878f;font-size:.58rem;line-height:1.5}
+.mini{width:78%;height:122px;background:#fff;border:1px solid #ddd7cf;overflow:hidden}.mini header{height:27px;display:flex;align-items:center;gap:6px;padding:0 8px;border-bottom:1px solid #eee9e3;color:#92989d;font-size:.46rem}.mini header i{width:6px;height:6px;border-radius:50%;background:#9a641f}.mini header b{margin-left:auto}.mini main{position:relative;height:95px;padding:12px}.mini main>small{color:#9a641f;font-size:.42rem;letter-spacing:.1em}.mini main>strong{display:block;margin-top:3px;font-size:.72rem}.mini main>p{margin-top:3px;color:#858d94;font-size:.47rem}.marks{display:flex;gap:4px;margin-top:9px}.marks i{width:28px;height:4px;background:#ddd8d1}.mini main>em{position:absolute;right:10px;bottom:9px;padding:5px 8px;background:#23282e;color:#fff;font-style:normal;font-size:.46rem}
+[data-demo="button"][data-style="edge"] .mini main>em{border-radius:0}[data-demo="button"][data-style="soft"] .mini main>em{border-radius:7px}[data-demo="button"][data-style="pill"] .mini main>em{border-radius:99px}
+[data-demo="surface"][data-style="flat"] .mini{border-color:transparent;background:transparent}[data-demo="surface"][data-style="line"] .mini{box-shadow:none}[data-demo="surface"][data-style="float"] .mini{border-radius:9px;box-shadow:0 12px 24px rgba(40,34,28,.12)}
+[data-demo="density"][data-style="airy"] .mini main{padding:17px}[data-demo="density"][data-style="compact"] .mini main{padding:7px}[data-demo="navigation"][data-style="rail"] .mini{border-left:20px solid #ebe6df}[data-demo="navigation"][data-style="tabs"] .mini header{border-bottom:3px solid #b88649}[data-demo="navigation"][data-style="dock"] .mini main>em{left:50%;right:auto;transform:translateX(-50%);border-radius:99px}
+[data-demo="motion"][data-style="gentle"] .mini{animation:breathe 4s ease-in-out infinite}[data-demo="motion"][data-style="responsive"] .mini{transition:transform .18s}.choice:hover [data-demo="motion"][data-style="responsive"] .mini{transform:scale(1.04)}@keyframes breathe{50%{transform:translateY(-3px)}}
+[data-demo="type"][data-style="editorial"] .mini main>strong{font-family:'Cormorant Garamond',serif;font-size:1rem}[data-demo="type"][data-style="hybrid"] .mini main>strong{font-family:'Cormorant Garamond',serif;font-size:.9rem}
+[data-demo="title"][data-style="quiet"] .mini main>strong{font-size:.6rem}[data-demo="title"][data-style="hero"] .mini main>strong{font-size:1.05rem;line-height:1}
+[data-demo="color"][data-style="warm"]{background:#f4efe7}[data-demo="color"][data-style="cool"]{background:#eef1f3}[data-demo="color"][data-style="night"]{background:#121a25}.specimen[data-demo="color"][data-style="night"] .mini{background:#172231;border-color:#344152;color:#eef1f4}.specimen[data-demo="color"][data-style="night"] .mini p{color:#aeb9c3}
+[data-demo="accent"][data-style="sparse"] .mini header i{background:#aaa}[data-demo="accent"][data-style="signal"] .mini main>em,[data-demo="accent"][data-style="signal"] .marks i:first-child{background:#9a641f}
+[data-demo="corners"][data-style="square"] .mini,[data-demo="corners"][data-style="square"] .mini main>em{border-radius:0}[data-demo="corners"][data-style="soft"] .mini,[data-demo="corners"][data-style="soft"] .mini main>em{border-radius:12px}[data-demo="corners"][data-style="mixed"] .mini{border-radius:0 14px 0 14px}
+[data-demo="icon"][data-style="filled"] .marks i{height:12px;width:12px;border-radius:3px;background:#5c6570}[data-demo="icon"][data-style="label"] .marks i{width:38px;height:2px}
+[data-demo="feedback"][data-style="physical"] .mini main>em{box-shadow:0 5px 0 #111}[data-demo="feedback"][data-style="visible"] .mini main>em{background:#9a641f}
+[data-demo="alignment"][data-style="center"] .mini main{text-align:center}.specimen[data-demo="alignment"][data-style="center"] .marks{justify-content:center}[data-demo="alignment"][data-style="asym"] .mini main{padding-left:28px}
+[data-demo="rhythm"][data-style="sectioned"] .mini main{background:linear-gradient(#fff 0 52%,#f2eee8 52%)}[data-demo="rhythm"][data-style="scenes"] .mini main{background:linear-gradient(135deg,#fff 0 45%,#ece4d9 45%)}
+[data-demo="cta"][data-style="dual"] .mini main>em::before{content:'戻る  ';color:#ccc}[data-demo="cta"][data-style="context"] .mini main>em{background:transparent;color:#794b17;border-bottom:1px solid #9a641f}
+[data-demo="border"][data-style="none"] .mini{border-color:transparent}[data-demo="border"][data-style="defined"] .mini{border:2px solid #69727b}
+[data-demo="background"][data-style="paper"]{background:repeating-linear-gradient(0deg,#f4f1ea,#f4f1ea 3px,#f0ece4 4px)}[data-demo="background"][data-style="gradient"]{background:radial-gradient(circle at 25% 20%,#fff4df,#e7edf0)}
+[data-demo="select"][data-style="check"] .mini header b::after{content:' ✓';color:#16835a}[data-demo="select"][data-style="highlight"] .mini main{background:#faf0df}[data-demo="select"][data-style="marker"] .mini{border-left:4px solid #9a641f}
+[data-demo="status"][data-style="dot"] .mini header b{font-size:0}.specimen[data-demo="status"][data-style="dot"] .mini header b::after{content:'';display:block;width:7px;height:7px;border-radius:50%;background:#16835a}[data-demo="status"][data-style="badge"] .mini header b{padding:2px 5px;border:1px solid #c8d8cf;background:#eef8f1;color:#16835a}
+[data-demo="progress"][data-style="number"] .mini main>strong::after{content:' 68%';color:#9a641f}[data-demo="progress"][data-style="path"] .marks i{height:2px;background:#9a641f}[data-demo="progress"][data-style="world"] .marks i{height:12px;border-radius:50%;background:#8aa57f}
+[data-demo="search"][data-style="always"] .mini header span::after{content:'  Search…';margin-left:8px;color:#aaa}[data-demo="search"][data-style="command"] .mini header b::before{content:'⌘K ';}[data-demo="search"][data-style="context"] .mini main>p::after{content:'  🔎'}
+[data-demo="overlay"][data-style="dialog"] .mini main::after{content:'DETAIL';position:absolute;inset:20px 28px;display:grid;place-items:center;background:#fff;border:1px solid #ccc;box-shadow:0 8px 20px #0001;font-size:.45rem}[data-demo="overlay"][data-style="drawer"] .mini main::after{content:'DETAIL';position:absolute;right:0;top:0;bottom:0;width:45%;display:grid;place-items:center;background:#f2eee8;border-left:1px solid #ccc;font-size:.45rem}[data-demo="overlay"][data-style="inline"] .mini main>p{padding:5px;background:#f2eee8}
+[data-demo="mobile"][data-style="bottom"] .mini main::after{content:'⌂   ◈   ＋';position:absolute;left:12px;right:12px;bottom:5px;text-align:center;padding:4px;background:#fff;border:1px solid #ddd;border-radius:99px}[data-demo="mobile"][data-style="sheet"] .mini main::after{content:'MENU';position:absolute;left:0;right:0;bottom:0;height:34px;display:grid;place-items:center;background:#fff;border-top:1px solid #ddd}[data-demo="mobile"][data-style="minimal"] .mini header span{display:none}
+[data-demo="graph"][data-style="card"] .marks i{height:16px;border:1px solid #bbb;background:#fff}[data-demo="graph"][data-style="dot"] .marks i{width:10px;height:10px;border-radius:50%;background:#75634c}[data-demo="graph"][data-style="label"] .marks i{height:2px;width:36px}
+[data-demo="loading"][data-style="skeleton"] .mini main>*{color:transparent!important;background:#e7e3dd;border-radius:2px}[data-demo="loading"][data-style="pulse"] .mini{animation:breathe 1.8s ease-in-out infinite}[data-demo="loading"][data-style="text"] .mini main::after{content:'読み込み中…';position:absolute;inset:0;display:grid;place-items:center;background:#fff;color:#7a828a;font-size:.5rem}
+.set-finish{display:flex;justify-content:space-between;gap:10px;padding-top:6px;border-top:1px solid #e3ded7}.set-finish button{min-height:42px;padding:0 14px;border:1px solid #d1cac0;background:#fff;color:#626b74;cursor:pointer}.set-finish button:disabled{opacity:.35;cursor:not-allowed}
+.sticky{position:sticky;top:86px;display:grid;gap:10px}.summary,.rule,.history{border:1px solid var(--line);background:#fff}.summary{padding:16px}.kicker{color:#8b5b2c;font-size:.59rem;font-weight:700;letter-spacing:.12em}.summary h2{margin-top:3px;font-size:1rem}.summary-row{min-height:39px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #ece7e0;font-size:.57rem}.summary-row span{color:#858d94}.summary-row strong{font-size:.6rem}.summary-row.done strong{color:#875719}.summary label{display:flex;justify-content:space-between;margin-top:12px;color:#68717a;font-size:.59rem;font-weight:700}.summary textarea{width:100%;margin-top:5px;padding:8px;border:1px solid #d8d2c9;background:#faf9f6;color:#30373e;font:inherit;font-size:.61rem;resize:vertical}.save{width:100%;min-height:42px;margin-top:8px;border:1px solid #96601c;background:#9a641f;color:#fff;font:inherit;font-size:.65rem;font-weight:700;cursor:pointer}.save:disabled{border-color:#ddd6cd;background:#e8e3dd;color:#999590}.status,.local-note{margin-top:6px;color:#7c858d;font-size:.55rem;line-height:1.5}.rule{padding:13px;background:#faf7f1}.rule>p:last-child{margin-top:5px;color:#68717a;font-size:.59rem;line-height:1.6}.history summary{padding:13px;cursor:pointer;font-size:.62rem;font-weight:700}.history #history-list{padding:0 10px 10px}.history #history-list p{color:#858d94;font-size:.56rem}.history-item{padding:7px;border-top:1px solid #eee9e3}.history-item strong,.history-item time{display:block;font-size:.55rem}.history-item time{margin-top:2px;color:#999}
+@media(max-width:1050px){.lab-grid{grid-template-columns:1fr}.lab-side{order:-1}.sticky{position:static;grid-template-columns:2fr 1fr}.history{grid-column:1/-1}.hero{grid-template-columns:1fr 240px}}@media(max-width:760px){.hero{grid-template-columns:1fr}.choice-grid{grid-template-columns:1fr}.choice{grid-template-rows:150px auto}.sticky{grid-template-columns:1fr}.history{grid-column:auto}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<script define:vars={{ questions, totalSets }}>
+const KEY='masa-design-lab-v0.2';
+let state={selections:{},activeSet:1,savedSets:[]};
+try{state={...state,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{}
+const $=(s)=>document.querySelector(s); const $$=(s)=>[...document.querySelectorAll(s)];
+const note=$('#taste-note'), save=$('#save-set'), status=$('#save-status');
+function persist(){localStorage.setItem(KEY,JSON.stringify(state))}
+function setQuestions(set){return questions.filter(q=>q.set===set)}
+function answered(set){return setQuestions(set).filter(q=>state.selections[q.id]).length}
+function render(){
+  const set=Math.min(Math.max(Number(state.activeSet)||1,1),totalSets); state.activeSet=set; persist();
+  $$('.experiment').forEach(el=>el.hidden=Number(el.dataset.set)!==set);
+  $$('.set-nav button').forEach(b=>{const n=Number(b.dataset.setJump);b.classList.toggle('active',n===set);b.classList.toggle('complete',answered(n)===setQuestions(n).length)});
+  const all=Object.keys(state.selections).length; $('#all-count').textContent=String(all); $('#all-bar').style.width=`${Math.round(all/questions.length*100)}%`; $('#resume-copy').textContent=`SET ${set} · ${answered(set)} / ${setQuestions(set).length}`; $('#set-number').textContent=String(set);
+  const list=$('#summary-list'); list.innerHTML=''; setQuestions(set).forEach(q=>{const row=document.createElement('div');row.className='summary-row'+(state.selections[q.id]?' done':'');const label=document.createElement('span');label.textContent=q.label;const strong=document.createElement('strong');strong.textContent=state.selections[q.id]?.name||'未選択';row.append(label,strong);list.appendChild(row)});
+  $$('.choice').forEach(c=>{const v=state.selections[c.dataset.question];const on=v?.option===c.dataset.option;c.setAttribute('aria-pressed',on?'true':'false');const badge=c.querySelector('.choice-state');if(badge)badge.textContent=on?'選択中 ✓':'選ぶ'});
+  const remain=setQuestions(set).length-answered(set); save.disabled=remain>0; save.textContent=remain?`あと${remain}つ選ぶ`:state.savedSets.includes(set)?'このSETは保存済み':'この5問を保存';
+  $('#prev-set').disabled=set===1; $('#next-set').disabled=set===totalSets; $('#next-set').textContent=set===totalSets?'ここまで完了':'次の5問 →';
+}
+$$('.choice').forEach(c=>c.addEventListener('click',()=>{const q=c.dataset.question;const question=questions.find(x=>x.id===q);state.selections[q]={option:c.dataset.option,name:c.dataset.name};state.savedSets=(state.savedSets||[]).filter(s=>s!==question.set);persist();status.textContent='この端末に保持しました。';render()}));
+$$('[data-set-jump]').forEach(b=>b.addEventListener('click',()=>{state.activeSet=Number(b.dataset.setJump);persist();status.textContent='';render();window.scrollTo({top:0,behavior:'smooth'})}));
+$('#prev-set').addEventListener('click',()=>{if(state.activeSet>1){state.activeSet--;persist();render();window.scrollTo({top:0,behavior:'smooth'})}});$('#next-set').addEventListener('click',()=>{if(state.activeSet<totalSets){state.activeSet++;persist();render();window.scrollTo({top:0,behavior:'smooth'})}});
+async function saveSet(){const set=state.activeSet;if(answered(set)!==setQuestions(set).length)return;save.disabled=true;status.textContent='保存中…';const subset={};setQuestions(set).forEach(q=>subset[q.id]=state.selections[q.id]);const snapshot={type:'design_preference_set',version:'0.2',set,selections:subset,note:note.value.trim(),created_at:new Date().toISOString()};try{const r=await fetch('/api/dashboard/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({page:'/dashboard/design-lab',message:`DESIGN LAB SET ${set}｜${Object.values(subset).map(v=>v.name).join(' / ')}`,context:JSON.stringify(snapshot)})});if(!r.ok)throw new Error('save_failed');state.savedSets=[...new Set([...(state.savedSets||[]),set])];persist();status.textContent=set<totalSets?'保存しました。次の5問へ進めます。':'保存しました。現時点の25問まで完了できます。';await loadHistory();if(set<totalSets){setTimeout(()=>{state.activeSet=set+1;persist();render();window.scrollTo({top:0,behavior:'smooth'})},450)}}catch{status.textContent='保存に失敗。端末上の選択は残っています。'}finally{render()}}
+save.addEventListener('click',saveSet);
+async function loadHistory(){const box=$('#history-list');try{const r=await fetch('/api/dashboard/feedback');const d=await r.json();const items=(d.items||[]).filter(i=>i.page==='/dashboard/design-lab').slice(0,8);box.innerHTML='';if(!items.length){box.innerHTML='<p>まだSET保存はありません。</p>';return}items.forEach(i=>{const el=document.createElement('div');el.className='history-item';const s=document.createElement('strong');s.textContent=i.message||'DESIGN LAB';const t=document.createElement('time');t.textContent=new Date(i.created_at).toLocaleString('ja-JP');el.append(s,t);box.appendChild(el)})}catch{box.innerHTML='<p>履歴を読み込めませんでした。</p>'}}
+render();loadHistory();
+</script>
