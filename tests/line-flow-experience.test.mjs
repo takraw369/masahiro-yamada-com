@@ -25,6 +25,20 @@ test('LINE Flow keeps measurable step cards and reorder controls', () => {
   assert.match(manager, /reachedCount/u);
   assert.match(manager, /waitingCount/u);
   assert.match(manager, /cancelledCount/u);
+  assert.match(manager, /branchTakenCount/u);
   assert.match(manager, /steps\/reorder/u);
   assert.match(manager, /draggable/u);
+});
+
+test('LINE Flow content blocks can be dragged into the flow', () => {
+  assert.match(manager, /dragBlockId/u);
+  assert.match(manager, /application\/x-line-block/u);
+  assert.match(manager, /insertBlock/u);
+  assert.match(manager, /ブロックやStepをここへドロップ/u);
+});
+
+test('LINE Flow analytics failures do not block the editor', () => {
+  assert.match(manager, /Promise\.allSettled/u);
+  assert.match(manager, /分析データだけ再取得できませんでした。Flow編集はそのまま使えます。/u);
+  assert.match(manager, /routesReady/u);
 });
