@@ -1674,3 +1674,50 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Keep the first source close to the opening screen on a phone. */
+@media (max-width: 760px) {
+  .kf-mobile-brand {
+    padding-top: 10px;
+  }
+  .kf-content {
+    padding-top: 15px;
+  }
+  .kf-section-heading .kf-eyebrow {
+    display: none;
+  }
+  .kf-section-heading h1 {
+    margin-top: 0;
+    font-size: 22px;
+  }
+  .kf-section-heading {
+    margin-bottom: 16px;
+  }
+  .kf-stats {
+    margin-bottom: 24px;
+  }
+  .kf-stat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 7px;
+    padding: 13px 12px;
+  }
+  .kf-stat > span {
+    font-size: 10px;
+    white-space: normal;
+  }
+  .kf-stat > strong {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    font-size: 25px;
+    line-height: 1;
+  }
+  .kf-stat > small {
+    font-size: 9px;
+    grid-column: 1 / -1;
+  }
+  .kf-stat > small svg {
+    display: none;
+  }
+}
