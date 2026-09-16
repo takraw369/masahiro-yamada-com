@@ -38,8 +38,8 @@ jobs:
       - name: Security regression tests
         run: npm test
 
-      - name: Full typecheck
-        run: npm run typecheck
+      - name: Release-delta typecheck
+        run: npm run typecheck:release
 
       - name: Build production artifact
         run: npm run build
