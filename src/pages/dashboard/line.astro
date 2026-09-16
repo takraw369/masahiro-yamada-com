@@ -1,4 +1,5 @@
 ---
+import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
 import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
 ---
 <!doctype html>
@@ -11,6 +12,7 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
     <title>LINE Flow — MASA OS</title>
   </head>
   <body>
+    <div class="copy-os-wrap"><CopyOsReference surface="LINE" /></div>
     <LineFlowManagerV2 client:load />
     <script is:inline src="/scripts/line-asset-library.js"></script>
   </body>
@@ -22,6 +24,12 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
     min-height: 100%;
     background: #f3f1ed;
     -webkit-text-size-adjust: 100%;
+  }
+
+  .copy-os-wrap {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 12px 22px 0;
   }
 
   body,
@@ -63,6 +71,10 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
   }
 
   @media (max-width: 760px) {
+    .copy-os-wrap {
+      padding: 10px 14px 0;
+    }
+
     .lf2 .top-actions button,
     .lf2 .top-actions select,
     .lf2 .inspect-actions button,
