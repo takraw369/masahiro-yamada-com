@@ -1,4 +1,6 @@
 ---
+import { getDashboardCockpit } from '../lib/dashboardCockpits';
+
 export interface Props {
   title: string;
   fullHeight?: boolean;
@@ -8,6 +10,7 @@ export interface Props {
 
 const { title, fullHeight = false, focusMode = false, eyebrow = 'MASA OS' } = Astro.props;
 const pathname = Astro.url.pathname;
+const cockpit = getDashboardCockpit(pathname);
 
 const defaultAppMeta = {
   manifest: '/masa-os.webmanifest',
@@ -159,8 +162,13 @@ const commandItems = [
 
       .main { grid-column: 2; min-width: 0; }
       .topbar { position: sticky; top: 0; z-index: 30; min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 9px 28px; background: rgba(251,250,248,.94); backdrop-filter: blur(14px); border-bottom: 1px solid #ddd9d2; }
+      .page-meta { min-width: 0; flex: 1; }
       .eyebrow { color: #8b5b2c; font-size: .67rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
       .page-title { margin-top: 1px; color: #3c434b; font-size: .82rem; }
+      .cockpit-flow { margin-top: 3px; display: flex; align-items: center; gap: 6px; min-width: 0; color: #747b84; font-size: .64rem; line-height: 1.25; white-space: nowrap; overflow: hidden; }
+      .cockpit-step { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+      .cockpit-step strong { margin-right: 4px; color: #8b5b2c; font-weight: 700; }
+      .cockpit-arrow { color: #b79c75; flex-shrink: 0; }
       .top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
       .capture-link, .command-button, .menu-button, .close-button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cfc8bd; background: #fff; color: #56606a; cursor: pointer; font-size: .73rem; text-decoration: none; }
       .capture-link { padding: 0 12px; color: #754a16; font-weight: 700; }
@@ -208,6 +216,8 @@ const commandItems = [
         .page-meta { width: 100%; }
         .top-actions { width: 100%; }
         .capture-link, .command-button { flex: 1; }
+        .cockpit-see, .cockpit-decide, .cockpit-arrow { display: none; }
+        .cockpit-act { max-width: 100%; }
         .content { scroll-margin-top: 138px; }
         .command-links { grid-template-columns: 1fr; }
       }
@@ -245,7 +255,17 @@ const commandItems = [
 
       <div class="main">
         <header class="topbar">
-          <div class="page-meta"><p class="eyebrow">{eyebrow}</p><p class="page-title">{title}</p></div>
+          <div class="page-meta">
+            <p class="eyebrow">{eyebrow}</p>
+            <p class="page-title">{title}</p>
+            <p class="cockpit-flow" aria-label={`見る: ${cockpit.see}。決める: ${cockpit.decide}。動く: ${cockpit.act}`}>
+              <span class="cockpit-step cockpit-see"><strong>見る</strong>{cockpit.see}</span>
+              <span class="cockpit-arrow" aria-hidden="true">→</span>
+              <span class="cockpit-step cockpit-decide"><strong>決める</strong>{cockpit.decide}</span>
+              <span class="cockpit-arrow" aria-hidden="true">→</span>
+              <span class="cockpit-step cockpit-act"><strong>動く</strong>{cockpit.act}</span>
+            </p>
+          </div>
           <div class="top-actions">
             <a class="capture-link" href="/mind?action=capture">＋ Capture</a>
             <button class="command-button" type="button" data-command-trigger aria-haspopup="dialog">Quick Jump <kbd class="command-shortcut">⌘ K</kbd></button>
