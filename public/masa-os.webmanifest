@@ -1,0 +1,26 @@
+{
+  "id": "/dashboard",
+  "name": "MASA OS — Daily Command Center",
+  "short_name": "MASA OS",
+  "description": "MASA OS primary daily command center.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f1ed",
+  "theme_color": "#f3f1ed",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/app-icons/masa-os-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Capture", "short_name": "Capture", "url": "/mind?action=capture" },
+    { "name": "POST", "short_name": "POST", "url": "/dashboard/post" },
+    { "name": "INTEL", "short_name": "INTEL", "url": "/dashboard/intelligence" },
+    { "name": "CALENDAR", "short_name": "CAL", "url": "/dashboard/schedule" }
+  ]
+}
