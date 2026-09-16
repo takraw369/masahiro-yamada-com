@@ -4,6 +4,7 @@ import KnowledgeCockpit from '../../components/knowledge/KnowledgeCockpit.astro'
 import '../../styles/knowledge-os.css';
 ---
 <DashboardLayout title="FLOW MIND" fullHeight={true} focusMode={true}>
+  <div class="ace-pipeline-link"><a href="/dashboard/ace-assets">ACEへ教材化 →</a></div>
   <KnowledgeCockpit />
   <script is:inline src="/scripts/flow-mind-search.js"></script>
   <script is:inline src="/scripts/flow-mind-deeplink.js"></script>
@@ -12,4 +13,8 @@ import '../../styles/knowledge-os.css';
   <script is:inline src="/scripts/flow-mind-highlight.js"></script>
   <script is:inline src="/scripts/flow-mind-journal.js"></script>
   <script is:inline src="/scripts/flow-mind-launch.js"></script>
+  <style>
+    .ace-pipeline-link{position:fixed;right:18px;top:76px;z-index:80}.ace-pipeline-link a{display:inline-flex;min-height:38px;align-items:center;padding:0 12px;border:1px solid #d4c2a7;background:#fff;color:#754a16;text-decoration:none;font-size:.7rem;font-weight:700;box-shadow:0 8px 24px rgba(35,29,22,.08)}
+    @media(max-width:760px){.ace-pipeline-link{top:auto;right:12px;bottom:76px}}
+  </style>
 </DashboardLayout>
