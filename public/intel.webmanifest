@@ -1,0 +1,20 @@
+{
+  "id": "/dashboard/intelligence",
+  "name": "INTEL — MASA OS",
+  "short_name": "INTEL",
+  "description": "MASA OS intelligence decision inbox.",
+  "start_url": "/dashboard/intelligence",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f1ed",
+  "theme_color": "#f3f1ed",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/app-icons/intel-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

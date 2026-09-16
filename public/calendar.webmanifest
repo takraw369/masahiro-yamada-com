@@ -1,0 +1,20 @@
+{
+  "id": "/dashboard/schedule",
+  "name": "CALENDAR — MASA OS",
+  "short_name": "CAL",
+  "description": "MASA OS calendar and schedule workspace.",
+  "start_url": "/dashboard/schedule",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f1ed",
+  "theme_color": "#f3f1ed",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/app-icons/calendar-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
