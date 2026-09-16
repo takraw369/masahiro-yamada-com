@@ -1,0 +1,112 @@
+:root {
+  --masa-font-xs: 0.75rem;
+  --masa-font-sm: 0.84rem;
+  --masa-font-body: 0.95rem;
+  --masa-font-lg: 1.08rem;
+  --masa-readable-muted: #59636e;
+  --masa-readable-dim: #707983;
+  --masa-readable-line: 1.72;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dashboard / FLOW MIND readability floor. Small text should be secondary,
+   not microscopic. Keep hierarchy with spacing and tone instead of 9–11px type. */
+.eyebrow,
+.ko-eyebrow,
+.tool-label,
+.cockpit-flow,
+.ko-source,
+.ko-state,
+.ko-meta,
+.ko-count,
+.signal-label,
+.scores,
+.time,
+.tag,
+.feedback,
+.seed summary,
+.capture-drawer > summary small,
+.advanced-grid label {
+  font-size: var(--masa-font-xs) !important;
+  line-height: 1.5 !important;
+}
+
+.lead,
+.excerpt,
+.why,
+.ko-card p,
+.ko-sub,
+.ko-related button,
+.ko-highlight,
+.ko-command-item,
+.tool-link,
+.core-link small,
+.brand-sub,
+.logout-link,
+.quiet-link,
+.action,
+.count,
+.capture-drawer > summary,
+.intake-form label,
+.advanced-filters > summary,
+.seed pre {
+  font-size: var(--masa-font-sm) !important;
+  line-height: var(--masa-readable-line) !important;
+}
+
+.ko-card h3,
+.title,
+.intake-form input,
+.intake-form textarea,
+.intake-form select,
+.filters input,
+.filters select {
+  font-size: var(--masa-font-body) !important;
+  line-height: 1.65 !important;
+}
+
+.ko-card p,
+.ko-sub,
+.excerpt,
+.source,
+.why,
+.feedback,
+.seed pre,
+.lead {
+  color: var(--masa-readable-muted) !important;
+}
+
+.ko-source,
+.ko-state,
+.ko-meta,
+.ko-count,
+.tag,
+.time,
+.signal-label,
+.scores {
+  color: var(--masa-readable-dim) !important;
+}
+
+button,
+input,
+textarea,
+select {
+  letter-spacing: 0;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --masa-font-xs: 0.78rem;
+    --masa-font-sm: 0.88rem;
+    --masa-font-body: 1rem;
+  }
+}
