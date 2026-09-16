@@ -1,16 +1,17 @@
 ---
 import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
-import { libraryItemBySlug, yen } from '../../lib/libraryCatalog';
+import { accessLabel, libraryItemBySlug, yen } from '../../lib/libraryCatalog';
 
 const item = libraryItemBySlug(Astro.params.slug);
 if (!item) return new Response('Not found', { status: 404 });
 
 const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
+const isMember = item.access === 'member' || item.access === 'pro';
 ---
 
 <PublicPageLayout
   title={item.title}
-  eyebrow={`${item.category} / ${item.format}`}
+  eyebrow={`${item.series ?? item.category} / ${item.format}`}
   description={`${item.title} — ${item.subtitle}`}
 >
   <p slot="lead" class="public-lead">{item.subtitle}</p>
@@ -18,7 +19,10 @@ const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
   <section class="public-section item-hero-grid">
     <div class={`item-cover cover-${item.coverNo}`}>
       <span class="item-no">{item.coverNo}</span>
-      <span class="item-format">{item.format}</span>
+      <div class="item-cover-top">
+        <span class="item-format">{item.format}</span>
+        <span class="access-chip">{accessLabel(item.access)}</span>
+      </div>
       <strong>{item.title}</strong>
       <small>{item.subtitle}</small>
       <span class="item-author">MASA / 山田昌寛</span>
@@ -29,7 +33,8 @@ const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
         <span>{item.category}</span>
         <span class:list={['item-status', isLive && 'is-live']}>{isLive ? 'LIVE' : 'PREVIEW'}</span>
       </div>
-      <h2>{isLive ? yen(item.priceYen) : `予定価格 ${yen(item.priceYen)}`}</h2>
+      <p class="access-note">ACCESS / {accessLabel(item.access)}</p>
+      <h2>{isMember ? 'MEMBER収録予定' : isLive ? yen(item.priceYen) : `予定価格 ${yen(item.priceYen)}`}</h2>
       <p>{item.description}</p>
 
       {isLive ? (
@@ -41,7 +46,11 @@ const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
         <>
           <div class="item-preview-note">
             <strong>{item.releaseLabel}</strong>
-            <p>本編は制作中です。完成前の決済は行いません。登録者には公開時に優先案内します。</p>
+            <p>
+              {isMember
+                ? 'Knowledge Shelf MEMBER の候補として制作中です。正式販売前のため決済は行わず、先行反応を見ながら内容を磨きます。'
+                : '本編は制作中です。完成前の決済は行いません。登録者には公開時に優先案内します。'}
+            </p>
           </div>
 
           <form class="library-lead-form" data-library-lead>
@@ -82,19 +91,38 @@ const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
     </div>
   </section>
 
+  {item.media && item.media.length > 0 && (
+    <section class="public-section media-roadmap">
+      <p class="item-kicker">GROWING ASSET</p>
+      <h2>この知識は、ここまで育てる。</h2>
+      <p class="public-muted">最初の資料を完成品にせず、使われ方を見ながら関連メディアを追加します。</p>
+      <div class="media-grid">
+        {item.media.map((media) => (
+          <div class="media-card">
+            <div>
+              <span>{media.type}</span>
+              <strong>{media.label}</strong>
+            </div>
+            <small>{media.status === 'live' ? 'LIVE' : 'PLANNED'}</small>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
   <section class="public-section locked-section">
     <div class="locked-preview" aria-hidden="true">
       <p>01 / 観察する</p>
-      <h3>問題を「根性不足」にしないための見方</h3>
-      <p>起きている事実と、自分がそこに付けた意味を分ける。身体の反応、注意の向き、役割、環境を一つずつ……</p>
+      <h3>知識を「読んだ」で終わらせないための入口</h3>
+      <p>背景、判断軸、使い方、実例を分け、次の行動へつながる最小単位にする。ここから先は資料本編として……</p>
       <div class="fake-lines">
         <span></span><span></span><span></span><span></span><span></span>
       </div>
     </div>
     <div class="locked-overlay">
       <div class="lock-icon">✦</div>
-      <strong>{isLive ? '購入者限定コンテンツ' : '本編は公開準備中'}</strong>
-      <p>{isLive ? '決済後にこの続きを閲覧できます。' : '表紙・テーマ・構成を先に公開しています。'}</p>
+      <strong>{isLive ? `${accessLabel(item.access)}限定コンテンツ` : '本編は公開準備中'}</strong>
+      <p>{isLive ? '権限確認後にこの続きを閲覧できます。' : '表紙・テーマ・構成を先に公開しています。'}</p>
     </div>
   </section>
 
@@ -104,7 +132,7 @@ const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
     <p>{item.bridge}</p>
     <div class="item-actions">
       <a class="public-btn" href="/gate">勝ち筋OS 90分を見る</a>
-      <a class="public-btn" href="/library">Libraryへ戻る</a>
+      <a class="public-btn" href="/library">Knowledge Shelfへ戻る</a>
     </div>
   </section>
 </PublicPageLayout>
@@ -173,14 +201,17 @@ const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
     border: 1px solid var(--border-default);
     box-shadow: 0 24px 70px rgba(0,0,0,.26);
   }
-  .item-cover::after { content: ''; position: absolute; inset: 16px; border: 1px solid rgba(201,169,110,.14); }
+  .item-cover::after { content: ''; position: absolute; inset: 16px; border: 1px solid rgba(201,169,110,.14); pointer-events: none; }
+  .cover-00 { background: linear-gradient(150deg, rgba(58,81,112,.34), transparent 54%), #10141b; }
   .cover-02 { background: linear-gradient(160deg, rgba(90,77,58,.33), transparent 52%), #111315; }
   .cover-03 { background: radial-gradient(circle at 50% 35%, rgba(201,169,110,.18), transparent 30%), #16120d; }
   .cover-04 { background: linear-gradient(135deg, rgba(82,98,82,.2), transparent 50%), #101311; }
   .cover-05 { background: linear-gradient(150deg, rgba(130,75,68,.22), transparent 52%), #17100f; }
   .cover-06 { background: linear-gradient(145deg, rgba(64,73,95,.28), transparent 55%), #111219; }
   .item-no { position: absolute; top: 24px; right: 24px; color: var(--text-dim); font-family: 'Cormorant Garamond', serif; font-size: 3rem; }
-  .item-format { margin-bottom: auto; color: var(--gold-muted); font-size: 10px; letter-spacing: .16em; }
+  .item-cover-top { margin-bottom: auto; position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .item-format { color: var(--gold-muted); font-size: 10px; letter-spacing: .16em; }
+  .access-chip { border: 1px solid rgba(201,169,110,.28); padding: 4px 7px; color: var(--gold-muted); font-size: 9px; letter-spacing: .1em; }
   .item-cover strong { position: relative; z-index: 1; font-family: 'Cormorant Garamond', 'Zen Kaku Gothic New', serif; font-size: clamp(2rem, 4vw, 3.1rem); font-weight: 400; line-height: 1.1; }
   .item-cover small { position: relative; z-index: 1; margin-top: 12px; color: var(--text-muted); font-size: .82rem; line-height: 1.6; }
   .item-author { position: relative; z-index: 1; margin-top: 28px; color: var(--gold-muted); font-size: 10px; letter-spacing: .12em; }
@@ -188,7 +219,8 @@ const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
   .item-meta-row { display: flex; justify-content: space-between; gap: 12px; color: var(--text-dim); font-size: 10px; letter-spacing: .12em; }
   .item-status { border: 1px solid var(--border-default); padding: 4px 8px; }
   .item-status.is-live { color: var(--success); border-color: rgba(143,189,145,.3); }
-  .item-buybox h2 { margin: 26px 0 10px; font-size: 2.4rem; color: var(--gold-pure); }
+  .access-note { margin: 22px 0 0; color: var(--gold-muted) !important; font-size: 10px; letter-spacing: .14em; }
+  .item-buybox h2 { margin: 7px 0 10px; font-size: 2.15rem; color: var(--gold-pure); }
   .item-buybox > p { color: var(--text-muted); }
   .item-primary { width: 100%; margin-top: 18px; }
   .item-preview-note { margin: 24px 0 18px; padding: 16px 18px; border-left: 2px solid var(--gold-muted); background: var(--gold-glow); }
@@ -215,6 +247,12 @@ const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
   .takeaway-card { display: flex; align-items: baseline; gap: 14px; }
   .takeaway-card span { color: var(--gold-dim); font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; }
   .takeaway-card strong { font-size: .9rem; }
+  .media-grid { display: grid; gap: 9px; margin-top: 20px; }
+  .media-card { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 16px; border: 1px solid var(--border-default); background: var(--bg-surface); }
+  .media-card > div { display: grid; gap: 4px; }
+  .media-card span { color: var(--gold-muted); font-size: 9px; letter-spacing: .14em; }
+  .media-card strong { font-size: .84rem; }
+  .media-card small { color: var(--text-dim); font-size: 9px; letter-spacing: .1em; }
   .locked-section { position: relative; min-height: 300px; overflow: hidden; border: 1px solid var(--border-default); background: var(--bg-surface); }
   .locked-preview { padding: 30px; filter: blur(4px); opacity: .38; user-select: none; }
   .locked-preview h3 { font-size: 1.4rem; }
