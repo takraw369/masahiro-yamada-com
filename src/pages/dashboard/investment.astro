@@ -4,6 +4,7 @@ import InvestmentDashboard from '../../components/dashboard/InvestmentDashboard'
 import WorldFlowChart from '../../components/dashboard/WorldFlowChart';
 import WorldFlowIntelligence from '../../components/dashboard/WorldFlowIntelligence';
 import WorldFlowMap from '../../components/dashboard/WorldFlowMap';
+import MeasuredFlowLayer from '../../components/dashboard/MeasuredFlowLayer';
 ---
 
 <DashboardLayout title="World Flow">
@@ -11,6 +12,7 @@ import WorldFlowMap from '../../components/dashboard/WorldFlowMap';
     <WorldFlowChart client:only="react" />
     <WorldFlowIntelligence client:only="react" />
     <WorldFlowMap client:only="react" />
+    <MeasuredFlowLayer client:only="react" />
   </div>
   <InvestmentDashboard client:only="react" />
 </DashboardLayout>
