@@ -1,9 +1,12 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
+import PostDraftShelf from '../../components/dashboard/PostDraftShelf';
 import XCommandCenter from '../../components/dashboard/XCommandCenter';
+import '../../styles/masa-readable.css';
 ---
 <DashboardLayout title="X Post">
+  <PostDraftShelf client:load />
   <CopyOsReference surface="X" />
   <XCommandCenter client:only="react" />
 </DashboardLayout>
