@@ -8,17 +8,111 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: production-deploy
-  cancel-in-progress: false
+  actions: read
 
 jobs:
-  deploy:
+  classify:
     if: github.ref == 'refs/heads/master'
-    environment: production
     runs-on: ubuntu-latest
-    name: Deploy
+    name: Classify deployment risk
+    outputs:
+      base_sha: ${{ steps.base.outputs.base_sha }}
+      risky: ${{ steps.risk.outputs.risky }}
+      risk_summary: ${{ steps.risk.outputs.summary }}
+      repo_secrets_ready: ${{ steps.credentials.outputs.ready }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Find last successful production revision
+        id: base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          force_risky=false
+          base_sha=""
+          api_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy.yml/runs?branch=master&status=success&per_page=20"
+
+          if response="$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${api_url}")"; then
+            base_sha="$(printf '%s' "${response}" | node -e '
+              let data="";
+              process.stdin.on("data", c => data += c);
+              process.stdin.on("end", () => {
+                const payload = JSON.parse(data);
+                const current = String(process.env.GITHUB_RUN_ID || "");
+                const run = (payload.workflow_runs || []).find(item => String(item.id) !== current && item.head_sha);
+                process.stdout.write(run?.head_sha || "");
+              });
+            ')"
+          else
+            echo "Could not read prior successful deploy runs; forcing protected deployment."
+            force_risky=true
+          fi
+
+          if [[ -z "${base_sha}" ]] || ! git cat-file -e "${base_sha}^{commit}" 2>/dev/null || ! git merge-base --is-ancestor "${base_sha}" "${GITHUB_SHA}"; then
+            base_sha="$(git rev-parse "${GITHUB_SHA}^")"
+            force_risky=true
+          fi
+
+          git diff --name-only "${base_sha}" "${GITHUB_SHA}" > /tmp/deploy-changed-files.txt
+          echo "base_sha=${base_sha}" >> "${GITHUB_OUTPUT}"
+          echo "force_risky=${force_risky}" >> "${GITHUB_OUTPUT}"
+          echo "Changed since last successful production revision:"
+          cat /tmp/deploy-changed-files.txt
+
+      - name: Classify cumulative deployment risk
+        id: risk
+        env:
+          DEPLOY_FORCE_RISKY: ${{ steps.base.outputs.force_risky }}
+        run: node scripts/classify-deploy-risk.mjs < /tmp/deploy-changed-files.txt
+
+      - name: Detect automatic-deploy credential scope
+        id: credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          if [[ -n "${CLOUDFLARE_API_TOKEN:-}" && -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo "ready=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "ready=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Record routing decision
+        env:
+          RISKY: ${{ steps.risk.outputs.risky }}
+          RISK_SUMMARY: ${{ steps.risk.outputs.summary }}
+          REPO_SECRETS_READY: ${{ steps.credentials.outputs.ready }}
+          BASE_SHA: ${{ steps.base.outputs.base_sha }}
+        shell: bash
+        run: |
+          {
+            echo "### Production routing"
+            echo "- comparison base: \`${BASE_SHA}\`"
+            echo "- risky delta: \`${RISKY}\`"
+            echo "- reason: ${RISK_SUMMARY}"
+            echo "- repo/org Cloudflare credentials available without environment: \`${REPO_SECRETS_READY}\`"
+            if [[ "${RISKY}" == "false" && "${REPO_SECRETS_READY}" == "true" ]]; then
+              echo "- route: **SAFE AUTO DEPLOY**"
+            else
+              echo "- route: **PROTECTED HUMAN GATE**"
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  release-gates:
+    needs: classify
+    runs-on: ubuntu-latest
+    name: Release gates
     steps:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -39,6 +133,9 @@ jobs:
         run: npm test
 
       - name: Release-delta typecheck
+        env:
+          TYPECHECK_BASE_SHA: ${{ needs.classify.outputs.base_sha }}
+          TYPECHECK_HEAD_SHA: ${{ github.sha }}
         run: npm run typecheck:release
 
       - name: Build production artifact
@@ -50,9 +147,63 @@ jobs:
       - name: Dependency security gate
         run: npm run security:check
 
-      # test:preview deliberately rebuilds dist with an isolated Wrangler config.
-      # Never deploy that artifact; rebuild from canonical production wrangler.toml.
-      - name: Rebuild production artifact after preview
+  deploy-auto:
+    needs: [classify, release-gates]
+    if: needs.classify.outputs.risky == 'false' && needs.classify.outputs.repo_secrets_ready == 'true'
+    runs-on: ubuntu-latest
+    name: Deploy automatically
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build canonical production artifact
+        run: npm run build
+
+      - name: Deploy to Cloudflare Workers
+        run: npx --no-install wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  deploy-protected:
+    needs: [classify, release-gates]
+    if: needs.classify.outputs.risky == 'true' || needs.classify.outputs.repo_secrets_ready != 'true'
+    environment: production
+    runs-on: ubuntu-latest
+    name: Deploy with human gate
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build canonical production artifact
         run: npm run build
 
       - name: Deploy to Cloudflare Workers
