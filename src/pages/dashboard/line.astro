@@ -1,6 +1,8 @@
 ---
 import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
+import LineFlowAssistant from '../../components/dashboard/LineFlowAssistant';
 import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
+import '../../styles/masa-readable.css';
 ---
 <!doctype html>
 <html lang="ja">
@@ -21,6 +23,7 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
       </div>
     </nav>
     <div class="copy-os-wrap"><CopyOsReference surface="LINE" /></div>
+    <LineFlowAssistant client:load />
     <LineFlowManagerV2 client:load />
     <script is:inline src="/scripts/line-flow-asset-bridge.js"></script>
     <script is:inline src="/scripts/line-asset-library.js"></script>
@@ -45,15 +48,15 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
     gap: 12px;
     align-items: center;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
-    font-size: 11px;
-    color: #7a746b;
+    font-size: 13px;
+    color: #625f59;
   }
 
   .flow-context > span {
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 800;
-    letter-spacing: .14em;
-    color: #9a6c31;
+    letter-spacing: .1em;
+    color: #8b5b2c;
   }
 
   .flow-context > div {
@@ -63,14 +66,14 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
   }
 
   .flow-context a {
-    min-height: 34px;
+    min-height: 36px;
     display: inline-flex;
     align-items: center;
     padding: 0 10px;
     border: 1px solid #d8d2c9;
     border-radius: 8px;
     background: rgba(255,255,255,.78);
-    color: #58636d;
+    color: #505b65;
     text-decoration: none;
   }
 
@@ -124,10 +127,19 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
     touch-action: manipulation;
   }
 
+  /* readability floor for dense builder chrome */
+  .lf2 .step-copy > b { font-size: 14px !important; line-height: 1.62 !important; }
+  .lf2 .step-copy > small,
+  .lf2 .step-stat,
+  .lf2 .badge,
+  .lf2 .eyebrow,
+  .lf2 .hint { font-size: 12px !important; line-height: 1.55 !important; }
+
   @media (max-width: 760px) {
     .flow-context {
       padding: 8px 14px 0;
       grid-template-columns: 1fr auto;
+      font-size: 13px;
     }
 
     .flow-context > span { display: none; }
@@ -157,7 +169,7 @@ import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
     }
 
     .lf2 .step-copy > b {
-      font-size: 12px !important;
+      font-size: 14px !important;
       line-height: 1.62 !important;
     }
 
