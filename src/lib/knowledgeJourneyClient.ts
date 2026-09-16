@@ -12,6 +12,8 @@ type JourneyContext = {
 const VISITOR_KEY = 'masa_ks_visitor_id';
 const SESSION_KEY = 'masa_ks_session_id';
 const ATTRIBUTION_KEY = 'masa_ks_attribution';
+const VISITOR_COOKIE = 'masa_ks_vid';
+const SESSION_COOKIE = 'masa_ks_sid';
 
 const safeStorage = (kind: 'local' | 'session') => {
   try {
@@ -27,6 +29,13 @@ const randomId = () => {
   } catch {
     return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 18)}`;
   }
+};
+
+const writeCookie = (name: string, value: string, persistent: boolean) => {
+  try {
+    const maxAge = persistent ? '; Max-Age=15552000' : '';
+    document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; SameSite=Lax; Secure${maxAge}`;
+  } catch {}
 };
 
 const getOrCreate = (kind: 'local' | 'session', key: string) => {
@@ -70,9 +79,13 @@ const assetFromPath = (path: string) => {
 export const getKnowledgeJourneyContext = (): JourneyContext => {
   const path = window.location.pathname;
   const attribution = readAttribution();
+  const visitorId = getOrCreate('local', VISITOR_KEY);
+  const sessionId = getOrCreate('session', SESSION_KEY);
+  writeCookie(VISITOR_COOKIE, visitorId, true);
+  writeCookie(SESSION_COOKIE, sessionId, false);
   return {
-    visitorId: getOrCreate('local', VISITOR_KEY),
-    sessionId: getOrCreate('session', SESSION_KEY),
+    visitorId,
+    sessionId,
     source: attribution.source,
     medium: attribution.medium,
     campaign: attribution.campaign,
