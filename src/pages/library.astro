@@ -1,30 +1,45 @@
 ---
 import PublicPageLayout from '../layouts/PublicPageLayout.astro';
-import { libraryItems, yen } from '../lib/libraryCatalog';
+import { accessLabel, knowledgeShelfPlan, libraryItems, yen } from '../lib/libraryCatalog';
 ---
 
 <PublicPageLayout
-  title="MASA LIBRARY"
-  eyebrow="KNOWLEDGE SHELF / MICRO PUBLISHING"
-  description="日本代表20年の身体知・競技知・学習知を、PDF・ワークブック・セミナー資料として一冊ずつ公開するMASAの知識棚。"
+  title="MASA KNOWLEDGE SHELF"
+  eyebrow="KNOWLEDGE SHELF / GROWING LIBRARY"
+  description="MASAの体験・調査・思考を、資料・テンプレ・動画・Questへ育てながら公開する知識棚。"
 >
   <p slot="lead" class="public-lead">
-    投稿して消える知識を、読める・試せる・買える形へ。<br />
-    小さな教材から入り、必要なら個別実装へ進める知識の売り場です。
+    投稿して消える知識を、読める・試せる・育っていく資産へ。<br />
+    資料から始まり、動画・音声・実践Questへ深くなる「成長する知識棚」です。
   </p>
 
-  <section class="public-section library-intro">
-    <div class="public-grid">
-      <div class="public-card">
-        <p class="library-kicker">READ</p>
-        <h2>一つの悩みを、一冊で。</h2>
-        <p>低価格教材は「薄い情報」ではなく、ひとつの問題を自分で動かすための最小単位として設計します。</p>
+  <section class="public-section shelf-cycle" aria-label="Knowledge Shelfの成長フロー">
+    <div class="cycle-step"><span>01</span><strong>NOTE</strong><small>会話・体験・調査</small></div>
+    <div class="cycle-arrow">→</div>
+    <div class="cycle-step"><span>02</span><strong>SHEET</strong><small>A3・PDF・テンプレ</small></div>
+    <div class="cycle-arrow">→</div>
+    <div class="cycle-step"><span>03</span><strong>MEDIA</strong><small>動画・音声・図解</small></div>
+    <div class="cycle-arrow">→</div>
+    <div class="cycle-step"><span>04</span><strong>QUEST</strong><small>実践・教材・講座</small></div>
+  </section>
+
+  <section class="public-section member-preview">
+    <div>
+      <p class="library-kicker">FOUNDING MEMBER / MARKET TEST</p>
+      <h2>一冊を売って終わりではなく、棚そのものを育てる。</h2>
+      <p>{knowledgeShelfPlan.description}</p>
+      <div class="member-benefits">
+        <span>資料・テンプレ</span>
+        <span>増補版</span>
+        <span>関連動画</span>
+        <span>実践Quest</span>
       </div>
-      <div class="public-card">
-        <p class="library-kicker">DEEPEN</p>
-        <h2>読んだ先に、実装がある。</h2>
-        <p>自分で試して詰まったら、勝ち筋OS 90分で本人仕様へ。知識販売と個別セッションを競合させません。</p>
-      </div>
+    </div>
+    <div class="member-price">
+      <small>仮説価格</small>
+      <strong>{yen(knowledgeShelfPlan.monthlyYen)}</strong>
+      <span>/ month</span>
+      <p>正式販売前。内容と価格は先行反応を見て磨きます。</p>
     </div>
   </section>
 
@@ -32,24 +47,27 @@ import { libraryItems, yen } from '../lib/libraryCatalog';
     <div class="library-section-head">
       <div>
         <p class="library-kicker">SHELF 01</p>
-        <h2>現在の棚</h2>
+        <h2>育てている知識</h2>
       </div>
-      <p class="public-muted">LIVE のみ即時販売。PREVIEW は内容完成後に公開します。</p>
+      <p class="public-muted">LIVE のみ即時販売。PREVIEW は決済せず、公開案内だけ受け付けます。</p>
     </div>
 
     <div class="library-grid">
       {libraryItems.map((item) => (
         <a class="library-card" href={`/library/${item.slug}`} aria-label={`${item.title}の詳細を見る`}>
           <div class={`library-cover cover-${item.coverNo}`}>
+            <div class="library-cover-top">
+              <span class="library-cover-format">{item.format}</span>
+              <span class="access-chip">{accessLabel(item.access)}</span>
+            </div>
             <span class="library-cover-no">{item.coverNo}</span>
-            <span class="library-cover-format">{item.format}</span>
             <strong>{item.title}</strong>
             <small>{item.subtitle}</small>
             <span class="library-cover-author">MASA / 山田昌寛</span>
           </div>
           <div class="library-card-body">
             <div class="library-meta">
-              <span>{item.category}</span>
+              <span>{item.series ?? item.category}</span>
               <span class:list={['library-status', item.status === 'live' && 'is-live']}>
                 {item.status === 'live' ? 'LIVE' : 'PREVIEW'}
               </span>
@@ -68,11 +86,22 @@ import { libraryItems, yen } from '../lib/libraryCatalog';
 
   <section class="public-section public-card library-principle">
     <p class="library-kicker">PUBLISHING RULE</p>
-    <h2>表紙は先に出す。中身は完成してから売る。</h2>
+    <h2>まず小さく出す。使われた知識だけ、深くする。</h2>
     <p>
-      企画段階から棚に置き、どのテーマに反応が集まるかを観測します。未完成の教材は「先行案内」と明示し、決済は有効化しません。
-      売れた・読まれた・質問が集まったテーマだけを、増補版・動画講義・セミナー・書籍・ACE Lessonへ育てます。
+      表紙・テーマ・構成を先に公開し、反応を観測します。未完成の教材は PREVIEW と明示し、決済は有効化しません。
+      読まれた・質問された・使われた知識から、増補版 → 動画 → Quest → 講座へ育てます。
     </p>
+  </section>
+
+  <section class="public-section shelf-phases">
+    <p class="library-kicker">HOW VALUE GROWS</p>
+    <h2>同じ知識が、時間とともに価値を増す。</h2>
+    <div class="public-grid">
+      <div class="public-card"><span>V1</span><h3>一枚資料</h3><p>核を最短で理解できる。</p></div>
+      <div class="public-card"><span>V2</span><h3>ケース追加</h3><p>実例で判断の解像度を上げる。</p></div>
+      <div class="public-card"><span>V3</span><h3>動画・音声</h3><p>背景や身体感覚まで伝える。</p></div>
+      <div class="public-card"><span>V4</span><h3>Quest</h3><p>知っているを、できるへ変える。</p></div>
+    </div>
   </section>
 
   <section class="public-section library-deep">
@@ -94,7 +123,44 @@ import { libraryItems, yen } from '../lib/libraryCatalog';
     font-size: 11px;
     letter-spacing: .2em;
   }
-  .library-intro h2 { font-size: 1.6rem; }
+  .shelf-cycle {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid var(--border-default);
+    background: var(--bg-surface);
+  }
+  .cycle-step { min-width: 0; }
+  .cycle-step span { display: block; color: var(--gold-dim); font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; }
+  .cycle-step strong { display: block; margin: 3px 0; color: var(--text-primary); font-size: .82rem; letter-spacing: .12em; }
+  .cycle-step small { color: var(--text-muted); font-size: .68rem; line-height: 1.4; }
+  .cycle-arrow { color: var(--gold-dim); }
+  .member-preview {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(220px, .5fr);
+    gap: 30px;
+    align-items: center;
+    padding: 30px;
+    border: 1px solid rgba(201,169,110,.28);
+    background: linear-gradient(145deg, rgba(201,169,110,.08), transparent 52%), var(--bg-surface);
+  }
+  .member-preview h2 { margin-bottom: 10px; }
+  .member-preview p { color: var(--text-muted); }
+  .member-benefits { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .member-benefits span, .access-chip {
+    border: 1px solid rgba(201,169,110,.26);
+    color: var(--gold-muted);
+    padding: 5px 8px;
+    font-size: 9px;
+    letter-spacing: .1em;
+  }
+  .member-price { border-left: 1px solid var(--border-default); padding-left: 26px; }
+  .member-price small { display: block; color: var(--text-dim); font-size: 10px; letter-spacing: .12em; }
+  .member-price strong { display: inline-block; margin-top: 8px; color: var(--gold-pure); font-family: 'Cormorant Garamond', serif; font-size: 2.7rem; font-weight: 400; }
+  .member-price > span { color: var(--text-dim); font-size: .7rem; }
+  .member-price p { margin: 8px 0 0; font-size: .68rem; line-height: 1.5; }
   .library-section-head {
     display: flex;
     align-items: end;
@@ -137,26 +203,24 @@ import { libraryItems, yen } from '../lib/libraryCatalog';
     border: 1px solid rgba(201,169,110,.14);
     pointer-events: none;
   }
+  .cover-00 { background: linear-gradient(150deg, rgba(58,81,112,.34), transparent 54%), #10141b; }
   .cover-02 { background: linear-gradient(160deg, rgba(90,77,58,.33), transparent 52%), #111315; }
   .cover-03 { background: radial-gradient(circle at 50% 35%, rgba(201,169,110,.18), transparent 30%), #16120d; }
   .cover-04 { background: linear-gradient(135deg, rgba(82,98,82,.2), transparent 50%), #101311; }
   .cover-05 { background: linear-gradient(150deg, rgba(130,75,68,.22), transparent 52%), #17100f; }
   .cover-06 { background: linear-gradient(145deg, rgba(64,73,95,.28), transparent 55%), #111219; }
+  .library-cover-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: auto; position: relative; z-index: 2; }
   .library-cover-no {
     position: absolute;
-    top: 20px;
+    top: 56px;
     right: 20px;
     color: var(--text-dim);
     font-family: 'Cormorant Garamond', serif;
     font-size: 2.4rem;
     line-height: 1;
   }
-  .library-cover-format {
-    margin-bottom: auto;
-    color: var(--gold-muted);
-    font-size: 9px;
-    letter-spacing: .15em;
-  }
+  .library-cover-format { color: var(--gold-muted); font-size: 9px; letter-spacing: .15em; }
+  .access-chip { padding: 3px 6px; background: rgba(13,11,8,.35); }
   .library-cover strong {
     position: relative;
     z-index: 1;
@@ -201,16 +265,26 @@ import { libraryItems, yen } from '../lib/libraryCatalog';
   .library-card-body p { min-height: 3.2em; margin: 0 0 18px; color: var(--text-muted); font-size: .78rem; line-height: 1.6; }
   .library-price-row { border-top: 1px solid var(--border-default); padding-top: 13px; }
   .library-price-row strong { color: var(--gold-pure); font-size: .9rem; }
-  .library-price-row span { color: var(--text-dim); font-size: .68rem; }
+  .library-price-row span { color: var(--text-dim); font-size: .68rem; text-align: right; }
   .library-principle h2 { margin-bottom: 12px; }
+  .shelf-phases .public-card span { color: var(--gold-dim); font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; }
+  .shelf-phases .public-card h3 { margin: 8px 0 5px; }
+  .shelf-phases .public-card p { margin: 0; color: var(--text-muted); font-size: .76rem; }
   .library-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
 
   @media (max-width: 900px) {
     .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .shelf-cycle { grid-template-columns: repeat(4, 1fr); }
+    .cycle-arrow { display: none; }
+  }
+  @media (max-width: 700px) {
+    .member-preview { grid-template-columns: 1fr; }
+    .member-price { border-left: 0; border-top: 1px solid var(--border-default); padding: 18px 0 0; }
   }
   @media (max-width: 620px) {
     .library-section-head { align-items: flex-start; flex-direction: column; gap: 8px; }
     .library-grid { grid-template-columns: 1fr; }
     .library-cover { aspect-ratio: 4 / 4.7; }
+    .shelf-cycle { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
