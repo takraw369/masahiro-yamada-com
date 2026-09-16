@@ -20,6 +20,11 @@ const ALLOWED_EVENTS = new Set([
   'ks_purchase',
 ]);
 
+const RESERVED_META_KEYS = new Set([
+  'visitor_id', 'session_id', 'asset_slug', 'path', 'source', 'medium', 'campaign',
+  'referrer', 'stage', 'origin', 'tracking', 'contact_id',
+]);
+
 const clean = (value: unknown, max: number) =>
   typeof value === 'string' ? value.trim().slice(0, max) : null;
 
@@ -71,7 +76,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   let meta: Record<string, string | number | boolean | null> = {};
   if (body.meta && typeof body.meta === 'object' && !Array.isArray(body.meta)) {
     for (const [key, value] of Object.entries(body.meta as Record<string, unknown>).slice(0, 8)) {
-      if (!/^[a-zA-Z0-9_-]{1,40}$/.test(key)) continue;
+      if (!/^[a-zA-Z0-9_-]{1,40}$/.test(key) || RESERVED_META_KEYS.has(key)) continue;
       if (typeof value === 'string') meta[key] = value.slice(0, 200);
       else if (typeof value === 'number' && Number.isFinite(value)) meta[key] = value;
       else if (typeof value === 'boolean' || value === null) meta[key] = value;
