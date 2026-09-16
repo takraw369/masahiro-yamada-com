@@ -1,8 +1,12 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import InvestmentDashboard from '../../components/dashboard/InvestmentDashboard';
+import WorldFlowChart from '../../components/dashboard/WorldFlowChart';
 ---
 
-<DashboardLayout title="Investment">
+<DashboardLayout title="World Flow">
+  <div style="margin-bottom:18px">
+    <WorldFlowChart client:only="react" />
+  </div>
   <InvestmentDashboard client:only="react" />
 </DashboardLayout>
