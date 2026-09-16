@@ -1,0 +1,144 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const themes = [
+  ['', '自動判定'],
+  ['flow-foundation', 'FLOW 基礎'],
+  ['body', 'BODY'],
+  ['mind', 'MIND'],
+  ['food-health', '食と健康'],
+  ['learning', '学び方'],
+  ['relationships', '人間関係'],
+  ['ai-creation', 'AIと創作'],
+  ['athlete', 'Athlete'],
+  ['world-quest', 'World Quest'],
+];
+---
+<DashboardLayout title="ACE Asset Pipeline" eyebrow="CREATE → ACE">
+  <div class="asset-shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow-local">C089 / KNOWLEDGE SHELF</p>
+        <h1>作った教材を、ACEの山へ。</h1>
+        <p>Drive・動画・スライドを登録すると、テーマを自動判定してACE Base Campへ接続します。公開は初期値Draftです。</p>
+      </div>
+      <a href="https://ace.sunlovesflow.com/knowledge" target="_blank" rel="noreferrer">ACE Base Camp ↗</a>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head"><span>REGISTER</span><h2>教材をつなぐ</h2></div>
+        <form id="asset-form">
+          <label>タイトル<input name="title" maxlength="240" required placeholder="例：気圧頭痛を身体から見る" /></label>
+          <label>ひとことで<textarea name="summary" maxlength="4000" rows="3" placeholder="何がわかる・できるようになる？"></textarea></label>
+          <div class="two">
+            <label>形式<select name="assetType"><option value="slide">スライド</option><option value="video">動画</option><option value="guide">ガイド</option><option value="worksheet">ワーク</option><option value="audio">音声</option><option value="quest">Quest</option><option value="reflection">Reflection</option></select></label>
+            <label>山<select name="themeSlug">{themes.map(([value,label]) => <option value={value}>{label}</option>)}</select></label>
+          </div>
+          <label>教材URL<input name="assetUrl" type="url" required placeholder="https://drive.google.com/... / YouTube / Canva ..." /></label>
+          <div class="two">
+            <label>保存元<select name="sourceSystem"><option value="drive">Google Drive</option><option value="youtube">YouTube</option><option value="canva">Canva</option><option value="github">GitHub</option><option value="manual">Other</option></select></label>
+            <label>Source Ref<input name="sourceRef" placeholder="空なら教材URLを使用" /></label>
+          </div>
+          <label>タグ<input name="tags" placeholder="薬膳, 睡眠, 身体知（カンマ区切り）" /></label>
+          <div class="publish-row">
+            <label>状態<select name="status"><option value="draft">Draft｜確認してから公開</option><option value="live">Live｜ACEへ公開</option></select></label>
+            <button type="submit">ACEへ登録</button>
+          </div>
+        </form>
+        <div id="result" class="result" hidden></div>
+      </section>
+
+      <aside class="panel flow-panel">
+        <div class="panel-head"><span>FLOW</span><h2>資産化の流れ</h2></div>
+        <ol>
+          <li><b>1</b><div><strong>作る</strong><small>Slides / Video / Guide</small></div></li>
+          <li><b>2</b><div><strong>Driveに置く</strong><small>完成物の正本</small></div></li>
+          <li><b>3</b><div><strong>ACEへ接続</strong><small>自動分類 + Runtime登録</small></div></li>
+          <li><b>4</b><div><strong>体験へ</strong><small>教材 → Quest → Evidence</small></div></li>
+        </ol>
+        <p class="note">同じSource Refは上書き更新されるので、二重登録しません。</p>
+      </aside>
+    </div>
+
+    <section class="panel recent">
+      <div class="panel-head"><span>RECENT</span><h2>ACEに接続した教材</h2></div>
+      <div id="asset-list" class="asset-list"><p class="muted">読み込み中…</p></div>
+    </section>
+  </div>
+
+  <script is:inline>
+    const form = document.getElementById('asset-form');
+    const result = document.getElementById('result');
+    const list = document.getElementById('asset-list');
+
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+    async function loadAssets() {
+      try {
+        const response = await fetch('/api/dashboard/ace-assets', { credentials: 'same-origin' });
+        const body = await response.json();
+        if (!response.ok || !body.ok) throw new Error(body.error || 'load_failed');
+        const rows = Array.isArray(body.data) ? body.data : [];
+        if (!rows.length) {
+          list.innerHTML = '<p class="muted">まだ教材はありません。最初の1つをつなごう。</p>';
+          return;
+        }
+        list.innerHTML = rows.map((row) => `
+          <a class="asset-card" href="${esc(row.asset_url)}" target="_blank" rel="noreferrer">
+            <div class="asset-main"><span>${esc(row.theme_name || row.theme_slug || '未分類')}</span><strong>${esc(row.title)}</strong><small>${esc(row.asset_type)} · ${esc(row.source_system)}</small></div>
+            <em class="status ${row.status === 'live' ? 'live' : ''}">${esc(row.status)}</em>
+          </a>`).join('');
+      } catch (error) {
+        list.innerHTML = '<p class="muted">読み込みに失敗しました。</p>';
+      }
+    }
+
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      button.textContent = '接続中…';
+      result.hidden = true;
+      const fd = new FormData(form);
+      const assetUrl = String(fd.get('assetUrl') || '').trim();
+      const payload = {
+        title: String(fd.get('title') || '').trim(),
+        summary: String(fd.get('summary') || '').trim(),
+        assetType: String(fd.get('assetType') || 'slide'),
+        assetUrl,
+        sourceSystem: String(fd.get('sourceSystem') || 'drive'),
+        sourceRef: String(fd.get('sourceRef') || '').trim() || assetUrl,
+        themeSlug: String(fd.get('themeSlug') || ''),
+        status: String(fd.get('status') || 'draft'),
+        tags: String(fd.get('tags') || '').split(',').map((v) => v.trim()).filter(Boolean),
+      };
+      try {
+        const response = await fetch('/api/dashboard/ace-assets', {
+          method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        });
+        const body = await response.json();
+        if (!response.ok || !body.ok) throw new Error(body.error || 'register_failed');
+        const data = body.data || {};
+        result.className = 'result success';
+        result.innerHTML = `<strong>接続できた。</strong><span>${esc(data.theme_slug)} / ${esc(data.status)} · ${esc(data.classification_reason)}</span>`;
+        result.hidden = false;
+        form.reset();
+        await loadAssets();
+      } catch (error) {
+        result.className = 'result error';
+        result.textContent = '登録に失敗しました。URL・形式・接続状態を確認してください。';
+        result.hidden = false;
+      } finally {
+        button.disabled = false;
+        button.textContent = 'ACEへ登録';
+      }
+    });
+
+    loadAssets();
+  </script>
+
+  <style>
+    .asset-shell{max-width:1100px;margin:0 auto;display:grid;gap:22px}.hero{display:flex;justify-content:space-between;align-items:end;gap:28px;padding:8px 0 4px}.hero h1{font-family:'Cormorant Garamond','Zen Kaku Gothic New',serif;font-size:clamp(2rem,4vw,3.5rem);line-height:1.05;color:#2d3035}.hero p{max-width:650px;margin-top:10px;color:#68717b;font-size:.88rem;line-height:1.8}.hero>a{flex:none;padding:11px 14px;border:1px solid #d7c9b6;background:#fff;color:#754a16;text-decoration:none;font-size:.75rem;font-weight:700}.eyebrow-local{margin:0!important;color:#9b6a2c!important;font-size:.65rem!important;font-weight:700;letter-spacing:.15em}.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr);gap:18px}.panel{border:1px solid #dcd7cf;background:#fff;padding:22px}.panel-head{margin-bottom:18px}.panel-head span{color:#9b6a2c;font-size:.61rem;font-weight:700;letter-spacing:.14em}.panel-head h2{margin-top:2px;font-size:1.1rem;color:#34383d}.panel form{display:grid;gap:14px}label{display:grid;gap:6px;color:#59616b;font-size:.72rem;font-weight:700}input,textarea,select{width:100%;border:1px solid #d8d2ca;background:#fbfaf8;padding:11px 12px;color:#25282c;font:inherit;font-size:.78rem;outline:none}textarea{resize:vertical}input:focus,textarea:focus,select:focus{border-color:#b68a53;box-shadow:0 0 0 3px rgba(165,108,34,.08)}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.publish-row{display:grid;grid-template-columns:1fr auto;align-items:end;gap:12px}.publish-row button{min-height:42px;border:0;background:#8b5b2c;color:#fff;padding:0 20px;font-weight:700;cursor:pointer}.publish-row button:disabled{opacity:.55}.result{margin-top:15px;padding:12px 14px;border:1px solid #d7d2ca;font-size:.75rem}.result strong{display:block}.result span{display:block;margin-top:3px;color:#6c747c}.result.success{border-color:#b9d9c7;background:#f4fbf7}.result.error{border-color:#e3c1bd;background:#fff7f6;color:#8a3430}.flow-panel ol{list-style:none;padding:0;display:grid;gap:5px}.flow-panel li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eeeae4}.flow-panel li b{display:grid;width:30px;height:30px;place-items:center;border-radius:50%;background:#f3eadc;color:#8b5b2c;font-size:.72rem}.flow-panel strong{display:block;font-size:.77rem}.flow-panel small{display:block;margin-top:2px;color:#8a9198;font-size:.66rem}.note{margin-top:14px;color:#777f87;font-size:.69rem;line-height:1.7}.recent{padding-bottom:14px}.asset-list{display:grid;gap:1px;background:#ece8e2}.asset-card{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 14px;background:#fff;text-decoration:none}.asset-card:hover{background:#fbf8f3}.asset-main{min-width:0}.asset-main span{display:block;color:#9b6a2c;font-size:.61rem;font-weight:700}.asset-main strong{display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.78rem}.asset-main small{display:block;margin-top:2px;color:#8b9298;font-size:.63rem}.status{flex:none;border:1px solid #ddd6cc;padding:4px 7px;color:#8a9198;font-size:.59rem;font-style:normal;text-transform:uppercase}.status.live{border-color:#b5d6c3;color:#187149;background:#f4fbf7}.muted{padding:14px;background:#fff;color:#8a9198;font-size:.75rem}@media(max-width:780px){.hero{display:grid}.hero>a{justify-self:start}.grid{grid-template-columns:1fr}.two,.publish-row{grid-template-columns:1fr}.panel{padding:17px}.asset-shell{gap:16px}}
+  </style>
+</DashboardLayout>
