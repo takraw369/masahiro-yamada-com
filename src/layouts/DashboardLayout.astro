@@ -9,6 +9,20 @@ export interface Props {
 const { title, fullHeight = false, focusMode = false, eyebrow = 'MASA OS' } = Astro.props;
 const pathname = Astro.url.pathname;
 
+const defaultAppMeta = {
+  manifest: '/masa-os.webmanifest',
+  icon: '/app-icons/masa-os-512.png',
+  appleTitle: 'MASA OS',
+};
+const appMeta =
+  pathname === '/dashboard/post' || pathname.startsWith('/dashboard/post/')
+    ? { manifest: '/post.webmanifest', icon: '/app-icons/post-512.png', appleTitle: 'POST' }
+    : pathname === '/dashboard/intelligence' || pathname.startsWith('/dashboard/intelligence/')
+      ? { manifest: '/intel.webmanifest', icon: '/app-icons/intel-512.png', appleTitle: 'INTEL' }
+      : pathname === '/dashboard/schedule' || pathname.startsWith('/dashboard/schedule/')
+        ? { manifest: '/calendar.webmanifest', icon: '/app-icons/calendar-512.png', appleTitle: 'CAL' }
+        : defaultAppMeta;
+
 const coreLinks = [
   { href: '/dashboard', label: 'Today', purpose: '今やること', kind: 'today' },
   { href: '/mind?action=capture', label: 'Capture', purpose: '残す', kind: 'capture' },
@@ -66,9 +80,17 @@ const commandItems = [
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3f1ed" />
     <meta name="robots" content="noindex,nofollow" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content={appMeta.appleTitle} />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>{title} — MASA OS</title>
+    <link rel="manifest" href={appMeta.manifest} />
+    <link rel="apple-touch-icon" href={appMeta.icon} />
+    <link rel="icon" href={appMeta.icon} type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -176,8 +198,8 @@ const commandItems = [
         .sidebar { display: none; }
         .main { min-width: 0; }
         .menu-button { display: inline-flex; }
-        .topbar { padding: 8px 15px; gap: 10px; }
-        .content { padding: 20px 14px 42px; }
+        .topbar { padding: calc(8px + env(safe-area-inset-top)) 15px 8px; gap: 10px; }
+        .content { padding: 20px 14px calc(42px + env(safe-area-inset-bottom)); }
         .content.full-height { padding: 0; }
         .command-shortcut { display: none; }
       }
