@@ -41,9 +41,9 @@ test('NOW 5 ranks project/evidence context and explains WHY NOW without raw priv
       summary:{ question_count:10 }, domains:['Brand','Offer'], answers:[{ text:'private-answer-text' }],
     });
     if (target.endsWith('/masa_choice_project_context_v1')) return Response.json({
-      primary_focus:{ title:'private-project-title', project:'private-project-name', priority:'P0', due_date:'2026-09-18', next_action:'private-next-action' },
-      focus:[{ title:'private-project-title', project:'private-project-name', priority:'P0', due_date:'2026-09-18' }],
-      review_queue:[{ title:'private-review-title', project:'private-project-name', priority:'P1' }],
+      primary_focus:{ title:'private-project-title offer revenue', project:'private-project-name', priority:'P0', due_date:'2026-09-18', next_action:'private-next-action' },
+      focus:[{ title:'private-project-title offer revenue', project:'private-project-name', priority:'P0', due_date:'2026-09-18' }],
+      review_queue:[{ title:'private-review-title automation workflow', project:'private-project-name', priority:'P1' }],
       stale_queue:[],
       blocked_high_priority:[],
       signals:{ actionable_tasks:9, now_tasks:3, review_tasks:2, overdue_actionable:1, blocked_high_priority:0, stale_actionable:0, s_projects:2, sync_errors:0 },
@@ -77,6 +77,7 @@ test('NOW 5 ranks project/evidence context and explains WHY NOW without raw priv
     assert.ok(question.whyNow.length >= 1);
   }
   assert.ok(body.questions.some(q => q.whyNow.some(reason => /Project OS|Evidence|Intelligence|Choice/.test(reason))));
+  assert.ok(body.questions.some(q => q.whyNow.some(reason => /Project OS: (NOW候補|REVIEW)と関連 \d+件/.test(reason))));
   const serialized = JSON.stringify(body);
   assert.doesNotMatch(serialized, /private-answer-text|private-feedback-detail|private-project-title|private-project-name|private-next-action|private-review-title|private-evidence-title|private-evidence-detail/);
 });

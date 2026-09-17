@@ -147,26 +147,54 @@ function rowMatches(question: ChoiceNowQuestion, rows: unknown[], toText: (row: 
   return matches;
 }
 
+function projectBucketReason(question: ChoiceNowQuestion, projectPack: ProjectPack | null) {
+  if (!projectPack) return null;
+
+  const buckets: Array<{ label: string; rows: unknown[] }> = [
+    { label: 'NOW候補', rows: projectPack.focus ?? [] },
+    { label: 'P0/P1 WAIT', rows: projectPack.blocked_high_priority ?? [] },
+    { label: 'REVIEW', rows: projectPack.review_queue ?? [] },
+    { label: 'STALE', rows: projectPack.stale_queue ?? [] },
+    { label: 'bottleneck', rows: projectPack.bottleneck_candidate ? [projectPack.bottleneck_candidate] : [] },
+    { label: 'primary focus', rows: projectPack.primary_focus ? [projectPack.primary_focus] : [] },
+  ];
+
+  const matches = buckets
+    .map(bucket => ({
+      label: bucket.label,
+      count: rowMatches(question, bucket.rows, row => JSON.stringify(row)),
+    }))
+    .filter(bucket => bucket.count > 0)
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+  if (!matches.length) return null;
+  const top = matches[0];
+  return `Project OS: ${top.label}と関連 ${top.count}件`;
+}
+
+function genericProjectPressure(question: ChoiceNowQuestion, projectPack: ProjectPack | null) {
+  if (!projectPack || !['PRIORITY', 'OUTCOME', 'SYSTEM'].includes(question.area)) return null;
+  const signals = projectPack.signals ?? {};
+  const parts: string[] = [];
+  if ((signals.now_tasks ?? 0) > 0) parts.push(`NOW ${signals.now_tasks}`);
+  if ((signals.overdue_actionable ?? 0) > 0) parts.push(`期限超過 ${signals.overdue_actionable}`);
+  if ((signals.blocked_high_priority ?? 0) > 0) parts.push(`P0/P1 WAIT ${signals.blocked_high_priority}`);
+  if ((signals.stale_actionable ?? 0) > 0) parts.push(`STALE ${signals.stale_actionable}`);
+  if (!parts.length && (signals.s_projects ?? 0) > 0) parts.push(`S Project ${signals.s_projects}`);
+  return parts.length ? `Project OS: ${parts.slice(0, 3).join(' / ')}` : null;
+}
+
 function latestDecision(prior: PriorDecision[], id: string) {
   return prior.find(item => item.id === id) ?? null;
 }
 
 function whyNow(question: ChoiceNowQuestion, context: RankedContext) {
   const reasons: string[] = [];
-  const signals = context.projectPack?.signals ?? {};
-  const projectHits = tagHits(question, context.projectText);
-  const projectRelevant = projectHits > 0 || ['PRIORITY', 'OUTCOME', 'SYSTEM'].includes(question.area);
+  const previous = latestDecision(context.prior, question.id);
+  if (previous?.choice === 'hold') reasons.push('前回HOLDした問いを再検討');
 
-  if (projectRelevant && context.projectPack) {
-    const parts: string[] = [];
-    if ((signals.now_tasks ?? 0) > 0) parts.push(`NOW ${signals.now_tasks}`);
-    if ((signals.review_tasks ?? 0) > 0) parts.push(`REVIEW ${signals.review_tasks}`);
-    if ((signals.overdue_actionable ?? 0) > 0) parts.push(`期限超過 ${signals.overdue_actionable}`);
-    if ((signals.blocked_high_priority ?? 0) > 0) parts.push(`P0/P1 WAIT ${signals.blocked_high_priority}`);
-    if ((signals.stale_actionable ?? 0) > 0) parts.push(`STALE ${signals.stale_actionable}`);
-    if (!parts.length && (signals.s_projects ?? 0) > 0) parts.push(`S Project ${signals.s_projects}`);
-    if (parts.length) reasons.push(`Project OS: ${parts.slice(0, 3).join(' / ')}`);
-  }
+  const projectReason = projectBucketReason(question, context.projectPack);
+  if (projectReason) reasons.push(projectReason);
 
   const evidenceMatches = rowMatches(question, context.evidence as unknown[], (row) => {
     const item = row as EvidenceRow;
@@ -184,8 +212,8 @@ function whyNow(question: ChoiceNowQuestion, context: RankedContext) {
     reasons.push('最近のChoice / Questionに関連Signal');
   }
 
-  const previous = latestDecision(context.prior, question.id);
-  if (previous?.choice === 'hold') reasons.push('前回HOLDした問いを再検討');
+  const pressureReason = genericProjectPressure(question, context.projectPack);
+  if (pressureReason) reasons.push(pressureReason);
 
   return reasons.length ? reasons.slice(0, 2) : ['Question Bank優先度 + 現在Contextから選定'];
 }
