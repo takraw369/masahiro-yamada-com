@@ -1,23 +1,79 @@
 export type LibraryItemStatus = 'preview' | 'live';
+export type LibraryAccess = 'free' | 'one-time' | 'member' | 'pro';
+export type LibraryCategory =
+  | 'PERFORMANCE'
+  | 'REVIEW'
+  | 'BODY'
+  | 'MIND'
+  | 'CAREER'
+  | 'OS'
+  | 'AI'
+  | 'EDUCATION';
+
+export type LibraryMedia = {
+  type: 'VIDEO' | 'AUDIO' | 'WORKSHEET' | 'QUEST';
+  label: string;
+  status: 'planned' | 'live';
+  url?: string;
+};
 
 export type LibraryItem = {
   slug: string;
   title: string;
   subtitle: string;
-  category: 'PERFORMANCE' | 'REVIEW' | 'BODY' | 'MIND' | 'CAREER';
+  category: LibraryCategory;
   format: string;
   priceYen: number;
   status: LibraryItemStatus;
+  access?: LibraryAccess;
+  series?: string;
   releaseLabel: string;
   coverNo: string;
   description: string;
   takeaways: string[];
   bridge: string;
   lineKeyword: string;
+  media?: LibraryMedia[];
   checkoutUrl?: string;
 };
 
+export const knowledgeShelfPlan = {
+  name: 'Knowledge Shelf MEMBER',
+  monthlyYen: 2980,
+  status: 'preview' as const,
+  description:
+    '一度きりの情報販売ではなく、資料・テンプレ・動画・Questが育ち続ける会員棚。初期公開では価格と内容を市場反応で検証します。',
+};
+
 export const libraryItems: LibraryItem[] = [
+  {
+    slug: 'a3-decision-flow',
+    title: 'A3 DECISION FLOW',
+    subtitle: '散らかったメモを「一枚で決められる状態」へ変える',
+    category: 'OS',
+    format: 'A3 TEMPLATE / PROMPT',
+    priceYen: 1980,
+    status: 'preview',
+    access: 'member',
+    series: 'DECISION & FLOW',
+    releaseLabel: '最優先で制作中',
+    coverNo: '00',
+    description:
+      '稟議・報告・週次レビューのA3思考を、事業・AI・学習・プロジェクト判断へ拡張。雑な素材を8ブロックへ分け、抜けを見つけ、次の一手まで一枚に圧縮するMASA版の意思決定テンプレート。',
+    takeaways: [
+      '問題・現状・目標・要因を一枚でつかむ',
+      '対策・実行・確認・標準化までつなぐ',
+      '会話や調査を「流れる情報」から再利用できる資産へ変える',
+    ],
+    bridge:
+      '完成後は実案件のA3、30秒解説、動画、実践Questへ段階的に増補し、同じ知識が育っていく設計にする。',
+    lineKeyword: 'A3',
+    media: [
+      { type: 'WORKSHEET', label: 'A3横1枚テンプレート', status: 'planned' },
+      { type: 'VIDEO', label: '10分解説｜一枚で意思決定する', status: 'planned' },
+      { type: 'QUEST', label: '自分の案件をA3化する実践Quest', status: 'planned' },
+    ],
+  },
   {
     slug: '10sec-reset',
     title: '10秒RESET',
@@ -26,6 +82,8 @@ export const libraryItems: LibraryItem[] = [
     format: 'MICRO GUIDE / PDF',
     priceYen: 980,
     status: 'preview',
+    access: 'one-time',
+    series: 'WIN PATH',
     releaseLabel: '先行案内受付中',
     coverNo: '01',
     description:
@@ -42,6 +100,8 @@ export const libraryItems: LibraryItem[] = [
     format: 'WORKBOOK / PDF',
     priceYen: 1480,
     status: 'preview',
+    access: 'one-time',
+    series: 'WIN PATH',
     releaseLabel: '先行案内受付中',
     coverNo: '02',
     description:
@@ -58,6 +118,8 @@ export const libraryItems: LibraryItem[] = [
     format: 'TOOLKIT / PDF',
     priceYen: 3300,
     status: 'preview',
+    access: 'member',
+    series: 'WIN PATH',
     releaseLabel: '優先制作',
     coverNo: '03',
     description:
@@ -74,6 +136,8 @@ export const libraryItems: LibraryItem[] = [
     format: 'SEMINAR NOTES',
     priceYen: 1480,
     status: 'preview',
+    access: 'one-time',
+    series: 'FLOW',
     releaseLabel: '企画公開',
     coverNo: '04',
     description:
@@ -90,6 +154,8 @@ export const libraryItems: LibraryItem[] = [
     format: 'NOTEBOOK / PDF',
     priceYen: 980,
     status: 'preview',
+    access: 'one-time',
+    series: 'MIND',
     releaseLabel: '企画公開',
     coverNo: '05',
     description:
@@ -106,6 +172,8 @@ export const libraryItems: LibraryItem[] = [
     format: 'ESSAY / SEMINAR DECK',
     priceYen: 1980,
     status: 'preview',
+    access: 'member',
+    series: 'ATHLETE',
     releaseLabel: '企画公開',
     coverNo: '06',
     description:
@@ -118,5 +186,12 @@ export const libraryItems: LibraryItem[] = [
 
 export const libraryItemBySlug = (slug: string | undefined) =>
   libraryItems.find((item) => item.slug === slug);
+
+export const accessLabel = (access: LibraryAccess | undefined) => {
+  if (access === 'member') return 'MEMBER';
+  if (access === 'pro') return 'PRO';
+  if (access === 'free') return 'FREE';
+  return 'ONE-TIME';
+};
 
 export const yen = (value: number) => `¥${value.toLocaleString('ja-JP')}`;
