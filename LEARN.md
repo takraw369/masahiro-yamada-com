@@ -20,6 +20,11 @@ When the same class of learning appears twice:
 
 ## Current learnings
 
+### 2026-09-17 — Production automation boundary
+- Corrected: ACEのDrive監視をChatGPTのスケジュールタスクで本番運用しない。Drive / Google側の自動化と常設バックエンドで動かす。
+- Cause: 会話内タスクは通知・定期確認には向くが、商品ランタイムの永続的な取り込み基盤にするとChatGPTの実行環境へ運用依存してしまう。
+- Rule: 本番の監視・取り込み・同期はDrive / Apps Script / Cloudflare / Supabaseなどの常設システムに置く。ChatGPTのタスクは本番ランタイムの代替にしない。
+
 ### 2026-09-13 — Quest follow-up pressure
 - Corrected: Questの未実行フォローで、同じ催促や強いプッシュを日ごとに繰り返さない。未実行が続くほど切り口と頻度を変える。
 - Cause: 完了率だけを最適化すると、コーチングが「戻りやすい場」ではなく追い立てる通知になり、離脱や嫌悪につながる。
