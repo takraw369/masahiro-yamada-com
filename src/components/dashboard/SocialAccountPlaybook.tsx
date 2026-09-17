@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type AccountPlaybook = {
   username: string;
@@ -13,6 +13,8 @@ type AccountPlaybook = {
   boundary: string;
   nextPost: string;
 };
+
+const LAST_ACCOUNT_KEY = 'masa_x_last_account';
 
 const ACCOUNTS: AccountPlaybook[] = [
   {
@@ -82,18 +84,75 @@ const ACCOUNTS: AccountPlaybook[] = [
   },
 ];
 
-function sendToComposer(account: AccountPlaybook) {
+// UI Pattern Vault receipt: ui_buffer_channel_selector_20260917
+// Mechanism only: fast context recall + context selection separated from draft replacement.
+function dispatchToComposer(account: AccountPlaybook, text?: string) {
   window.dispatchEvent(new CustomEvent('masa:x-compose', {
-    detail: { username: account.username, text: account.nextPost },
+    detail: { username: account.username, ...(text ? { text } : {}) },
   }));
-  window.setTimeout(() => {
-    document.querySelector('textarea[placeholder*="今日の気づき"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 80);
+}
+
+function composerHasDraft() {
+  const textarea = Array.from(document.querySelectorAll('textarea')).find((node) =>
+    node.getAttribute('placeholder')?.includes('今日の気づき')
+  ) as HTMLTextAreaElement | undefined;
+  return Boolean(textarea?.value.trim());
 }
 
 export default function SocialAccountPlaybook() {
   const [active, setActive] = useState(0);
+  const [lastUsed, setLastUsed] = useState<string | null>(null);
+  const [notice, setNotice] = useState('');
   const account = ACCOUNTS[active];
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(LAST_ACCOUNT_KEY);
+      if (!stored) return;
+      const index = ACCOUNTS.findIndex((item) => item.username === stored);
+      if (index >= 0) {
+        setLastUsed(stored);
+        setActive(index);
+      }
+    } catch {
+      // local UI convenience only; canonical account config remains in code.
+    }
+  }, []);
+
+  function remember(accountToRemember: AccountPlaybook) {
+    setLastUsed(accountToRemember.username);
+    try {
+      window.localStorage.setItem(LAST_ACCOUNT_KEY, accountToRemember.username);
+    } catch {
+      // Browsers that block storage still retain the in-session selection.
+    }
+  }
+
+  function chooseAccount(index: number) {
+    setActive(index);
+    setNotice('');
+  }
+
+  function selectForComposer(accountToSelect: AccountPlaybook) {
+    remember(accountToSelect);
+    dispatchToComposer(accountToSelect);
+    setNotice(`@${accountToSelect.username} を選択。本文はそのまま保持します。`);
+  }
+
+  function loadNextPost(accountToLoad: AccountPlaybook) {
+    if (composerHasDraft()) {
+      const replace = window.confirm('本文に下書きがあります。NEXT POSTで置き換えますか？');
+      if (!replace) {
+        remember(accountToLoad);
+        dispatchToComposer(accountToLoad);
+        setNotice(`@${accountToLoad.username} に切替。既存の本文は保持しました。`);
+        return;
+      }
+    }
+    remember(accountToLoad);
+    dispatchToComposer(accountToLoad, accountToLoad.nextPost);
+    setNotice(`@${accountToLoad.username} を選択し、NEXT POSTを本文へ入れました。`);
+  }
 
   return (
     <section className="sap-shell" aria-label="SNS Account Playbook">
@@ -101,7 +160,7 @@ export default function SocialAccountPlaybook() {
         <div>
           <span>SNS ACCOUNT OS</span>
           <h2>誰に、どんな世界観で、何を出すかを先に決める。</h2>
-          <p>投稿を書く前にアカウントの役割を確認。下の「NEXT POST」はそのままX本文へ渡せます。</p>
+          <p>アカウント選択と本文挿入は別操作。垢を切り替えても、書きかけの本文は勝手に消しません。</p>
         </div>
       </header>
 
@@ -110,12 +169,12 @@ export default function SocialAccountPlaybook() {
           <button
             key={item.username}
             className={index === active ? 'active' : ''}
-            onClick={() => setActive(index)}
+            onClick={() => chooseAccount(index)}
             role="tab"
             aria-selected={index === active}
           >
             <strong>{item.name}</strong>
-            <small>@{item.username}</small>
+            <small>@{item.username}{lastUsed === item.username ? ' · LAST' : ''}</small>
           </button>
         ))}
       </div>
@@ -126,8 +185,13 @@ export default function SocialAccountPlaybook() {
             <span>{account.role}</span>
             <h3>{account.name} <small>@{account.username}</small></h3>
           </div>
-          <div className="sap-pill">{active === 0 ? 'CORE' : 'ROLE'}</div>
+          <div className="sap-title-actions">
+            <div className="sap-pill">{active === 0 ? 'CORE' : 'ROLE'}</div>
+            <button className="sap-select" onClick={() => selectForComposer(account)}>この垢を選ぶ</button>
+          </div>
         </div>
+
+        {notice && <p className="sap-notice" role="status" aria-live="polite">{notice}</p>}
 
         <div className="sap-profile">
           <small>PROFILE / 運用プロフ</small>
@@ -153,7 +217,7 @@ export default function SocialAccountPlaybook() {
         <div className="sap-next">
           <div className="sap-next-head">
             <div><small>NEXT POST</small><strong>次に出せる投稿</strong></div>
-            <button onClick={() => sendToComposer(account)}>この垢で本文に入れる →</button>
+            <button onClick={() => loadNextPost(account)}>NEXT POSTを本文に入れる →</button>
           </div>
           <p>{account.nextPost}</p>
           <div className="sap-count">{account.nextPost.length} / 280</div>
@@ -161,7 +225,7 @@ export default function SocialAccountPlaybook() {
       </div>
 
       <style>{`
-        .sap-shell{margin-bottom:16px;border:1px solid #d8cbb8;background:#fffdf9;padding:16px;color:#25211d}.sap-head span{font-size:.72rem;letter-spacing:.1em;color:#9a6d24;font-weight:900}.sap-head h2{margin:3px 0 2px;font-size:1.08rem;line-height:1.45}.sap-head p{margin:0;color:#6f675e;font-size:.84rem;line-height:1.65}.sap-tabs{display:flex;gap:7px;overflow-x:auto;padding:12px 0 10px}.sap-tabs button{min-width:145px;text-align:left;border:1px solid #ded7ce;background:#fff;padding:9px 10px;cursor:pointer;color:#5f574f;font:inherit}.sap-tabs button.active{border-color:#b4863b;background:#fbf2e4;color:#4b3215}.sap-tabs strong,.sap-tabs small{display:block}.sap-tabs strong{font-size:.82rem}.sap-tabs small{font-size:.72rem;margin-top:2px;color:#8a8177}.sap-card{border:1px solid #e0d8cd;background:#fff;padding:14px}.sap-title{display:flex;align-items:start;justify-content:space-between;gap:14px}.sap-title>div>span{font-size:.72rem;color:#8b5b2c;font-weight:800}.sap-title h3{font-size:1.08rem;margin:2px 0 0}.sap-title h3 small{font-size:.78rem;color:#8a8177;font-weight:500}.sap-pill{font-size:.66rem;font-weight:900;letter-spacing:.08em;border:1px solid #c9a975;background:#fbf2e4;padding:4px 7px;color:#704817}.sap-profile,.sap-boundary{margin-top:11px;padding:10px 11px;background:#faf8f5;border:1px solid #ece6de}.sap-profile small,.sap-boundary small,.sap-grid small,.sap-next small{display:block;color:#8a8177;font-size:.66rem;letter-spacing:.08em;font-weight:900;margin-bottom:4px}.sap-profile p,.sap-boundary p,.sap-grid p{margin:0;font-size:.84rem;line-height:1.7;color:#4f4942}.sap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.sap-grid article{border:1px solid #ece6de;padding:10px}.sap-pillar-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.sap-pillar-row span{font-size:.72rem;border:1px solid #d8cbb8;background:#fff9ef;padding:4px 7px;color:#704817}.sap-next{margin-top:10px;border:1px solid #cfae79;background:#fffaf2;padding:12px}.sap-next-head{display:flex;justify-content:space-between;align-items:end;gap:12px}.sap-next-head strong{display:block;font-size:.9rem}.sap-next-head button{border:1px solid #9a6d24;background:#b4863b;color:#1f1a14;font:inherit;font-size:.78rem;font-weight:900;padding:8px 10px;cursor:pointer}.sap-next>p{white-space:pre-wrap;margin:10px 0 0;font-size:.9rem;line-height:1.75;color:#302c28}.sap-count{text-align:right;color:#8a8177;font-size:.72rem;margin-top:6px}@media(max-width:700px){.sap-shell{padding:12px}.sap-grid{grid-template-columns:1fr}.sap-next-head{align-items:stretch;flex-direction:column}.sap-next-head button{width:100%;min-height:40px}}
+        .sap-shell{margin-bottom:16px;border:1px solid #d8cbb8;background:#fffdf9;padding:16px;color:#25211d}.sap-head span{font-size:.72rem;letter-spacing:.1em;color:#9a6d24;font-weight:900}.sap-head h2{margin:3px 0 2px;font-size:1.08rem;line-height:1.45}.sap-head p{margin:0;color:#6f675e;font-size:.84rem;line-height:1.65}.sap-tabs{display:flex;gap:7px;overflow-x:auto;padding:12px 0 10px}.sap-tabs button{min-width:145px;text-align:left;border:1px solid #ded7ce;background:#fff;padding:9px 10px;cursor:pointer;color:#5f574f;font:inherit}.sap-tabs button.active{border-color:#b4863b;background:#fbf2e4;color:#4b3215}.sap-tabs strong,.sap-tabs small{display:block}.sap-tabs strong{font-size:.82rem}.sap-tabs small{font-size:.72rem;margin-top:2px;color:#8a8177}.sap-card{border:1px solid #e0d8cd;background:#fff;padding:14px}.sap-title{display:flex;align-items:start;justify-content:space-between;gap:14px}.sap-title>div>span{font-size:.72rem;color:#8b5b2c;font-weight:800}.sap-title h3{font-size:1.08rem;margin:2px 0 0}.sap-title h3 small{font-size:.78rem;color:#8a8177;font-weight:500}.sap-title-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}.sap-pill{font-size:.66rem;font-weight:900;letter-spacing:.08em;border:1px solid #c9a975;background:#fbf2e4;padding:4px 7px;color:#704817}.sap-select{border:1px solid #c9a975;background:#fff;color:#704817;font:inherit;font-size:.76rem;font-weight:850;padding:7px 9px;cursor:pointer}.sap-select:hover{background:#fff9ef}.sap-notice{margin:10px 0 0;padding:8px 10px;border-left:3px solid #b4863b;background:#fff9ef;color:#62451f;font-size:.78rem;line-height:1.55}.sap-profile,.sap-boundary{margin-top:11px;padding:10px 11px;background:#faf8f5;border:1px solid #ece6de}.sap-profile small,.sap-boundary small,.sap-grid small,.sap-next small{display:block;color:#8a8177;font-size:.66rem;letter-spacing:.08em;font-weight:900;margin-bottom:4px}.sap-profile p,.sap-boundary p,.sap-grid p{margin:0;font-size:.84rem;line-height:1.7;color:#4f4942}.sap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.sap-grid article{border:1px solid #ece6de;padding:10px}.sap-pillar-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.sap-pillar-row span{font-size:.72rem;border:1px solid #d8cbb8;background:#fff9ef;padding:4px 7px;color:#704817}.sap-next{margin-top:10px;border:1px solid #cfae79;background:#fffaf2;padding:12px}.sap-next-head{display:flex;justify-content:space-between;align-items:end;gap:12px}.sap-next-head strong{display:block;font-size:.9rem}.sap-next-head button{border:1px solid #9a6d24;background:#b4863b;color:#1f1a14;font:inherit;font-size:.78rem;font-weight:900;padding:8px 10px;cursor:pointer}.sap-next>p{white-space:pre-wrap;margin:10px 0 0;font-size:.9rem;line-height:1.75;color:#302c28}.sap-count{text-align:right;color:#8a8177;font-size:.72rem;margin-top:6px}@media(max-width:700px){.sap-shell{padding:12px}.sap-grid{grid-template-columns:1fr}.sap-title{flex-direction:column}.sap-title-actions{justify-content:flex-start}.sap-next-head{align-items:stretch;flex-direction:column}.sap-next-head button,.sap-select{width:100%;min-height:40px}}
       `}</style>
     </section>
   );
