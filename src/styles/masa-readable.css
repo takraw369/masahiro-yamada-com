@@ -16,6 +16,30 @@ html {
   text-size-adjust: 100%;
 }
 
+body,
+.knowledge-os,
+.graph-app,
+.ib-shell,
+.pds-shell,
+.content,
+button,
+input,
+textarea,
+select {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic UI",
+    "Yu Gothic",
+    "Noto Sans JP",
+    system-ui,
+    sans-serif !important;
+  font-synthesis: none;
+}
+
 body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -25,6 +49,7 @@ body {
  * MASA Readable System
  * Body: 16px / controls: 14px / metadata: 13px / floor: 12px.
  * Keep hierarchy with spacing, weight and layout instead of microscopic copy.
+ * UI/body typography is native-first for Japanese legibility; brand display type can stay expressive.
  */
 
 /* Dashboard chrome */
