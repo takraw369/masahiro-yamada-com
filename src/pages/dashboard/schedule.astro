@@ -1,7 +1,9 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import CalendarQuickAdd from '../../components/dashboard/CalendarQuickAdd';
 import PersonalSchedule from '../../components/dashboard/PersonalSchedule';
 ---
 <DashboardLayout title="Calendar">
+  <CalendarQuickAdd client:only="react" />
   <PersonalSchedule client:only="react" />
 </DashboardLayout>
