@@ -1,4 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap');
+
 :root {
+  --masa-font-ui: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
   --masa-font-micro: 0.75rem;
   --masa-font-meta: 0.8125rem;
   --masa-font-sm: 0.875rem;
@@ -22,21 +25,12 @@ body,
 .ib-shell,
 .pds-shell,
 .content,
+.lf2.lf2,
 button,
 input,
 textarea,
 select {
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "SF Pro Text",
-    "Hiragino Sans",
-    "Hiragino Kaku Gothic ProN",
-    "Yu Gothic UI",
-    "Yu Gothic",
-    "Noto Sans JP",
-    system-ui,
-    sans-serif !important;
+  font-family: var(--masa-font-ui) !important;
   font-synthesis: none;
 }
 
@@ -49,7 +43,7 @@ body {
  * MASA Readable System
  * Body: 16px / controls: 14px / metadata: 13px / floor: 12px.
  * Keep hierarchy with spacing, weight and layout instead of microscopic copy.
- * UI/body typography is native-first for Japanese legibility; brand display type can stay expressive.
+ * Operational UI uses IBM Plex Sans JP; expressive brand display type stays separate.
  */
 
 /* Dashboard chrome */
