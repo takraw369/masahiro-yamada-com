@@ -1,0 +1,57 @@
+.ib-shell,
+.ib-shell * {
+  box-sizing: border-box;
+}
+
+.ib-shell,
+.ib-board,
+.ib-column,
+.ib-stack,
+.ib-card,
+.ib-title-row,
+.ib-meta {
+  min-width: 0;
+}
+
+.ib-shell {
+  width: 100%;
+}
+
+.ib-board {
+  width: 100%;
+  overflow: hidden;
+}
+
+.ib-column {
+  overflow: hidden;
+}
+
+.ib-stack {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ib-card {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.ib-title-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ib-title-row h3,
+.ib-why,
+.ib-excerpt,
+.ib-draft p,
+.ib-meta a,
+.ib-meta span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ib-meta {
+  overflow: hidden;
+}
