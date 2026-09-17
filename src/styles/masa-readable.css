@@ -7,6 +7,8 @@
   --masa-readable-muted: #59636e;
   --masa-readable-dim: #626b75;
   --masa-readable-line: 1.68;
+  --text-muted: #59636e !important;
+  --text-dim: #626b75 !important;
 }
 
 html {
@@ -282,11 +284,11 @@ body {
   line-height: 1.55 !important;
 }
 
-.graph-app :global(.kg-node text.node-kind) {
+.graph-app .kg-node text.node-kind {
   font-size: 12px !important;
 }
 
-.graph-app :global(.kg-node text.node-label) {
+.graph-app .kg-node text.node-label {
   font-size: 15px !important;
 }
 
