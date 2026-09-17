@@ -1,12 +1,56 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
+import SocialAccountPlaybook from '../../components/dashboard/SocialAccountPlaybook';
 import PostDraftShelf from '../../components/dashboard/PostDraftShelf';
 import XCommandCenter from '../../components/dashboard/XCommandCenter';
 import '../../styles/masa-readable.css';
 ---
 <DashboardLayout title="X Post">
+  <SocialAccountPlaybook client:load />
   <PostDraftShelf client:load />
   <CopyOsReference surface="X" />
   <XCommandCenter client:only="react" />
 </DashboardLayout>
+
+<script>
+  type ComposeDetail = { username?: string; text?: string };
+
+  function handoffToComposer(detail: ComposeDetail, remaining = 15) {
+    const textarea = Array.from(document.querySelectorAll('textarea')).find((node) =>
+      node.getAttribute('placeholder')?.includes('今日の気づき')
+    ) as HTMLTextAreaElement | undefined;
+
+    if (!textarea) {
+      if (remaining > 0) window.setTimeout(() => handoffToComposer(detail, remaining - 1), 120);
+      return;
+    }
+
+    if (detail.text) {
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
+      setter?.call(textarea, detail.text);
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    if (detail.username) {
+      const target = detail.username.replace(/^@/, '').toLowerCase();
+      const select = Array.from(document.querySelectorAll('select')).find((node) =>
+        Array.from(node.options).some((option) => option.textContent?.replace(/^@/, '').toLowerCase() === target)
+      );
+      if (select) {
+        const option = Array.from(select.options).find((item) => item.textContent?.replace(/^@/, '').toLowerCase() === target);
+        if (option) {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+    }
+
+    textarea.focus();
+    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  window.addEventListener('masa:x-compose', (event) => {
+    handoffToComposer((event as CustomEvent<ComposeDetail>).detail ?? {});
+  });
+</script>
