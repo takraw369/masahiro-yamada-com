@@ -1,0 +1,219 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
+
+type JourneyPerson = {
+  visitor_id: string;
+  contact_id: string | null;
+  person_label: string;
+  email: string | null;
+  first_seen: string;
+  last_seen: string;
+  sessions: number;
+  current_stage: string;
+  last_event: string;
+  last_asset: string | null;
+  last_path: string | null;
+  attention_state: 'active' | 'cooling' | 'drop_signal' | 'converted';
+};
+
+type Snapshot = {
+  window_days: number;
+  generated_at: string;
+  summary: {
+    visitors: number;
+    sessions: number;
+    identified: number;
+    active: number;
+    cooling: number;
+    drop_signals: number;
+  };
+  stage_counts: Array<{ stage: string; visitors: number }>;
+  event_counts: Array<{ event_type: string; events: number; visitors: number }>;
+  recent_people: JourneyPerson[];
+};
+
+const stageLabel: Record<string, string> = {
+  discover: '発見',
+  explore: '探索',
+  engage: '興味',
+  study: '学習',
+  commit: '行動',
+  checkout: '購入検討',
+  convert: '購入',
+};
+const attentionLabel: Record<string, string> = {
+  active: 'ACTIVE',
+  cooling: 'COOLING',
+  drop_signal: 'DROP SIGNAL',
+  converted: 'CONVERTED',
+};
+const eventLabel: Record<string, string> = {
+  ks_shelf_view: 'Shelf閲覧',
+  ks_asset_click: '教材クリック',
+  ks_item_view: '教材閲覧',
+  ks_engaged_30s: '30秒滞在',
+  ks_engaged_120s: '120秒滞在',
+  ks_scroll_50: '50%読了',
+  ks_scroll_90: '90%読了',
+  ks_cta_click: 'CTAクリック',
+  ks_lead_submit: '先行登録',
+  ks_video_start: '動画開始',
+  ks_quest_start: 'Quest開始',
+  ks_quest_clear: 'Quest完了',
+  ks_checkout_start: '決済開始',
+  ks_purchase: '購入',
+};
+
+let snapshot: Snapshot | null = null;
+let loadError: string | null = null;
+try {
+  const env = getSiteStorageEnv(Astro.locals);
+  const ownerKey = await getDashboardOwnerKey(env);
+  snapshot = await supabaseRpc<Snapshot>(env, 'masa_knowledge_journey_snapshot_v1', {
+    p_owner_key: ownerKey,
+    p_days: 30,
+  });
+} catch (error) {
+  loadError = error instanceof Error ? error.message : 'journey_unavailable';
+}
+
+const fmt = (value: string) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('ja-JP', {
+    month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo',
+  }).format(date);
+};
+---
+<DashboardLayout title="Knowledge Journey">
+  <main class="journey-shell">
+    <header class="journey-head">
+      <div>
+        <p class="eyebrow">KNOWLEDGE JOURNEY / LEARNING SIGNAL</p>
+        <h1>誰が、何を、どの段階で学ぼうとしているか。</h1>
+        <p>端末指紋は使わず、ランダムな匿名ID → 本人同意のメール登録時だけ Contact に接続します。離脱は断定せず、72時間以上動きがない状態を「DROP SIGNAL」として扱います。</p>
+      </div>
+      <a class="shelf-link" href="/library" target="_blank" rel="noopener noreferrer">Shelfを見る ↗</a>
+    </header>
+
+    {loadError ? (
+      <section class="panel error-panel">
+        <strong>Journey data unavailable</strong>
+        <p>{loadError}</p>
+      </section>
+    ) : snapshot ? (
+      <>
+        <section class="summary-grid" aria-label="30日サマリー">
+          <article><span>VISITORS</span><strong>{snapshot.summary.visitors}</strong><small>30日</small></article>
+          <article><span>SESSIONS</span><strong>{snapshot.summary.sessions}</strong><small>再訪含む</small></article>
+          <article><span>IDENTIFIED</span><strong>{snapshot.summary.identified}</strong><small>同意後に接続</small></article>
+          <article><span>ACTIVE</span><strong>{snapshot.summary.active}</strong><small>24h以内</small></article>
+          <article><span>COOLING</span><strong>{snapshot.summary.cooling}</strong><small>24–72h</small></article>
+          <article class="warn"><span>DROP SIGNAL</span><strong>{snapshot.summary.drop_signals}</strong><small>72h+</small></article>
+        </section>
+
+        <section class="journey-grid">
+          <article class="panel">
+            <div class="panel-head"><div><span>STAGE MAP</span><h2>今、どこにいるか</h2></div><small>{snapshot.window_days} days</small></div>
+            <div class="stage-list">
+              {snapshot.stage_counts.length ? snapshot.stage_counts.map((row) => (
+                <div class="stage-row">
+                  <span>{stageLabel[row.stage] ?? row.stage}</span>
+                  <div class="bar"><i style={`width:${Math.min(100, (row.visitors / Math.max(1, snapshot!.summary.visitors)) * 100)}%`}></i></div>
+                  <strong>{row.visitors}</strong>
+                </div>
+              )) : <p class="empty">データ待ち</p>}
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span>SIGNAL MAP</span><h2>何をしているか</h2></div><small>event</small></div>
+            <div class="event-list">
+              {snapshot.event_counts.slice(0, 10).map((row) => (
+                <div class="event-row"><span>{eventLabel[row.event_type] ?? row.event_type}</span><strong>{row.visitors}人</strong><small>{row.events}回</small></div>
+              ))}
+              {!snapshot.event_counts.length && <p class="empty">データ待ち</p>}
+            </div>
+          </article>
+        </section>
+
+        <section class="panel people-panel">
+          <div class="panel-head"><div><span>RECENT JOURNEYS</span><h2>最近の学習者</h2></div><small>最新50</small></div>
+          <div class="people-table-wrap">
+            <table class="people-table">
+              <thead><tr><th>人</th><th>段階</th><th>状態</th><th>最後の教材</th><th>最終行動</th><th>最終接触</th><th>訪問</th></tr></thead>
+              <tbody>
+                {snapshot.recent_people.map((person) => (
+                  <tr>
+                    <td><strong>{person.person_label}</strong><small>{person.contact_id ? 'IDENTIFIED' : `匿名 ${person.visitor_id.slice(0, 8)}`}</small></td>
+                    <td>{stageLabel[person.current_stage] ?? person.current_stage}</td>
+                    <td><span class:list={['state-chip', `state-${person.attention_state}`]}>{attentionLabel[person.attention_state]}</span></td>
+                    <td>{person.last_asset ?? '—'}</td>
+                    <td>{eventLabel[person.last_event] ?? person.last_event}</td>
+                    <td>{fmt(person.last_seen)}</td>
+                    <td>{person.sessions}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!snapshot.recent_people.length && <p class="empty">Knowledge Shelf公開後、行動データがここに蓄積されます。</p>}
+        </section>
+
+        <section class="panel interpretation">
+          <span>INTERPRETATION RULE</span>
+          <p><strong>ACTIVE</strong> = 24時間以内に学習行動あり。<strong>COOLING</strong> = 24〜72時間動きなし。<strong>DROP SIGNAL</strong> = 未購入かつ72時間以上動きなし。これは「離脱確定」ではなく、次の教材・リマインド・導線改善を考えるためのシグナルです。</p>
+        </section>
+      </>
+    ) : null}
+  </main>
+</DashboardLayout>
+
+<style>
+  .journey-shell { padding: 26px; max-width: 1500px; margin: 0 auto; color: #e9e5dc; }
+  .journey-head { display:flex; justify-content:space-between; gap:24px; align-items:flex-start; margin-bottom:22px; }
+  .journey-head h1 { margin:4px 0 8px; font-size:clamp(1.45rem,3vw,2.25rem); line-height:1.25; }
+  .journey-head p { max-width:820px; margin:0; color:#918c82; font-size:.82rem; line-height:1.7; }
+  .eyebrow,.panel-head span,.interpretation>span { color:#c9a96e; font-size:.67rem!important; letter-spacing:.18em; }
+  .shelf-link { border:1px solid #3a342c; padding:9px 13px; text-decoration:none; color:#c9a96e; white-space:nowrap; font-size:.75rem; }
+  .summary-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
+  .summary-grid article,.panel { background:#15130f; border:1px solid #2e2923; }
+  .summary-grid article { padding:16px; }
+  .summary-grid span { display:block; color:#777066; font-size:.6rem; letter-spacing:.12em; }
+  .summary-grid strong { display:block; margin:4px 0 1px; font:400 2rem/1 'Cormorant Garamond',serif; color:#d9c89f; }
+  .summary-grid small { color:#5f5a53; font-size:.62rem; }
+  .summary-grid .warn { border-color:#594035; }
+  .journey-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .panel { padding:18px; }
+  .panel-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px; }
+  .panel-head h2 { margin:3px 0 0; font-size:1rem; }
+  .panel-head small { color:#5f5a53; font-size:.65rem; }
+  .stage-list,.event-list { display:grid; gap:8px; }
+  .stage-row { display:grid; grid-template-columns:70px 1fr 28px; align-items:center; gap:10px; font-size:.72rem; }
+  .stage-row span { color:#9d978e; }
+  .stage-row strong { text-align:right; }
+  .bar { height:5px; background:#27231e; overflow:hidden; }
+  .bar i { display:block; height:100%; background:#8b7355; }
+  .event-row { display:grid; grid-template-columns:1fr auto 48px; align-items:center; gap:10px; padding-bottom:7px; border-bottom:1px solid #26221d; font-size:.72rem; }
+  .event-row span { color:#9d978e; }
+  .event-row small { color:#5f5a53; text-align:right; }
+  .people-panel { margin-bottom:12px; }
+  .people-table-wrap { overflow:auto; }
+  .people-table { width:100%; border-collapse:collapse; min-width:900px; font-size:.7rem; }
+  .people-table th { text-align:left; color:#666057; font-weight:400; letter-spacing:.08em; padding:8px 9px; border-bottom:1px solid #332e27; }
+  .people-table td { padding:10px 9px; border-bottom:1px solid #24201b; color:#aaa49a; vertical-align:top; }
+  .people-table td strong { display:block; color:#ddd6ca; font-weight:500; }
+  .people-table td small { display:block; color:#5e5951; margin-top:2px; font-size:.58rem; }
+  .state-chip { display:inline-block; padding:2px 6px; border:1px solid #373129; font-size:.57rem; letter-spacing:.07em; }
+  .state-active { color:#93b796; border-color:#405343; }
+  .state-cooling { color:#c7aa72; border-color:#5d5035; }
+  .state-drop_signal { color:#c88f7e; border-color:#61443b; }
+  .state-converted { color:#9abbd2; border-color:#405565; }
+  .interpretation { color:#8f897f; font-size:.72rem; line-height:1.7; }
+  .interpretation p { margin:6px 0 0; }
+  .interpretation strong { color:#c9a96e; }
+  .empty { color:#615b53; font-size:.72rem; }
+  .error-panel { border-color:#61443b; color:#c88f7e; }
+  @media(max-width:900px){ .summary-grid{grid-template-columns:repeat(3,1fr)} .journey-grid{grid-template-columns:1fr} .journey-head{flex-direction:column} }
+  @media(max-width:560px){ .journey-shell{padding:16px} .summary-grid{grid-template-columns:repeat(2,1fr)} }
+</style>
