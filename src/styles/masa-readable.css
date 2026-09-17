@@ -1,11 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap');
+
 :root {
-  --masa-font-xs: 0.75rem;
-  --masa-font-sm: 0.84rem;
-  --masa-font-body: 0.95rem;
-  --masa-font-lg: 1.08rem;
+  --masa-font-ui: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+  --masa-font-micro: 0.75rem;
+  --masa-font-meta: 0.8125rem;
+  --masa-font-sm: 0.875rem;
+  --masa-font-body: 1rem;
+  --masa-font-lg: 1.125rem;
   --masa-readable-muted: #59636e;
-  --masa-readable-dim: #707983;
-  --masa-readable-line: 1.72;
+  --masa-readable-dim: #626b75;
+  --masa-readable-line: 1.68;
+  --text-muted: #59636e !important;
+  --text-dim: #626b75 !important;
 }
 
 html {
@@ -13,86 +19,375 @@ html {
   text-size-adjust: 100%;
 }
 
+body,
+.knowledge-os,
+.graph-app,
+.ib-shell,
+.pds-shell,
+.content,
+.lf2.lf2,
+button,
+input,
+textarea,
+select {
+  font-family: var(--masa-font-ui) !important;
+  font-synthesis: none;
+}
+
 body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Dashboard / FLOW MIND readability floor. Small text should be secondary,
-   not microscopic. Keep hierarchy with spacing and tone instead of 9–11px type. */
-.eyebrow,
-.ko-eyebrow,
+/*
+ * MASA Readable System
+ * Body: 16px / controls: 14px / metadata: 13px / floor: 12px.
+ * Keep hierarchy with spacing, weight and layout instead of microscopic copy.
+ * Operational UI uses IBM Plex Sans JP; expressive brand display type stays separate.
+ */
+
+/* Dashboard chrome */
+.brand-sub,
+.core-link small,
+.tools-wrap > summary,
 .tool-label,
+.tool-link,
+.logout-link,
+.eyebrow,
 .cockpit-flow,
-.ko-source,
-.ko-state,
-.ko-meta,
-.ko-count,
-.signal-label,
-.scores,
-.time,
-.tag,
-.feedback,
-.seed summary,
-.capture-drawer > summary small,
-.advanced-grid label {
-  font-size: var(--masa-font-xs) !important;
+.command-links span {
+  font-size: var(--masa-font-meta) !important;
   line-height: 1.5 !important;
 }
 
-.lead,
-.excerpt,
-.why,
+.core-link strong,
+.page-title,
+.capture-link,
+.command-button,
+.command-links strong {
+  font-size: var(--masa-font-sm) !important;
+  line-height: 1.5 !important;
+}
+
+.brand-sub,
+.core-link small,
+.tool-link,
+.logout-link,
+.cockpit-flow,
+.command-links span,
+.command-shortcut {
+  color: var(--masa-readable-muted) !important;
+}
+
+.tool-label,
+.eyebrow,
+.tools-wrap > summary {
+  letter-spacing: .08em !important;
+}
+
+/* Dashboard content: usable control floor, without flattening headings. */
+.content button,
+.content input,
+.content textarea,
+.content select {
+  font-size: var(--masa-font-sm) !important;
+  line-height: 1.5 !important;
+}
+
+.content small {
+  font-size: var(--masa-font-micro) !important;
+  line-height: 1.45 !important;
+}
+
+/* Intelligence board */
+.ib-kicker,
+.ib-metrics span,
+.ib-tags span,
+.ib-score small,
+.ib-why b,
+.ib-draft > span,
+.ib-meta {
+  font-size: var(--masa-font-micro) !important;
+  line-height: 1.5 !important;
+}
+
+.ib-column header p,
+.ib-actions button,
+.ib-hero-actions button,
+.ib-hero-actions a,
+.ib-toolbar button {
+  font-size: var(--masa-font-meta) !important;
+  line-height: 1.5 !important;
+}
+
+.ib-why,
+.ib-excerpt,
+.ib-draft p {
+  font-size: var(--masa-font-sm) !important;
+  line-height: var(--masa-readable-line) !important;
+}
+
+.ib-hero p,
+.ib-capture input,
+.ib-capture select,
+.ib-capture textarea,
+.ib-toolbar input,
+.ib-toolbar select {
+  font-size: var(--masa-font-body) !important;
+}
+
+.ib-column header p,
+.ib-meta,
+.ib-excerpt,
+.ib-hero p {
+  color: var(--masa-readable-muted) !important;
+}
+
+/* X / Draft Shelf */
+.pds-shell header span,
+.pds-meta span {
+  font-size: var(--masa-font-micro) !important;
+}
+
+.pds-actions button,
+.pds-reopen,
+.pds-notice {
+  font-size: var(--masa-font-meta) !important;
+}
+
+.pds-lead,
+.pds-list p,
+.pds-empty {
+  font-size: var(--masa-font-sm) !important;
+  line-height: var(--masa-readable-line) !important;
+}
+
+/* FLOW MIND */
+.ko-brand span,
+.ko-kbd,
+.ko-eyebrow,
+.ko-section h2,
+.ko-count,
+.ko-source,
+.ko-state,
+.ko-meta,
+.ko-reader-meta,
+.ko-context-head,
+.ko-context h3,
+.ko-related small,
+.ko-command-item span:last-child,
+.ko-bottom button {
+  font-size: var(--masa-font-micro) !important;
+  line-height: 1.5 !important;
+}
+
+.ko-rail-foot,
+.ko-nav [data-view="journal"],
+.ko-nav [data-view="projects"],
+.ko-nav [data-view="canonical"],
+.ko-nav [data-view="publish"],
+.ko-row-actions button,
+.ko-smallbtn,
+.ko-context-head,
+.ko-related button,
+.ko-ai-grid button,
+.ko-highlight,
+.ko-promo,
+.ko-toast {
+  font-size: var(--masa-font-meta) !important;
+  line-height: 1.55 !important;
+}
+
+.ko-capture button,
+.ko-action,
+.ko-nav button,
+.ko-search,
 .ko-card p,
 .ko-sub,
-.ko-related button,
-.ko-highlight,
-.ko-command-item,
-.tool-link,
-.core-link small,
-.brand-sub,
-.logout-link,
-.quiet-link,
-.action,
-.count,
-.capture-drawer > summary,
-.intake-form label,
-.advanced-filters > summary,
-.seed pre {
+.ko-note,
+.ko-command-item {
   font-size: var(--masa-font-sm) !important;
   line-height: var(--masa-readable-line) !important;
 }
 
 .ko-card h3,
-.title,
-.intake-form input,
-.intake-form textarea,
-.intake-form select,
-.filters input,
-.filters select {
+.ko-command-card input,
+.ko-modal-card input,
+.ko-modal-card textarea {
   font-size: var(--masa-font-body) !important;
   line-height: 1.65 !important;
 }
 
-.ko-card p,
-.ko-sub,
-.excerpt,
-.source,
-.why,
-.feedback,
-.seed pre,
-.lead {
-  color: var(--masa-readable-muted) !important;
-}
-
+.ko-brand span,
+.ko-rail-foot,
+.ko-nav button,
+.ko-search,
+.ko-section h2,
+.ko-count,
 .ko-source,
 .ko-state,
 .ko-meta,
-.ko-count,
-.tag,
-.time,
+.ko-reader-meta,
+.ko-context-head,
+.ko-context h3,
+.ko-related small,
+.ko-command-item span:last-child {
+  color: var(--masa-readable-dim) !important;
+}
+
+.ko-card p,
+.ko-sub,
+.ko-note,
+.ko-related button,
+.ko-highlight,
+.ko-command-item {
+  color: var(--masa-readable-muted) !important;
+}
+
+/* Living Graph: replace the old 8–11px control-plane typography. */
+.graph-app .eyebrow-local,
+.graph-app .section-kicker,
+.graph-app .status-badge,
+.graph-app .global-search kbd,
+.graph-app .text-btn,
+.graph-app .result-count,
+.graph-app .filter-btn small,
+.graph-app .node-list-main small,
+.graph-app .switch-label,
+.graph-app .motion-toggle,
+.graph-app .canvas-help,
+.graph-app .legend,
+.graph-app .minimap-head,
+.graph-app .minimap-head button,
+.graph-app .kind-pill,
+.graph-app .insight-box span,
+.graph-app .connections-head span,
+.graph-app .connection-item small,
+.graph-app .connection-item em,
+.graph-app .guide-row b,
+.graph-app .guide-row span,
+.graph-app .composer label,
+.graph-app .save-status,
+.graph-app .confidence,
+.graph-app .micro,
+.graph-app .activity-item time {
+  font-size: var(--masa-font-micro) !important;
+  line-height: 1.45 !important;
+}
+
+.graph-app .howto span,
+.graph-app .howto b,
+.graph-app .ui-btn,
+.graph-app .filter-btn,
+.graph-app .empty-list,
+.graph-app .selection-chip,
+.graph-app .node-note,
+.graph-app .insight-box p,
+.graph-app .connections-head h3,
+.graph-app .connection-item strong,
+.graph-app details.inspector-card > summary strong,
+.graph-app .guide-body > p,
+.graph-app .pair,
+.graph-app .ai-card h3,
+.graph-app .activity-item {
+  font-size: var(--masa-font-meta) !important;
+  line-height: 1.55 !important;
+}
+
+.graph-app .global-search input,
+.graph-app .section-head h2,
+.graph-app .node-list-main strong,
+.graph-app .composer select,
+.graph-app .composer textarea {
+  font-size: var(--masa-font-sm) !important;
+  line-height: 1.55 !important;
+}
+
+.graph-app .kg-node text.node-kind {
+  font-size: 12px !important;
+}
+
+.graph-app .kg-node text.node-label {
+  font-size: 15px !important;
+}
+
+.graph-app .howto span,
+.graph-app .filter-btn,
+.graph-app .node-list-main small,
+.graph-app .selection-chip,
+.graph-app .switch-label,
+.graph-app .canvas-help,
+.graph-app .legend,
+.graph-app .node-note,
+.graph-app .guide-body > p,
+.graph-app .guide-row span,
+.graph-app .activity-item {
+  color: var(--masa-readable-muted) !important;
+}
+
+/* Lian / LINE Control Plane */
+.content .live-pill,
+.content .stat-label,
+.content .section-note,
+.content .badge,
+.content .hour,
+.content .count,
+.content .message-head {
+  font-size: var(--masa-font-micro) !important;
+  line-height: 1.5 !important;
+}
+
+.content .card-meta,
+.content .metrics,
+.content .secondary,
+.content .why-sent,
+.content .empty,
+.content .node,
+.content .footer-note {
+  font-size: var(--masa-font-meta) !important;
+  line-height: 1.6 !important;
+}
+
+.content .hero p,
+.content .error,
+.content .card-title,
+.content .primary,
+.content .message-body {
+  font-size: var(--masa-font-sm) !important;
+  line-height: var(--masa-readable-line) !important;
+}
+
+.content .stat-label,
+.content .section-note,
+.content .card-meta,
+.content .metrics,
+.content .hour,
+.content .count,
+.content .secondary,
+.content .message-head,
+.content .empty,
+.content .footer-note {
+  color: var(--masa-readable-dim) !important;
+}
+
+/* Existing Intelligence-list compatibility selectors. */
+.lead,
+.excerpt,
+.why,
+.source,
+.feedback,
+.seed pre {
+  color: var(--masa-readable-muted) !important;
+}
+
 .signal-label,
-.scores {
+.scores,
+.time,
+.tag,
+.ko-source,
+.ko-state,
+.ko-meta,
+.ko-count {
   color: var(--masa-readable-dim) !important;
 }
 
@@ -105,8 +400,19 @@ select {
 
 @media (max-width: 760px) {
   :root {
-    --masa-font-xs: 0.78rem;
-    --masa-font-sm: 0.88rem;
+    --masa-font-micro: 0.78rem;
+    --masa-font-meta: 0.84rem;
+    --masa-font-sm: 0.9rem;
     --masa-font-body: 1rem;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  .ko-bottom button {
+    font-size: var(--masa-font-meta) !important;
   }
 }
