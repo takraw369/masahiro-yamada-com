@@ -9,165 +9,331 @@ const dateLabel = new Intl.DateTimeFormat('ja-JP', {
 }).format(new Date());
 
 const quickActions = [
-  { label: 'CAPTURE', title: '残す', detail: '思いつき・メモを一瞬で置く', href: '/mind?action=capture' },
-  { label: 'OUTPUT', title: '出す', detail: 'X・LINEなど外へ流す', href: '#output' },
-  { label: 'REVIEW', title: '再会する', detail: '今もう一度触れる知識だけ見る', href: '/mind?view=review' },
+  {
+    label: 'CAPTURE',
+    title: '残す',
+    detail: '思いつき・体験・違和感を一瞬で置く',
+    href: '/mind?action=capture',
+    tone: 'lavender',
+  },
+  {
+    label: 'OUTPUT',
+    title: '出す',
+    detail: 'X・LINEへ流して現実の反応を得る',
+    href: '#output',
+    tone: 'apricot',
+  },
+  {
+    label: 'REVIEW',
+    title: '再会する',
+    detail: '今の自分に必要な知識だけ呼び戻す',
+    href: '/mind?view=review',
+    tone: 'mint',
+  },
+];
+
+const flowSteps = [
+  { no: '01', label: 'CAPTURE', title: '残す', href: '/mind?action=capture' },
+  { no: '02', label: 'THINK', title: '意味をつくる', href: '/mind' },
+  { no: '03', label: 'SHIP', title: '外へ流す', href: '/dashboard/post' },
+  { no: '04', label: 'LEARN', title: '反応を戻す', href: '/dashboard/evidence' },
+];
+
+const systemDoors = [
+  { label: 'PROJECT', title: 'MASA OS / Project', detail: '今・次・詰まりを確認', href: '/dashboard/os' },
+  { label: 'CALENDAR', title: 'Calendar', detail: '時間へ落とす', href: '/dashboard/schedule' },
+  { label: 'INTEL', title: 'Intelligence', detail: '外部情報を選別', href: '/dashboard/intelligence' },
+  { label: 'EVIDENCE', title: 'Evidence Lab', detail: '結果を学習へ戻す', href: '/dashboard/evidence' },
 ];
 ---
 
 <DashboardLayout title="今日" eyebrow="DAILY COMMAND CENTER">
-  <div class="today-shell">
-    <header class="today-head">
+  <div class="dash-shell">
+    <header class="dash-head">
       <div>
-        <p class="kicker">TODAY</p>
-        <h1>迷わず、1つ動かす。</h1>
-        <p class="intro">全部を見る場所ではなく、次の行動へ入るための操作面。必要な機能は必要な時だけ開く。</p>
+        <p class="kicker">MASA OS · TODAY</p>
+        <h1>Flow Dashboard</h1>
+        <p class="intro">全部を管理する画面ではなく、今の流れを見て、次の1手へ入るための操作面。</p>
       </div>
-      <p class="date">{dateLabel}</p>
+      <div class="date-chip">
+        <span>TODAY</span>
+        <strong>{dateLabel}</strong>
+      </div>
     </header>
 
-    <section class="next-card" aria-labelledby="next-title">
-      <div class="next-copy">
+    <section class="hero-grid" aria-label="今日の操作">
+      <article class="now-card">
         <div class="status-line">
           <span class="kicker">NEXT MOVE · PROPOSAL</span>
           <span class="neutral-badge">CURRENT STATE 未連携</span>
         </div>
         <p class="context">Reality Loop</p>
-        <h2 id="next-title">外へ1つ流して、反応を1つ戻す。</h2>
-        <p class="body-copy">固定方針からの候補です。Task Board・期限・市場反応から自動判定した「今日の正解」ではありません。Current State接続までは提案として扱います。</p>
-      </div>
-      <div class="next-actions">
-        <a class="primary" href="/dashboard/post">投稿を1本進める <span aria-hidden="true">→</span></a>
-        <a class="secondary" href="/dashboard/intelligence#intel-list">素材を選び直す</a>
-      </div>
-    </section>
+        <h2>迷わず、<br/>1つ動かす。</h2>
+        <p class="body-copy">まず外へ1つ流して、反応を1つ戻す。Task Board・期限・市場反応から自動判定した「今日の正解」ではなく、Current State接続までは固定方針からの提案として扱います。</p>
+        <div class="now-actions">
+          <a class="primary" href="/dashboard/post">投稿を1本進める <span aria-hidden="true">→</span></a>
+          <a class="secondary" href="/dashboard/intelligence#intel-list">素材を選び直す</a>
+        </div>
+        <div class="reality-loop" aria-label="Reality Loop">
+          <span class="loop-node active">体験</span><i>→</i>
+          <span class="loop-node">言語化</span><i>→</i>
+          <span class="loop-node">発信</span><i>→</i>
+          <span class="loop-node">反応</span><i>→</i>
+          <span class="loop-node">学習</span>
+        </div>
+      </article>
 
-    <section class="quick-section" aria-labelledby="quick-title">
-      <div class="section-head">
-        <div><p class="kicker">START</p><h2 id="quick-title">3つだけ覚える</h2></div>
-        <p>残す → 出す → 再会する。</p>
-      </div>
-      <div class="quick-grid">
+      <div class="action-stack">
         {quickActions.map(item => (
-          <a class="quick-card" href={item.href}>
+          <a class={`action-card ${item.tone}`} href={item.href}>
             <span>{item.label}</span>
             <strong>{item.title}</strong>
             <small>{item.detail}</small>
-            <b aria-hidden="true">→</b>
+            <b aria-hidden="true">↗</b>
           </a>
         ))}
       </div>
     </section>
 
+    <section class="overview-grid" aria-label="Flow overview">
+      <article class="flow-panel">
+        <div class="panel-head">
+          <div>
+            <p class="kicker">FLOW MAP</p>
+            <h2>残したものを、現実まで流す。</h2>
+          </div>
+          <p>情報量ではなく、循環が止まっている場所を見る。</p>
+        </div>
+
+        <div class="flow-track">
+          {flowSteps.map((step, index) => (
+            <a class="flow-step" href={step.href}>
+              <div class="flow-number">{step.no}</div>
+              <div>
+                <span>{step.label}</span>
+                <strong>{step.title}</strong>
+              </div>
+              {index < flowSteps.length - 1 && <i aria-hidden="true">→</i>}
+            </a>
+          ))}
+        </div>
+      </article>
+
+      <aside class="system-panel">
+        <div class="panel-head compact">
+          <div><p class="kicker">SYSTEM DOORS</p><h2>必要な時だけ深く入る。</h2></div>
+        </div>
+        <div class="system-list">
+          {systemDoors.map(item => (
+            <a href={item.href}>
+              <span>{item.label}</span>
+              <div><strong>{item.title}</strong><small>{item.detail}</small></div>
+              <b aria-hidden="true">→</b>
+            </a>
+          ))}
+        </div>
+      </aside>
+    </section>
+
     <section class="output-section" id="output" aria-labelledby="output-title">
-      <div class="section-head">
+      <div class="panel-head">
         <div><p class="kicker">OUTPUT</p><h2 id="output-title">どこへ流す？</h2></div>
-        <p>媒体名より「何を動かすか」から入る。</p>
+        <p>媒体ではなく、動かしたい関係から選ぶ。</p>
       </div>
+
       <div class="channel-grid">
-        <a class="channel-card" href="/dashboard/post">
+        <a class="channel-card dark" href="/dashboard/post">
           <span class="channel-mark">X</span>
-          <div><strong>X / Social</strong><small>仮説を市場へ出す</small></div>
+          <div><strong>X / Social</strong><small>仮説・体験・問いを市場へ出す</small></div>
+          <span class="channel-tag">PUBLIC</span>
           <span class="chevron" aria-hidden="true">→</span>
         </a>
-        <a class="channel-card line-card" href="/dashboard/line">
-          <span class="channel-mark line">L</span>
-          <div><strong>LINE Flow</strong><small>教育・顧客導線を動かす</small></div>
-          <span class="live-badge">LIVE</span>
+
+        <a class="channel-card green" href="/dashboard/line">
+          <span class="channel-mark">L</span>
+          <div><strong>LINE Flow</strong><small>教育・関係・顧客導線を動かす</small></div>
+          <span class="channel-tag">FLOW</span>
+          <span class="chevron" aria-hidden="true">→</span>
+        </a>
+
+        <a class="channel-card blue" href="/dashboard/ace-assets">
+          <span class="channel-mark">A</span>
+          <div><strong>ACE Assets</strong><small>学びを教材・Questへ変換する</small></div>
+          <span class="channel-tag">ASSET</span>
           <span class="chevron" aria-hidden="true">→</span>
         </a>
       </div>
       <p class="safety-note">公開・送信・有効化など影響の大きい操作はHuman Gateを残す。</p>
     </section>
 
-    <details class="candidate-section">
-      <summary>考える・調べる・育てる <span>THINK / REVIEW</span></summary>
-      <div class="candidate-list">
-        <article class="candidate-row">
-          <div>
-            <p class="candidate-name">FLOW MIND</p>
-            <h3>読む・考える・再会する。</h3>
-            <p>保存量を増やさず、Knowledgeを今の行動やProjectへ戻す。</p>
-          </div>
-          <a href="/mind">開く →</a>
-        </article>
-        <article class="candidate-row">
-          <div>
-            <p class="candidate-name">INTELLIGENCE</p>
-            <h3>外から来た情報を選別する。</h3>
-            <p>Discover → Trust → Reuse。Sourceを確認し、Evidence・Content・Asset候補へ昇格する。</p>
-          </div>
-          <a href="/dashboard/intelligence">確認する →</a>
-        </article>
-      </div>
-    </details>
+    <section class="lower-grid" aria-label="Think and build">
+      <article class="work-panel">
+        <div class="panel-head compact">
+          <div><p class="kicker">THINK / LEARN</p><h2>考える・つなぐ・学習する。</h2></div>
+        </div>
+        <div class="work-grid">
+          <a href="/mind"><strong>FLOW MIND</strong><small>読む・考える・再会する</small><span>→</span></a>
+          <a href="/dashboard/graph"><strong>Living Graph</strong><small>知識同士のつながりを見る</small><span>→</span></a>
+          <a href="/dashboard/choice-lab"><strong>Choice Lab</strong><small>迷いを選択可能な形へ変える</small><span>→</span></a>
+          <a href="/dashboard/question-lab"><strong>Question Lab</strong><small>問いを育て、再利用する</small><span>→</span></a>
+        </div>
+      </article>
 
-    <footer class="today-foot">
-      <p>UI convergence · Warm Light Workbench</p>
-      <span>詳しい機能は MORE TOOLS / Quick Jump から必要時だけ開く。</span>
+      <article class="work-panel">
+        <div class="panel-head compact">
+          <div><p class="kicker">BUILD / CREATE</p><h2>形にする・届ける。</h2></div>
+        </div>
+        <div class="work-grid">
+          <a href="/dashboard/design-lab"><strong>Design Lab</strong><small>見た目と体験を選ぶ</small><span>→</span></a>
+          <a href="/dashboard/visual-prompt"><strong>Visual Prompt</strong><small>画像・映像の指示へ変換</small><span>→</span></a>
+          <a href="/dashboard/funnel"><strong>Trinity Funnel</strong><small>発信からOfferへつなぐ</small><span>→</span></a>
+          <a href="/dashboard/quest"><strong>Quest</strong><small>実践できる学習体験へ変える</small><span>→</span></a>
+        </div>
+      </article>
+    </section>
+
+    <footer class="dash-foot">
+      <p>Pinterest-inspired synthesis · MASA Flow Dashboard v1</p>
+      <span>見た目より先に「次の行動が一目で分かる」を優先する。</span>
     </footer>
   </div>
 </DashboardLayout>
 
 <style>
-  .today-shell { max-width: 1180px; margin: 0 auto; padding-bottom: 40px; }
-  .today-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
-  .kicker { color: var(--gold-muted); font-size: .7rem; letter-spacing: .12em; font-weight: 700; }
-  .today-head h1 { margin-top: 4px; color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 2.5rem); line-height: 1.25; font-weight: 700; }
-  .intro { max-width: 650px; margin-top: 7px; color: var(--text-muted); font-size: .84rem; }
-  .date { flex-shrink: 0; color: var(--text-muted); font-size: .82rem; }
+  .dash-shell {
+    --panel: #fff;
+    --panel-soft: #fbfaf8;
+    --ink: #20242a;
+    --muted: #68717b;
+    --hairline: #e3e0db;
+    --shadow: 0 18px 48px rgba(52, 47, 41, .07);
+    max-width: 1240px;
+    margin: 0 auto;
+    padding-bottom: 42px;
+  }
 
-  .next-card { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(260px,.5fr); gap: 32px; align-items: end; padding: 30px 32px; background: var(--bg-surface); border: 1px solid #ccb891; box-shadow: 0 10px 34px rgba(55,45,32,.05); }
+  .dash-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 26px; margin-bottom: 18px; }
+  .kicker { margin: 0; color: var(--gold-muted); font-size: .72rem; letter-spacing: .12em; font-weight: 800; }
+  .dash-head h1 { margin-top: 3px; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1; letter-spacing: -.035em; }
+  .intro { max-width: 720px; margin-top: 9px; color: var(--muted); font-size: .96rem; line-height: 1.7; }
+  .date-chip { flex-shrink: 0; min-width: 170px; padding: 13px 15px; border: 1px solid var(--hairline); border-radius: 16px; background: rgba(255,255,255,.74); box-shadow: 0 8px 24px rgba(52,47,41,.035); }
+  .date-chip span, .date-chip strong { display: block; }
+  .date-chip span { color: #959ca4; font-size: .7rem; letter-spacing: .12em; font-weight: 800; }
+  .date-chip strong { margin-top: 3px; font-size: .95rem; }
+
+  .hero-grid { display: grid; grid-template-columns: minmax(0,1.75fr) minmax(280px,.65fr); gap: 14px; }
+  .now-card { min-height: 420px; display: flex; flex-direction: column; padding: 34px; border: 1px solid #d7d2ca; border-radius: 24px; background: linear-gradient(145deg,#fff 0%,#fff 72%,#f4f0ff 100%); box-shadow: var(--shadow); }
   .status-line { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
-  .neutral-badge { padding: 4px 7px; border: 1px solid var(--border-default); color: var(--text-muted); background: #faf9f6; font-size: .66rem; letter-spacing: .04em; }
-  .context { margin-top: 13px; color: var(--text-muted); font-size: .82rem; }
-  .next-card h2 { margin-top: 6px; color: var(--text-primary); font-size: clamp(1.8rem, 4vw, 3.1rem); line-height: 1.28; font-weight: 700; letter-spacing: .01em; }
-  .body-copy { max-width: 720px; margin-top: 13px; color: var(--text-muted); font-size: .85rem; line-height: 1.8; }
-  .next-actions { display: grid; gap: 8px; }
-  .primary, .secondary { min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; text-decoration: none; font-size: .85rem; }
-  .primary { color: #fff; background: var(--gold-pure); font-weight: 700; }
-  .primary:hover { background: #7f511b; }
-  .secondary { color: #5b626a; background: #fff; border: 1px solid var(--border-default); }
-  .secondary:hover { border-color: var(--border-hover); color: var(--text-primary); }
+  .neutral-badge { padding: 5px 8px; border: 1px solid #dedbd6; border-radius: 999px; background: rgba(255,255,255,.82); color: #747d86; font-size: .7rem; font-weight: 700; }
+  .context { margin-top: 23px; color: #8a9199; font-size: .88rem; }
+  .now-card h2 { margin-top: 5px; max-width: 700px; font-size: clamp(2.7rem, 6vw, 5.9rem); line-height: .96; letter-spacing: -.055em; }
+  .body-copy { max-width: 760px; margin-top: 20px; color: var(--muted); font-size: .96rem; line-height: 1.8; }
+  .now-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 24px; }
+  .primary, .secondary { min-height: 48px; display: inline-flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 16px; border-radius: 12px; text-decoration: none; font-size: .9rem; font-weight: 700; }
+  .primary { min-width: 210px; color: #fff; background: #20242a; }
+  .primary:hover { background: #111419; }
+  .secondary { color: #5a626b; background: rgba(255,255,255,.82); border: 1px solid #ddd9d2; }
+  .secondary:hover { border-color: #b9b1a5; color: #20242a; }
+  .reality-loop { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: auto; padding-top: 28px; color: #9aa0a6; }
+  .reality-loop i { font-style: normal; color: #c6c1ba; }
+  .loop-node { padding: 6px 9px; border: 1px solid #e1ddd8; border-radius: 999px; background: rgba(255,255,255,.72); font-size: .72rem; font-weight: 700; }
+  .loop-node.active { border-color: #cab4ff; background: #f2edff; color: #5b478c; }
 
-  .quick-section, .output-section { margin-top: 30px; }
-  .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 12px; }
-  .section-head h2 { margin-top: 3px; color: var(--text-primary); font-size: 1.05rem; font-weight: 700; }
-  .section-head > p { color: var(--text-muted); font-size: .76rem; }
-  .quick-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
-  .quick-card { position: relative; min-height: 118px; display: flex; flex-direction: column; padding: 16px; border: 1px solid var(--border-default); background: var(--bg-surface); text-decoration: none; }
-  .quick-card:hover { border-color: #b58a53; background: #fbf8f3; }
-  .quick-card > span { color: var(--gold-muted); font-size: .68rem; letter-spacing: .1em; font-weight: 700; }
-  .quick-card strong { margin-top: 8px; font-size: 1rem; }
-  .quick-card small { margin-top: 4px; padding-right: 18px; color: var(--text-muted); font-size: .76rem; }
-  .quick-card b { position: absolute; right: 15px; bottom: 12px; color: var(--gold-pure); font-weight: 500; }
+  .action-stack { display: grid; grid-template-rows: repeat(3,1fr); gap: 12px; }
+  .action-card { position: relative; min-height: 124px; display: flex; flex-direction: column; justify-content: center; padding: 20px; border: 1px solid rgba(89,83,75,.08); border-radius: 20px; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; overflow: hidden; }
+  .action-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(52,47,41,.07); }
+  .action-card > span { font-size: .7rem; letter-spacing: .12em; font-weight: 900; opacity: .68; }
+  .action-card strong { margin-top: 5px; font-size: 1.35rem; }
+  .action-card small { max-width: 230px; margin-top: 4px; color: rgba(32,36,42,.66); font-size: .82rem; line-height: 1.55; }
+  .action-card b { position: absolute; right: 18px; top: 17px; font-size: 1rem; }
+  .lavender { background: #ddd8ff; color: #3f375f; }
+  .apricot { background: #f7d2a8; color: #60401d; }
+  .mint { background: #d5eadf; color: #284a3a; }
 
-  .output-section { scroll-margin-top: 92px; }
-  .channel-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
-  .channel-card { min-height: 96px; display: grid; grid-template-columns: 48px minmax(0,1fr) auto auto; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid var(--border-default); background: #fff; text-decoration: none; }
-  .channel-card:hover { border-color: #b58a53; box-shadow: 0 8px 24px rgba(55,45,32,.05); }
-  .channel-mark { width: 44px; height: 44px; display: grid; place-items: center; color: #fff; background: #17191c; font-weight: 700; }
-  .channel-mark.line { background: var(--state-green); }
-  .channel-card strong { display: block; font-size: .93rem; }
-  .channel-card small { display: block; margin-top: 3px; color: var(--text-muted); font-size: .73rem; }
-  .live-badge { padding: 3px 7px; color: #0d6e43; background: #e8f5ee; border: 1px solid #b8dfca; font-size: .62rem; font-weight: 700; letter-spacing: .08em; }
-  .chevron { color: var(--gold-pure); }
-  .safety-note { margin-top: 8px; color: var(--text-dim); font-size: .69rem; }
+  .overview-grid { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(320px,.55fr); gap: 14px; margin-top: 14px; }
+  .flow-panel, .system-panel, .output-section, .work-panel { border: 1px solid var(--hairline); border-radius: 22px; background: var(--panel); box-shadow: 0 10px 28px rgba(52,47,41,.035); }
+  .flow-panel { padding: 24px; }
+  .system-panel { padding: 22px; }
+  .panel-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; }
+  .panel-head.compact { align-items: flex-start; }
+  .panel-head h2 { margin-top: 3px; font-size: 1.15rem; line-height: 1.4; }
+  .panel-head > p { max-width: 380px; color: var(--muted); font-size: .78rem; text-align: right; line-height: 1.55; }
 
-  .candidate-section { margin-top: 24px; border: 1px solid var(--border-default); background: rgba(255,255,255,.55); padding: 0 16px; }
-  .candidate-section > summary { min-height: 48px; display: flex; align-items: center; color: var(--text-primary); cursor: pointer; font-size: .82rem; font-weight: 500; }
-  .candidate-section > summary span { margin-left: 10px; color: var(--text-muted); font-size: .66rem; letter-spacing: .08em; }
-  .candidate-list { border-top: 1px solid var(--border-default); }
-  .candidate-row { display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: 17px 0; border-bottom: 1px solid var(--border-default); }
-  .candidate-row:last-child { border-bottom: 0; }
-  .candidate-name { color: var(--gold-muted); font-size: .7rem; }
-  .candidate-row h3 { margin-top: 4px; font-size: .91rem; font-weight: 700; }
-  .candidate-row p:last-child { max-width: 720px; margin-top: 4px; color: var(--text-muted); font-size: .76rem; line-height: 1.65; }
-  .candidate-row a { flex-shrink: 0; min-height: 42px; display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid var(--border-default); color: var(--gold-pure); background: #fff; text-decoration: none; font-size: .75rem; }
-  .today-foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 24px; padding-top: 15px; border-top: 1px solid var(--border-default); color: var(--text-dim); font-size: .68rem; }
+  .flow-track { position: relative; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-top: 20px; }
+  .flow-track::before { content: ''; position: absolute; left: 6%; right: 6%; top: 18px; height: 1px; background: linear-gradient(90deg,#cab4ff,#f0c291,#badcca,#b8d8f8); }
+  .flow-step { position: relative; min-width: 0; display: grid; grid-template-columns: 38px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 12px 10px; border-radius: 14px; color: inherit; background: rgba(250,249,247,.88); text-decoration: none; }
+  .flow-step:hover { background: #f5f2ee; }
+  .flow-number { position: relative; z-index: 1; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #ded9d2; border-radius: 50%; background: #fff; color: #8c8378; font-size: .72rem; font-weight: 900; }
+  .flow-step span, .flow-step strong { display: block; min-width: 0; }
+  .flow-step span { color: #989088; font-size: .66rem; letter-spacing: .08em; font-weight: 800; }
+  .flow-step strong { margin-top: 2px; font-size: .84rem; }
+  .flow-step i { color: #b9b0a5; font-style: normal; }
 
-  @media (max-width: 860px) { .next-card { grid-template-columns: 1fr; gap: 20px; } .next-actions { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-  @media (max-width: 720px) { .quick-grid, .channel-grid { grid-template-columns: 1fr; } .quick-card { min-height: 96px; } }
-  @media (max-width: 600px) { .today-head, .section-head { align-items: flex-start; flex-direction: column; } .next-card { padding: 22px 18px; } .next-actions { grid-template-columns: 1fr; } .channel-card { grid-template-columns: 44px minmax(0,1fr) auto; } .live-badge { display: none; } .candidate-row { align-items: stretch; flex-direction: column; gap: 11px; } }
-  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+  .system-list { display: grid; gap: 7px; margin-top: 16px; }
+  .system-list a { display: grid; grid-template-columns: 64px minmax(0,1fr) auto; align-items: center; gap: 10px; min-height: 58px; padding: 8px 10px; border: 1px solid transparent; border-radius: 12px; text-decoration: none; }
+  .system-list a:hover { border-color: #ddd7cf; background: #faf8f5; }
+  .system-list a > span { color: #a18869; font-size: .66rem; letter-spacing: .08em; font-weight: 900; }
+  .system-list strong, .system-list small { display: block; }
+  .system-list strong { font-size: .85rem; }
+  .system-list small { margin-top: 1px; color: var(--muted); font-size: .74rem; }
+  .system-list b { color: #aaa29a; font-weight: 500; }
+
+  .output-section { margin-top: 14px; padding: 24px; scroll-margin-top: 92px; }
+  .channel-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-top: 16px; }
+  .channel-card { min-height: 108px; display: grid; grid-template-columns: 46px minmax(0,1fr) auto auto; align-items: center; gap: 12px; padding: 16px; border: 1px solid #dedbd6; border-radius: 16px; background: #fff; text-decoration: none; }
+  .channel-card:hover { border-color: #b9b1a5; box-shadow: 0 10px 26px rgba(52,47,41,.055); }
+  .channel-mark { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; color: #fff; background: #20242a; font-weight: 900; }
+  .channel-card.green .channel-mark { background: #2b8f65; }
+  .channel-card.blue .channel-mark { background: #507fb6; }
+  .channel-card strong, .channel-card small { display: block; }
+  .channel-card strong { font-size: .92rem; }
+  .channel-card small { margin-top: 3px; color: var(--muted); font-size: .75rem; line-height: 1.45; }
+  .channel-tag { padding: 4px 7px; border-radius: 999px; background: #f4f2ef; color: #777f87; font-size: .62rem; font-weight: 800; letter-spacing: .06em; }
+  .chevron { color: #aaa29a; }
+  .safety-note { margin-top: 10px; color: #8d949c; font-size: .72rem; }
+
+  .lower-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 14px; }
+  .work-panel { padding: 22px; }
+  .work-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 15px; }
+  .work-grid a { position: relative; min-height: 96px; display: flex; flex-direction: column; justify-content: center; padding: 13px 34px 13px 13px; border: 1px solid #e5e1dc; border-radius: 14px; background: #fbfaf8; text-decoration: none; }
+  .work-grid a:hover { border-color: #c9c0b5; background: #f7f4ef; }
+  .work-grid strong { font-size: .86rem; }
+  .work-grid small { margin-top: 4px; color: var(--muted); font-size: .74rem; line-height: 1.5; }
+  .work-grid span { position: absolute; right: 13px; top: 13px; color: #aaa29a; }
+
+  .dash-foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 22px; padding: 0 4px; color: #8c939a; font-size: .72rem; }
+
+  @media (max-width: 1000px) {
+    .hero-grid, .overview-grid { grid-template-columns: 1fr; }
+    .action-stack { grid-template-columns: repeat(3,minmax(0,1fr)); grid-template-rows: none; }
+    .action-card { min-height: 132px; }
+    .channel-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 760px) {
+    .dash-head { align-items: flex-start; flex-direction: column; }
+    .date-chip { min-width: 0; width: 100%; }
+    .now-card { min-height: auto; padding: 24px 20px; }
+    .action-stack { grid-template-columns: 1fr; }
+    .flow-track { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .flow-track::before { display: none; }
+    .lower-grid { grid-template-columns: 1fr; }
+    .panel-head { align-items: flex-start; flex-direction: column; }
+    .panel-head > p { text-align: left; }
+  }
+
+  @media (max-width: 560px) {
+    .now-actions { display: grid; grid-template-columns: 1fr; }
+    .primary, .secondary { width: 100%; }
+    .flow-track { grid-template-columns: 1fr; }
+    .flow-step { min-height: 64px; }
+    .flow-step i { display: none; }
+    .channel-card { grid-template-columns: 44px minmax(0,1fr) auto; }
+    .channel-tag { display: none; }
+    .work-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
 </style>
