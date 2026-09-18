@@ -47,16 +47,22 @@ async function intelligenceAction(action: string, id: string) {
   return { res, data };
 }
 
+function actionError(result: Awaited<ReturnType<typeof intelligenceAction>>) {
+  return String(result.data?.error || `HTTP ${result.res.status}`);
+}
+
 async function getReviewDraft(id: string): Promise<XDraft> {
   let result = await intelligenceAction('x_draft', id);
   if (!result.res.ok) {
-    // Older content_seed rows may predate publish_queue draft creation.
-    // Re-running content_seed is idempotent and creates/refreshes the review-gated X draft.
+    const firstError = actionError(result);
+    // Refresh only when the active Intelligence row exists but has no queue draft yet.
+    // Archived/missing rows and other failures must not be retried through content_seed.
+    if (!firstError.includes('x_draft_not_found')) throw new Error(firstError);
     const refreshed = await intelligenceAction('content_seed', id);
-    if (!refreshed.res.ok) throw new Error(refreshed.data?.error || `HTTP ${refreshed.res.status}`);
+    if (!refreshed.res.ok) throw new Error(actionError(refreshed));
     result = await intelligenceAction('x_draft', id);
   }
-  if (!result.res.ok || !result.data?.draft) throw new Error(result.data?.error || `HTTP ${result.res.status}`);
+  if (!result.res.ok || !result.data?.draft) throw new Error(actionError(result));
   return result.data.draft as XDraft;
 }
 
@@ -82,9 +88,12 @@ export default function PostDraftShelf() {
       setNotice(`「${title}」からX投稿案を本文へ入れました。${gate}`);
     } catch (value) {
       const message = value instanceof Error ? value.message : String(value);
+      const archivedOrMissing = message.includes('intelligence_archived') || message.includes('intelligence_not_found');
       setError(message === 'internal_seed_blocked'
         ? '内部メタデータを投稿本文へ入れる処理を停止しました。投稿案を生成し直してください。'
-        : `投稿案を読み込めませんでした: ${message}`);
+        : archivedOrMissing
+          ? 'この素材はアーカイブ済み、または現在の投稿対象外です。Intelligenceで現役素材を選んでください。'
+          : `投稿案を読み込めませんでした: ${message}`);
     } finally {
       setBusyId('');
     }
@@ -111,7 +120,7 @@ export default function PostDraftShelf() {
       .then((res) => res.json())
       .then((data) => {
         const rows = Array.isArray(data?.items) ? data.items : [];
-        setItems(rows.filter((item: Item) => item.contentSeed || item.status === 'content_seed').slice(0, 8));
+        setItems(rows.filter((item: Item) => item.status !== 'archived' && (item.contentSeed || item.status === 'content_seed')).slice(0, 8));
       })
       .catch(() => {});
   }, []);

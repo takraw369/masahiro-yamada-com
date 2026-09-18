@@ -16,6 +16,16 @@ test('X Draft Shelf never sends Intelligence metadata seed directly to composer'
   assert.doesNotMatch(shelf, /sendToComposer\(item\.contentSeed/);
 });
 
+test('X Draft Shelf excludes archived rows and only refreshes a genuinely missing queue draft', async () => {
+  const shelf = await readFile(new URL('../src/components/dashboard/PostDraftShelf.tsx', import.meta.url), 'utf8');
+
+  assert.match(shelf, /item\.status !== 'archived'/);
+  assert.match(shelf, /firstError\.includes\('x_draft_not_found'\)/);
+  assert.match(shelf, /if \(!firstError\.includes\('x_draft_not_found'\)\) throw new Error\(firstError\)/);
+  assert.match(shelf, /intelligence_archived/);
+  assert.match(shelf, /intelligence_not_found/);
+});
+
 test('Intelligence API reads the existing review-gated X publish_queue draft', async () => {
   const api = await readFile(new URL('../src/pages/api/dashboard/intelligence.ts', import.meta.url), 'utf8');
   const migration = await readFile(new URL('../migrations/20260918_intelligence_x_draft_read.sql', import.meta.url), 'utf8');
