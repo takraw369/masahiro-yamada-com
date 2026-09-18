@@ -1,0 +1,366 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const phases = [
+  { id: 'TOUCH', no: '01', title: '触れる', cue: 'ん？', purpose: 'まず止まってもらう', output: '現象・意外性・日常の一場面', template: '「これ、なんで？」を1つ置く', exit: '続きを見たくなる' },
+  { id: 'MIRROR', no: '02', title: '映す', cue: '俺も', purpose: '自分事にしてもらう', output: '体験・感情・失敗・あるある', template: '「俺の場合はこうだった」から入る', exit: '自分の経験と重ね始める' },
+  { id: 'SHIFT', no: '03', title: 'ずらす', cue: '待てよ？', purpose: '前提を少し揺らす', output: '問い・比較・逆転・別の見方', template: '「本当に○○なん？」を投げる', exit: '今までの見方を疑い始める' },
+  { id: 'MAP', no: '04', title: 'つなぐ', cue: 'なるほど', purpose: '構造を見せる', output: '因果・歴史・科学・哲学・図解', template: '点ではなく「どうつながるか」を見せる', exit: '自分の言葉で説明できる' },
+  { id: 'QUEST', no: '05', title: '試す', cue: 'やる', purpose: '身体で確かめてもらう', output: '観察・実験・ワーク・小さな挑戦', template: '「今日これだけ試してみて」', exit: '実際に1回やってみる' },
+  { id: 'PROOF', no: '06', title: '確かめる', cue: '変わった', purpose: '変化を言語化する', output: '結果・失敗・比較・振り返り・事例', template: '「やったら何が起きた？」を回収する', exit: '変化の理由を振り返る' },
+  { id: 'FLOW', no: '07', title: '渡す', cue: '伝えたい', purpose: '循環へつなぐ', output: 'まとめ・教材・Quest・共創・参加導線', template: '「次は誰に／どこへ渡す？」', exit: '誰かに共有・参加・共創する' },
+];
+
+const themes = [
+  { id: 'body', label: '身体・食', hint: '感覚 → 観察 → 実験' },
+  { id: 'education', label: '教育・学習', hint: '違和感 → 好奇心 → 探究' },
+  { id: 'sport', label: 'スポーツ・FLOW', hint: '体験 → 構造 → 再現' },
+  { id: 'ai', label: 'AI', hint: '使い方 → 問い → 共創' },
+  { id: 'philosophy', label: '哲学・歴史', hint: '日常 → 語源 → 構造' },
+  { id: 'society', label: '社会・制度', hint: '現象 → 資料 → 複数視点' },
+];
+---
+
+<DashboardLayout title="Content Flow" eyebrow="PUBLISHING OS">
+  <main class="flow-shell">
+    <header class="hero">
+      <div>
+        <p class="kicker">MASA CONTENT FLOW OS</p>
+        <h1>今どこ？ 次なに？</h1>
+        <p class="lead">「何を発信するか」より、相手をどの状態からどこへ動かすかを見る。</p>
+      </div>
+      <div class="hero-actions">
+        <a href="/mind?action=capture">素材を残す</a>
+        <a class="primary" href="/dashboard/post">投稿を作る →</a>
+      </div>
+    </header>
+
+    <section class="control-grid" aria-label="今週の発信設定">
+      <article class="control-card question-card">
+        <span class="label">今週の問い</span>
+        <input id="weekly-question" type="text" placeholder="例：水分補給って、本当に水を飲むこと？" />
+        <small>1週間は「テーマ」ではなく、1つの問いでつなぐ。</small>
+      </article>
+
+      <article class="control-card">
+        <span class="label">入口テーマ</span>
+        <div class="theme-pills" id="theme-pills">
+          {themes.map(theme => (
+            <button type="button" class="theme-pill" data-theme={theme.id} data-hint={theme.hint}>{theme.label}</button>
+          ))}
+        </div>
+        <p id="theme-hint" class="theme-hint">入口を1つ選ぶ。出口はFLOWで合流。</p>
+      </article>
+    </section>
+
+    <section class="phase-section" aria-labelledby="phase-title">
+      <div class="section-head">
+        <div>
+          <p class="kicker">PHASE</p>
+          <h2 id="phase-title">今、相手はどこにいる？</h2>
+        </div>
+        <p>フェーズを押すと「今出すもの」と「次へ進む条件」が変わる。</p>
+      </div>
+
+      <div class="phase-rail" id="phase-rail">
+        {phases.map((phase, index) => (
+          <button
+            type="button"
+            class="phase-card"
+            data-phase={phase.id}
+            data-no={phase.no}
+            data-title={phase.title}
+            data-cue={phase.cue}
+            data-purpose={phase.purpose}
+            data-output={phase.output}
+            data-template={phase.template}
+            data-exit={phase.exit}
+          >
+            <span class="phase-no">{phase.no}</span>
+            <strong>{phase.id}</strong>
+            <b>{phase.title}</b>
+            <small>「{phase.cue}」</small>
+            {index < phases.length - 1 && <i aria-hidden="true">→</i>}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <section class="now-grid" aria-label="現在フェーズのガイド">
+      <article class="now-card">
+        <div class="now-top">
+          <span class="badge" id="now-id">TOUCH</span>
+          <span id="now-no">01</span>
+        </div>
+        <h2 id="now-title">触れる</h2>
+        <p class="purpose" id="now-purpose">まず止まってもらう</p>
+        <div class="guide-row">
+          <div><span>今出すもの</span><strong id="now-output">現象・意外性・日常の一場面</strong></div>
+          <div><span>投稿の型</span><strong id="now-template">「これ、なんで？」を1つ置く</strong></div>
+          <div><span>次へ進むサイン</span><strong id="now-exit">続きを見たくなる</strong></div>
+        </div>
+        <div class="next-action">
+          <span>今やること</span>
+          <strong id="next-action-text">現象を1つ切り出して投稿にする。</strong>
+          <a href="/dashboard/post">このフェーズで1本作る →</a>
+        </div>
+      </article>
+
+      <aside class="rule-card">
+        <p class="kicker">RULE</p>
+        <h3>迷ったら、この3問だけ。</h3>
+        <ol>
+          <li><b>誰が</b>見る？</li>
+          <li>今その人は<b>どの状態</b>？</li>
+          <li>見たあと<b>何が1つ変われば成功</b>？</li>
+        </ol>
+        <p>情報量ではなく「状態変化」で投稿を決める。</p>
+      </aside>
+    </section>
+
+    <section class="week-section" aria-labelledby="week-title">
+      <div class="section-head compact">
+        <div><p class="kicker">WEEK FLOW</p><h2 id="week-title">1週間の基本順</h2></div>
+        <a href="/dashboard/content-schedule">時間へ置く →</a>
+      </div>
+      <div class="week-grid">
+        {[
+          ['月','TOUCH','現象を置く'],['火','MIRROR','体験を出す'],['水','SHIFT','前提をずらす'],['木','MAP','構造を見せる'],['金','QUEST','試してもらう'],['土','PROOF','結果を回収'],['日','FLOW','まとめて次へ渡す']
+        ].map(([day, phase, action], index) => (
+          <button type="button" class="day-card" data-day-index={index} data-jump-phase={phase}>
+            <span>{day}</span><strong>{phase}</strong><small>{action}</small>
+          </button>
+        ))}
+      </div>
+      <p class="week-note">曜日は固定ルールではなく基本形。反応が止まっているなら、そのフェーズをもう1回やる。</p>
+    </section>
+
+    <section class="capture-section" aria-labelledby="capture-title">
+      <div class="section-head compact">
+        <div><p class="kicker">MATERIAL INBOX</p><h2 id="capture-title">ネタを「テーマ × フェーズ」で置く</h2></div>
+        <p>思いついた瞬間に、投稿へ完成させなくていい。</p>
+      </div>
+      <form id="material-form" class="capture-form">
+        <textarea id="material-text" rows="3" placeholder="例：絶対音感＝正解を当てる能力、だけではないかもしれない"></textarea>
+        <button type="submit">今のフェーズに置く</button>
+      </form>
+      <div id="material-list" class="material-list" aria-live="polite"></div>
+    </section>
+
+    <footer class="flow-foot">
+      <strong>体験 → 現象 → 違和感 → 問い → 構造 → Quest → 変化 → 共有 → 次の問い</strong>
+      <span>ファネルではなく、循環を育てる。</span>
+    </footer>
+  </main>
+</DashboardLayout>
+
+<script>
+  const STORAGE_KEY = 'masa-content-flow-v1';
+  const phaseButtons = Array.from(document.querySelectorAll('[data-phase]'));
+  const themeButtons = Array.from(document.querySelectorAll('[data-theme]'));
+  const dayButtons = Array.from(document.querySelectorAll('[data-jump-phase]'));
+  const questionInput = document.getElementById('weekly-question');
+  const themeHint = document.getElementById('theme-hint');
+  const materialForm = document.getElementById('material-form');
+  const materialText = document.getElementById('material-text');
+  const materialList = document.getElementById('material-list');
+
+  const defaults = { phase: 'TOUCH', theme: 'body', question: '', materials: [] };
+  const loadState = () => {
+    try { return { ...defaults, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; }
+    catch { return { ...defaults }; }
+  };
+  let state = loadState();
+  const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  const nextActions = {
+    TOUCH: '現象を1つ切り出して投稿にする。',
+    MIRROR: '自分の体験を1つ重ねる。',
+    SHIFT: '前提を揺らす問いを1つ置く。',
+    MAP: '因果や背景を3点以内でつなぐ。',
+    QUEST: '今日できる小さな実験を1つ渡す。',
+    PROOF: 'やった結果・失敗・感覚を回収する。',
+    FLOW: '学びをまとめ、次の問いか参加先へ渡す。',
+  };
+
+  function selectPhase(id) {
+    const button = phaseButtons.find((item) => item.dataset.phase === id) || phaseButtons[0];
+    if (!button) return;
+    state.phase = button.dataset.phase || 'TOUCH';
+    save();
+    phaseButtons.forEach((item) => item.classList.toggle('active', item === button));
+    document.getElementById('now-id').textContent = button.dataset.phase || '';
+    document.getElementById('now-no').textContent = button.dataset.no || '';
+    document.getElementById('now-title').textContent = button.dataset.title || '';
+    document.getElementById('now-purpose').textContent = button.dataset.purpose || '';
+    document.getElementById('now-output').textContent = button.dataset.output || '';
+    document.getElementById('now-template').textContent = button.dataset.template || '';
+    document.getElementById('now-exit').textContent = button.dataset.exit || '';
+    document.getElementById('next-action-text').textContent = nextActions[state.phase] || '';
+  }
+
+  function selectTheme(id) {
+    const button = themeButtons.find((item) => item.dataset.theme === id) || themeButtons[0];
+    if (!button) return;
+    state.theme = button.dataset.theme || 'body';
+    save();
+    themeButtons.forEach((item) => item.classList.toggle('active', item === button));
+    themeHint.textContent = button.dataset.hint || '';
+  }
+
+  function renderMaterials() {
+    if (!materialList) return;
+    if (!state.materials.length) {
+      materialList.innerHTML = '<p class="empty">まだ素材なし。思いつきを完成させず、そのまま置いてOK。</p>';
+      return;
+    }
+    materialList.innerHTML = state.materials.map((item, index) => `
+      <article class="material-card">
+        <div><span>${item.theme}</span><b>${item.phase}</b></div>
+        <p>${escapeHtml(item.text)}</p>
+        <button type="button" data-remove="${index}" aria-label="削除">×</button>
+      </article>
+    `).join('');
+    materialList.querySelectorAll('[data-remove]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const index = Number(button.dataset.remove);
+        state.materials.splice(index, 1);
+        save();
+        renderMaterials();
+      });
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>'"]/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+  }
+
+  phaseButtons.forEach((button) => button.addEventListener('click', () => selectPhase(button.dataset.phase)));
+  themeButtons.forEach((button) => button.addEventListener('click', () => selectTheme(button.dataset.theme)));
+  dayButtons.forEach((button) => button.addEventListener('click', () => selectPhase(button.dataset.jumpPhase)));
+
+  questionInput.value = state.question || '';
+  questionInput.addEventListener('input', () => {
+    state.question = questionInput.value;
+    save();
+  });
+
+  materialForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const text = materialText.value.trim();
+    if (!text) return;
+    const themeLabel = themeButtons.find((item) => item.dataset.theme === state.theme)?.textContent?.trim() || state.theme;
+    state.materials.unshift({ text, phase: state.phase, theme: themeLabel, createdAt: new Date().toISOString() });
+    state.materials = state.materials.slice(0, 30);
+    materialText.value = '';
+    save();
+    renderMaterials();
+  });
+
+  const jsDay = new Date().getDay();
+  const mondayIndex = jsDay === 0 ? 6 : jsDay - 1;
+  dayButtons.forEach((button) => button.classList.toggle('today', Number(button.dataset.dayIndex) === mondayIndex));
+
+  selectPhase(state.phase);
+  selectTheme(state.theme);
+  renderMaterials();
+</script>
+
+<style>
+  .flow-shell { max-width: 1280px; margin: 0 auto; padding-bottom: 48px; color: #20242a; }
+  .kicker { margin: 0; color: var(--gold-muted); font-size: .72rem; letter-spacing: .12em; font-weight: 800; }
+  .hero { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 18px; }
+  .hero h1 { margin-top: 4px; font-size: clamp(2.1rem, 5vw, 4.6rem); line-height: .98; letter-spacing: -.05em; }
+  .lead { max-width: 720px; margin-top: 10px; color: #68717b; line-height: 1.8; }
+  .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hero-actions a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid #d6d0c7; background: #fff; text-decoration: none; font-size: .84rem; font-weight: 700; }
+  .hero-actions .primary { color: #fff; background: #20242a; border-color: #20242a; }
+
+  .control-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 12px; margin-bottom: 22px; }
+  .control-card, .now-card, .rule-card, .week-section, .capture-section { border: 1px solid #ded9d1; background: #fff; box-shadow: 0 14px 38px rgba(48,42,36,.045); }
+  .control-card { padding: 18px; }
+  .label { display: block; color: #8b5b2c; font-size: .72rem; font-weight: 800; letter-spacing: .08em; }
+  .question-card input { width: 100%; margin-top: 9px; padding: 13px 0 10px; border: 0; border-bottom: 1px solid #cfc8bd; outline: 0; font: inherit; font-size: 1.2rem; font-weight: 700; color: #20242a; background: transparent; }
+  .question-card small, .theme-hint { display: block; margin-top: 8px; color: #7b838c; font-size: .76rem; }
+  .theme-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .theme-pill { padding: 7px 10px; border: 1px solid #ded9d1; background: #faf9f7; color: #5f6872; cursor: pointer; font: inherit; font-size: .78rem; }
+  .theme-pill.active { border-color: #b68a51; background: #f4eadc; color: #754a16; font-weight: 800; }
+
+  .section-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin: 0 0 12px; }
+  .section-head.compact { align-items: center; }
+  .section-head h2 { margin-top: 3px; font-size: clamp(1.3rem, 3vw, 2rem); letter-spacing: -.025em; }
+  .section-head > p { max-width: 520px; color: #7b838c; font-size: .82rem; text-align: right; }
+  .section-head a { color: #754a16; font-size: .82rem; font-weight: 800; text-decoration: none; }
+
+  .phase-section { margin-bottom: 14px; }
+  .phase-rail { display: grid; grid-template-columns: repeat(7, minmax(112px,1fr)); overflow-x: auto; border: 1px solid #ded9d1; background: #fbfaf8; }
+  .phase-card { position: relative; min-height: 132px; padding: 15px 13px; border: 0; border-right: 1px solid #e3ded6; background: transparent; color: #68717b; text-align: left; cursor: pointer; font: inherit; }
+  .phase-card:last-child { border-right: 0; }
+  .phase-card:hover { background: #f7f3ed; }
+  .phase-card.active { background: #20242a; color: #fff; }
+  .phase-card .phase-no { display: block; color: #a3a8ae; font-size: .68rem; }
+  .phase-card strong { display: block; margin-top: 10px; font-size: .72rem; letter-spacing: .08em; }
+  .phase-card b { display: block; margin-top: 2px; font-size: 1.05rem; }
+  .phase-card small { display: block; margin-top: 8px; color: inherit; opacity: .7; }
+  .phase-card i { position: absolute; top: 50%; right: -7px; z-index: 2; width: 14px; height: 14px; display: grid; place-items: center; border-radius: 50%; background: #fbfaf8; color: #aaa39a; font-size: .65rem; font-style: normal; transform: translateY(-50%); }
+
+  .now-grid { display: grid; grid-template-columns: minmax(0,1.6fr) minmax(260px,.55fr); gap: 12px; margin-bottom: 22px; }
+  .now-card { padding: 26px; background: linear-gradient(145deg,#fff 0%,#fff 72%,#f5f0e8 100%); }
+  .now-top { display: flex; justify-content: space-between; align-items: center; color: #9a9185; font-size: .78rem; }
+  .badge { padding: 5px 8px; background: #20242a; color: #fff; font-weight: 800; letter-spacing: .08em; }
+  .now-card h2 { margin-top: 16px; font-size: clamp(2rem,4vw,4rem); line-height: 1; letter-spacing: -.05em; }
+  .purpose { margin-top: 7px; color: #68717b; font-size: 1rem; }
+  .guide-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 22px; }
+  .guide-row > div { padding: 14px; border: 1px solid #e1ddd6; background: rgba(255,255,255,.78); }
+  .guide-row span, .next-action span { display: block; color: #8b5b2c; font-size: .7rem; font-weight: 800; }
+  .guide-row strong { display: block; margin-top: 7px; font-size: .88rem; line-height: 1.55; }
+  .next-action { margin-top: 12px; padding: 16px; background: #20242a; color: #fff; }
+  .next-action strong { display: block; margin-top: 5px; font-size: 1rem; }
+  .next-action a { display: inline-block; margin-top: 12px; color: #f2d6aa; font-size: .8rem; font-weight: 800; text-decoration: none; }
+  .rule-card { padding: 24px; }
+  .rule-card h3 { margin-top: 6px; font-size: 1.25rem; }
+  .rule-card ol { margin: 18px 0 0; padding-left: 1.2rem; color: #5f6872; }
+  .rule-card li { margin-bottom: 12px; }
+  .rule-card > p:last-child { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e3ded6; color: #7b838c; font-size: .8rem; }
+
+  .week-section, .capture-section { margin-top: 14px; padding: 22px; }
+  .week-grid { display: grid; grid-template-columns: repeat(7,1fr); border: 1px solid #e1ddd6; }
+  .day-card { min-height: 110px; padding: 12px 10px; border: 0; border-right: 1px solid #e7e2db; background: #fff; color: #68717b; text-align: left; cursor: pointer; font: inherit; }
+  .day-card:last-child { border-right: 0; }
+  .day-card:hover, .day-card.today { background: #f7f1e7; }
+  .day-card span { display: block; color: #8b5b2c; font-size: .74rem; font-weight: 800; }
+  .day-card strong { display: block; margin-top: 10px; font-size: .8rem; }
+  .day-card small { display: block; margin-top: 5px; line-height: 1.4; }
+  .week-note { margin-top: 10px; color: #858c94; font-size: .76rem; }
+
+  .capture-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .capture-form textarea { width: 100%; resize: vertical; padding: 13px; border: 1px solid #d9d3ca; background: #fbfaf8; color: #20242a; font: inherit; line-height: 1.6; outline: none; }
+  .capture-form button { min-width: 150px; border: 0; background: #20242a; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+  .material-list { display: grid; gap: 7px; margin-top: 12px; }
+  .material-card { position: relative; padding: 12px 42px 12px 13px; border: 1px solid #e2ddd5; background: #fff; }
+  .material-card > div { display: flex; gap: 6px; align-items: center; }
+  .material-card span, .material-card b { padding: 3px 6px; background: #f3efe8; color: #765b36; font-size: .68rem; }
+  .material-card p { margin-top: 7px; color: #4f5862; font-size: .86rem; line-height: 1.55; }
+  .material-card > button { position: absolute; top: 9px; right: 9px; width: 28px; height: 28px; border: 1px solid #ddd7cf; background: #fff; color: #8c939a; cursor: pointer; }
+  .empty { color: #8a9199; font-size: .82rem; }
+
+  .flow-foot { display: flex; justify-content: space-between; gap: 20px; margin-top: 18px; padding: 16px 2px; color: #757e87; font-size: .78rem; }
+  .flow-foot strong { color: #4d555e; }
+
+  @media (max-width: 900px) {
+    .hero, .section-head, .flow-foot { align-items: flex-start; flex-direction: column; }
+    .control-grid, .now-grid { grid-template-columns: 1fr; }
+    .phase-rail { grid-template-columns: repeat(7, minmax(132px,1fr)); }
+    .guide-row { grid-template-columns: 1fr; }
+    .week-grid { grid-template-columns: repeat(7, minmax(105px,1fr)); overflow-x: auto; }
+    .section-head > p { text-align: left; }
+  }
+  @media (max-width: 620px) {
+    .hero-actions { width: 100%; }
+    .hero-actions a { flex: 1; justify-content: center; }
+    .control-card, .now-card, .rule-card, .week-section, .capture-section { padding: 16px; }
+    .capture-form { grid-template-columns: 1fr; }
+    .capture-form button { min-height: 46px; }
+    .flow-foot { font-size: .74rem; }
+  }
+</style>
