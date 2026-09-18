@@ -20,6 +20,11 @@ When the same class of learning appears twice:
 
 ## Current learnings
 
+### 2026-09-18 — Material creation human gate
+- Corrected: MASAに教材をゼロから作らせず、AIが既存知識から初稿と編集候補を先に作り、MASAは本人の言葉・実例・判断が必要な箇所だけ編集して承認する。
+- Cause: 「完成教材をINBOXへ入れる」を人間の作業に残すと、生成能力があるのに制作の最重工程がMASAへ戻ってしまう。
+- Rule: 教材化は `Canonical / CONTENT_OS → AI Draft → MASA REVIEW → Human approval → ACE_ASSET_INBOX` を標準フローにする。AIはLive公開を自動化せず、本人性と公開判断はHuman Gateに残す。
+
 ### 2026-09-17 — Production automation boundary
 - Corrected: ACEのDrive監視をChatGPTのスケジュールタスクで本番運用しない。Drive / Google側の自動化と常設バックエンドで動かす。
 - Cause: 会話内タスクは通知・定期確認には向くが、商品ランタイムの永続的な取り込み基盤にするとChatGPTの実行環境へ運用依存してしまう。
