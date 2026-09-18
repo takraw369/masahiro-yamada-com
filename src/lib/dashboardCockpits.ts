@@ -33,6 +33,7 @@ const routes: Array<{ route: string; cockpit: DashboardCockpit }> = [
   { route: '/dashboard/funnel', cockpit: { see: '流入・CTA・反応', decide: '最大の漏れ', act: '1点修正して再計測する' } },
   { route: '/dashboard/distribution', cockpit: { see: 'Content Readyと配信状態', decide: 'どこで何を出すか', act: 'Human Gateへ送る' } },
   { route: '/dashboard/content-schedule', cockpit: { see: '配信予定・空き・制約', decide: '次にいつ何を出すか', act: '予定を1つ確定する' } },
+  { route: '/dashboard/sprint', cockpit: { see: '残り時間・Phase・未完了', decide: '72時間で通す最小価値', act: '今のPhaseを1つ完了する' } },
   { route: '/dashboard/flow-09', cockpit: { see: '0→9の現在地', decide: '次に越えるフェーズ', act: '次の1アクションへ進む' } },
   { route: '/dashboard/quest', cockpit: { see: 'Quest進捗・証拠', decide: '次に進めるQuest', act: '行動して証拠を残す' } },
   { route: '/dashboard/lian', cockpit: { see: '関係・状態・次の接点', decide: '今つなぐべき相手と目的', act: '次の接点を1つ作る' } },

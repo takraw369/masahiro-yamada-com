@@ -1,0 +1,518 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const phases = [
+  {
+    id: 'purpose',
+    no: '01',
+    day: 'DAY 1',
+    label: 'PURPOSE',
+    title: '何を、なぜ現実に出すか',
+    description: '新しいものを増やす前に、既存資産から1テーマを選び、誰にどんな変化を起こすかを固定する。',
+    tasks: [
+      ['purpose-asset', '既存資産を1つ選ぶ'],
+      ['purpose-person', '届ける相手を1人まで具体化する'],
+      ['purpose-change', '72時間後に起きてほしい変化を1文にする'],
+      ['purpose-scope', '今回やらないことを決める'],
+    ],
+  },
+  {
+    id: 'build',
+    no: '02',
+    day: 'DAY 2',
+    label: 'BUILD',
+    title: '最小の価値を形にする',
+    description: 'AIは制作チームとして使う。人間はPurpose・一次体験・判断を握り、無料体験→小商品→次導線を最小構成でつなぐ。',
+    tasks: [
+      ['build-free', '無料体験または入口を作る'],
+      ['build-offer', '小商品・Quest・セッションの形を決める'],
+      ['build-path', '次に進む導線を1本つなぐ'],
+      ['build-proof', '公開前に自分で1回通して試す'],
+    ],
+  },
+  {
+    id: 'release',
+    no: '03',
+    day: 'DAY 3',
+    label: 'RELEASE',
+    title: '外へ出して、反応を戻す',
+    description: '完成度ではなくReality Loopを閉じる。Human Gateを通して公開し、反応・摩擦・数字をEvidenceとして残す。',
+    tasks: [
+      ['release-gate', '公開・送信前にHuman Gateを確認する'],
+      ['release-ship', '実際に1つ外へ出す'],
+      ['release-evidence', '反応・数字・会話をEvidenceへ残す'],
+      ['release-learn', '次の72時間へ残す学びを1つ決める'],
+    ],
+  },
+];
+
+const workbench = [
+  { label: 'SOURCE', title: 'FLOW MIND', detail: '既存資産から種を選ぶ', href: '/mind?view=review' },
+  { label: 'ASSET', title: 'ACE Assets', detail: '教材・Questへ形にする', href: '/dashboard/ace-assets' },
+  { label: 'SHIP', title: 'X Post', detail: '市場へ1本出す', href: '/dashboard/post' },
+  { label: 'PATH', title: 'Trinity Funnel', detail: '入口から次導線をつなぐ', href: '/dashboard/funnel' },
+  { label: 'LEARN', title: 'Evidence Lab', detail: '反応を学習へ戻す', href: '/dashboard/evidence' },
+];
+---
+
+<DashboardLayout title="72H FLOW BUILD" eyebrow="C095 · SPRINT ENGINE">
+  <div class="sprint-shell">
+    <header class="sprint-head">
+      <div>
+        <p class="kicker">HUMAN CORE → AI TEAM → REALITY LOOP</p>
+        <h1>72H FLOW BUILD</h1>
+        <p class="intro">考え続けるための画面ではなく、既存資産を72時間で現実へ出し、反応を次の資産へ戻すための実験コックピット。</p>
+      </div>
+      <div class="status-card" aria-live="polite">
+        <span id="sprint-status">NOT STARTED</span>
+        <strong id="countdown">72:00:00</strong>
+        <small id="deadline">開始すると72時間の時計が動きます</small>
+      </div>
+    </header>
+
+    <section class="command-grid" aria-label="Sprint command">
+      <article class="command-card">
+        <div class="command-top">
+          <div>
+            <p class="kicker">SPRINT INTENT</p>
+            <h2>1つ選び、1周させる。</h2>
+          </div>
+          <span class="local-badge">LOCAL SAVE · API ¥0</span>
+        </div>
+
+        <div class="field-grid">
+          <label class="field wide">
+            <span>SPRINT TITLE</span>
+            <input data-field="title" type="text" placeholder="例：FLOW COMPASSを無料体験→小商品→次導線まで通す" />
+          </label>
+          <label class="field">
+            <span>SOURCE ASSET</span>
+            <input data-field="asset" type="text" placeholder="既存資産 / C-ID / Project" />
+          </label>
+          <label class="field">
+            <span>WHO</span>
+            <input data-field="audience" type="text" placeholder="誰のための72時間か" />
+          </label>
+          <label class="field wide">
+            <span>PURPOSE / WHY</span>
+            <textarea data-field="purpose" rows="3" placeholder="なぜ今これを社会に出すのか。人間が握る核を書く。"></textarea>
+          </label>
+          <label class="field wide">
+            <span>72H OUTCOME</span>
+            <textarea data-field="outcome" rows="3" placeholder="72時間後、何が現実に存在し、何を観測できれば成功か。"></textarea>
+          </label>
+        </div>
+
+        <div class="command-actions">
+          <button class="primary" id="start-sprint" type="button">72時間を開始する</button>
+          <button class="secondary" id="copy-brief" type="button">Sprint Briefをコピー</button>
+          <button class="ghost danger" id="reset-sprint" type="button">リセット</button>
+        </div>
+        <p class="microcopy">時計は一度開始すると止めません。Time Boxそのものを制約として使います。公開・送信・課金は自動実行せずHuman Gateを残します。</p>
+      </article>
+
+      <aside class="phase-now">
+        <p class="kicker">CURRENT PHASE</p>
+        <span class="phase-number" id="current-phase-number">00</span>
+        <h2 id="current-phase-title">開始前</h2>
+        <p id="current-phase-copy">Purposeを決めたら72時間を開始。</p>
+        <div class="progress-track" aria-hidden="true"><i id="progress-bar"></i></div>
+        <div class="progress-meta"><span id="elapsed-label">0h elapsed</span><strong id="task-progress">0 / 12</strong></div>
+      </aside>
+    </section>
+
+    <section class="phase-grid" aria-label="72 hour phases">
+      {phases.map(phase => (
+        <article class="phase-card" data-phase={phase.id}>
+          <header>
+            <div class="phase-id"><span>{phase.day}</span><strong>{phase.no}</strong></div>
+            <div><p class="kicker">{phase.label}</p><h2>{phase.title}</h2></div>
+          </header>
+          <p class="phase-copy">{phase.description}</p>
+          <div class="task-list">
+            {phase.tasks.map(([id, label]) => (
+              <label class="task">
+                <input type="checkbox" data-task={id} />
+                <span class="task-box" aria-hidden="true"></span>
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <section class="build-map" aria-labelledby="build-map-title">
+      <div class="section-head">
+        <div><p class="kicker">MINIMUM FLOW</p><h2 id="build-map-title">無料体験 → 小さな価値 → 次の関係</h2></div>
+        <p>「会社を作る」ことが目的ではない。価値が現実で循環する最短ルートを作る。</p>
+      </div>
+      <div class="flow-fields">
+        <label class="field"><span>FREE EXPERIENCE</span><textarea data-field="freeExperience" rows="4" placeholder="まず何を無料で体験してもらう？"></textarea></label>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <label class="field"><span>SMALL VALUE</span><textarea data-field="offer" rows="4" placeholder="何なら小さく対価を受け取れる？"></textarea></label>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <label class="field"><span>NEXT PATH</span><textarea data-field="nextPath" rows="4" placeholder="次のQuest・LINE・Session・Communityは？"></textarea></label>
+      </div>
+    </section>
+
+    <section class="workbench-section" aria-labelledby="workbench-title">
+      <div class="section-head">
+        <div><p class="kicker">WORKBENCH</p><h2 id="workbench-title">今いる場所から、必要な道具だけ開く。</h2></div>
+        <p>別の管理システムを増やさず、既存のMASA OSへ接続する。</p>
+      </div>
+      <div class="workbench-grid">
+        {workbench.map(item => (
+          <a href={item.href}>
+            <span>{item.label}</span>
+            <strong>{item.title}</strong>
+            <small>{item.detail}</small>
+            <b aria-hidden="true">→</b>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="evidence-grid" aria-label="Release and evidence">
+      <article class="evidence-card">
+        <p class="kicker">RELEASE</p>
+        <h2>外へ出したもの</h2>
+        <label class="field"><span>PUBLIC URL / OUTPUT</span><input data-field="releaseUrl" type="url" placeholder="https://..." /></label>
+        <label class="field"><span>WHAT SHIPPED</span><textarea data-field="shipped" rows="4" placeholder="何を、誰へ、どこに出したか"></textarea></label>
+      </article>
+      <article class="evidence-card">
+        <p class="kicker">EVIDENCE</p>
+        <h2>現実から返ってきたもの</h2>
+        <label class="field"><span>REACTION / DATA</span><textarea data-field="evidence" rows="4" placeholder="返信、保存、購入、離脱、会話、違和感、数字"></textarea></label>
+        <label class="field"><span>NEXT LEARNING</span><textarea data-field="learning" rows="4" placeholder="次の72時間で残す・変える・捨てるもの"></textarea></label>
+      </article>
+    </section>
+
+    <footer class="sprint-foot">
+      <p>C095 · 72H FLOW BUILD</p>
+      <span>Human Coreは固定しない。現実からEvidenceを受け取り、次の自分へ更新する。</span>
+    </footer>
+  </div>
+</DashboardLayout>
+
+<style>
+  .sprint-shell {
+    --panel: #fff;
+    --soft: #fbfaf8;
+    --ink: #20242a;
+    --muted: #68717b;
+    --hairline: #dfdbd4;
+    --shadow: 0 16px 44px rgba(52,47,41,.055);
+    max-width: 1240px;
+    margin: 0 auto;
+    padding-bottom: 44px;
+  }
+  .kicker { margin: 0; color: var(--gold-muted); font-size: .69rem; letter-spacing: .13em; font-weight: 700; }
+  .sprint-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+  .sprint-head h1 { margin-top: 4px; font-size: clamp(2.2rem,5vw,4.6rem); line-height: .96; letter-spacing: -.045em; }
+  .intro { max-width: 760px; margin-top: 10px; color: var(--muted); font-size: .94rem; line-height: 1.75; }
+  .status-card { min-width: 230px; padding: 14px 16px; border: 1px solid #d8d2ca; border-radius: 17px; background: rgba(255,255,255,.82); box-shadow: var(--shadow); }
+  .status-card span,.status-card strong,.status-card small { display: block; }
+  .status-card span { color: #8c8379; font-size: .66rem; letter-spacing: .12em; font-weight: 800; }
+  .status-card strong { margin-top: 2px; font: 600 clamp(1.7rem,3vw,2.45rem)/1 'Cormorant Garamond',serif; letter-spacing: .02em; }
+  .status-card small { margin-top: 6px; color: var(--muted); font-size: .7rem; line-height: 1.45; }
+
+  .command-grid { display: grid; grid-template-columns: minmax(0,1.7fr) minmax(270px,.55fr); gap: 14px; }
+  .command-card,.phase-now,.phase-card,.build-map,.workbench-section,.evidence-card { border: 1px solid var(--hairline); border-radius: 22px; background: var(--panel); box-shadow: var(--shadow); }
+  .command-card { padding: 24px; }
+  .command-top,.section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
+  .command-top h2,.section-head h2,.phase-card h2,.evidence-card h2 { margin-top: 3px; font-size: 1.14rem; line-height: 1.4; }
+  .local-badge { padding: 6px 9px; border: 1px solid #d9d3cb; border-radius: 999px; color: #68717b; background: #faf8f5; font-size: .63rem; letter-spacing: .08em; font-weight: 700; white-space: nowrap; }
+  .field-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 20px; }
+  .field.wide { grid-column: 1 / -1; }
+  .field { display: block; min-width: 0; }
+  .field > span { display: block; margin-bottom: 6px; color: #8a8178; font-size: .64rem; letter-spacing: .1em; font-weight: 800; }
+  .field input,.field textarea { width: 100%; border: 1px solid #ddd8d1; border-radius: 11px; background: #fcfbf9; color: var(--ink); padding: 11px 12px; font: inherit; font-size: .84rem; outline: none; resize: vertical; }
+  .field input:focus,.field textarea:focus { border-color: #b58a53; box-shadow: 0 0 0 3px rgba(165,108,34,.08); background: #fff; }
+  .command-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  button { min-height: 43px; padding: 0 14px; border: 1px solid #d2ccc4; border-radius: 11px; background: #fff; color: #535d66; cursor: pointer; font: inherit; font-size: .78rem; font-weight: 700; }
+  button:hover { border-color: #b9b1a5; color: var(--ink); }
+  button.primary { border-color: #20242a; background: #20242a; color: #fff; }
+  button.primary:hover { background: #111419; }
+  button.danger { color: #985044; }
+  .microcopy { margin-top: 10px; color: #8a929a; font-size: .69rem; line-height: 1.55; }
+
+  .phase-now { display: flex; flex-direction: column; padding: 24px; background: linear-gradient(145deg,#fff 0%,#fff 68%,#f3eadc 100%); }
+  .phase-number { margin-top: 22px; color: #c9b18f; font: 600 4.8rem/1 'Cormorant Garamond',serif; }
+  .phase-now h2 { margin-top: 4px; font-size: 1.5rem; }
+  .phase-now > p:not(.kicker) { margin-top: 8px; color: var(--muted); font-size: .82rem; line-height: 1.65; }
+  .progress-track { height: 4px; margin-top: auto; background: #e7e2dc; overflow: hidden; }
+  .progress-track i { display: block; width: 0; height: 100%; background: #a56c22; transition: width .3s ease; }
+  .progress-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 9px; color: #7b838c; font-size: .7rem; }
+  .progress-meta strong { color: #675642; }
+
+  .phase-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-top: 14px; }
+  .phase-card { padding: 20px; transition: border-color .2s ease, box-shadow .2s ease; }
+  .phase-card.active { border-color: #b78a53; box-shadow: 0 16px 42px rgba(165,108,34,.10); }
+  .phase-card header { display: flex; align-items: center; gap: 13px; }
+  .phase-id { width: 50px; flex: 0 0 50px; padding-right: 12px; border-right: 1px solid #e0dbd4; }
+  .phase-id span,.phase-id strong { display: block; }
+  .phase-id span { color: #999188; font-size: .57rem; letter-spacing: .08em; font-weight: 800; }
+  .phase-id strong { color: #8a6640; font: 600 1.65rem/1.1 'Cormorant Garamond',serif; }
+  .phase-copy { min-height: 78px; margin-top: 15px; color: var(--muted); font-size: .78rem; line-height: 1.7; }
+  .task-list { display: grid; gap: 7px; margin-top: 14px; }
+  .task { position: relative; min-height: 43px; display: grid; grid-template-columns: 20px 1fr; align-items: center; gap: 9px; padding: 8px 9px; border: 1px solid #e6e2dc; border-radius: 10px; background: #fbfaf8; color: #505963; cursor: pointer; font-size: .76rem; line-height: 1.45; }
+  .task input { position: absolute; opacity: 0; pointer-events: none; }
+  .task-box { width: 17px; height: 17px; border: 1px solid #bdb6ad; border-radius: 4px; background: #fff; }
+  .task input:checked + .task-box { border-color: #8b6a43; background: #8b6a43; box-shadow: inset 0 0 0 4px #fff; }
+  .task:has(input:checked) { color: #777e85; background: #f5f2ee; }
+
+  .build-map,.workbench-section { margin-top: 14px; padding: 22px; }
+  .section-head > p { max-width: 430px; color: var(--muted); font-size: .75rem; line-height: 1.6; text-align: right; }
+  .flow-fields { display: grid; grid-template-columns: minmax(0,1fr) 28px minmax(0,1fr) 28px minmax(0,1fr); align-items: center; gap: 8px; margin-top: 17px; }
+  .flow-arrow { color: #b6aea4; text-align: center; }
+  .workbench-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin-top: 16px; }
+  .workbench-grid a { position: relative; min-height: 96px; display: flex; flex-direction: column; justify-content: center; padding: 13px 30px 13px 13px; border: 1px solid #e3dfd9; border-radius: 13px; background: #fbfaf8; color: inherit; text-decoration: none; }
+  .workbench-grid a:hover { border-color: #bdb4aa; background: #f7f4ef; }
+  .workbench-grid span { color: #a18461; font-size: .61rem; letter-spacing: .09em; font-weight: 800; }
+  .workbench-grid strong { margin-top: 3px; font-size: .83rem; }
+  .workbench-grid small { margin-top: 3px; color: var(--muted); font-size: .7rem; line-height: 1.45; }
+  .workbench-grid b { position: absolute; right: 12px; top: 12px; color: #aaa29a; font-weight: 500; }
+
+  .evidence-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 14px; }
+  .evidence-card { padding: 22px; }
+  .evidence-card .field { margin-top: 14px; }
+  .sprint-foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 4px 0; color: #8c939a; font-size: .69rem; }
+
+  @media (max-width: 1020px) {
+    .command-grid { grid-template-columns: 1fr; }
+    .phase-now { min-height: 260px; }
+    .phase-grid { grid-template-columns: 1fr; }
+    .phase-copy { min-height: 0; }
+    .workbench-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  }
+  @media (max-width: 760px) {
+    .sprint-head,.command-top,.section-head { align-items: flex-start; flex-direction: column; }
+    .status-card { width: 100%; min-width: 0; }
+    .field-grid { grid-template-columns: 1fr; }
+    .field.wide { grid-column: auto; }
+    .flow-fields { grid-template-columns: 1fr; }
+    .flow-arrow { transform: rotate(90deg); }
+    .section-head > p { text-align: left; }
+    .workbench-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .evidence-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .command-card,.phase-now,.phase-card,.build-map,.workbench-section,.evidence-card { border-radius: 16px; padding: 17px; }
+    .command-actions { display: grid; grid-template-columns: 1fr; }
+    button { width: 100%; }
+    .workbench-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition: none !important; } }
+</style>
+
+<script>
+  type SprintState = {
+    startedAt: string | null;
+    fields: Record<string, string>;
+    tasks: Record<string, boolean>;
+  };
+
+  const STORAGE_KEY = 'masa-os:72h-flow-build:v1';
+  const TOTAL_MS = 72 * 60 * 60 * 1000;
+  const PHASE_MS = 24 * 60 * 60 * 1000;
+  const phaseCopy = [
+    ['01', 'PURPOSE', '既存資産・相手・72時間後の変化を固定する。'],
+    ['02', 'BUILD', '最小の価値と導線を形にし、自分で1回通す。'],
+    ['03', 'RELEASE', 'Human Gateを通して外へ出し、Evidenceを戻す。'],
+  ];
+
+  function emptyState(): SprintState {
+    return { startedAt: null, fields: {}, tasks: {} };
+  }
+
+  function loadState(): SprintState {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return emptyState();
+      const parsed = JSON.parse(raw);
+      return {
+        startedAt: typeof parsed.startedAt === 'string' ? parsed.startedAt : null,
+        fields: parsed.fields && typeof parsed.fields === 'object' ? parsed.fields : {},
+        tasks: parsed.tasks && typeof parsed.tasks === 'object' ? parsed.tasks : {},
+      };
+    } catch {
+      return emptyState();
+    }
+  }
+
+  let state = loadState();
+
+  const fieldEls = Array.from(document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-field]'));
+  const taskEls = Array.from(document.querySelectorAll<HTMLInputElement>('[data-task]'));
+  const statusEl = document.getElementById('sprint-status');
+  const countdownEl = document.getElementById('countdown');
+  const deadlineEl = document.getElementById('deadline');
+  const phaseNumberEl = document.getElementById('current-phase-number');
+  const phaseTitleEl = document.getElementById('current-phase-title');
+  const phaseCopyEl = document.getElementById('current-phase-copy');
+  const elapsedEl = document.getElementById('elapsed-label');
+  const taskProgressEl = document.getElementById('task-progress');
+  const progressBar = document.getElementById('progress-bar') as HTMLElement | null;
+  const startButton = document.getElementById('start-sprint') as HTMLButtonElement | null;
+  const resetButton = document.getElementById('reset-sprint') as HTMLButtonElement | null;
+  const copyButton = document.getElementById('copy-brief') as HTMLButtonElement | null;
+  const phaseCards = Array.from(document.querySelectorAll<HTMLElement>('[data-phase]'));
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function hydrate() {
+    fieldEls.forEach(el => {
+      const key = el.dataset.field;
+      if (key) el.value = state.fields[key] ?? '';
+    });
+    taskEls.forEach(el => {
+      const key = el.dataset.task;
+      if (key) el.checked = Boolean(state.tasks[key]);
+    });
+    updateTaskProgress();
+    updateClock();
+  }
+
+  function updateTaskProgress() {
+    const done = taskEls.filter(el => el.checked).length;
+    if (taskProgressEl) taskProgressEl.textContent = `${done} / ${taskEls.length}`;
+  }
+
+  function formatDuration(ms: number) {
+    const safe = Math.max(0, ms);
+    const hours = Math.floor(safe / 3_600_000);
+    const minutes = Math.floor((safe % 3_600_000) / 60_000);
+    const seconds = Math.floor((safe % 60_000) / 1000);
+    return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+  }
+
+  function formatDeadline(date: Date) {
+    return new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  function setActivePhase(index: number) {
+    phaseCards.forEach((card, cardIndex) => card.classList.toggle('active', cardIndex === index));
+    const phase = phaseCopy[index];
+    if (phaseNumberEl) phaseNumberEl.textContent = phase?.[0] ?? '00';
+    if (phaseTitleEl) phaseTitleEl.textContent = phase?.[1] ?? '開始前';
+    if (phaseCopyEl) phaseCopyEl.textContent = phase?.[2] ?? 'Purposeを決めたら72時間を開始。';
+  }
+
+  function updateClock() {
+    if (!state.startedAt) {
+      if (statusEl) statusEl.textContent = 'NOT STARTED';
+      if (countdownEl) countdownEl.textContent = '72:00:00';
+      if (deadlineEl) deadlineEl.textContent = '開始すると72時間の時計が動きます';
+      if (elapsedEl) elapsedEl.textContent = '0h elapsed';
+      if (progressBar) progressBar.style.width = '0%';
+      if (startButton) { startButton.disabled = false; startButton.textContent = '72時間を開始する'; }
+      phaseCards.forEach(card => card.classList.remove('active'));
+      setActivePhase(-1);
+      return;
+    }
+
+    const started = new Date(state.startedAt);
+    const elapsed = Math.max(0, Date.now() - started.getTime());
+    const remaining = Math.max(0, TOTAL_MS - elapsed);
+    const deadline = new Date(started.getTime() + TOTAL_MS);
+    const phaseIndex = Math.min(2, Math.floor(elapsed / PHASE_MS));
+    const progress = Math.min(100, (elapsed / TOTAL_MS) * 100);
+
+    if (statusEl) statusEl.textContent = remaining > 0 ? 'RUNNING' : '72H COMPLETE';
+    if (countdownEl) countdownEl.textContent = formatDuration(remaining);
+    if (deadlineEl) deadlineEl.textContent = `Deadline ${formatDeadline(deadline)}`;
+    if (elapsedEl) elapsedEl.textContent = `${Math.floor(elapsed / 3_600_000)}h elapsed`;
+    if (progressBar) progressBar.style.width = `${progress}%`;
+    if (startButton) { startButton.disabled = true; startButton.textContent = remaining > 0 ? 'Sprint進行中' : '72時間完了'; }
+    setActivePhase(phaseIndex);
+  }
+
+  fieldEls.forEach(el => {
+    el.addEventListener('input', () => {
+      const key = el.dataset.field;
+      if (!key) return;
+      state.fields[key] = el.value;
+      saveState();
+    });
+  });
+
+  taskEls.forEach(el => {
+    el.addEventListener('change', () => {
+      const key = el.dataset.task;
+      if (!key) return;
+      state.tasks[key] = el.checked;
+      saveState();
+      updateTaskProgress();
+    });
+  });
+
+  startButton?.addEventListener('click', () => {
+    if (state.startedAt) return;
+    state.startedAt = new Date().toISOString();
+    saveState();
+    updateClock();
+  });
+
+  resetButton?.addEventListener('click', () => {
+    const ok = window.confirm('72H FLOW BUILDの端末内データをリセットしますか？');
+    if (!ok) return;
+    state = emptyState();
+    localStorage.removeItem(STORAGE_KEY);
+    hydrate();
+  });
+
+  copyButton?.addEventListener('click', async () => {
+    const f = state.fields;
+    const completed = taskEls.filter(el => el.checked).length;
+    const brief = [
+      '# 72H FLOW BUILD',
+      '',
+      `Title: ${f.title || '-'}`,
+      `Source Asset: ${f.asset || '-'}`,
+      `Who: ${f.audience || '-'}`,
+      '',
+      '## Purpose',
+      f.purpose || '-',
+      '',
+      '## 72H Outcome',
+      f.outcome || '-',
+      '',
+      '## Minimum Flow',
+      `Free Experience: ${f.freeExperience || '-'}`,
+      `Small Value: ${f.offer || '-'}`,
+      `Next Path: ${f.nextPath || '-'}`,
+      '',
+      '## Release',
+      `URL: ${f.releaseUrl || '-'}`,
+      f.shipped || '-',
+      '',
+      '## Evidence',
+      f.evidence || '-',
+      '',
+      '## Learning',
+      f.learning || '-',
+      '',
+      `Tasks: ${completed}/${taskEls.length}`,
+    ].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(brief);
+      if (copyButton) copyButton.textContent = 'コピーしました';
+      window.setTimeout(() => { if (copyButton) copyButton.textContent = 'Sprint Briefをコピー'; }, 1600);
+    } catch {
+      window.prompt('コピーしてください', brief);
+    }
+  });
+
+  hydrate();
+  window.setInterval(updateClock, 1000);
+</script>
