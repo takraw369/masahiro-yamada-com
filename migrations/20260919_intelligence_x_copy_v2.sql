@@ -107,3 +107,21 @@ $$;
 
 revoke execute on function public.masa_intelligence_refresh_x_copy_v2(text,uuid) from public;
 grant execute on function public.masa_intelligence_refresh_x_copy_v2(text,uuid) to anon, authenticated, service_role;
+
+-- Keep the existing API contract, but make the shelf's X-draft read refresh the safe v2 copy first.
+create or replace function public.masa_intelligence_get_x_draft_v1(
+  p_owner_key text,
+  p_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'public', 'private'
+as $$
+begin
+  return public.masa_intelligence_refresh_x_copy_v2(p_owner_key, p_id);
+end;
+$$;
+
+revoke execute on function public.masa_intelligence_get_x_draft_v1(text,uuid) from public;
+grant execute on function public.masa_intelligence_get_x_draft_v1(text,uuid) to anon, authenticated, service_role;
