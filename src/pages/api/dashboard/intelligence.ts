@@ -110,6 +110,18 @@ export const POST = async ({ request, locals }: APIContext) => {
       return row ? json({ ok: true, item: toItem(row) }) : json({ ok: false, error: 'promotion_missing' }, 500);
     }
 
+    if (action === 'x_draft') {
+      const id = clean(body.id);
+      if (!id) return json({ ok: false, error: 'intelligence_id_required' }, 400);
+      const result = await supabaseRpc<Record<string, unknown> | Array<Record<string, unknown>>>(
+        env,
+        'masa_intelligence_get_x_draft_v1',
+        { p_owner_key: ownerKey, p_id: id },
+      );
+      const draft = Array.isArray(result) ? result[0] : result;
+      return draft ? json({ ok: true, draft }) : json({ ok: false, error: 'x_draft_missing' }, 500);
+    }
+
     if (action === 'content_seed') {
       const id = clean(body.id);
       if (!id) return json({ ok: false, error: 'intelligence_id_required' }, 400);

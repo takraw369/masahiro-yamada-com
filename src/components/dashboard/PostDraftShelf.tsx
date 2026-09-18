@@ -1,42 +1,109 @@
 import { useEffect, useState } from 'react';
 
 type Item = { id:string; title:string; topic?:string; contentSeed?:string; excerpt?:string; status:string };
-
 type Handoff = { text?:string; title?:string; sourceId?:string; topic?:string };
+type XDraft = {
+  text?: string;
+  accountRef?: string | null;
+  queueStatus?: string;
+  factCheckRequired?: boolean;
+  factCheckStatus?: string;
+  humanApproved?: boolean;
+  readyForPublish?: boolean;
+  reviewGate?: string;
+};
 
-function fillComposer(text: string) {
-  const attempt = (remaining: number) => {
-    const textarea = Array.from(document.querySelectorAll('textarea')).find((node) =>
-      node.getAttribute('placeholder')?.includes('今日の気づき')
-    ) as HTMLTextAreaElement | undefined;
-    if (!textarea) {
-      if (remaining > 0) window.setTimeout(() => attempt(remaining - 1), 160);
-      return;
-    }
-    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
-    setter?.call(textarea, text);
-    textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    textarea.focus();
-    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
-  attempt(15);
+const LAST_ACCOUNT_KEY = 'masa_x_last_account';
+const INTERNAL_SEED_MARKERS = [
+  'TITLE:', 'TOPIC:', 'FACT TYPE:', 'SOURCE:', 'TRUST / SIGNAL:', 'SOURCE CLAIM:',
+  'WHY IT MATTERS:', 'MASA INTERPRETATION:', 'ONE THING:', 'ANGLE:', 'HOOK:', 'TRUST GATE:',
+];
+
+function looksLikeInternalSeed(text: string) {
+  const matches = INTERNAL_SEED_MARKERS.filter((marker) => text.includes(marker)).length;
+  return matches >= 2;
+}
+
+function selectedUsername() {
+  try { return window.localStorage.getItem(LAST_ACCOUNT_KEY) || undefined; } catch { return undefined; }
+}
+
+function sendToComposer(text: string) {
+  if (!text.trim() || looksLikeInternalSeed(text)) {
+    throw new Error('internal_seed_blocked');
+  }
+  window.dispatchEvent(new CustomEvent('masa:x-compose', {
+    detail: { text, ...(selectedUsername() ? { username: selectedUsername() } : {}) },
+  }));
+}
+
+async function intelligenceAction(action: string, id: string) {
+  const res = await fetch('/api/dashboard/intelligence', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ action, id }),
+  });
+  const data = await res.json().catch(() => ({}));
+  return { res, data };
+}
+
+async function getReviewDraft(id: string): Promise<XDraft> {
+  let result = await intelligenceAction('x_draft', id);
+  if (!result.res.ok) {
+    // Older content_seed rows may predate publish_queue draft creation.
+    // Re-running content_seed is idempotent and creates/refreshes the review-gated X draft.
+    const refreshed = await intelligenceAction('content_seed', id);
+    if (!refreshed.res.ok) throw new Error(refreshed.data?.error || `HTTP ${refreshed.res.status}`);
+    result = await intelligenceAction('x_draft', id);
+  }
+  if (!result.res.ok || !result.data?.draft) throw new Error(result.data?.error || `HTTP ${result.res.status}`);
+  return result.data.draft as XDraft;
 }
 
 export default function PostDraftShelf() {
   const [items, setItems] = useState<Item[]>([]);
   const [open, setOpen] = useState(true);
   const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+  const [busyId, setBusyId] = useState('');
+
+  async function loadDraft(id: string, title: string) {
+    setBusyId(id);
+    setError('');
+    try {
+      const draft = await getReviewDraft(id);
+      const text = String(draft.text || '').trim();
+      if (!text) throw new Error('x_draft_empty');
+      if (text.length > 280) throw new Error('x_draft_over_280');
+      sendToComposer(text);
+      const gate = draft.factCheckRequired || !draft.humanApproved || !draft.readyForPublish
+        ? '事実確認とMASA Human Gateを通してから投稿してください。'
+        : 'Human Gate確認済みです。';
+      setNotice(`「${title}」からX投稿案を本文へ入れました。${gate}`);
+    } catch (value) {
+      const message = value instanceof Error ? value.message : String(value);
+      setError(message === 'internal_seed_blocked'
+        ? '内部メタデータを投稿本文へ入れる処理を停止しました。投稿案を生成し直してください。'
+        : `投稿案を読み込めませんでした: ${message}`);
+    } finally {
+      setBusyId('');
+    }
+  }
 
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem('masa:x-draft');
       if (raw) {
         const handoff = JSON.parse(raw) as Handoff;
-        if (handoff.text) {
-          fillComposer(handoff.text);
-          setNotice(`「${handoff.title || 'Intelligence Draft'}」を本文へ入れました。ここからMASA味に。`);
-        }
         sessionStorage.removeItem('masa:x-draft');
+        if (handoff.sourceId) {
+          void loadDraft(handoff.sourceId, handoff.title || 'Intelligence Draft');
+        } else if (handoff.text && !looksLikeInternalSeed(handoff.text)) {
+          sendToComposer(handoff.text);
+          setNotice(`「${handoff.title || 'Intelligence Draft'}」を本文へ入れました。`);
+        } else if (handoff.text) {
+          setError('旧形式の内部メタデータは本文へ入れません。Intelligenceから投稿案を作り直してください。');
+        }
       }
     } catch {}
 
@@ -49,37 +116,43 @@ export default function PostDraftShelf() {
       .catch(() => {});
   }, []);
 
-  if (!open && !notice) {
+  if (!open && !notice && !error) {
     return <button className="pds-reopen" onClick={() => setOpen(true)}>AI Draft Shelfを開く</button>;
   }
 
   return (
     <section className="pds-shell" aria-label="AI Draft Shelf">
       <header>
-        <div><span>AI DRAFT SHELF</span><h2>先にAIが作る。最後はMASAが決める。</h2></div>
+        <div><span>AI DRAFT SHELF</span><h2>素材と投稿文を分ける。最後はMASAが決める。</h2></div>
         <button className="pds-close" onClick={() => setOpen(false)} aria-label="閉じる">×</button>
       </header>
       {notice && <div className="pds-notice">✓ {notice}</div>}
+      {error && <div className="pds-error">⚠ {error}</div>}
       {open && (
         <>
-          <p className="pds-lead">Intelligence / 資産から生成済みの投稿種。使うものだけ本文へ入れて、語尾・温度・実体験を足して投稿へ。</p>
+          <p className="pds-lead">下の内容はIntelligenceの内部素材で、そのまま投稿する文章ではありません。「この素材から投稿案を作る」で、publish_queueにあるX用レビュー稿だけを本文へ送ります。</p>
           <div className="pds-list">
-            {items.length ? items.map((item) => (
-              <article key={item.id}>
-                <div className="pds-meta"><span>{item.topic || 'General'}</span><span>AI DRAFT</span></div>
-                <h3>{item.title}</h3>
-                <p>{(item.contentSeed || item.excerpt || '').slice(0, 300)}{(item.contentSeed || item.excerpt || '').length > 300 ? '…' : ''}</p>
-                <div className="pds-actions">
-                  <button className="primary" onClick={() => { fillComposer(item.contentSeed || item.excerpt || item.title); setNotice(`「${item.title}」を本文へ入れました。`); }}>本文に入れる</button>
-                  <button onClick={() => void navigator.clipboard.writeText(item.contentSeed || item.excerpt || item.title)}>Copy</button>
-                </div>
-              </article>
-            )) : <div className="pds-empty">AI Draftはまだありません。Intelligenceで「AI投稿化」するとここへ流れます。</div>}
+            {items.length ? items.map((item) => {
+              const source = item.contentSeed || item.excerpt || '';
+              return (
+                <article key={item.id}>
+                  <div className="pds-meta"><span>{item.topic || 'General'}</span><span>INTERNAL MATERIAL</span><span>投稿不可</span></div>
+                  <h3>{item.title}</h3>
+                  <p>{source.slice(0, 300)}{source.length > 300 ? '…' : ''}</p>
+                  <div className="pds-actions">
+                    <button className="primary" disabled={busyId === item.id} onClick={() => void loadDraft(item.id, item.title)}>
+                      {busyId === item.id ? '投稿案を準備中…' : 'この素材から投稿案を作る'}
+                    </button>
+                    <button onClick={() => void navigator.clipboard.writeText(source || item.title)}>素材Copy</button>
+                  </div>
+                </article>
+              );
+            }) : <div className="pds-empty">素材はまだありません。Intelligenceで「AI投稿化」すると、投稿案と内部素材が分離してここへ流れます。</div>}
           </div>
         </>
       )}
       <style>{`
-        .pds-shell{margin-bottom:14px;border:1px solid #d7c8b2;background:#fffaf2;padding:14px 15px;color:#25211d}.pds-shell>header{display:flex;justify-content:space-between;gap:16px;align-items:start}.pds-shell header span{font-size:.75rem;color:#8b5b2c;font-weight:800;letter-spacing:.08em}.pds-shell h2{font-size:1.05rem;line-height:1.45;margin-top:2px}.pds-close{border:0;background:transparent;font:inherit;font-size:1.2rem;cursor:pointer;color:#736b61}.pds-lead{font-size:.86rem;line-height:1.7;color:#59636e;margin:7px 0 11px}.pds-notice{margin:8px 0;padding:8px 10px;border:1px solid #bfd1b9;background:#f4faf2;color:#43613e;font-size:.84rem}.pds-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:340px;overflow:auto}.pds-list article{background:#fff;border:1px solid #ddd7cf;padding:11px}.pds-meta{display:flex;gap:5px;flex-wrap:wrap}.pds-meta span{font-size:.72rem;border:1px solid #ddd7cf;padding:2px 5px;color:#6b6359}.pds-list h3{font-size:.92rem;line-height:1.5;margin-top:7px}.pds-list p{font-size:.84rem;line-height:1.7;color:#59636e;margin-top:6px;white-space:pre-wrap}.pds-actions{display:flex;gap:5px;margin-top:9px}.pds-actions button,.pds-reopen{min-height:36px;border:1px solid #d2cbc1;background:#fff;color:#59636e;font:inherit;font-size:.8rem;padding:6px 9px;cursor:pointer}.pds-actions .primary{border-color:#c7a46d;background:#f6ead8;color:#704817;font-weight:800}.pds-empty{grid-column:1/-1;padding:18px;border:1px dashed #d2cbc1;color:#6c747c;font-size:.84rem}.pds-reopen{margin-bottom:12px}@media(max-width:900px){.pds-list{grid-template-columns:1fr 1fr}}@media(max-width:560px){.pds-list{grid-template-columns:1fr;max-height:420px}}
+        .pds-shell{margin-bottom:14px;border:1px solid #d7c8b2;background:#fffaf2;padding:14px 15px;color:#25211d}.pds-shell>header{display:flex;justify-content:space-between;gap:16px;align-items:start}.pds-shell header span{font-size:.75rem;color:#8b5b2c;font-weight:800;letter-spacing:.08em}.pds-shell h2{font-size:1.05rem;line-height:1.45;margin-top:2px}.pds-close{border:0;background:transparent;font:inherit;font-size:1.2rem;cursor:pointer;color:#736b61}.pds-lead{font-size:.86rem;line-height:1.7;color:#59636e;margin:7px 0 11px}.pds-notice,.pds-error{margin:8px 0;padding:8px 10px;font-size:.84rem}.pds-notice{border:1px solid #bfd1b9;background:#f4faf2;color:#43613e}.pds-error{border:1px solid #ddb8b0;background:#fff4f1;color:#914d45}.pds-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:340px;overflow:auto}.pds-list article{background:#fff;border:1px solid #ddd7cf;padding:11px}.pds-meta{display:flex;gap:5px;flex-wrap:wrap}.pds-meta span{font-size:.72rem;border:1px solid #ddd7cf;padding:2px 5px;color:#6b6359}.pds-list h3{font-size:.92rem;line-height:1.5;margin-top:7px}.pds-list p{font-size:.84rem;line-height:1.7;color:#59636e;margin-top:6px;white-space:pre-wrap}.pds-actions{display:flex;gap:5px;margin-top:9px}.pds-actions button,.pds-reopen{min-height:36px;border:1px solid #d2cbc1;background:#fff;color:#59636e;font:inherit;font-size:.8rem;padding:6px 9px;cursor:pointer}.pds-actions button:disabled{opacity:.55;cursor:wait}.pds-actions .primary{border-color:#c7a46d;background:#f6ead8;color:#704817;font-weight:800}.pds-empty{grid-column:1/-1;padding:18px;border:1px dashed #d2cbc1;color:#6c747c;font-size:.84rem}.pds-reopen{margin-bottom:12px}@media(max-width:900px){.pds-list{grid-template-columns:1fr 1fr}}@media(max-width:560px){.pds-list{grid-template-columns:1fr;max-height:420px}}
       `}</style>
     </section>
   );
