@@ -2,19 +2,32 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-test('LINE bridge opens Graph with an opener and injects the Knowledge roundtrip bridge', async () => {
+test('LINE bridge opens Graph and supports resilient roundtrip transport', async () => {
   const bridge = await readFile(new URL('../public/scripts/line-flow-asset-bridge.js', import.meta.url), 'utf8');
 
   assert.match(bridge, /masa:line-graph-selection/);
   assert.match(bridge, /masa:line-graph-result/);
+  assert.match(bridge, /masa-line-graph-roundtrip-v1/);
   assert.match(bridge, /graph-line-knowledge-bridge\.js/);
+  assert.match(bridge, /graph-line-roundtrip-runtime\.js/);
+  assert.match(bridge, /new BroadcastChannel\(GRAPH_CHANNEL\)/);
+  assert.match(bridge, /processedGraphRequests/);
   assert.match(bridge, /window\.open\(url\.toString\(\), 'masa-line-knowledge-graph'\)/);
   assert.match(bridge, /\.la-links a\[href\*="\/dashboard\/graph"\]/);
   assert.match(bridge, /event\.origin !== window\.location\.origin/);
   assert.match(bridge, /new CustomEvent\(EVENT/);
 });
 
-test('Graph bridge searches Knowledge and returns selected copy to the original LINE Step', async () => {
+test('LINE bridge confirms React textarea changes and waits for the actual new Step', async () => {
+  const bridge = await readFile(new URL('../public/scripts/line-flow-asset-bridge.js', import.meta.url), 'utf8');
+
+  assert.match(bridge, /current\.value\.trim\(\) === next\.trim\(\)/);
+  assert.match(bridge, /selectedStepId/);
+  assert.match(bridge, /nextSelected !== beforeSelected/);
+  assert.doesNotMatch(bridge, /Date\.now\(\) - startedAt > 700/);
+});
+
+test('Graph bridge searches Knowledge and exposes LINE return actions', async () => {
   const graphBridge = await readFile(new URL('../public/scripts/graph-line-knowledge-bridge.js', import.meta.url), 'utf8');
 
   assert.match(graphBridge, /\/api\/dashboard\/knowledge\?q=/);
@@ -23,8 +36,18 @@ test('Graph bridge searches Knowledge and returns selected copy to the original 
   assert.match(graphBridge, /本文に置く/);
   assert.match(graphBridge, /＋ 追記/);
   assert.match(graphBridge, /新Step/);
-  assert.match(graphBridge, /window\.opener\.postMessage/);
-  assert.match(graphBridge, /source: 'graph'/);
   assert.match(graphBridge, /FLOW MIND ↗/);
   assert.match(graphBridge, /data-node="N017"/);
+});
+
+test('Graph runtime returns by opener or BroadcastChannel and visibly reports the result', async () => {
+  const runtime = await readFile(new URL('../public/scripts/graph-line-roundtrip-runtime.js', import.meta.url), 'utf8');
+
+  assert.match(runtime, /new BroadcastChannel\(GRAPH_CHANNEL\)/);
+  assert.match(runtime, /window\.opener\.postMessage/);
+  assert.match(runtime, /channel\.postMessage/);
+  assert.match(runtime, /stopImmediatePropagation/);
+  assert.match(runtime, /LINEの選択中Stepへ送信中/);
+  assert.match(runtime, /LINE側の応答がありません/);
+  assert.match(runtime, /window\.close\(\)/);
 });

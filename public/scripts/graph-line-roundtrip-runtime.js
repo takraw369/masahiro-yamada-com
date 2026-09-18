@@ -1,0 +1,145 @@
+(() => {
+  if (window.__MASA_GRAPH_LINE_ROUNDTRIP_RUNTIME__) return;
+  window.__MASA_GRAPH_LINE_ROUNDTRIP_RUNTIME__ = true;
+  if (window.location.pathname !== '/dashboard/graph') return;
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('from') !== 'line' && params.get('bridge') !== 'line') return;
+
+  const GRAPH_SELECTION = 'masa:line-graph-selection';
+  const GRAPH_RESULT = 'masa:line-graph-result';
+  const GRAPH_CHANNEL = 'masa-line-graph-roundtrip-v1';
+  const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(GRAPH_CHANNEL) : null;
+  let pendingRequestId = '';
+  let timeoutId = 0;
+
+  const ensureToast = () => {
+    let toast = document.getElementById('glk-runtime-toast');
+    if (toast) return toast;
+    toast = document.createElement('div');
+    toast.id = 'glk-runtime-toast';
+    Object.assign(toast.style, {
+      position: 'fixed',
+      right: '18px',
+      bottom: '18px',
+      zIndex: '9999',
+      maxWidth: '360px',
+      padding: '11px 14px',
+      borderRadius: '10px',
+      background: '#24282c',
+      color: '#fff',
+      fontSize: '13px',
+      lineHeight: '1.45',
+      boxShadow: '0 14px 40px rgba(0,0,0,.18)',
+      opacity: '0',
+      transform: 'translateY(8px)',
+      transition: '.16s ease',
+      pointerEvents: 'none',
+    });
+    document.body.appendChild(toast);
+    return toast;
+  };
+
+  const showToast = (text, tone = 'normal') => {
+    const toast = ensureToast();
+    toast.textContent = text;
+    toast.style.background = tone === 'bad' ? '#8d3232' : tone === 'ok' ? '#176747' : '#24282c';
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+  };
+
+  const clearPending = () => {
+    if (timeoutId) window.clearTimeout(timeoutId);
+    timeoutId = 0;
+    pendingRequestId = '';
+  };
+
+  const returnToLine = () => {
+    try { window.opener?.focus?.(); } catch {}
+    window.setTimeout(() => {
+      try { window.close(); } catch {}
+    }, 220);
+  };
+
+  const handleResult = (detail) => {
+    if (!detail || detail.type !== GRAPH_RESULT || !pendingRequestId || detail.requestId !== pendingRequestId) return;
+    clearPending();
+    showToast(detail.message || (detail.ok ? 'LINEへ反映しました' : 'LINEへ反映できませんでした'), detail.ok ? 'ok' : 'bad');
+    if (detail.ok) returnToLine();
+  };
+
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin) return;
+    handleResult(event.data);
+  });
+  channel?.addEventListener('message', (event) => handleResult(event.data));
+
+  const send = (action, card) => {
+    const text = card.querySelector('p')?.textContent?.trim() || '';
+    if (!text) {
+      showToast('送る本文が見つかりませんでした', 'bad');
+      return;
+    }
+    const role = card.querySelector('b')?.textContent?.trim() || '';
+    const title = document.querySelector('#graph-line-knowledge-bridge .glk-detail-head h4')?.textContent?.trim() || '';
+    const requestId = `graph-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    pendingRequestId = requestId;
+    const payload = {
+      type: GRAPH_SELECTION,
+      requestId,
+      action,
+      text,
+      asset: { title, role, source: 'graph-runtime' },
+    };
+
+    showToast('LINEの選択中Stepへ送信中…');
+    let sent = false;
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage(payload, window.location.origin);
+        sent = true;
+      }
+    } catch {}
+    try {
+      if (channel) {
+        channel.postMessage(payload);
+        sent = true;
+      }
+    } catch {}
+
+    if (!sent) {
+      clearPending();
+      showToast('LINEタブへ接続できません。LINE Flowを開いたままGraphへ入り直してください', 'bad');
+      return;
+    }
+
+    timeoutId = window.setTimeout(() => {
+      if (pendingRequestId !== requestId) return;
+      clearPending();
+      showToast('LINE側の応答がありません。LINEタブを開いたまま再度試してください', 'bad');
+    }, 4500);
+  };
+
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const button = target?.closest('#graph-line-knowledge-bridge .glk-actions button');
+    if (!(button instanceof HTMLButtonElement)) return;
+    const card = button.closest('.glk-candidate');
+    if (!(card instanceof HTMLElement)) return;
+
+    const label = button.textContent?.trim() || '';
+    const action = label.includes('新Step') ? 'new-step' : label.includes('追記') ? 'append' : 'replace';
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    send(action, card);
+  }, true);
+
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const back = target?.closest('#graph-line-knowledge-bridge .glk-return');
+    if (!(back instanceof HTMLButtonElement)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    returnToLine();
+  }, true);
+})();
