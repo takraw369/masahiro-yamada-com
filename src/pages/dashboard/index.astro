@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import DashboardCockpit from '../../components/dashboard/DashboardCockpit';
 
 const dateLabel = new Intl.DateTimeFormat('ja-JP', {
   timeZone: 'Asia/Tokyo',
@@ -8,42 +9,23 @@ const dateLabel = new Intl.DateTimeFormat('ja-JP', {
   weekday: 'short',
 }).format(new Date());
 
-const quickActions = [
-  {
-    label: 'CAPTURE',
-    title: '残す',
-    detail: '思いつき・体験・違和感を一瞬で置く',
-    href: '/mind?action=capture',
-    tone: 'lavender',
-  },
-  {
-    label: 'OUTPUT',
-    title: '出す',
-    detail: 'X・LINEへ流して現実の反応を得る',
-    href: '#output',
-    tone: 'apricot',
-  },
-  {
-    label: 'REVIEW',
-    title: '再会する',
-    detail: '今の自分に必要な知識だけ呼び戻す',
-    href: '/mind?view=review',
-    tone: 'mint',
-  },
-];
-
 const flowSteps = [
-  { no: '01', label: 'CAPTURE', title: '残す', href: '/mind?action=capture' },
-  { no: '02', label: 'THINK', title: '意味をつくる', href: '/mind' },
-  { no: '03', label: 'SHIP', title: '外へ流す', href: '/dashboard/post' },
-  { no: '04', label: 'LEARN', title: '反応を戻す', href: '/dashboard/evidence' },
+  { no:'01', label:'CAPTURE', title:'残す', detail:'思いつき・体験・違和感', href:'/mind?action=capture' },
+  { no:'02', label:'THINK', title:'意味をつくる', detail:'FLOW MIND / Intelligence', href:'/mind' },
+  { no:'03', label:'SHIP', title:'外へ流す', detail:'X / LINE / ACE', href:'#output' },
+  { no:'04', label:'LEARN', title:'反応を戻す', detail:'Evidence / Review', href:'/dashboard/evidence' },
 ];
 
-const systemDoors = [
-  { label: 'PROJECT', title: 'MASA OS / Project', detail: '今・次・詰まりを確認', href: '/dashboard/os' },
-  { label: 'CALENDAR', title: 'Calendar', detail: '時間へ落とす', href: '/dashboard/schedule' },
-  { label: 'INTEL', title: 'Intelligence', detail: '外部情報を選別', href: '/dashboard/intelligence' },
-  { label: 'EVIDENCE', title: 'Evidence Lab', detail: '結果を学習へ戻す', href: '/dashboard/evidence' },
+const deepDoors = [
+  { group:'EXECUTE', title:'Task Flow', detail:'Project・Task・WAITの詳細', href:'/dashboard/tasks' },
+  { group:'SPRINT', title:'72H Flow Build', detail:'既存資産を72時間で現実へ流す', href:'/dashboard/sprint' },
+  { group:'THINK', title:'Living Graph', detail:'知識・Project・関係を見る', href:'/dashboard/graph' },
+  { group:'THINK', title:'Intelligence', detail:'外部情報を選別する', href:'/dashboard/intelligence' },
+  { group:'LEARN', title:'Evidence Lab', detail:'結果を学習へ戻す', href:'/dashboard/evidence' },
+  { group:'DECIDE', title:'Choice Lab', detail:'横断判断が必要な時だけ', href:'/dashboard/choice-lab' },
+  { group:'CREATE', title:'X Post', detail:'投稿を編集・確認する', href:'/dashboard/post' },
+  { group:'BUILD', title:'Quest', detail:'実践できる形へ変換', href:'/dashboard/quest' },
+  { group:'SYSTEM', title:'MASA OS', detail:'正本・統合の詳細へ', href:'/dashboard/os' },
 ];
 ---
 
@@ -52,289 +34,72 @@ const systemDoors = [
     <header class="dash-head">
       <div>
         <p class="kicker">MASA OS · TODAY</p>
-        <h1>Flow Dashboard</h1>
-        <p class="intro">全部を管理する画面ではなく、今の流れを見て、次の1手へ入るための操作面。</p>
+        <h1>Flow Cockpit</h1>
+        <p class="intro">左は全体の地図。ここには、今日触るものだけ置く。見る → 軽く動かす → 必要な時だけ詳細へ。</p>
       </div>
-      <div class="date-chip">
-        <span>TODAY</span>
-        <strong>{dateLabel}</strong>
-      </div>
+      <div class="date-chip"><span>TODAY</span><strong>{dateLabel}</strong></div>
     </header>
 
-    <section class="hero-grid" aria-label="今日の操作">
-      <article class="now-card">
-        <div class="status-line">
-          <span class="kicker">NEXT MOVE · PROPOSAL</span>
-          <span class="neutral-badge">CURRENT STATE 未連携</span>
-        </div>
-        <p class="context">Reality Loop</p>
-        <h2>迷わず、<br/>1つ動かす。</h2>
-        <p class="body-copy">まず外へ1つ流して、反応を1つ戻す。Task Board・期限・市場反応から自動判定した「今日の正解」ではなく、Current State接続までは固定方針からの提案として扱います。</p>
-        <div class="now-actions">
-          <a class="primary" href="/dashboard/post">投稿を1本進める <span aria-hidden="true">→</span></a>
-          <a class="secondary" href="/dashboard/intelligence#intel-list">素材を選び直す</a>
-        </div>
-        <div class="reality-loop" aria-label="Reality Loop">
-          <span class="loop-node active">体験</span><i>→</i>
-          <span class="loop-node">言語化</span><i>→</i>
-          <span class="loop-node">発信</span><i>→</i>
-          <span class="loop-node">反応</span><i>→</i>
-          <span class="loop-node">学習</span>
-        </div>
-      </article>
+    <DashboardCockpit client:load />
 
-      <div class="action-stack">
-        {quickActions.map(item => (
-          <a class={`action-card ${item.tone}`} href={item.href}>
-            <span>{item.label}</span>
-            <strong>{item.title}</strong>
-            <small>{item.detail}</small>
-            <b aria-hidden="true">↗</b>
+    <section class="flow-section" aria-labelledby="flow-title">
+      <div class="section-head">
+        <div><p class="kicker">FLOW</p><h2 id="flow-title">流れを見失った時だけ、ここへ戻る。</h2></div>
+        <p>Dashboardを読むための説明ではなく、循環の地図。</p>
+      </div>
+      <div class="flow-track">
+        {flowSteps.map((step, index) => (
+          <a href={step.href} class="flow-step">
+            <span class="no">{step.no}</span>
+            <div><small>{step.label}</small><strong>{step.title}</strong><em>{step.detail}</em></div>
+            {index < flowSteps.length - 1 && <b aria-hidden="true">→</b>}
           </a>
         ))}
       </div>
     </section>
 
-    <section class="overview-grid" aria-label="Flow overview">
-      <article class="flow-panel">
-        <div class="panel-head">
-          <div>
-            <p class="kicker">FLOW MAP</p>
-            <h2>残したものを、現実まで流す。</h2>
-          </div>
-          <p>情報量ではなく、循環が止まっている場所を見る。</p>
-        </div>
-
-        <div class="flow-track">
-          {flowSteps.map((step, index) => (
-            <a class="flow-step" href={step.href}>
-              <div class="flow-number">{step.no}</div>
-              <div>
-                <span>{step.label}</span>
-                <strong>{step.title}</strong>
-              </div>
-              {index < flowSteps.length - 1 && <i aria-hidden="true">→</i>}
-            </a>
-          ))}
-        </div>
-      </article>
-
-      <aside class="system-panel">
-        <div class="panel-head compact">
-          <div><p class="kicker">SYSTEM DOORS</p><h2>必要な時だけ深く入る。</h2></div>
-        </div>
-        <div class="system-list">
-          {systemDoors.map(item => (
-            <a href={item.href}>
-              <span>{item.label}</span>
-              <div><strong>{item.title}</strong><small>{item.detail}</small></div>
-              <b aria-hidden="true">→</b>
-            </a>
-          ))}
-        </div>
-      </aside>
-    </section>
-
     <section class="output-section" id="output" aria-labelledby="output-title">
-      <div class="panel-head">
-        <div><p class="kicker">OUTPUT</p><h2 id="output-title">どこへ流す？</h2></div>
-        <p>媒体ではなく、動かしたい関係から選ぶ。</p>
+      <div class="section-head">
+        <div><p class="kicker">OUTPUT</p><h2 id="output-title">外へ流す。</h2></div>
+        <p>細かい制作・公開は各ページへ。公開はHuman Gate。</p>
       </div>
-
-      <div class="channel-grid">
-        <a class="channel-card dark" href="/dashboard/post">
-          <span class="channel-mark">X</span>
-          <div><strong>X / Social</strong><small>仮説・体験・問いを市場へ出す</small></div>
-          <span class="channel-tag">PUBLIC</span>
-          <span class="chevron" aria-hidden="true">→</span>
-        </a>
-
-        <a class="channel-card green" href="/dashboard/line">
-          <span class="channel-mark">L</span>
-          <div><strong>LINE Flow</strong><small>教育・関係・顧客導線を動かす</small></div>
-          <span class="channel-tag">FLOW</span>
-          <span class="chevron" aria-hidden="true">→</span>
-        </a>
-
-        <a class="channel-card blue" href="/dashboard/ace-assets">
-          <span class="channel-mark">A</span>
-          <div><strong>ACE Assets</strong><small>学びを教材・Questへ変換する</small></div>
-          <span class="channel-tag">ASSET</span>
-          <span class="chevron" aria-hidden="true">→</span>
-        </a>
+      <div class="output-grid">
+        <a class="output-card dark" href="/dashboard/post"><span>X</span><div><strong>X / Social</strong><small>仮説・体験・問いを出す</small></div><b>→</b></a>
+        <a class="output-card green" href="/dashboard/line"><span>L</span><div><strong>LINE Flow</strong><small>教育・関係・顧客導線を動かす</small></div><b>→</b></a>
+        <a class="output-card blue" href="/dashboard/ace-assets"><span>A</span><div><strong>ACE Assets</strong><small>学びを教材へ変える</small></div><b>→</b></a>
       </div>
-      <p class="safety-note">公開・送信・有効化など影響の大きい操作はHuman Gateを残す。</p>
     </section>
 
-    <section class="lower-grid" aria-label="Think and build">
-      <article class="work-panel">
-        <div class="panel-head compact">
-          <div><p class="kicker">THINK / LEARN</p><h2>考える・つなぐ・学習する。</h2></div>
-        </div>
-        <div class="work-grid">
-          <a href="/mind"><strong>FLOW MIND</strong><small>読む・考える・再会する</small><span>→</span></a>
-          <a href="/dashboard/graph"><strong>Living Graph</strong><small>知識同士のつながりを見る</small><span>→</span></a>
-          <a href="/dashboard/choice-lab"><strong>Choice Lab</strong><small>迷いを選択可能な形へ変える</small><span>→</span></a>
-          <a href="/dashboard/question-lab"><strong>Question Lab</strong><small>問いを育て、再利用する</small><span>→</span></a>
-        </div>
-      </article>
+    <details class="deep-section">
+      <summary><span><b>MORE / DEEP WORK</b> 詳細に入りたい時だけ開く</span><em>＋</em></summary>
+      <div class="deep-grid">
+        {deepDoors.map(item => (
+          <a href={item.href}><small>{item.group}</small><strong>{item.title}</strong><span>{item.detail}</span><b>↗</b></a>
+        ))}
+      </div>
+    </details>
 
-      <article class="work-panel">
-        <div class="panel-head compact">
-          <div><p class="kicker">BUILD / CREATE</p><h2>形にする・届ける。</h2></div>
-        </div>
-        <div class="work-grid">
-          <a href="/dashboard/sprint"><strong>72H Flow Build</strong><small>既存資産を72時間で現実へ流す</small><span>→</span></a>
-          <a href="/dashboard/design-lab"><strong>Design Lab</strong><small>見た目と体験を選ぶ</small><span>→</span></a>
-          <a href="/dashboard/visual-prompt"><strong>Visual Prompt</strong><small>画像・映像の指示へ変換</small><span>→</span></a>
-          <a href="/dashboard/funnel"><strong>Trinity Funnel</strong><small>発信からOfferへつなぐ</small><span>→</span></a>
-          <a href="/dashboard/quest"><strong>Quest</strong><small>実践できる学習体験へ変える</small><span>→</span></a>
-        </div>
-      </article>
-    </section>
-
-    <footer class="dash-foot">
-      <p>Pinterest-inspired synthesis · MASA Flow Dashboard v1</p>
-      <span>見た目より先に「次の行動が一目で分かる」を優先する。</span>
-    </footer>
+    <footer class="dash-foot"><p>Dashboard Cockpit v0.1</p><span>Projectを見れば済むことは質問にしない。UI配置はoverlay、正本変更は既存Gateを維持。</span></footer>
   </div>
 </DashboardLayout>
 
 <style>
-  .dash-shell {
-    --panel: #fff;
-    --panel-soft: #fbfaf8;
-    --ink: #20242a;
-    --muted: #68717b;
-    --hairline: #e3e0db;
-    --shadow: 0 18px 48px rgba(52, 47, 41, .07);
-    max-width: 1240px;
-    margin: 0 auto;
-    padding-bottom: 42px;
-  }
-
-  .dash-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 26px; margin-bottom: 18px; }
-  .kicker { margin: 0; color: var(--gold-muted); font-size: .72rem; letter-spacing: .12em; font-weight: 800; }
-  .dash-head h1 { margin-top: 3px; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1; letter-spacing: -.035em; }
-  .intro { max-width: 720px; margin-top: 9px; color: var(--muted); font-size: .96rem; line-height: 1.7; }
-  .date-chip { flex-shrink: 0; min-width: 170px; padding: 13px 15px; border: 1px solid var(--hairline); border-radius: 16px; background: rgba(255,255,255,.74); box-shadow: 0 8px 24px rgba(52,47,41,.035); }
-  .date-chip span, .date-chip strong { display: block; }
-  .date-chip span { color: #959ca4; font-size: .7rem; letter-spacing: .12em; font-weight: 800; }
-  .date-chip strong { margin-top: 3px; font-size: .95rem; }
-
-  .hero-grid { display: grid; grid-template-columns: minmax(0,1.75fr) minmax(280px,.65fr); gap: 14px; }
-  .now-card { min-height: 420px; display: flex; flex-direction: column; padding: 34px; border: 1px solid #d7d2ca; border-radius: 24px; background: linear-gradient(145deg,#fff 0%,#fff 72%,#f4f0ff 100%); box-shadow: var(--shadow); }
-  .status-line { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
-  .neutral-badge { padding: 5px 8px; border: 1px solid #dedbd6; border-radius: 999px; background: rgba(255,255,255,.82); color: #747d86; font-size: .7rem; font-weight: 700; }
-  .context { margin-top: 23px; color: #8a9199; font-size: .88rem; }
-  .now-card h2 { margin-top: 5px; max-width: 700px; font-size: clamp(2.7rem, 6vw, 5.9rem); line-height: .96; letter-spacing: -.055em; }
-  .body-copy { max-width: 760px; margin-top: 20px; color: var(--muted); font-size: .96rem; line-height: 1.8; }
-  .now-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 24px; }
-  .primary, .secondary { min-height: 48px; display: inline-flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 16px; border-radius: 12px; text-decoration: none; font-size: .9rem; font-weight: 700; }
-  .primary { min-width: 210px; color: #fff; background: #20242a; }
-  .primary:hover { background: #111419; }
-  .secondary { color: #5a626b; background: rgba(255,255,255,.82); border: 1px solid #ddd9d2; }
-  .secondary:hover { border-color: #b9b1a5; color: #20242a; }
-  .reality-loop { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: auto; padding-top: 28px; color: #9aa0a6; }
-  .reality-loop i { font-style: normal; color: #c6c1ba; }
-  .loop-node { padding: 6px 9px; border: 1px solid #e1ddd8; border-radius: 999px; background: rgba(255,255,255,.72); font-size: .72rem; font-weight: 700; }
-  .loop-node.active { border-color: #cab4ff; background: #f2edff; color: #5b478c; }
-
-  .action-stack { display: grid; grid-template-rows: repeat(3,1fr); gap: 12px; }
-  .action-card { position: relative; min-height: 124px; display: flex; flex-direction: column; justify-content: center; padding: 20px; border: 1px solid rgba(89,83,75,.08); border-radius: 20px; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; overflow: hidden; }
-  .action-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(52,47,41,.07); }
-  .action-card > span { font-size: .7rem; letter-spacing: .12em; font-weight: 900; opacity: .68; }
-  .action-card strong { margin-top: 5px; font-size: 1.35rem; }
-  .action-card small { max-width: 230px; margin-top: 4px; color: rgba(32,36,42,.66); font-size: .82rem; line-height: 1.55; }
-  .action-card b { position: absolute; right: 18px; top: 17px; font-size: 1rem; }
-  .lavender { background: #ddd8ff; color: #3f375f; }
-  .apricot { background: #f7d2a8; color: #60401d; }
-  .mint { background: #d5eadf; color: #284a3a; }
-
-  .overview-grid { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(320px,.55fr); gap: 14px; margin-top: 14px; }
-  .flow-panel, .system-panel, .output-section, .work-panel { border: 1px solid var(--hairline); border-radius: 22px; background: var(--panel); box-shadow: 0 10px 28px rgba(52,47,41,.035); }
-  .flow-panel { padding: 24px; }
-  .system-panel { padding: 22px; }
-  .panel-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; }
-  .panel-head.compact { align-items: flex-start; }
-  .panel-head h2 { margin-top: 3px; font-size: 1.15rem; line-height: 1.4; }
-  .panel-head > p { max-width: 380px; color: var(--muted); font-size: .78rem; text-align: right; line-height: 1.55; }
-
-  .flow-track { position: relative; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-top: 20px; }
-  .flow-track::before { content: ''; position: absolute; left: 6%; right: 6%; top: 18px; height: 1px; background: linear-gradient(90deg,#cab4ff,#f0c291,#badcca,#b8d8f8); }
-  .flow-step { position: relative; min-width: 0; display: grid; grid-template-columns: 38px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 12px 10px; border-radius: 14px; color: inherit; background: rgba(250,249,247,.88); text-decoration: none; }
-  .flow-step:hover { background: #f5f2ee; }
-  .flow-number { position: relative; z-index: 1; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #ded9d2; border-radius: 50%; background: #fff; color: #8c8378; font-size: .72rem; font-weight: 900; }
-  .flow-step span, .flow-step strong { display: block; min-width: 0; }
-  .flow-step span { color: #989088; font-size: .66rem; letter-spacing: .08em; font-weight: 800; }
-  .flow-step strong { margin-top: 2px; font-size: .84rem; }
-  .flow-step i { color: #b9b0a5; font-style: normal; }
-
-  .system-list { display: grid; gap: 7px; margin-top: 16px; }
-  .system-list a { display: grid; grid-template-columns: 64px minmax(0,1fr) auto; align-items: center; gap: 10px; min-height: 58px; padding: 8px 10px; border: 1px solid transparent; border-radius: 12px; text-decoration: none; }
-  .system-list a:hover { border-color: #ddd7cf; background: #faf8f5; }
-  .system-list a > span { color: #a18869; font-size: .66rem; letter-spacing: .08em; font-weight: 900; }
-  .system-list strong, .system-list small { display: block; }
-  .system-list strong { font-size: .85rem; }
-  .system-list small { margin-top: 1px; color: var(--muted); font-size: .74rem; }
-  .system-list b { color: #aaa29a; font-weight: 500; }
-
-  .output-section { margin-top: 14px; padding: 24px; scroll-margin-top: 92px; }
-  .channel-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-top: 16px; }
-  .channel-card { min-height: 108px; display: grid; grid-template-columns: 46px minmax(0,1fr) auto auto; align-items: center; gap: 12px; padding: 16px; border: 1px solid #dedbd6; border-radius: 16px; background: #fff; text-decoration: none; }
-  .channel-card:hover { border-color: #b9b1a5; box-shadow: 0 10px 26px rgba(52,47,41,.055); }
-  .channel-mark { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; color: #fff; background: #20242a; font-weight: 900; }
-  .channel-card.green .channel-mark { background: #2b8f65; }
-  .channel-card.blue .channel-mark { background: #507fb6; }
-  .channel-card strong, .channel-card small { display: block; }
-  .channel-card strong { font-size: .92rem; }
-  .channel-card small { margin-top: 3px; color: var(--muted); font-size: .75rem; line-height: 1.45; }
-  .channel-tag { padding: 4px 7px; border-radius: 999px; background: #f4f2ef; color: #777f87; font-size: .62rem; font-weight: 800; letter-spacing: .06em; }
-  .chevron { color: #aaa29a; }
-  .safety-note { margin-top: 10px; color: #8d949c; font-size: .72rem; }
-
-  .lower-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 14px; }
-  .work-panel { padding: 22px; }
-  .work-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 15px; }
-  .work-grid a { position: relative; min-height: 96px; display: flex; flex-direction: column; justify-content: center; padding: 13px 34px 13px 13px; border: 1px solid #e5e1dc; border-radius: 14px; background: #fbfaf8; text-decoration: none; }
-  .work-grid a:hover { border-color: #c9c0b5; background: #f7f4ef; }
-  .work-grid strong { font-size: .86rem; }
-  .work-grid small { margin-top: 4px; color: var(--muted); font-size: .74rem; line-height: 1.5; }
-  .work-grid span { position: absolute; right: 13px; top: 13px; color: #aaa29a; }
-
-  .dash-foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 22px; padding: 0 4px; color: #8c939a; font-size: .72rem; }
-
-  @media (max-width: 1000px) {
-    .hero-grid, .overview-grid { grid-template-columns: 1fr; }
-    .action-stack { grid-template-columns: repeat(3,minmax(0,1fr)); grid-template-rows: none; }
-    .action-card { min-height: 132px; }
-    .channel-grid { grid-template-columns: 1fr; }
-  }
-
-  @media (max-width: 760px) {
-    .dash-head { align-items: flex-start; flex-direction: column; }
-    .date-chip { min-width: 0; width: 100%; }
-    .now-card { min-height: auto; padding: 24px 20px; }
-    .action-stack { grid-template-columns: 1fr; }
-    .flow-track { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .flow-track::before { display: none; }
-    .lower-grid { grid-template-columns: 1fr; }
-    .panel-head { align-items: flex-start; flex-direction: column; }
-    .panel-head > p { text-align: left; }
-  }
-
-  @media (max-width: 560px) {
-    .now-actions { display: grid; grid-template-columns: 1fr; }
-    .primary, .secondary { width: 100%; }
-    .flow-track { grid-template-columns: 1fr; }
-    .flow-step { min-height: 64px; }
-    .flow-step i { display: none; }
-    .channel-card { grid-template-columns: 44px minmax(0,1fr) auto; }
-    .channel-tag { display: none; }
-    .work-grid { grid-template-columns: 1fr; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
-  }
+  .dash-shell{--panel:#fff;--muted:#68717b;--hairline:#e3e0db;max-width:1240px;margin:0 auto;padding-bottom:42px}
+  .kicker{margin:0;color:var(--gold-muted);font-size:.72rem;letter-spacing:.12em;font-weight:800}
+  .dash-head{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;margin-bottom:6px}
+  .dash-head h1{margin-top:3px;font-size:clamp(2rem,4vw,3.4rem);line-height:1;letter-spacing:-.035em}
+  .intro{max-width:760px;margin-top:9px;color:var(--muted);font-size:.96rem;line-height:1.7}
+  .date-chip{flex-shrink:0;min-width:170px;padding:13px 15px;border:1px solid var(--hairline);border-radius:16px;background:rgba(255,255,255,.74);box-shadow:0 8px 24px rgba(52,47,41,.035)}
+  .date-chip span,.date-chip strong{display:block}.date-chip span{color:#959ca4;font-size:.7rem;letter-spacing:.12em;font-weight:800}.date-chip strong{margin-top:3px;font-size:.95rem}
+  .flow-section,.output-section{margin-top:24px;padding:22px;border:1px solid var(--hairline);border-radius:20px;background:rgba(255,255,255,.72)}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}.section-head h2{margin-top:3px;font-size:1.05rem}.section-head>p{color:#7c858e;font-size:.75rem}
+  .flow-track{display:grid;grid-template-columns:repeat(4,1fr);margin-top:16px;border:1px solid #e5e1db;border-radius:14px;overflow:hidden;background:#fff}
+  .flow-step{position:relative;min-width:0;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:14px;text-decoration:none;border-right:1px solid #e8e4de}.flow-step:last-child{border-right:0}
+  .flow-step .no{color:#b5a58f;font-family:'Cormorant Garamond',serif;font-size:1.25rem}.flow-step small,.flow-step strong,.flow-step em{display:block}.flow-step small{color:#8b5b2c;font-size:.64rem;letter-spacing:.1em;font-weight:800}.flow-step strong{margin-top:2px;font-size:.82rem}.flow-step em{margin-top:2px;color:#7c858e;font-size:.67rem;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.flow-step>b{color:#c5bdb3;font-weight:500}
+  .output-section{scroll-margin-top:90px}.output-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:15px}.output-card{min-height:92px;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:14px;border:1px solid #dedbd6;border-radius:14px;background:#fff;text-decoration:none}.output-card>span{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:#fff;background:#20242a;font-weight:900}.output-card.green>span{background:#2b8f65}.output-card.blue>span{background:#507fb6}.output-card strong,.output-card small{display:block}.output-card strong{font-size:.86rem}.output-card small{margin-top:2px;color:#7c858e;font-size:.7rem}.output-card>b{color:#a56c22}
+  .deep-section{margin-top:16px;border:1px solid var(--hairline);border-radius:16px;background:rgba(255,255,255,.52);overflow:hidden}.deep-section>summary{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;cursor:pointer;list-style:none;color:#606a74;font-size:.76rem}.deep-section>summary::-webkit-details-marker{display:none}.deep-section>summary b{margin-right:9px;color:#8b5b2c;font-size:.68rem;letter-spacing:.1em}.deep-section[open]>summary em{transform:rotate(45deg)}.deep-section>summary em{font-size:1rem;font-style:normal}.deep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid #e5e1db}.deep-grid a{position:relative;min-height:108px;padding:14px;border-right:1px solid #e8e4de;border-bottom:1px solid #e8e4de;text-decoration:none}.deep-grid a:nth-child(4n){border-right:0}.deep-grid small,.deep-grid strong,.deep-grid span{display:block}.deep-grid small{color:#8b5b2c;font-size:.62rem;letter-spacing:.09em;font-weight:800}.deep-grid strong{margin-top:7px;font-size:.82rem}.deep-grid span{margin-top:3px;color:#7c858e;font-size:.68rem}.deep-grid a>b{position:absolute;right:13px;top:12px;color:#b79c75;font-weight:500}
+  .dash-foot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:1px solid #dedad4;color:#8a9199;font-size:.68rem}
+  @media(max-width:900px){.flow-track{grid-template-columns:repeat(2,1fr)}.flow-step:nth-child(2){border-right:0}.output-grid{grid-template-columns:1fr}.deep-grid{grid-template-columns:repeat(2,1fr)}.deep-grid a:nth-child(2n){border-right:0}}
+  @media(max-width:620px){.dash-head,.section-head{align-items:flex-start;flex-direction:column}.date-chip{min-width:0;width:100%}.flow-section,.output-section{padding:16px}.flow-track,.deep-grid{grid-template-columns:1fr}.flow-step{border-right:0;border-bottom:1px solid #e8e4de}.flow-step:last-child{border-bottom:0}.deep-grid a{border-right:0}.section-head>p{max-width:100%}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
