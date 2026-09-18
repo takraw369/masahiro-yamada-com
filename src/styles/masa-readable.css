@@ -2,9 +2,9 @@
 
 :root {
   --masa-font-ui: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
-  --masa-font-micro: 0.75rem;
-  --masa-font-meta: 0.8125rem;
-  --masa-font-sm: 0.875rem;
+  --masa-font-micro: 0.8125rem;
+  --masa-font-meta: 0.875rem;
+  --masa-font-sm: 0.9375rem;
   --masa-font-body: 1rem;
   --masa-font-lg: 1.125rem;
   --masa-readable-muted: #59636e;
@@ -41,7 +41,7 @@ body {
 
 /*
  * MASA Readable System
- * Body: 16px / controls: 14px / metadata: 13px / floor: 12px.
+ * Body: 16px / controls: 15px / metadata: 14px / floor: 13px.
  * Keep hierarchy with spacing, weight and layout instead of microscopic copy.
  * Operational UI uses IBM Plex Sans JP; expressive brand display type stays separate.
  */
@@ -304,7 +304,7 @@ body {
 }
 
 .graph-app .kg-node text.node-kind {
-  font-size: 12px !important;
+  font-size: 13px !important;
 }
 
 .graph-app .kg-node text.node-label {
@@ -370,6 +370,41 @@ body {
   color: var(--masa-readable-dim) !important;
 }
 
+/* Choice Lab: lift microcopy without touching its display headings. */
+.content .now-five .now-head p,
+.content .now-five .set-meter small,
+.content .now-five .decision-meta b,
+.content .now-five .why-now small,
+.content .now-five .decision-options button small,
+.content .now-five .now-footer span,
+.content .now-five .now-actions button,
+.content .loop,
+.content .labs-section .lab small,
+.content .labs-section .lab strong,
+.content .labs-section .lab > span,
+.content .principle strong {
+  font-size: var(--masa-font-micro) !important;
+  line-height: 1.5 !important;
+}
+
+.content .now-five .now-head > div > span,
+.content .now-five .now-head > div > small,
+.content .now-five .loading-note,
+.content .now-five .decision-copy p,
+.content .now-five .why-now span,
+.content .now-five .decision-options button strong,
+.content .now-five .now-footer strong,
+.content .labs-section .lab p,
+.content .principle p {
+  font-size: var(--masa-font-meta) !important;
+  line-height: 1.6 !important;
+}
+
+.content .now-five .now-head h2 {
+  font-variant-numeric: lining-nums proportional-nums;
+  font-feature-settings: "lnum" 1, "pnum" 1;
+}
+
 /* Existing Intelligence-list compatibility selectors. */
 .lead,
 .excerpt,
@@ -400,9 +435,9 @@ select {
 
 @media (max-width: 760px) {
   :root {
-    --masa-font-micro: 0.78rem;
-    --masa-font-meta: 0.84rem;
-    --masa-font-sm: 0.9rem;
+    --masa-font-micro: 0.84rem;
+    --masa-font-meta: 0.9rem;
+    --masa-font-sm: 0.95rem;
     --masa-font-body: 1rem;
   }
 
