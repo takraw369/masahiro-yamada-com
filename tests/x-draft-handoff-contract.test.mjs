@@ -41,3 +41,19 @@ test('Intelligence API reads the existing review-gated X publish_queue draft', a
   assert.match(migration, /'humanApproved'/);
   assert.match(migration, /'readyForPublish'/);
 });
+
+test('X draft v2 converts Intelligence into safe social copy instead of title plus WHY concatenation', async () => {
+  const migration = await readFile(new URL('../migrations/20260919_intelligence_x_copy_v2.sql', import.meta.url), 'utf8');
+
+  assert.match(migration, /masa_intelligence_refresh_x_copy_v2/);
+  assert.match(migration, /研究は「答え」ではなく、現場を見る角度を増やす材料/);
+  assert.match(migration, /一致する点、ズレる点、次に試すこと/);
+  assert.match(migration, /intelligence-x-copy-v2/);
+  assert.match(migration, /copy_mode/);
+  assert.match(migration, /deterministic_safe_template/);
+  assert.match(migration, /fact_check_required/);
+  assert.match(migration, /human_approved/);
+  assert.match(migration, /ready_for_publish/);
+  assert.match(migration, /return public\.masa_intelligence_refresh_x_copy_v2\(p_owner_key, p_id\)/);
+  assert.doesNotMatch(migration, /left\(concat_ws\(E'\\n\\n', v_hook, v_one_thing\), 280\)/);
+});
