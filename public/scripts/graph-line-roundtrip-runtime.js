@@ -13,6 +13,69 @@
   let pendingRequestId = '';
   let timeoutId = 0;
 
+  const isMobile = () => {
+    try { return window.matchMedia('(max-width: 760px)').matches; } catch { return window.innerWidth <= 760; }
+  };
+
+  const installMobileDock = () => {
+    if (!isMobile()) return;
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      const panel = document.getElementById('graph-line-knowledge-bridge');
+      const graphApp = document.querySelector('.graph-app');
+      if (!(panel instanceof HTMLElement) || !(graphApp instanceof HTMLElement)) {
+        if (attempts > 100) window.clearInterval(timer);
+        return;
+      }
+
+      window.clearInterval(timer);
+      if (!document.getElementById('glk-mobile-runtime-style')) {
+        const style = document.createElement('style');
+        style.id = 'glk-mobile-runtime-style';
+        style.textContent = `
+          @media(max-width:760px){
+            #graph-line-knowledge-bridge.glk-mobile-docked{
+              margin:12px 12px 16px!important;
+              padding:14px!important;
+              border:1px solid #d7c4a8!important;
+              border-radius:14px!important;
+              scroll-margin-top:12px;
+              box-shadow:0 12px 30px rgba(91,62,27,.09)!important;
+            }
+            #graph-line-knowledge-bridge.glk-mobile-docked .glk-mobile-cue{
+              margin:-2px 0 10px;
+              padding:8px 10px;
+              border-radius:9px;
+              background:#f8efe1;
+              color:#754a16;
+              font-size:13px;
+              font-weight:700;
+              line-height:1.45;
+            }
+            #graph-line-knowledge-bridge.glk-mobile-docked .glk-head h3{font-size:18px!important}
+            #graph-line-knowledge-bridge.glk-mobile-docked .glk-intro{font-size:14px!important;line-height:1.6!important}
+            #graph-line-knowledge-bridge.glk-mobile-docked .glk-results{max-height:230px}
+            #graph-line-knowledge-bridge.glk-mobile-docked .glk-candidate>p{font-size:14px!important;line-height:1.65!important}
+            #graph-line-knowledge-bridge.glk-mobile-docked .glk-actions button{min-height:46px!important;font-size:13px!important}
+            #graph-line-knowledge-bridge.glk-mobile-docked .glk-return{min-height:46px!important;font-size:13px!important}
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      panel.classList.add('glk-mobile-docked');
+      if (!panel.querySelector('.glk-mobile-cue')) {
+        const cue = document.createElement('div');
+        cue.className = 'glk-mobile-cue';
+        cue.textContent = 'LINEから開いています · 戻す文を選ぶ';
+        panel.prepend(cue);
+      }
+      graphApp.prepend(panel);
+      window.setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    }, 100);
+  };
+
   const ensureToast = () => {
     let toast = document.getElementById('glk-runtime-toast');
     if (toast) return toast;
@@ -142,4 +205,6 @@
     event.stopImmediatePropagation();
     returnToLine();
   }, true);
+
+  installMobileDock();
 })();

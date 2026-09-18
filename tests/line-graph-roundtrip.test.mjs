@@ -51,3 +51,13 @@ test('Graph runtime returns by opener or BroadcastChannel and visibly reports th
   assert.match(runtime, /LINE側の応答がありません/);
   assert.match(runtime, /window\.close\(\)/);
 });
+
+test('LINE-launched Graph prioritizes the roundtrip panel on mobile', async () => {
+  const runtime = await readFile(new URL('../public/scripts/graph-line-roundtrip-runtime.js', import.meta.url), 'utf8');
+
+  assert.match(runtime, /matchMedia\('\(max-width: 760px\)'\)/);
+  assert.match(runtime, /graphApp\.prepend\(panel\)/);
+  assert.match(runtime, /glk-mobile-docked/);
+  assert.match(runtime, /LINEから開いています · 戻す文を選ぶ/);
+  assert.match(runtime, /panel\.scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
+});
