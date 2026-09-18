@@ -10,6 +10,29 @@ type CuratorOperation = {
   removeTags?: string[];
 };
 
+type XPostDraftRequest = {
+  source: {
+    title?: string;
+    excerpt?: string;
+    topic?: string;
+    factType?: string;
+    whyItMatters?: string;
+    sourceClaim?: string;
+    sourceUrl?: string;
+  };
+  account: {
+    username: string;
+    name?: string;
+    profile?: string;
+    concept: string;
+    worldview: string;
+    audience: string;
+    tone: string;
+    pillars?: string[];
+    boundary: string;
+  };
+};
+
 interface FlowRunnerBinding {
   health(): Promise<unknown>;
   status(limit?: number): Promise<unknown>;
@@ -17,6 +40,7 @@ interface FlowRunnerBinding {
   raindropSearch(search: string, limit?: number): Promise<unknown>;
   raindropGet(ids: number[]): Promise<unknown>;
   raindropCurate(operations: CuratorOperation[]): Promise<unknown>;
+  generateXPostDraft(input: XPostDraftRequest): Promise<unknown>;
 }
 
 function json(body: unknown, status = 200) {
@@ -42,6 +66,69 @@ function cleanStringArray(value: unknown, max = 40): string[] | undefined | null
   if (!Array.isArray(value) || value.length > max) return null;
   if (!value.every((item) => typeof item === 'string' && item.trim().length > 0 && item.length <= 200)) return null;
   return [...new Set((value as string[]).map((item) => item.trim()))];
+}
+
+function cleanOptionalString(value: unknown, max: number): string | undefined | null {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value !== 'string' || value.length > max) return null;
+  return value.trim();
+}
+
+function cleanRequiredString(value: unknown, max: number): string | null {
+  if (typeof value !== 'string' || value.trim().length < 1 || value.length > max) return null;
+  return value.trim();
+}
+
+function xPostDraftInput(value: unknown): XPostDraftRequest | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const root = value as Record<string, unknown>;
+  if (!root.source || typeof root.source !== 'object' || Array.isArray(root.source)) return null;
+  if (!root.account || typeof root.account !== 'object' || Array.isArray(root.account)) return null;
+  const source = root.source as Record<string, unknown>;
+  const account = root.account as Record<string, unknown>;
+
+  const username = cleanRequiredString(account.username, 80);
+  const concept = cleanRequiredString(account.concept, 800);
+  const worldview = cleanRequiredString(account.worldview, 800);
+  const audience = cleanRequiredString(account.audience, 600);
+  const tone = cleanRequiredString(account.tone, 600);
+  const boundary = cleanRequiredString(account.boundary, 800);
+  if (!username || !concept || !worldview || !audience || !tone || !boundary) return null;
+
+  const name = cleanOptionalString(account.name, 200);
+  const profile = cleanOptionalString(account.profile, 1200);
+  const pillars = cleanStringArray(account.pillars, 8);
+  const title = cleanOptionalString(source.title, 1000);
+  const excerpt = cleanOptionalString(source.excerpt, 3000);
+  const topic = cleanOptionalString(source.topic, 200);
+  const factType = cleanOptionalString(source.factType, 100);
+  const whyItMatters = cleanOptionalString(source.whyItMatters, 1200);
+  const sourceClaim = cleanOptionalString(source.sourceClaim, 2000);
+  const sourceUrl = cleanOptionalString(source.sourceUrl, 2000);
+  if ([name, profile, title, excerpt, topic, factType, whyItMatters, sourceClaim, sourceUrl].some((item) => item === null) || pillars === null) return null;
+
+  return {
+    source: {
+      ...(title ? { title } : {}),
+      ...(excerpt ? { excerpt } : {}),
+      ...(topic ? { topic } : {}),
+      ...(factType ? { factType } : {}),
+      ...(whyItMatters ? { whyItMatters } : {}),
+      ...(sourceClaim ? { sourceClaim } : {}),
+      ...(sourceUrl ? { sourceUrl } : {}),
+    },
+    account: {
+      username: username.replace(/^@/, ''),
+      ...(name ? { name } : {}),
+      ...(profile ? { profile } : {}),
+      concept,
+      worldview,
+      audience,
+      tone,
+      ...(pillars ? { pillars } : {}),
+      boundary,
+    },
+  };
 }
 
 function curatorOperations(value: unknown): CuratorOperation[] | null {
@@ -117,6 +204,11 @@ export const POST = async ({ request }: APIContext) => {
 
   try {
     switch (body.action) {
+      case 'x.postDraft': {
+        const input = xPostDraftInput(body.input);
+        if (!input) return json({ ok: false, error: 'invalid_x_post_draft_input' }, 400);
+        return json({ ok: true, data: await flow.generateXPostDraft(input) });
+      }
       case 'raindrop.search': {
         const search = typeof body.search === 'string' ? body.search.trim() : '';
         if (!search || search.length > 240) return json({ ok: false, error: 'invalid_search' }, 400);

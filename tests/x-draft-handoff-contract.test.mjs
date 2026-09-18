@@ -57,3 +57,30 @@ test('X draft v2 converts Intelligence into safe social copy instead of title pl
   assert.match(migration, /return public\.masa_intelligence_refresh_x_copy_v2\(p_owner_key, p_id\)/);
   assert.doesNotMatch(migration, /left\(concat_ws\(E'\\n\\n', v_hook, v_one_thing\), 280\)/);
 });
+
+test('X Draft Shelf tries account-aware Flow Runner AI first and preserves deterministic v2 fallback', async () => {
+  const shelf = await readFile(new URL('../src/components/dashboard/PostDraftShelf.tsx', import.meta.url), 'utf8');
+  const automation = await readFile(new URL('../src/pages/api/dashboard/automation.ts', import.meta.url), 'utf8');
+  const accountOs = await readFile(new URL('../src/lib/xAccountPlaybook.ts', import.meta.url), 'utf8');
+  const playbook = await readFile(new URL('../src/components/dashboard/SocialAccountPlaybook.tsx', import.meta.url), 'utf8');
+
+  assert.match(shelf, /action: 'x\.postDraft'/);
+  assert.match(shelf, /concept: account\.concept/);
+  assert.match(shelf, /worldview: account\.worldview/);
+  assert.match(shelf, /audience: account\.audience/);
+  assert.match(shelf, /tone: account\.tone/);
+  assert.match(shelf, /boundary: account\.boundary/);
+  assert.match(shelf, /const draft = await getReviewDraft\(item\.id\)/);
+  assert.match(shelf, /mode: 'fallback'/);
+  assert.match(shelf, /事実確認とMASA Human Gate/);
+
+  assert.match(automation, /generateXPostDraft/);
+  assert.match(automation, /case 'x\.postDraft'/);
+  assert.match(automation, /invalid_x_post_draft_input/);
+  assert.match(automation, /await flow\.generateXPostDraft\(input\)/);
+
+  assert.match(accountOs, /X_ACCOUNT_PLAYBOOKS/);
+  assert.match(accountOs, /LAST_X_ACCOUNT_KEY/);
+  assert.match(playbook, /X_ACCOUNT_PLAYBOOKS/);
+  assert.doesNotMatch(playbook, /const ACCOUNTS:/);
+});
