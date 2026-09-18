@@ -1,0 +1,152 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const phases = [
+  ['TOUCH','01','触れる','ん？','まず止まってもらう','現象・意外性・日常','「これ、なんで？」を1つ置く','続きを見たくなる','現象を1つ切り出して投稿にする。'],
+  ['MIRROR','02','映す','俺も','自分事にしてもらう','体験・感情・失敗・あるある','「俺の場合はこうだった」から入る','自分の経験と重ね始める','自分の体験を1つ重ねる。'],
+  ['SHIFT','03','ずらす','待てよ？','前提を少し揺らす','問い・比較・逆転・別の見方','「本当に○○なん？」を投げる','今までの見方を疑い始める','前提を揺らす問いを1つ置く。'],
+  ['MAP','04','つなぐ','なるほど','構造を見せる','因果・歴史・科学・哲学・図解','点ではなく「どうつながるか」を見せる','自分の言葉で説明できる','因果や背景を3点以内でつなぐ。'],
+  ['QUEST','05','試す','やる','身体で確かめてもらう','観察・実験・ワーク・小さな挑戦','「今日これだけ試してみて」','実際に1回やってみる','今日できる小さな実験を1つ渡す。'],
+  ['PROOF','06','確かめる','変わった','変化を言語化する','結果・失敗・比較・振り返り・事例','「やったら何が起きた？」を回収する','変化の理由を振り返る','やった結果・失敗・感覚を回収する。'],
+  ['FLOW','07','渡す','伝えたい','循環へつなぐ','まとめ・教材・Quest・共創・参加導線','「次は誰に／どこへ渡す？」','誰かに共有・参加・共創する','学びをまとめ、次の問いか参加先へ渡す。'],
+];
+
+const themes = [
+  ['body','身体・食','感覚 → 観察 → 実験'],
+  ['education','教育・学習','違和感 → 好奇心 → 探究'],
+  ['sport','スポーツ・FLOW','体験 → 構造 → 再現'],
+  ['ai','AI','使い方 → 問い → 共創'],
+  ['philosophy','哲学・歴史','日常 → 語源 → 構造'],
+  ['society','社会・制度','現象 → 資料 → 複数視点'],
+];
+
+const week = [
+  ['月','TOUCH','現象を置く'],['火','MIRROR','体験を出す'],['水','SHIFT','前提をずらす'],
+  ['木','MAP','構造を見せる'],['金','QUEST','試してもらう'],['土','PROOF','結果を回収'],['日','FLOW','次へ渡す'],
+];
+---
+
+<DashboardLayout title="Content Flow" eyebrow="PUBLISHING OS">
+  <main class="flow-shell">
+    <header class="hero">
+      <div>
+        <p class="kicker">MASA CONTENT FLOW OS</p>
+        <h1>今どこ？ 次なに？</h1>
+        <p>「何を発信するか」より、相手をどの状態からどこへ動かすかを見る。</p>
+      </div>
+      <nav class="hero-actions">
+        <a href="/mind?action=capture">素材を残す</a>
+        <a class="dark" href="/dashboard/post">投稿を作る →</a>
+      </nav>
+    </header>
+
+    <section class="top-grid">
+      <article class="panel">
+        <label for="weekly-question">今週の問い</label>
+        <input id="weekly-question" placeholder="例：水分補給って、本当に水を飲むこと？" />
+        <small>1週間を「1テーマ」ではなく「1つの問い」でつなぐ。</small>
+      </article>
+      <article class="panel">
+        <span class="label">入口テーマ</span>
+        <div class="pills">
+          {themes.map(([id,label,hint]) => <button type="button" data-theme={id} data-hint={hint}>{label}</button>)}
+        </div>
+        <small id="theme-hint">入口を1つ選ぶ。出口はFLOWで合流。</small>
+      </article>
+    </section>
+
+    <section class="phase-block">
+      <div class="section-head">
+        <div><p class="kicker">PHASE</p><h2>今、相手はどこにいる？</h2></div>
+        <p>押したフェーズだけ見れば、次に何を出すか決まる。</p>
+      </div>
+      <div class="phase-rail">
+        {phases.map(([id,no,title,cue,purpose,output,template,exit,next], index) => (
+          <button type="button" class="phase" data-phase={id} data-no={no} data-title={title} data-purpose={purpose} data-output={output} data-template={template} data-exit={exit} data-next={next}>
+            <span>{no}</span><strong>{id}</strong><b>{title}</b><small>「{cue}」</small>{index < 6 && <i>→</i>}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <section class="now-grid">
+      <article class="now panel">
+        <div class="now-head"><span id="now-id" class="tag">TOUCH</span><span id="now-no">01</span></div>
+        <h2 id="now-title">触れる</h2>
+        <p id="now-purpose">まず止まってもらう</p>
+        <div class="guide-grid">
+          <div><span>今出すもの</span><strong id="now-output">現象・意外性・日常</strong></div>
+          <div><span>投稿の型</span><strong id="now-template">「これ、なんで？」を1つ置く</strong></div>
+          <div><span>次へ進むサイン</span><strong id="now-exit">続きを見たくなる</strong></div>
+        </div>
+        <div class="next-box"><span>今やること</span><strong id="now-next">現象を1つ切り出して投稿にする。</strong><a href="/dashboard/post">このフェーズで1本作る →</a></div>
+      </article>
+      <aside class="panel rule">
+        <p class="kicker">RULE</p><h3>迷ったら3問だけ。</h3>
+        <ol><li><b>誰が</b>見る？</li><li>今その人は<b>どの状態</b>？</li><li>見たあと<b>何が1つ変われば成功</b>？</li></ol>
+        <p>情報量ではなく「状態変化」で決める。</p>
+      </aside>
+    </section>
+
+    <section class="panel week-panel">
+      <div class="section-head compact"><div><p class="kicker">WEEK FLOW</p><h2>1週間の基本順</h2></div><a href="/dashboard/content-schedule">時間へ置く →</a></div>
+      <div class="week-grid">
+        {week.map(([day,phase,action], index) => <button type="button" data-day={index} data-jump={phase}><span>{day}</span><strong>{phase}</strong><small>{action}</small></button>)}
+      </div>
+      <small>曜日は固定ルールではない。反応が止まっているなら、そのフェーズをもう1回。</small>
+    </section>
+
+    <section class="panel inbox-panel">
+      <div class="section-head compact"><div><p class="kicker">MATERIAL INBOX</p><h2>ネタを「テーマ × フェーズ」で置く</h2></div><p>完成させず、そのまま置いてOK。</p></div>
+      <form id="material-form"><textarea id="material-text" rows="3" placeholder="例：絶対音感＝正解を当てる能力、だけではないかもしれない"></textarea><button>今のフェーズに置く</button></form>
+      <div id="material-list" class="materials"></div>
+    </section>
+
+    <footer><strong>体験 → 現象 → 違和感 → 問い → 構造 → Quest → 変化 → 共有 → 次の問い</strong><span>ファネルではなく、循環を育てる。</span></footer>
+  </main>
+</DashboardLayout>
+
+<script is:inline>
+(() => {
+  const key = 'masa-content-flow-v1';
+  const defaults = { phase:'TOUCH', theme:'body', question:'', materials:[] };
+  let state;
+  try { state = { ...defaults, ...JSON.parse(localStorage.getItem(key) || '{}') }; } catch { state = { ...defaults }; }
+  const save = () => localStorage.setItem(key, JSON.stringify(state));
+  const phases = [...document.querySelectorAll('[data-phase]')];
+  const themes = [...document.querySelectorAll('[data-theme]')];
+  const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value || ''; };
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function selectPhase(id) {
+    const b = phases.find(x => x.dataset.phase === id) || phases[0]; if (!b) return;
+    state.phase = b.dataset.phase || 'TOUCH'; save();
+    phases.forEach(x => x.classList.toggle('active', x === b));
+    ['no','title','purpose','output','template','exit','next'].forEach(k => setText('now-' + k, b.dataset[k]));
+    setText('now-id', b.dataset.phase);
+  }
+  function selectTheme(id) {
+    const b = themes.find(x => x.dataset.theme === id) || themes[0]; if (!b) return;
+    state.theme = b.dataset.theme || 'body'; save(); themes.forEach(x => x.classList.toggle('active', x === b)); setText('theme-hint', b.dataset.hint);
+  }
+  function render() {
+    const root = document.getElementById('material-list'); if (!root) return;
+    if (!state.materials.length) { root.innerHTML = '<p class="empty">まだ素材なし。思いつきを完成させず、そのまま置いてOK。</p>'; return; }
+    root.innerHTML = state.materials.map((m,i) => `<article><div><span>${esc(m.theme)}</span><b>${esc(m.phase)}</b></div><p>${esc(m.text)}</p><button type="button" data-remove="${i}">×</button></article>`).join('');
+    root.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => { state.materials.splice(Number(b.dataset.remove),1); save(); render(); });
+  }
+
+  phases.forEach(b => b.onclick = () => selectPhase(b.dataset.phase));
+  themes.forEach(b => b.onclick = () => selectTheme(b.dataset.theme));
+  document.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => selectPhase(b.dataset.jump));
+  const q = document.getElementById('weekly-question'); if (q) { q.value = state.question || ''; q.oninput = () => { state.question = q.value; save(); }; }
+  const form = document.getElementById('material-form'); const text = document.getElementById('material-text');
+  if (form && text) form.onsubmit = e => { e.preventDefault(); const value = text.value.trim(); if (!value) return; const theme = themes.find(x => x.dataset.theme === state.theme)?.textContent?.trim() || state.theme; state.materials.unshift({text:value,phase:state.phase,theme}); state.materials = state.materials.slice(0,30); text.value=''; save(); render(); };
+  const jsDay = new Date().getDay(); const today = jsDay === 0 ? 6 : jsDay - 1; document.querySelector(`[data-day="${today}"]`)?.classList.add('today');
+  selectPhase(state.phase); selectTheme(state.theme); render();
+})();
+</script>
+
+<style>
+.flow-shell{max-width:1280px;margin:auto;padding-bottom:48px;color:#20242a}.kicker{margin:0;color:var(--gold-muted);font-size:.72rem;letter-spacing:.12em;font-weight:800}.hero,.section-head,footer{display:flex;justify-content:space-between;gap:20px}.hero{align-items:end;margin-bottom:18px}.hero h1{margin:4px 0 8px;font-size:clamp(2.2rem,5vw,4.5rem);line-height:1;letter-spacing:-.05em}.hero>div>p:last-child,.section-head>p{color:#727b84}.hero-actions{display:flex;gap:8px}.hero-actions a,.section-head a{font-size:.82rem;font-weight:800;text-decoration:none}.hero-actions a{padding:12px 14px;border:1px solid #d9d3ca;background:#fff}.hero-actions .dark{background:#20242a;color:#fff}.panel{border:1px solid #ded9d1;background:#fff;padding:18px;box-shadow:0 14px 38px rgba(48,42,36,.045)}.top-grid,.now-grid{display:grid;gap:12px}.top-grid{grid-template-columns:1.15fr .85fr;margin-bottom:24px}.now-grid{grid-template-columns:minmax(0,1.6fr) minmax(260px,.55fr);margin:14px 0 24px}.label,label{display:block;color:#8b5b2c;font-size:.72rem;font-weight:800;letter-spacing:.08em}.panel input{width:100%;padding:12px 0 9px;border:0;border-bottom:1px solid #cbc4ba;outline:0;font:inherit;font-size:1.15rem;font-weight:700}.panel small{display:block;margin-top:8px;color:#7d858d}.pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.pills button{padding:7px 10px;border:1px solid #ded9d1;background:#faf9f7;color:#626b74}.pills button.active{background:#f4eadc;border-color:#b68a51;color:#754a16;font-weight:800}.section-head{align-items:end;margin-bottom:12px}.section-head.compact{align-items:center}.section-head h2{margin:3px 0 0;font-size:clamp(1.3rem,3vw,2rem)}.phase-rail{display:grid;grid-template-columns:repeat(7,minmax(112px,1fr));overflow-x:auto;border:1px solid #ded9d1;background:#fbfaf8}.phase{position:relative;min-height:132px;padding:15px 13px;border:0;border-right:1px solid #e3ded6;background:transparent;text-align:left;color:#68717b}.phase.active{background:#20242a;color:#fff}.phase span,.phase strong,.phase b,.phase small{display:block}.phase span{font-size:.68rem;opacity:.65}.phase strong{margin-top:10px;font-size:.72rem}.phase b{margin-top:2px;font-size:1.05rem}.phase small{margin-top:8px;color:inherit}.phase i{position:absolute;right:-7px;top:50%;z-index:2;font-style:normal}.now{padding:26px;background:linear-gradient(145deg,#fff 70%,#f5f0e8)}.now-head{display:flex;justify-content:space-between;color:#9a9185}.tag{padding:5px 8px;background:#20242a;color:#fff;font-size:.72rem;font-weight:800}.now h2{margin:16px 0 6px;font-size:clamp(2rem,4vw,4rem);line-height:1}.guide-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}.guide-grid>div{padding:14px;border:1px solid #e1ddd6}.guide-grid span,.next-box span{display:block;color:#8b5b2c;font-size:.7rem;font-weight:800}.guide-grid strong{display:block;margin-top:7px;font-size:.88rem;line-height:1.55}.next-box{margin-top:12px;padding:16px;background:#20242a;color:#fff}.next-box strong{display:block;margin-top:5px}.next-box a{display:inline-block;margin-top:12px;color:#f2d6aa;font-size:.8rem;font-weight:800;text-decoration:none}.rule ol{padding-left:1.2rem;color:#5f6872}.rule li{margin:12px 0}.week-panel,.inbox-panel{margin-top:14px}.week-grid{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid #e1ddd6}.week-grid button{min-height:104px;padding:12px 10px;border:0;border-right:1px solid #e7e2db;background:#fff;text-align:left;color:#68717b}.week-grid button.today{background:#f7f1e7}.week-grid span,.week-grid strong,.week-grid small{display:block}.week-grid span{color:#8b5b2c;font-weight:800}.week-grid strong{margin-top:10px;font-size:.8rem}.inbox-panel form{display:grid;grid-template-columns:1fr auto;gap:8px}.inbox-panel textarea{padding:13px;border:1px solid #d9d3ca;background:#fbfaf8;font:inherit;resize:vertical}.inbox-panel form button{min-width:150px;border:0;background:#20242a;color:#fff;font-weight:800}.materials{display:grid;gap:7px;margin-top:12px}.materials article{position:relative;padding:12px 42px 12px 13px;border:1px solid #e2ddd5}.materials article div{display:flex;gap:6px}.materials article span,.materials article b{padding:3px 6px;background:#f3efe8;color:#765b36;font-size:.68rem}.materials article p{margin:7px 0 0}.materials article>button{position:absolute;right:9px;top:9px;border:1px solid #ddd7cf;background:#fff}.empty{color:#8a9199}footer{margin-top:18px;padding:16px 2px;color:#757e87;font-size:.78rem}footer strong{color:#4d555e}@media(max-width:900px){.hero,.section-head,footer{align-items:flex-start;flex-direction:column}.top-grid,.now-grid{grid-template-columns:1fr}.phase-rail{grid-template-columns:repeat(7,minmax(132px,1fr))}.guide-grid{grid-template-columns:1fr}.week-grid{grid-template-columns:repeat(7,minmax(105px,1fr));overflow-x:auto}}@media(max-width:620px){.hero-actions{width:100%}.hero-actions a{flex:1;text-align:center}.panel,.now{padding:16px}.inbox-panel form{grid-template-columns:1fr}.inbox-panel form button{min-height:46px}}
+</style>
