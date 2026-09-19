@@ -61,3 +61,10 @@ test('LINE-launched Graph prioritizes the roundtrip panel on mobile', async () =
   assert.match(runtime, /LINEから開いています · 戻す文を選ぶ/);
   assert.match(runtime, /panel\.scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
 });
+
+test('Dashboard layout self-loads Graph roundtrip scripts for Safari-safe startup', async () => {
+  const layout = await readFile(new URL('../src/layouts/DashboardLayout.astro', import.meta.url), 'utf8');
+
+  assert.match(layout, /<script is:inline src="\/scripts\/graph-line-knowledge-bridge\.js"><\/script>/);
+  assert.match(layout, /<script is:inline src="\/scripts\/graph-line-roundtrip-runtime\.js"><\/script>/);
+});
