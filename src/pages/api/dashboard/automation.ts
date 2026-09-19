@@ -33,6 +33,8 @@ type XPostDraftRequest = {
   };
 };
 
+const CANONICAL_WRITE_CONFIRMATION = 'CONFIRM_ONE_CANONICAL_WRITE';
+
 interface FlowRunnerBinding {
   health(): Promise<unknown>;
   status(limit?: number): Promise<unknown>;
@@ -40,6 +42,8 @@ interface FlowRunnerBinding {
   raindropSearch(search: string, limit?: number): Promise<unknown>;
   raindropGet(ids: number[]): Promise<unknown>;
   raindropCurate(operations: CuratorOperation[]): Promise<unknown>;
+  canonicalAssetPreview(sourceId: number): Promise<unknown>;
+  canonicalAssetWrite(sourceId: number, confirmation: string): Promise<unknown>;
   generateXPostDraft(input: XPostDraftRequest): Promise<unknown>;
 }
 
@@ -53,6 +57,10 @@ function json(body: unknown, status = 200) {
 function runner(): FlowRunnerBinding | null {
   const env = workerEnv as unknown as { FLOW_RUNNER?: FlowRunnerBinding };
   return env.FLOW_RUNNER ?? null;
+}
+
+function positiveInteger(value: unknown): number | null {
+  return Number.isInteger(value) && (value as number) > 0 ? value as number : null;
 }
 
 function integerArray(value: unknown, max = 150): number[] | null {
@@ -225,6 +233,20 @@ export const POST = async ({ request }: APIContext) => {
         const operations = curatorOperations(body.operations);
         if (!operations) return json({ ok: false, error: 'invalid_operations' }, 400);
         return json({ ok: true, data: await flow.raindropCurate(operations) });
+      }
+      case 'canonical.preview': {
+        const sourceId = positiveInteger(body.sourceId);
+        if (!sourceId) return json({ ok: false, error: 'invalid_source_id' }, 400);
+        return json({ ok: true, data: await flow.canonicalAssetPreview(sourceId) });
+      }
+      case 'canonical.write': {
+        const sourceId = positiveInteger(body.sourceId);
+        if (!sourceId) return json({ ok: false, error: 'invalid_source_id' }, 400);
+        const confirmation = typeof body.confirmation === 'string' ? body.confirmation : '';
+        if (confirmation !== CANONICAL_WRITE_CONFIRMATION) {
+          return json({ ok: false, error: 'canonical_human_gate_required' }, 400);
+        }
+        return json({ ok: true, data: await flow.canonicalAssetWrite(sourceId, confirmation) });
       }
       case 'workflow.run': {
         const workflowId = typeof body.workflowId === 'string' ? body.workflowId.trim() : '';
