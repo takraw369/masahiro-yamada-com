@@ -7,6 +7,23 @@ import XCommandCenter from '../../components/dashboard/XCommandCenter';
 import '../../styles/masa-readable.css';
 ---
 <DashboardLayout title="X Post">
+  <section class="publishing-handoff" id="publishing-handoff" hidden>
+    <div class="handoff-head">
+      <div><span>PUBLISHING FLOW HANDOFF</span><strong id="handoff-core">Core未選択</strong></div>
+      <a href="/dashboard/content-flow">Flowへ戻る ↗</a>
+    </div>
+    <div class="handoff-grid">
+      <div><span>PHASE</span><strong id="handoff-phase">—</strong></div>
+      <div><span>AUDIENCE</span><strong id="handoff-audience">—</strong></div>
+      <div><span>CHANNEL</span><strong id="handoff-channel">—</strong></div>
+      <div><span>CTA</span><strong id="handoff-cta">—</strong></div>
+    </div>
+    <div class="handoff-actions">
+      <p id="handoff-question"></p>
+      <button type="button" id="handoff-to-composer">この骨格をComposerへ</button>
+    </div>
+  </section>
+
   <SocialAccountPlaybook client:load />
   <PostDraftShelf client:load />
   <CopyOsReference surface="X" />
@@ -15,6 +32,16 @@ import '../../styles/masa-readable.css';
 
 <script>
   type ComposeDetail = { username?: string; text?: string };
+  type PublishingHandoff = {
+    phase?: string;
+    theme?: string;
+    question?: string;
+    coreId?: string;
+    coreTitle?: string;
+    audience?: string;
+    channel?: string;
+    cta?: string;
+  };
 
   function handoffToComposer(detail: ComposeDetail, remaining = 15) {
     const textarea = Array.from(document.querySelectorAll('textarea')).find((node) =>
@@ -50,7 +77,53 @@ import '../../styles/masa-readable.css';
     textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  function text(id: string, value?: string) {
+    const node = document.getElementById(id);
+    if (node) node.textContent = value?.trim() || '—';
+  }
+
+  function renderPublishingHandoff() {
+    let handoff: PublishingHandoff | null = null;
+    try { handoff = JSON.parse(localStorage.getItem('masa-publishing-handoff-v1') || 'null'); } catch {}
+    if (!handoff) return;
+
+    const root = document.getElementById('publishing-handoff');
+    if (!root) return;
+    root.hidden = false;
+
+    const core = [handoff.coreId, handoff.coreTitle].filter(Boolean).join(' · ') || handoff.question || 'Core未選択';
+    text('handoff-core', core);
+    text('handoff-phase', handoff.phase);
+    text('handoff-audience', handoff.audience);
+    text('handoff-channel', handoff.channel);
+    text('handoff-cta', handoff.cta);
+    text('handoff-question', handoff.question ? `今週の問い：${handoff.question}` : '');
+
+    const button = document.getElementById('handoff-to-composer');
+    button?.addEventListener('click', () => {
+      const scaffold = [
+        handoff.coreTitle || handoff.question || '',
+        '',
+        `Phase: ${handoff.phase || '未決定'} / Theme: ${handoff.theme || '未決定'}`,
+        handoff.audience ? `Audience: ${handoff.audience}` : '',
+        handoff.cta ? `CTA: ${handoff.cta}` : '',
+      ].filter((line, index) => line || index === 1).join('\n');
+      window.dispatchEvent(new CustomEvent('masa:x-compose', { detail: { text: scaffold } }));
+    });
+  }
+
   window.addEventListener('masa:x-compose', (event) => {
     handoffToComposer((event as CustomEvent<ComposeDetail>).detail ?? {});
   });
+
+  renderPublishingHandoff();
 </script>
+
+<style>
+  .publishing-handoff{margin-bottom:18px;padding:16px;border:1px solid #d8d1c6;border-left:4px solid #a56c22;background:linear-gradient(135deg,#fff 70%,#f5eee4);box-shadow:0 12px 34px rgba(42,35,27,.04)}
+  .handoff-head,.handoff-actions{display:flex;align-items:center;justify-content:space-between;gap:16px}.handoff-head span,.handoff-grid span{display:block;color:#8b5b2c;font-size:.66rem;letter-spacing:.1em;font-weight:800}.handoff-head strong{display:block;margin-top:3px;font-size:1rem}.handoff-head a{font-size:.76rem;font-weight:800;text-decoration:none}
+  .handoff-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.handoff-grid>div{padding:10px;border:1px solid #e2ddd5;background:rgba(255,255,255,.8)}.handoff-grid strong{display:block;margin-top:4px;font-size:.76rem;line-height:1.45}
+  .handoff-actions{margin-top:12px}.handoff-actions p{color:#69727c;font-size:.78rem}.handoff-actions button{min-height:40px;padding:0 12px;border:0;background:#20242a;color:#fff;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer}
+  @media(max-width:780px){.handoff-grid{grid-template-columns:repeat(2,1fr)}.handoff-actions{align-items:stretch;flex-direction:column}.handoff-actions button{width:100%}}
+  @media(max-width:520px){.handoff-head{align-items:flex-start;flex-direction:column}.handoff-grid{grid-template-columns:1fr}}
+</style>
