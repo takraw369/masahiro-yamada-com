@@ -8,6 +8,7 @@
 
   const GRAPH_SELECTION = 'masa:line-graph-selection';
   const GRAPH_RESULT = 'masa:line-graph-result';
+  const GRAPH_CLOSE = 'masa:line-graph-close';
   const GRAPH_CHANNEL = 'masa-line-graph-roundtrip-v1';
   const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(GRAPH_CHANNEL) : null;
   let pendingRequestId = '';
@@ -15,6 +16,9 @@
 
   const isMobile = () => {
     try { return window.matchMedia('(max-width: 760px)').matches; } catch { return window.innerWidth <= 760; }
+  };
+  const isEmbedded = () => {
+    try { return window.parent && window.parent !== window; } catch { return false; }
   };
 
   const installMobileDock = () => {
@@ -118,6 +122,10 @@
   };
 
   const returnToLine = () => {
+    if (isEmbedded()) {
+      try { window.parent.postMessage({ type: GRAPH_CLOSE }, window.location.origin); } catch {}
+      return;
+    }
     try { window.opener?.focus?.(); } catch {}
     window.setTimeout(() => {
       try { window.close(); } catch {}
@@ -158,6 +166,12 @@
     showToast('LINEの選択中Stepへ送信中…');
     let sent = false;
     try {
+      if (isEmbedded()) {
+        window.parent.postMessage(payload, window.location.origin);
+        sent = true;
+      }
+    } catch {}
+    try {
       if (window.opener && !window.opener.closed) {
         window.opener.postMessage(payload, window.location.origin);
         sent = true;
@@ -172,14 +186,14 @@
 
     if (!sent) {
       clearPending();
-      showToast('LINEタブへ接続できません。LINE Flowを開いたままGraphへ入り直してください', 'bad');
+      showToast('LINEへ接続できません。LINE FlowからGraphを開き直してください', 'bad');
       return;
     }
 
     timeoutId = window.setTimeout(() => {
       if (pendingRequestId !== requestId) return;
       clearPending();
-      showToast('LINE側の応答がありません。LINEタブを開いたまま再度試してください', 'bad');
+      showToast('LINE側の応答がありません。LINE FlowからGraphを開き直してください', 'bad');
     }, 4500);
   };
 
