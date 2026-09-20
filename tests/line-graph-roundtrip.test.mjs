@@ -75,3 +75,10 @@ test('mobile LINE opens Graph in an in-page iframe overlay instead of relying on
   assert.match(runtime, /window\.parent && window\.parent !== window/);
   assert.match(runtime, /window\.parent\.postMessage\(\{ type: GRAPH_CLOSE \}/);
 });
+
+test('Dashboard layout self-loads Graph roundtrip scripts for Safari-safe startup', async () => {
+  const layout = await readFile(new URL('../src/layouts/DashboardLayout.astro', import.meta.url), 'utf8');
+
+  assert.match(layout, /<script is:inline src="\/scripts\/graph-line-knowledge-bridge\.js"><\/script>/);
+  assert.match(layout, /<script is:inline src="\/scripts\/graph-line-roundtrip-runtime\.js"><\/script>/);
+});
