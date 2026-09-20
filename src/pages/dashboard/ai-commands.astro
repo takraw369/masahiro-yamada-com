@@ -2,7 +2,7 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { aiCommandCards, aiCommandSources } from '../../data/aiCommandLibrary';
 
-const categories = ['ALL', 'CORE', 'THINK', 'TEACH', 'VERIFY', 'CREATE', 'ACT', 'CANVA'] as const;
+const categories = ['ALL', 'CORE', 'CONTENT', 'RESEARCH', 'PRODUCT', 'VIDEO', 'VISUAL', 'CANVA', 'THINK', 'VERIFY', 'TEACH', 'ACT', 'CREATE'] as const;
 const sourceHref = (source: string) => {
   if (source === 'PROMPT_OS') return aiCommandSources.promptOs;
   if (source === 'Brand Identity OS + VISUAL_PROMPT_LIBRARY') return aiCommandSources.brandOs;
@@ -16,7 +16,7 @@ const sourceHref = (source: string) => {
       <div>
         <p class="kicker">AI COMMAND LIBRARY · DRIVE DERIVED</p>
         <h1>書くより、選ぶ。</h1>
-        <p class="lead">Driveで資産化したAI向け指示を、いまの目的から選ぶための操作面。長いPromptを覚えず、カードを選んで対象だけ足す。</p>
+        <p class="lead">Driveで資産化したAI向け指示を、目的から選ぶ操作面。発信・Research・商品化・動画・Visual・Canvaまで、長いPromptを覚えずカードから使う。</p>
       </div>
       <div class="source-stack" aria-label="Drive source of truth">
         <span>SOURCE OF TRUTH</span>
@@ -24,6 +24,10 @@ const sourceHref = (source: string) => {
         <a href={aiCommandSources.promptOs} target="_blank" rel="noopener noreferrer">PROMPT_OS ↗</a>
       </div>
     </header>
+
+    <section class="lane-strip" aria-label="Main command lanes">
+      <span>発信</span><b>→</b><span>Research</span><b>→</b><span>商品</span><b>→</b><span>Video</span><b>→</b><span>Visual</span><b>→</b><span>Canva</span>
+    </section>
 
     <section class="composer" aria-labelledby="composer-title">
       <div class="composer-head">
@@ -52,7 +56,7 @@ const sourceHref = (source: string) => {
           <button class:list={['filter-chip', category === 'ALL' && 'is-active']} type="button" data-filter={category}>{category}</button>
         ))}
       </div>
-      <p class="result-line"><strong id="visible-count">{aiCommandCards.length}</strong> commands · ACTIVEを入口に、必要な時だけExtendedへ。</p>
+      <p class="result-line"><strong id="visible-count">{aiCommandCards.length}</strong> commands · Drive sync 2026-09-20 · ACTIVEを入口に必要な時だけExtendedへ。</p>
     </section>
 
     <section class="cards-section" aria-labelledby="cards-title">
@@ -67,7 +71,7 @@ const sourceHref = (source: string) => {
       <div class="command-grid" id="command-grid">
         {aiCommandCards.map((card) => (
           <article
-            class:list={['command-card', card.tier === 'ACTIVE' && 'is-active-tier', card.category === 'CANVA' && 'is-canva']}
+            class:list={['command-card', card.tier === 'ACTIVE' && 'is-active-tier', card.category === 'CANVA' && 'is-canva', card.category === 'VISUAL' && 'is-visual']}
             data-card
             data-category={card.category}
             data-search={`${card.label} ${card.summary} ${card.command} ${card.category}`.toLowerCase()}
@@ -223,11 +227,12 @@ const sourceHref = (source: string) => {
 <style>
   .library-shell{--panel:#fff;--line:#e3dfd8;--muted:#747d86;--ink:#272b30;max-width:1240px;margin:0 auto;padding-bottom:48px;min-width:0}
   .kicker{margin:0;color:var(--gold-muted);font-size:.68rem;letter-spacing:.13em;font-weight:800}
-  .hero{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;margin-bottom:22px}
+  .hero{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;margin-bottom:14px}
   .hero h1{margin:4px 0 0;font-size:clamp(2.25rem,5vw,4.2rem);line-height:.96;letter-spacing:-.045em;font-weight:500}
-  .lead{max-width:720px;margin-top:13px;color:var(--muted);font-size:.94rem;line-height:1.8}
+  .lead{max-width:760px;margin-top:13px;color:var(--muted);font-size:.94rem;line-height:1.8}
   .source-stack{flex:0 0 190px;display:grid;gap:5px;padding:13px 15px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.68)}
   .source-stack span{color:#9b8d7a;font-size:.6rem;letter-spacing:.12em;font-weight:800}.source-stack a,.section-head a,.detail-actions a,.canva-links a{color:#8b5b2c;font-size:.68rem;text-decoration:none;overflow-wrap:anywhere}
+  .lane-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:9px 12px;border:1px solid #e5e0d9;border-radius:12px;background:rgba(255,255,255,.56);color:#7b838b;font-size:.66rem}.lane-strip span{font-weight:800}.lane-strip b{color:#c0b4a5;font-weight:500}
 
   .composer{scroll-margin-top:90px;padding:20px;border:1px solid #d6c7b4;border-radius:20px;background:linear-gradient(145deg,#fffdf9,#f7f1e8);box-shadow:0 14px 40px rgba(74,58,38,.055)}
   .composer-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:14px}.composer h2,.section-head h2,.canva-note h2{margin:3px 0 0;font-size:1.05rem}
@@ -239,14 +244,14 @@ const sourceHref = (source: string) => {
   .controls{margin-top:18px;padding:14px 0 4px}.search-wrap{position:relative;max-width:520px}.search-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#969da3}.search-wrap input{box-sizing:border-box;width:100%;min-width:0;height:42px;padding:0 14px 0 35px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:.78rem;outline:none}.search-wrap input:focus{border-color:#b18b5f;box-shadow:0 0 0 3px rgba(177,139,95,.08)}
   .filter-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.filter-chip{padding:7px 10px;border:1px solid #dfdcd6;border-radius:999px;background:rgba(255,255,255,.68);color:#7b8288;font-size:.62rem;font-weight:800;letter-spacing:.04em}.filter-chip.is-active{border-color:#aa8352;background:#2f3133;color:#fff}.result-line{margin:9px 0 0;color:#92989e;font-size:.64rem}.result-line strong{color:#625442}
 
-  .cards-section{margin-top:18px}.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:11px}.command-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.command-card{box-sizing:border-box;min-width:0;padding:14px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.78);box-shadow:0 8px 24px rgba(45,41,36,.025);transition:transform .16s,border-color .16s,box-shadow .16s}.command-card:hover{transform:translateY(-2px);border-color:#cfc3b3;box-shadow:0 12px 30px rgba(45,41,36,.055)}.command-card.is-active-tier{background:#fff}.command-card.is-canva{border-color:#d8c9b4}.command-card.is-selected{border-color:#8e642f;box-shadow:0 0 0 2px rgba(142,100,47,.11),0 12px 30px rgba(45,41,36,.055)}
-  .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.tag-row{display:flex;flex-wrap:wrap;gap:5px;min-width:0}.category-tag,.tier-tag{padding:4px 6px;border-radius:6px;font-size:.52rem;letter-spacing:.07em;font-weight:900}.category-tag{background:#f1ece5;color:#7b5d39}.tier-tag{background:#f3f4f5;color:#8a9198}.is-active-tier .tier-tag{background:#2f3133;color:#fff}.is-canva .category-tag{background:#eee5d8;color:#79572d}
+  .cards-section{margin-top:18px}.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:11px}.command-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.command-card{box-sizing:border-box;min-width:0;padding:14px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.78);box-shadow:0 8px 24px rgba(45,41,36,.025);transition:transform .16s,border-color .16s,box-shadow .16s}.command-card:hover{transform:translateY(-2px);border-color:#cfc3b3;box-shadow:0 12px 30px rgba(45,41,36,.055)}.command-card.is-active-tier{background:#fff}.command-card.is-canva{border-color:#d8c9b4}.command-card.is-visual{border-color:#cfd7dd}.command-card.is-selected{border-color:#8e642f;box-shadow:0 0 0 2px rgba(142,100,47,.11),0 12px 30px rgba(45,41,36,.055)}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.tag-row{display:flex;flex-wrap:wrap;gap:5px;min-width:0}.category-tag,.tier-tag{padding:4px 6px;border-radius:6px;font-size:.52rem;letter-spacing:.07em;font-weight:900}.category-tag{background:#f1ece5;color:#7b5d39}.tier-tag{background:#f3f4f5;color:#8a9198}.is-active-tier .tier-tag{background:#2f3133;color:#fff}.is-canva .category-tag{background:#eee5d8;color:#79572d}.is-visual .category-tag{background:#e9eef1;color:#536c7a}
   .select-button{flex-shrink:0;padding:6px 9px;border:1px solid #d9d4cd;border-radius:8px;background:#fff;color:#5e6266;font-size:.64rem;font-weight:800}.select-button:hover{border-color:#a77d49;color:#7f5727}.command-card h3{margin:14px 0 0;color:var(--ink);font-size:.93rem;line-height:1.25;overflow-wrap:anywhere}.summary{min-height:40px;margin:6px 0 0;color:var(--muted);font-size:.72rem;line-height:1.55;overflow-wrap:anywhere}
   .command-card details{margin-top:12px;border-top:1px solid #ebe8e3}.command-card summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;cursor:pointer;list-style:none;color:#7d6d59;font-size:.65rem;font-weight:700}.command-card summary::-webkit-details-marker{display:none}.command-card details[open] summary span{transform:rotate(45deg)}.command-card pre{margin:10px 0 0;padding:10px;border-radius:9px;background:#f6f4f1;color:#555c62;font-family:inherit;font-size:.67rem;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}.detail-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}.detail-actions button{padding:0;border:0;background:transparent;color:#8b5b2c;font-size:.64rem;font-weight:800}.empty-state{padding:42px 18px;text-align:center;border:1px dashed #d8d3cb;border-radius:14px;color:#8c9399;font-size:.78rem}
 
   .canva-note{display:grid;grid-template-columns:minmax(200px,.8fr) minmax(280px,1.5fr) auto;align-items:center;gap:22px;margin-top:20px;padding:18px;border:1px solid #dcd1c2;border-radius:17px;background:#f7f1e8}.canva-note>p{margin:0;color:#6e747a;font-size:.72rem;line-height:1.65}.canva-links{display:grid;gap:5px;justify-items:end;min-width:0}
 
   @media(max-width:960px){.command-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.canva-note{grid-template-columns:1fr}.canva-links{justify-items:start}}
-  @media(max-width:660px){.hero,.composer-head,.section-head{align-items:flex-start;flex-direction:column}.source-stack{box-sizing:border-box;width:100%;flex-basis:auto}.command-grid{grid-template-columns:1fr}.composer{padding:15px}.composer-actions{display:grid;grid-template-columns:1fr auto}.copy-primary{width:100%}#selected-badge{max-width:100%}.summary{min-height:0}.filter-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.filter-chip{flex-shrink:0}.canva-note{gap:12px}.section-head a{align-self:flex-start}}
+  @media(max-width:660px){.hero,.composer-head,.section-head{align-items:flex-start;flex-direction:column}.source-stack{box-sizing:border-box;width:100%;flex-basis:auto}.lane-strip{flex-wrap:nowrap;overflow-x:auto}.lane-strip span,.lane-strip b{flex-shrink:0}.command-grid{grid-template-columns:1fr}.composer{padding:15px}.composer-actions{display:grid;grid-template-columns:1fr auto}.copy-primary{width:100%}#selected-badge{max-width:100%}.summary{min-height:0}.filter-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.filter-chip{flex-shrink:0}.canva-note{gap:12px}.section-head a{align-self:flex-start}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 </style>
