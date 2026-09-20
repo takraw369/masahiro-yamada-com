@@ -40,10 +40,11 @@ test('Graph bridge searches Knowledge and exposes LINE return actions', async ()
   assert.match(graphBridge, /data-node="N017"/);
 });
 
-test('Graph runtime returns by opener or BroadcastChannel and visibly reports the result', async () => {
+test('Graph runtime returns by opener, parent, or BroadcastChannel and visibly reports the result', async () => {
   const runtime = await readFile(new URL('../public/scripts/graph-line-roundtrip-runtime.js', import.meta.url), 'utf8');
 
   assert.match(runtime, /new BroadcastChannel\(GRAPH_CHANNEL\)/);
+  assert.match(runtime, /window\.parent\.postMessage\(payload/);
   assert.match(runtime, /window\.opener\.postMessage/);
   assert.match(runtime, /channel\.postMessage/);
   assert.match(runtime, /stopImmediatePropagation/);
@@ -60,6 +61,19 @@ test('LINE-launched Graph prioritizes the roundtrip panel on mobile', async () =
   assert.match(runtime, /glk-mobile-docked/);
   assert.match(runtime, /LINEから開いています · 戻す文を選ぶ/);
   assert.match(runtime, /panel\.scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
+});
+
+test('mobile LINE opens Graph in an in-page iframe overlay instead of relying on a child tab', async () => {
+  const bridge = await readFile(new URL('../public/scripts/line-flow-asset-bridge.js', import.meta.url), 'utf8');
+  const runtime = await readFile(new URL('../public/scripts/graph-line-roundtrip-runtime.js', import.meta.url), 'utf8');
+
+  assert.match(bridge, /GRAPH_OVERLAY_ID/);
+  assert.match(bridge, /document\.createElement\('iframe'\)/);
+  assert.match(bridge, /frame\.addEventListener\('load', \(\) => injectGraphBridge\(frame\.contentWindow\)\)/);
+  assert.match(bridge, /if \(isMobile\(\)\) \{\s*openGraphOverlay\(url\)/);
+  assert.match(bridge, /masa:line-graph-close/);
+  assert.match(runtime, /window\.parent && window\.parent !== window/);
+  assert.match(runtime, /window\.parent\.postMessage\(\{ type: GRAPH_CLOSE \}/);
 });
 
 test('Dashboard layout self-loads Graph roundtrip scripts for Safari-safe startup', async () => {
