@@ -20,6 +20,11 @@ When the same class of learning appears twice:
 
 ## Current learnings
 
+### 2026-09-21 — Dashboard narrow-desktop width
+- Corrected: `/dashboard` で固定サイドバーを残したまま狭いデスクトップ幅に入ると、Cockpitカードが横にはみ出して表示が崩れた。
+- Cause: レスポンシブ判定をviewport幅だけで考え、220pxの固定サイドバーを差し引いた実際の本文幅を十分に確保していなかった。
+- Rule: Dashboard系UIは「viewport幅」ではなく「sidebar + content paddingを差し引いた本文の実効幅」で判断する。狭いデスクトップではsidebarを早めにdrawer化し、横スクロールを発生させない。
+
 ### 2026-09-18 — Material creation human gate
 - Corrected: MASAに教材をゼロから作らせず、AIが既存知識から初稿と編集候補を先に作り、MASAは本人の言葉・実例・判断が必要な箇所だけ編集して承認する。
 - Cause: 「完成教材をINBOXへ入れる」を人間の作業に残すと、生成能力があるのに制作の最重工程がMASAへ戻ってしまう。
