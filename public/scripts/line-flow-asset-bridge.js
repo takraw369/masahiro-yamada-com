@@ -3,11 +3,13 @@
   const RESULT = 'masa:line-flow-asset-result';
   const GRAPH_SELECTION = 'masa:line-graph-selection';
   const GRAPH_RESULT = 'masa:line-graph-result';
+  const GRAPH_CLOSE = 'masa:line-graph-close';
   const GRAPH_CHANNEL = 'masa-line-graph-roundtrip-v1';
   const GRAPH_SCRIPT_ID = 'masa-line-graph-knowledge-bridge';
   const GRAPH_SCRIPT_SRC = '/scripts/graph-line-knowledge-bridge.js';
   const GRAPH_RUNTIME_ID = 'masa-line-graph-roundtrip-runtime';
   const GRAPH_RUNTIME_SRC = '/scripts/graph-line-roundtrip-runtime.js';
+  const GRAPH_OVERLAY_ID = 'masa-line-graph-overlay';
   const processedGraphRequests = new Set();
   const graphChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(GRAPH_CHANNEL) : null;
 
@@ -18,6 +20,9 @@
   const messageField = () => document.querySelector('.inspect textarea');
   const addButton = () => document.querySelector('.add');
   const selectedStepId = () => document.querySelector('.step.sel')?.closest('.step-shell')?.dataset?.stepId || '';
+  const isMobile = () => {
+    try { return window.matchMedia('(max-width: 760px)').matches; } catch { return window.innerWidth <= 760; }
+  };
 
   const setNativeValue = (field, value) => {
     const descriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
@@ -109,10 +114,61 @@
     }, 120);
   };
 
+  const closeGraphOverlay = () => {
+    const overlay = document.getElementById(GRAPH_OVERLAY_ID);
+    if (overlay) overlay.remove();
+    document.documentElement.style.removeProperty('overflow');
+    document.body.style.removeProperty('overflow');
+  };
+
+  const openGraphOverlay = (url) => {
+    closeGraphOverlay();
+    const overlay = document.createElement('div');
+    overlay.id = GRAPH_OVERLAY_ID;
+    Object.assign(overlay.style, {
+      position: 'fixed', inset: '0', zIndex: '2147483000', background: '#f3f1ed',
+      display: 'grid', gridTemplateRows: '52px minmax(0,1fr)', height: '100dvh', width: '100vw',
+    });
+
+    const bar = document.createElement('div');
+    Object.assign(bar.style, {
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+      padding: 'max(8px, env(safe-area-inset-top)) 12px 8px', background: '#fbfaf8',
+      borderBottom: '1px solid #d8d4cd', color: '#24282c', fontSize: '14px', fontWeight: '700',
+    });
+    const title = document.createElement('span');
+    title.textContent = 'LINE ⇄ KNOWLEDGE';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '× LINEへ戻る';
+    Object.assign(close.style, {
+      minHeight: '36px', border: '1px solid #cfc8bd', borderRadius: '8px', background: '#fff',
+      color: '#56606a', padding: '0 10px', font: 'inherit', cursor: 'pointer',
+    });
+    close.addEventListener('click', closeGraphOverlay);
+    bar.append(title, close);
+
+    const frame = document.createElement('iframe');
+    frame.src = url.toString();
+    frame.title = 'MASA Brain Graph — LINE roundtrip';
+    frame.setAttribute('allow', 'clipboard-read; clipboard-write');
+    Object.assign(frame.style, { width: '100%', height: '100%', border: '0', background: '#f3f1ed' });
+    frame.addEventListener('load', () => injectGraphBridge(frame.contentWindow));
+
+    overlay.append(bar, frame);
+    document.body.appendChild(overlay);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+  };
+
   const openGraphBridge = (href) => {
     const url = new URL(href, window.location.origin);
     url.searchParams.set('from', 'line');
     url.searchParams.set('bridge', 'line');
+    if (isMobile()) {
+      openGraphOverlay(url);
+      return;
+    }
     const graphWindow = window.open(url.toString(), 'masa-line-knowledge-graph');
     if (!graphWindow) return;
     injectGraphBridge(graphWindow);
@@ -161,6 +217,10 @@
 
   window.addEventListener('message', (event) => {
     if (event.origin !== window.location.origin) return;
+    if (event.data?.type === GRAPH_CLOSE) {
+      closeGraphOverlay();
+      return;
+    }
     handleGraphSelection(event.data, event.source, event.origin);
   });
 
