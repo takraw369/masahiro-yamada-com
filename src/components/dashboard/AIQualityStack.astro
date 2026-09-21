@@ -1,0 +1,186 @@
+---
+import { aiPromptBase, aiPromptModes } from '../../data/aiPromptModes';
+
+const promptOsUrl = 'https://docs.google.com/document/d/1RvF_l-AVailNxUGCnZo_firwNTb9_jstObAR4KxttAU/edit';
+---
+
+<section class="quality-stack" data-quality-stack aria-labelledby="quality-stack-title">
+  <div class="quality-stack-head">
+    <div>
+      <p class="qs-kicker">QUALITY STACK · BASE + MODE</p>
+      <h2 id="quality-stack-title">AIの「答え方」を先に選ぶ。</h2>
+      <p class="qs-lead">全タスク共通の品質ルールを土台に、用途別モードを1つ重ねる。長いPromptを毎回書かず、必要な時だけ品質レイヤーを呼び出す。</p>
+    </div>
+    <a class="qs-source" href={promptOsUrl} target="_blank" rel="noopener noreferrer">PROMPT_OS ↗</a>
+  </div>
+
+  <div class="qs-base">
+    <div class="qs-base-top">
+      <div>
+        <span class="qs-badge">BASE · ALWAYS</span>
+        <h3>全タスク共通</h3>
+      </div>
+      <button type="button" data-copy-base>BASEだけコピー</button>
+    </div>
+    <p>捏造しない / 前提ミスを先に直す / 迎合しない / 不確実性を必要な所だけ出す / 冗長にしない。</p>
+    <details>
+      <summary>共通ルールを見る <span>＋</span></summary>
+      <pre>{aiPromptBase}</pre>
+    </details>
+  </div>
+
+  <div class="qs-mode-wrap">
+    <p class="qs-step">1 · 用途モードを選ぶ</p>
+    <div class="qs-mode-grid" role="group" aria-label="AI quality modes">
+      {aiPromptModes.map((mode) => (
+        <button
+          class="qs-mode"
+          type="button"
+          data-mode
+          data-id={mode.id}
+          data-label={mode.label}
+          data-title={mode.title}
+          data-summary={mode.summary}
+          data-prompt={mode.prompt}
+          aria-pressed="false"
+        >
+          <span>{mode.label}</span>
+          <strong>{mode.title}</strong>
+          <small>{mode.summary}</small>
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <div class="qs-compose">
+    <div class="qs-compose-head">
+      <div>
+        <p class="qs-step">2 · 必要なら対象を足す</p>
+        <h3 id="qs-selected-title">用途モード未選択</h3>
+      </div>
+      <span id="qs-selected-badge">BASE</span>
+    </div>
+
+    <label for="qs-target">対象 / テーマ <span>任意</span></label>
+    <textarea id="qs-target" rows="3" placeholder="例：この事業案を、今やる価値があるか判断したい"></textarea>
+
+    <div class="qs-preview" id="qs-preview" aria-live="polite">BASEは常に使えます。上から用途モードを選ぶと、完成Promptをここで確認できます。</div>
+
+    <div class="qs-actions">
+      <button class="qs-copy" type="button" data-copy-stack disabled>BASE + MODEをコピー</button>
+      <button class="qs-clear" type="button" data-clear-mode>モード解除</button>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ aiPromptBase }}>
+  const root = document.querySelector<HTMLElement>('[data-quality-stack]');
+
+  if (root) {
+    const modeButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-mode]'));
+    const target = root.querySelector<HTMLTextAreaElement>('#qs-target');
+    const preview = root.querySelector<HTMLElement>('#qs-preview');
+    const selectedTitle = root.querySelector<HTMLElement>('#qs-selected-title');
+    const selectedBadge = root.querySelector<HTMLElement>('#qs-selected-badge');
+    const copyStack = root.querySelector<HTMLButtonElement>('[data-copy-stack]');
+    const copyBase = root.querySelector<HTMLButtonElement>('[data-copy-base]');
+    const clear = root.querySelector<HTMLButtonElement>('[data-clear-mode]');
+
+    let activeMode: HTMLButtonElement | null = null;
+
+    const copyText = async (text: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.append(area);
+        area.select();
+        const copied = document.execCommand('copy');
+        area.remove();
+        return copied;
+      }
+    };
+
+    const buildPrompt = () => {
+      const modePrompt = activeMode?.dataset.prompt ?? '';
+      const theme = target?.value.trim() ?? '';
+      const parts = [aiPromptBase];
+      if (modePrompt) parts.push(`\n用途別モード:\n${modePrompt}`);
+      if (theme) parts.push(`\n対象 / テーマ:\n${theme}`);
+      return parts.join('\n');
+    };
+
+    const render = () => {
+      if (!activeMode) {
+        if (selectedTitle) selectedTitle.textContent = '用途モード未選択';
+        if (selectedBadge) selectedBadge.textContent = 'BASE';
+        if (preview) preview.textContent = 'BASEは常に使えます。上から用途モードを選ぶと、完成Promptをここで確認できます。';
+        if (copyStack) copyStack.disabled = true;
+        return;
+      }
+
+      if (selectedTitle) selectedTitle.textContent = activeMode.dataset.title ?? 'MODE';
+      if (selectedBadge) selectedBadge.textContent = `BASE + ${activeMode.dataset.label ?? 'MODE'}`;
+      if (preview) preview.textContent = buildPrompt();
+      if (copyStack) copyStack.disabled = false;
+    };
+
+    modeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        modeButtons.forEach((item) => {
+          const active = item === button;
+          item.classList.toggle('is-active', active);
+          item.setAttribute('aria-pressed', String(active));
+        });
+        activeMode = button;
+        render();
+        root.querySelector('.qs-compose')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
+
+    target?.addEventListener('input', () => {
+      if (activeMode) render();
+    });
+
+    copyBase?.addEventListener('click', async () => {
+      const original = copyBase.textContent;
+      const copied = await copyText(aiPromptBase);
+      copyBase.textContent = copied ? 'コピーしました ✓' : 'コピーできませんでした';
+      window.setTimeout(() => { copyBase.textContent = original; }, 1400);
+    });
+
+    copyStack?.addEventListener('click', async () => {
+      if (!activeMode) return;
+      const original = copyStack.textContent;
+      const copied = await copyText(buildPrompt());
+      copyStack.textContent = copied ? 'コピーしました ✓' : 'コピーできませんでした';
+      window.setTimeout(() => { copyStack.textContent = original; }, 1400);
+    });
+
+    clear?.addEventListener('click', () => {
+      activeMode = null;
+      modeButtons.forEach((item) => {
+        item.classList.remove('is-active');
+        item.setAttribute('aria-pressed', 'false');
+      });
+      if (target) target.value = '';
+      render();
+    });
+  }
+</script>
+
+<style>
+  .quality-stack{scroll-margin-top:90px;margin-bottom:18px;padding:20px;border:1px solid #d6c7b4;border-radius:20px;background:linear-gradient(145deg,#fffdf9,#f4eee5);box-shadow:0 14px 40px rgba(74,58,38,.055)}
+  .quality-stack-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.qs-kicker,.qs-step{margin:0;color:var(--gold-muted);font-size:.66rem;letter-spacing:.12em;font-weight:800}.quality-stack h2{margin:4px 0 0;font-size:1.08rem}.qs-lead{max-width:760px;margin:8px 0 0;color:#747d86;font-size:.76rem;line-height:1.7}.qs-source{flex-shrink:0;color:#8b5b2c;font-size:.68rem;text-decoration:none}
+  .qs-base{margin-top:16px;padding:14px;border:1px solid #d9ccba;border-radius:14px;background:rgba(255,255,255,.8)}.qs-base-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.qs-badge,#qs-selected-badge{display:inline-flex;padding:5px 7px;border-radius:999px;background:#2f3133;color:#fff;font-size:.55rem;font-weight:900;letter-spacing:.06em}.qs-base h3,.qs-compose h3{margin:5px 0 0;font-size:.9rem}.qs-base p{margin:8px 0 0;color:#6d747a;font-size:.7rem;line-height:1.6}.qs-base button,.qs-copy,.qs-clear{font:inherit;cursor:pointer}.qs-base button{padding:6px 9px;border:1px solid #d8d1c8;border-radius:8px;background:#fff;color:#765634;font-size:.62rem;font-weight:800}.qs-base details{margin-top:10px;border-top:1px solid #ece6de}.qs-base summary{display:flex;align-items:center;justify-content:space-between;padding-top:9px;cursor:pointer;list-style:none;color:#7d6d59;font-size:.64rem;font-weight:700}.qs-base summary::-webkit-details-marker{display:none}.qs-base details[open] summary span{transform:rotate(45deg)}.qs-base pre,.qs-preview{white-space:pre-wrap;overflow-wrap:anywhere}.qs-base pre{margin:10px 0 0;padding:10px;border-radius:9px;background:#f6f4f1;color:#555c62;font-family:inherit;font-size:.66rem;line-height:1.65}
+  .qs-mode-wrap{margin-top:16px}.qs-mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.qs-mode{min-width:0;padding:11px;border:1px solid #ddd6cc;border-radius:12px;background:rgba(255,255,255,.76);text-align:left;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}.qs-mode:hover{transform:translateY(-1px);border-color:#c4b198}.qs-mode.is-active{border-color:#8e642f;background:#fff;box-shadow:0 0 0 2px rgba(142,100,47,.1)}.qs-mode span{display:block;color:#8b5b2c;font-size:.56rem;font-weight:900;letter-spacing:.08em}.qs-mode strong{display:block;margin-top:3px;color:#303438;font-size:.78rem}.qs-mode small{display:block;margin-top:4px;color:#7c8389;font-size:.62rem;line-height:1.5}
+  .qs-compose{margin-top:16px;padding-top:14px;border-top:1px solid #ddd2c3}.qs-compose-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.qs-compose label{display:block;margin:12px 0 5px;color:#6f6253;font-size:.68rem;font-weight:700}.qs-compose label span{color:#999;font-weight:500}.qs-compose textarea{box-sizing:border-box;width:100%;min-width:0;resize:vertical;padding:10px 11px;border:1px solid #ddd3c6;border-radius:10px;background:#fff;color:#272b30;font:inherit;font-size:.76rem;line-height:1.6;outline:none}.qs-compose textarea:focus{border-color:#b18b5f;box-shadow:0 0 0 3px rgba(177,139,95,.09)}.qs-preview{max-height:250px;overflow:auto;margin-top:9px;padding:11px;border:1px dashed #d7c9b6;border-radius:10px;background:rgba(255,255,255,.7);color:#4c5258;font-size:.68rem;line-height:1.65}.qs-actions{display:flex;gap:8px;margin-top:9px}.qs-copy{min-height:38px;padding:0 14px;border:0;border-radius:10px;background:#2b2e31;color:#fff;font-size:.7rem;font-weight:800}.qs-copy:disabled{opacity:.35;cursor:not-allowed}.qs-clear{min-height:38px;padding:0 12px;border:1px solid #d8d1c8;border-radius:10px;background:#fff;color:#737a80;font-size:.68rem}
+  @media(max-width:800px){.qs-mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:560px){.quality-stack{padding:15px}.quality-stack-head,.qs-compose-head{flex-direction:column}.qs-mode-grid{grid-template-columns:1fr 1fr}.qs-source{align-self:flex-start}.qs-actions{display:grid;grid-template-columns:1fr auto}.qs-copy{width:100%}}
+  @media(max-width:400px){.qs-mode-grid{grid-template-columns:1fr}}
+  @media(prefers-reduced-motion:reduce){.qs-mode{transition:none}}
+</style>
