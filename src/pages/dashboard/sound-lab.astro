@@ -2,45 +2,69 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
 const sounds = [
-  { id:'tap', label:'ピッ', name:'Tap', category:'UI', feel:'軽い / 速い', use:'選択・小さな操作' },
-  { id:'pin', label:'ピン', name:'Confirm', category:'UI', feel:'明るい / 一点', use:'決定・確定' },
-  { id:'pop', label:'ポン', name:'Pop', category:'EDIT', feel:'丸い / 楽しい', use:'カード・テロップ出現' },
-  { id:'tick', label:'コッ', name:'Accent', category:'EDIT', feel:'短い / 硬い', use:'強調・注意' },
-  { id:'sparkle', label:'キラッ', name:'Sparkle', category:'REWARD', feel:'軽快 / ご褒美', use:'正解・発見' },
-  { id:'clear', label:'ティロン', name:'Quest Clear', category:'REWARD', feel:'余韻 / 達成', use:'Quest完了' },
-  { id:'level', label:'ピロリン', name:'Level Up', category:'REWARD', feel:'上昇 / 特別', use:'成長・昇格' },
-  { id:'streak', label:'ピッピッピン', name:'Streak', category:'REWARD', feel:'テンポ / 加速', use:'連続達成・コンボ' },
-  { id:'whoosh', label:'シュン', name:'Whoosh', category:'MOTION', feel:'移動 / 速度', use:'遷移・解放' },
-  { id:'bounce', label:'ポヨン', name:'Bounce', category:'MOTION', feel:'柔らかい / コミカル', use:'ズーム・リアクション' },
-  { id:'stamp', label:'ドン', name:'Stamp', category:'EDIT', feel:'低い / 太い', use:'大見出し・決め' },
-  { id:'moon', label:'コォン…', name:'Moon Resonance', category:'WORLD', feel:'静けさ / 深さ', use:'章・世界・月' },
-  { id:'ting', label:'チンッ', name:'Caption Hit', category:'EDIT', feel:'鋭い / 瞬間', use:'音ハメ・字幕強調' },
-  { id:'boing', label:'ボヨン', name:'Reaction', category:'MOTION', feel:'コミカル / 意外', use:'リアクション・オチ' },
+  { id:'none', label:'—', name:'音なし' },
+  { id:'tap', label:'ピッ', name:'Tap' },
+  { id:'pin', label:'ピン', name:'Confirm' },
+  { id:'pop', label:'ポン', name:'Pop' },
+  { id:'tick', label:'コッ', name:'Accent' },
+  { id:'sparkle', label:'キラッ', name:'Sparkle' },
+  { id:'clear', label:'ティロン', name:'Quest Clear' },
+  { id:'level', label:'ピロリン', name:'Level Up' },
+  { id:'streak', label:'ピッピッピン', name:'Streak' },
+  { id:'whoosh', label:'シュン', name:'Whoosh' },
+  { id:'bounce', label:'ポヨン', name:'Bounce' },
+  { id:'stamp', label:'ドン', name:'Stamp' },
+  { id:'moon', label:'コォン…', name:'Moon Resonance' },
+  { id:'ting', label:'チンッ', name:'Caption Hit' },
+  { id:'boing', label:'ボヨン', name:'Reaction' },
+];
+
+const motions = [
+  { id:'none', label:'動きなし' },
+  { id:'pop', label:'POP · 0.18s' },
+  { id:'punch', label:'PUNCH · 0.22s' },
+  { id:'bounce', label:'BOUNCE · 0.38s' },
+  { id:'slide', label:'SLIDE · 0.28s' },
+  { id:'zoom', label:'ZOOM · 0.24s' },
+  { id:'shake', label:'SHAKE · 0.30s' },
+  { id:'float', label:'FLOAT · 0.55s' },
+  { id:'reveal', label:'REVEAL · 0.42s' },
+];
+
+const captions = [
+  { id:'none', label:'文字なし' },
+  { id:'clean', label:'CLEAN · 普通' },
+  { id:'bold', label:'BOLD · 強調' },
+  { id:'boxed', label:'BOX · 囲み' },
+  { id:'stamp', label:'STAMP · 決め' },
+  { id:'spark', label:'SPARK · 発見' },
+  { id:'comic', label:'COMIC · リアクション' },
+  { id:'world', label:'WORLD · 世界観' },
 ];
 
 const slots = [
-  { id:'ui.tap', group:'UI', title:'タップ / 選択', detail:'カードやボタンを触った瞬間', defaultSound:'tap' },
-  { id:'ui.confirm', group:'UI', title:'決定 / 確定', detail:'選択を決めた瞬間', defaultSound:'pin' },
-  { id:'quest.correct', group:'QUEST', title:'正解 / 発見', detail:'答えが合った・気づいた瞬間', defaultSound:'sparkle' },
-  { id:'quest.clear', group:'QUEST', title:'Quest完了', detail:'一区切りの達成', defaultSound:'clear' },
-  { id:'quest.levelup', group:'QUEST', title:'Level Up', detail:'成長・昇格・新要素解放', defaultSound:'level' },
-  { id:'quest.streak', group:'QUEST', title:'連続達成', detail:'3日・7日・コンボなど', defaultSound:'streak' },
-  { id:'video.caption', group:'VIDEO', title:'テロップ出現', detail:'文字がパッと出る瞬間', defaultSound:'pop' },
-  { id:'video.emphasis', group:'VIDEO', title:'強調ワード', detail:'重要語や決め台詞を刺す', defaultSound:'ting' },
-  { id:'video.reaction', group:'VIDEO', title:'リアクション', detail:'驚き・ズーム・オチ', defaultSound:'boing' },
-  { id:'video.transition', group:'VIDEO', title:'画面遷移', detail:'場面が切り替わる瞬間', defaultSound:'whoosh' },
-  { id:'video.stamp', group:'VIDEO', title:'大見出し / ドン', detail:'章タイトル・強い一言', defaultSound:'stamp' },
-  { id:'world.unlock', group:'WORLD', title:'世界 / 章の解放', detail:'ACE世界観の大きな節目', defaultSound:'moon' },
+  { id:'ui.tap', group:'UI', title:'タップ / 選択', detail:'カードやボタンを触った瞬間', text:'SELECT', sound:'tap', motion:'pop', caption:'clean' },
+  { id:'ui.confirm', group:'UI', title:'決定 / 確定', detail:'選択を決めた瞬間', text:'DECIDED', sound:'pin', motion:'punch', caption:'boxed' },
+  { id:'quest.correct', group:'QUEST', title:'正解 / 発見', detail:'答えが合った・気づいた瞬間', text:'NICE!', sound:'sparkle', motion:'pop', caption:'spark' },
+  { id:'quest.clear', group:'QUEST', title:'Quest完了', detail:'一区切りの達成', text:'QUEST CLEAR', sound:'clear', motion:'zoom', caption:'bold' },
+  { id:'quest.levelup', group:'QUEST', title:'Level Up', detail:'成長・昇格・新要素解放', text:'LEVEL UP', sound:'level', motion:'bounce', caption:'spark' },
+  { id:'quest.streak', group:'QUEST', title:'連続達成', detail:'3日・7日・コンボなど', text:'7 DAY STREAK', sound:'streak', motion:'punch', caption:'bold' },
+  { id:'video.caption', group:'VIDEO', title:'テロップ出現', detail:'文字がパッと出る瞬間', text:'ここ、大事。', sound:'pop', motion:'pop', caption:'boxed' },
+  { id:'video.emphasis', group:'VIDEO', title:'強調ワード', detail:'重要語や決め台詞を刺す', text:'本質', sound:'ting', motion:'punch', caption:'bold' },
+  { id:'video.reaction', group:'VIDEO', title:'リアクション', detail:'驚き・ズーム・オチ', text:'えっ!?', sound:'boing', motion:'bounce', caption:'comic' },
+  { id:'video.transition', group:'VIDEO', title:'画面遷移', detail:'場面が切り替わる瞬間', text:'NEXT', sound:'whoosh', motion:'slide', caption:'clean' },
+  { id:'video.stamp', group:'VIDEO', title:'大見出し / ドン', detail:'章タイトル・強い一言', text:'結論', sound:'stamp', motion:'zoom', caption:'stamp' },
+  { id:'world.unlock', group:'WORLD', title:'世界 / 章の解放', detail:'ACE世界観の大きな節目', text:'NEW WORLD', sound:'moon', motion:'reveal', caption:'world' },
 ];
 ---
 
-<DashboardLayout title="Sound Map" eyebrow="ACE EXPERIENCE DESIGN">
-  <main class="sound-shell">
+<DashboardLayout title="Cue Lab" eyebrow="ACE EXPERIENCE DESIGN">
+  <main class="cue-shell">
     <header class="hero">
       <div>
-        <p class="kicker">ACE SOUND MAP · ACTION × SOUND</p>
-        <h1>この瞬間には、この音。</h1>
-        <p class="lead">音を探すだけで終わらせず、Quest・UI・動画の「瞬間」に音を割り当てる。ここで決めた組み合わせを、今後のコンテンツ生成ルールとして使う。</p>
+        <p class="kicker">ACE CUE LAB · MOTION × SOUND × CAPTION</p>
+        <h1>演出を、一度決めて使い回す。</h1>
+        <p class="lead">Quest・Dashboard・動画で毎回ゼロから考えない。場面ごとに「動き・音・テロップ」を組み合わせ、そのままACEの生成ルールとして保存する。</p>
       </div>
       <div class="hero-actions">
         <button id="preview-flow" class="primary">▶ FLOWを試す</button>
@@ -48,9 +72,21 @@ const slots = [
       </div>
     </header>
 
+    <section class="stage-section" aria-labelledby="stage-title">
+      <div class="section-head">
+        <div><p class="kicker">LIVE PREVIEW</p><h2 id="stage-title">音ハメをその場で確認</h2></div>
+        <label class="volume">VOLUME <input id="volume" type="range" min="0.05" max="0.5" step="0.01" value="0.22" /></label>
+      </div>
+      <div class="stage" id="stage">
+        <div class="stage-orbit"></div>
+        <div id="stage-caption" class="stage-caption caption-clean">SELECT</div>
+        <p id="stage-meta">ui.tap · POP + ピッ + CLEAN</p>
+      </div>
+    </section>
+
     <section class="map-section" aria-labelledby="map-title">
       <div class="section-head">
-        <div><p class="kicker">01 · MAP</p><h2 id="map-title">使う場面と音を組み合わせる</h2></div>
+        <div><p class="kicker">01 · CUE MAP</p><h2 id="map-title">場面ごとに3つを組み合わせる</h2></div>
         <span id="save-state">ブラウザに自動保存</span>
       </div>
 
@@ -63,54 +99,52 @@ const slots = [
               <span>{slot.detail}</span>
               <code>{slot.id}</code>
             </div>
-            <div class="slot-control">
-              <select class="sound-select" data-slot={slot.id} aria-label={`${slot.title}の効果音`}>
-                <option value="none">— 音なし —</option>
-                {sounds.map(sound => (
-                  <option value={sound.id} selected={sound.id === slot.defaultSound}>{sound.label} · {sound.name}</option>
-                ))}
-              </select>
-              <button class="slot-play" data-play-slot={slot.id} aria-label={`${slot.title}の割り当て音を再生`}>▶</button>
+            <div class="cue-controls">
+              <label>TEXT<input class="text-input" data-kind="text" data-slot={slot.id} value={slot.text} aria-label={`${slot.title}の表示テキスト`} /></label>
+              <label>MOTION<select class="cue-select" data-kind="motion" data-slot={slot.id} aria-label={`${slot.title}の動き`}>
+                {motions.map(item => <option value={item.id} selected={item.id === slot.motion}>{item.label}</option>)}
+              </select></label>
+              <label>SOUND<select class="cue-select" data-kind="sound" data-slot={slot.id} aria-label={`${slot.title}の効果音`}>
+                {sounds.map(item => <option value={item.id} selected={item.id === slot.sound}>{item.label} · {item.name}</option>)}
+              </select></label>
+              <label>CAPTION<select class="cue-select" data-kind="caption" data-slot={slot.id} aria-label={`${slot.title}のテロップスタイル`}>
+                {captions.map(item => <option value={item.id} selected={item.id === slot.caption}>{item.label}</option>)}
+              </select></label>
+              <button class="slot-preview" data-preview-slot={slot.id}>▶ この組み合わせ</button>
             </div>
           </article>
         ))}
       </div>
     </section>
 
-    <section class="bank-section" aria-labelledby="bank-title">
-      <div class="section-head">
-        <div><p class="kicker">02 · SOUND BANK</p><h2 id="bank-title">音だけ聴き比べる</h2></div>
-        <label class="volume">VOLUME <input id="volume" type="range" min="0.05" max="0.5" step="0.01" value="0.22" /></label>
+    <section class="preset-section">
+      <div>
+        <p class="kicker">02 · QUICK PRESETS</p>
+        <h2>迷ったらテンポから選ぶ</h2>
+        <p>全体の音・動きを一気に寄せる。個別調整はその後で。</p>
       </div>
-      <div class="sound-grid">
-        {sounds.map(sound => (
-          <article class="sound-card" data-sound-card={sound.id} data-category={sound.category}>
-            <div class="sound-top"><small>{sound.category}</small><span>{sound.feel}</span></div>
-            <button class="sound-play" data-sound={sound.id}>
-              <b>{sound.label}</b>
-              <em>▶</em>
-            </button>
-            <strong>{sound.name}</strong>
-            <p>{sound.use}</p>
-          </article>
-        ))}
+      <div class="preset-grid">
+        <button data-preset="minimal"><b>MINIMAL</b><span>静か / UI中心 / 音少なめ</span></button>
+        <button data-preset="variety"><b>VARIETY</b><span>韓国TV的 / テンポ / 音ハメ多め</span></button>
+        <button data-preset="quest"><b>QUEST</b><span>達成感 / 成長 / ご褒美重視</span></button>
+        <button data-preset="world"><b>WORLD</b><span>幻想 / 余韻 / ACE世界観</span></button>
       </div>
     </section>
 
     <section class="reference-section">
       <div>
         <p class="kicker">03 · REFERENCE</p>
-        <h2>外部素材は「参考」として探す</h2>
-        <p>効果音ラボなどで方向性を探す場合は原サイト上で試聴する。ACE側には外部音源を転載・直リンクせず、必要なら正式採用後に用途へ組み込む。</p>
+        <h2>外部素材は方向性探しに使う</h2>
+        <p>参考サイト上で試聴し、ACE側ではオリジナル音と演出ルールを正本化する。</p>
       </div>
-      <a href="https://soundeffect-lab.info/sound/button/" target="_blank" rel="noreferrer">効果音ラボ · ボタン音を開く ↗</a>
+      <a href="https://soundeffect-lab.info/sound/button/" target="_blank" rel="noreferrer">効果音ラボ · ボタン音 ↗</a>
     </section>
 
     <section class="manifest-section">
       <div>
         <p class="kicker">04 · GENERATION RULE</p>
-        <h2>このマップを今後の生成ルールへ</h2>
-        <p>「AI用ルールをコピー」で、Quest・動画・UI制作時にそのまま渡せる機械可読JSON＋人間向け一覧を生成する。</p>
+        <h2>動画・Quest・UI生成へ渡す</h2>
+        <p>選んだ「場面 → 動き → 音 → テロップ」を機械可読JSONにする。今後の生成エージェントや動画編集指示の共通ルールにできる。</p>
       </div>
       <div class="manifest-actions">
         <button id="copy-json">JSONだけコピー</button>
@@ -124,7 +158,8 @@ const slots = [
 <script>
   let audioCtx;
   const getCtx = () => {
-    audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContextCtor = window.AudioContext || window['webkitAudioContext'];
+    audioCtx ??= new AudioContextCtor();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   };
@@ -185,20 +220,62 @@ const slots = [
     }
   }
 
-  const storageKey = 'ace-sound-map:v1';
-  const selects = [...document.querySelectorAll('.sound-select')];
-  const defaultMap = Object.fromEntries(selects.map(select => [select.dataset.slot, select.value]));
+  const storageKey = 'ace-cue-map:v1';
+  const controls = [...document.querySelectorAll('[data-slot][data-kind]')];
+  const defaults = {};
+  controls.forEach(control => {
+    defaults[control.dataset.slot] ??= {};
+    defaults[control.dataset.slot][control.dataset.kind] = control.value;
+  });
 
   function currentMap() {
-    return Object.fromEntries(selects.map(select => [select.dataset.slot, select.value]));
+    const map = {};
+    controls.forEach(control => {
+      map[control.dataset.slot] ??= {};
+      map[control.dataset.slot][control.dataset.kind] = control.value;
+    });
+    return map;
   }
 
-  function soundLabel(id) {
-    for (const select of selects) {
-      const option = [...select.options].find(o => o.value === id);
-      if (option) return option.textContent.trim();
-    }
-    return id;
+  function controlFor(slot, kind) {
+    return document.querySelector(`[data-slot="${slot}"][data-kind="${kind}"]`);
+  }
+
+  function cueFor(slot) {
+    return {
+      text: controlFor(slot, 'text')?.value || '',
+      motion: controlFor(slot, 'motion')?.value || 'none',
+      sound: controlFor(slot, 'sound')?.value || 'none',
+      caption: controlFor(slot, 'caption')?.value || 'none',
+    };
+  }
+
+  function previewCue(slot) {
+    const cue = cueFor(slot);
+    const caption = document.querySelector('#stage-caption');
+    const meta = document.querySelector('#stage-meta');
+    if (!caption || !meta) return;
+    caption.className = `stage-caption caption-${cue.caption}`;
+    caption.textContent = cue.text || ' '; 
+    caption.classList.remove('motion-pop','motion-punch','motion-bounce','motion-slide','motion-zoom','motion-shake','motion-float','motion-reveal');
+    void caption.offsetWidth;
+    if (cue.motion !== 'none') caption.classList.add(`motion-${cue.motion}`);
+    meta.textContent = `${slot} · ${cue.motion.toUpperCase()} + ${cue.sound} + ${cue.caption.toUpperCase()}`;
+    playSound(cue.sound);
+  }
+
+  function manifest() {
+    return {
+      schema: 'ace.cue-map.v1',
+      purpose: 'Reuse consistent motion, sound and caption cues across ACE UI, Quest, video and generated content.',
+      timing: { sound_offset_ms: 20, motion_start_ms: 0, principle: 'Use cues only at meaningful moments; do not decorate every action.' },
+      cues: currentMap(),
+    };
+  }
+
+  function renderManifest() {
+    const pre = document.querySelector('#manifest-preview');
+    if (pre) pre.textContent = JSON.stringify(manifest(), null, 2);
   }
 
   function saveMap() {
@@ -206,7 +283,7 @@ const slots = [
     const state = document.querySelector('#save-state');
     if (state) {
       state.textContent = '保存しました ✓';
-      setTimeout(() => state.textContent = 'ブラウザに自動保存', 1000);
+      setTimeout(() => state.textContent = 'ブラウザに自動保存', 900);
     }
     renderManifest();
   }
@@ -214,26 +291,12 @@ const slots = [
   function loadMap() {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
-      selects.forEach(select => {
-        if (saved[select.dataset.slot] && [...select.options].some(o => o.value === saved[select.dataset.slot])) {
-          select.value = saved[select.dataset.slot];
-        }
+      controls.forEach(control => {
+        const value = saved?.[control.dataset.slot]?.[control.dataset.kind];
+        if (value !== undefined) control.value = value;
       });
     } catch {}
     renderManifest();
-  }
-
-  function manifest() {
-    return {
-      schema: 'ace.sound-map.v1',
-      purpose: 'Use this sound mapping consistently in ACE UI, Quest, video and generated content.',
-      mapping: currentMap(),
-    };
-  }
-
-  function renderManifest() {
-    const pre = document.querySelector('#manifest-preview');
-    if (pre) pre.textContent = JSON.stringify(manifest(), null, 2);
   }
 
   async function copyText(text, button) {
@@ -244,78 +307,92 @@ const slots = [
     setTimeout(() => button.textContent = before, 1200);
   }
 
-  document.querySelectorAll('[data-sound]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.sound;
-      playSound(id);
-      const card = btn.closest('.sound-card');
-      card?.classList.remove('playing');
-      requestAnimationFrame(() => card?.classList.add('playing'));
-      setTimeout(() => card?.classList.remove('playing'), 420);
-    });
-  });
-
-  document.querySelectorAll('[data-play-slot]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const slot = btn.dataset.playSlot;
-      const select = document.querySelector(`[data-slot="${slot}"]`);
-      playSound(select?.value);
-      const card = btn.closest('.slot-card');
-      card?.classList.remove('hit');
-      requestAnimationFrame(() => card?.classList.add('hit'));
-      setTimeout(() => card?.classList.remove('hit'), 520);
-    });
-  });
-
-  selects.forEach(select => {
-    select.addEventListener('change', () => {
-      playSound(select.value);
+  controls.forEach(control => {
+    const eventName = control.tagName === 'INPUT' ? 'input' : 'change';
+    control.addEventListener(eventName, () => {
       saveMap();
-      const card = select.closest('.slot-card');
-      card?.classList.remove('hit');
-      requestAnimationFrame(() => card?.classList.add('hit'));
-      setTimeout(() => card?.classList.remove('hit'), 520);
+      if (control.dataset.kind !== 'text') previewCue(control.dataset.slot);
     });
+  });
+
+  document.querySelectorAll('[data-preview-slot]').forEach(button => {
+    button.addEventListener('click', () => previewCue(button.dataset.previewSlot));
   });
 
   document.querySelector('#preview-flow')?.addEventListener('click', async () => {
-    const sequence = ['ui.tap','ui.confirm','quest.correct','video.caption','video.emphasis','quest.clear','world.unlock'];
+    const sequence = ['ui.tap','ui.confirm','quest.correct','video.caption','video.emphasis','video.reaction','quest.clear','world.unlock'];
     for (const slot of sequence) {
-      const select = document.querySelector(`[data-slot="${slot}"]`);
-      const card = document.querySelector(`[data-slot-card="${slot}"]`);
-      card?.classList.add('hit');
-      playSound(select?.value);
-      await new Promise(resolve => setTimeout(resolve, slot === 'world.unlock' ? 900 : 420));
-      card?.classList.remove('hit');
+      previewCue(slot);
+      await new Promise(resolve => setTimeout(resolve, slot === 'world.unlock' ? 1000 : 520));
     }
   });
 
-  document.querySelector('#copy-json')?.addEventListener('click', e => {
-    copyText(JSON.stringify(manifest(), null, 2), e.currentTarget);
+  const presets = {
+    minimal: {
+      'ui.tap': ['tap','pop','clean'], 'ui.confirm':['pin','pop','clean'], 'quest.correct':['sparkle','pop','clean'],
+      'quest.clear':['clear','zoom','bold'], 'quest.levelup':['level','pop','bold'], 'quest.streak':['pin','pop','clean'],
+      'video.caption':['none','none','clean'], 'video.emphasis':['ting','punch','bold'], 'video.reaction':['none','none','comic'],
+      'video.transition':['whoosh','slide','none'], 'video.stamp':['stamp','zoom','stamp'], 'world.unlock':['moon','reveal','world']
+    },
+    variety: {
+      'ui.tap':['tap','pop','clean'], 'ui.confirm':['pin','punch','boxed'], 'quest.correct':['sparkle','bounce','spark'],
+      'quest.clear':['clear','zoom','bold'], 'quest.levelup':['level','bounce','spark'], 'quest.streak':['streak','punch','bold'],
+      'video.caption':['pop','pop','boxed'], 'video.emphasis':['ting','punch','bold'], 'video.reaction':['boing','shake','comic'],
+      'video.transition':['whoosh','slide','clean'], 'video.stamp':['stamp','zoom','stamp'], 'world.unlock':['moon','reveal','world']
+    },
+    quest: {
+      'ui.tap':['tap','pop','clean'], 'ui.confirm':['pin','punch','boxed'], 'quest.correct':['sparkle','pop','spark'],
+      'quest.clear':['clear','zoom','bold'], 'quest.levelup':['level','bounce','spark'], 'quest.streak':['streak','punch','bold'],
+      'video.caption':['pop','pop','clean'], 'video.emphasis':['ting','punch','bold'], 'video.reaction':['bounce','bounce','comic'],
+      'video.transition':['whoosh','slide','clean'], 'video.stamp':['stamp','zoom','stamp'], 'world.unlock':['moon','reveal','world']
+    },
+    world: {
+      'ui.tap':['tap','pop','clean'], 'ui.confirm':['pin','float','boxed'], 'quest.correct':['sparkle','float','spark'],
+      'quest.clear':['clear','reveal','bold'], 'quest.levelup':['level','reveal','spark'], 'quest.streak':['sparkle','float','clean'],
+      'video.caption':['pop','reveal','clean'], 'video.emphasis':['ting','zoom','bold'], 'video.reaction':['bounce','float','comic'],
+      'video.transition':['whoosh','reveal','none'], 'video.stamp':['stamp','zoom','stamp'], 'world.unlock':['moon','reveal','world']
+    }
+  };
+
+  document.querySelectorAll('[data-preset]').forEach(button => {
+    button.addEventListener('click', () => {
+      const preset = presets[button.dataset.preset];
+      Object.entries(preset).forEach(([slot, values]) => {
+        controlFor(slot,'sound').value = values[0];
+        controlFor(slot,'motion').value = values[1];
+        controlFor(slot,'caption').value = values[2];
+      });
+      saveMap();
+      previewCue('video.emphasis');
+    });
   });
 
-  document.querySelector('#copy-manifest')?.addEventListener('click', e => {
-    const map = currentMap();
-    const lines = Object.entries(map).map(([slot, sound]) => `- ${slot} → ${soundLabel(sound)} [${sound}]`).join('\n');
-    const text = `ACE SOUND MAP v1\n今後のACE UI / Quest / 動画 / コンテンツ生成では、以下の音ハメを基本ルールとして使う。\n${lines}\n\nJSON:\n${JSON.stringify(manifest(), null, 2)}`;
-    copyText(text, e.currentTarget);
+  document.querySelector('#copy-json')?.addEventListener('click', event => copyText(JSON.stringify(manifest(), null, 2), event.currentTarget));
+  document.querySelector('#copy-manifest')?.addEventListener('click', event => {
+    const lines = Object.entries(currentMap()).map(([slot, cue]) => `- ${slot}: motion=${cue.motion}, sound=${cue.sound}, caption=${cue.caption}, text="${cue.text}"`).join('\n');
+    const text = `ACE CUE MAP v1\n今後のACE UI / Quest / 動画 / コンテンツ生成では以下を基本演出ルールとして使う。\n${lines}\n\nJSON:\n${JSON.stringify(manifest(), null, 2)}`;
+    copyText(text, event.currentTarget);
   });
 
   document.querySelector('#reset-map')?.addEventListener('click', () => {
-    selects.forEach(select => select.value = defaultMap[select.dataset.slot]);
+    controls.forEach(control => control.value = defaults[control.dataset.slot][control.dataset.kind]);
     localStorage.removeItem(storageKey);
     renderManifest();
+    previewCue('ui.tap');
   });
 
   loadMap();
 </script>
 
 <style>
-  .sound-shell{--line:#e2ded7;--muted:#737b84;max-width:1180px;margin:0 auto;padding-bottom:52px}.kicker{margin:0;color:var(--gold-muted);font-size:.69rem;font-weight:900;letter-spacing:.13em}.hero{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end}.hero h1{margin:5px 0 0;font-size:clamp(2.15rem,5vw,4rem);letter-spacing:-.045em;line-height:1}.lead{max-width:760px;margin:14px 0 0;color:var(--muted);line-height:1.85;font-size:.94rem}.hero-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.hero-actions button,.manifest-actions button{padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#30363d;font-size:.72rem;font-weight:800;cursor:pointer}.hero-actions .primary{background:#20242a;color:#fff;border-color:#20242a}
-  .map-section,.bank-section,.reference-section,.manifest-section{margin-top:22px;padding:22px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.76)}.section-head{display:flex;align-items:end;justify-content:space-between;gap:18px}.section-head h2,.reference-section h2,.manifest-section h2{margin:4px 0 0;font-size:1.08rem}.section-head>span{color:#8b939b;font-size:.69rem}.slot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:16px}.slot-card{display:grid;grid-template-columns:1fr minmax(220px,.8fr);align-items:center;gap:16px;padding:14px;border:1px solid #e6e2dc;border-radius:14px;background:#fff;transition:.18s transform,.18s border-color,.18s box-shadow}.slot-card.hit{transform:scale(1.012);border-color:#b89970;box-shadow:0 10px 28px rgba(94,70,40,.12)}.slot-copy small,.slot-copy strong,.slot-copy span,.slot-copy code{display:block}.slot-copy small{color:#9a6a32;font-size:.61rem;letter-spacing:.1em;font-weight:900}.slot-copy strong{margin-top:4px;font-size:.86rem}.slot-copy span{margin-top:2px;color:var(--muted);font-size:.69rem}.slot-copy code{margin-top:7px;color:#a2a8ae;font-size:.58rem}.slot-control{display:grid;grid-template-columns:1fr 38px;gap:7px}.sound-select{min-width:0;width:100%;padding:9px 10px;border:1px solid #dedad4;border-radius:10px;background:#faf9f7;color:#333;font-size:.72rem}.slot-play{border:1px solid #dedad4;border-radius:10px;background:#fff;color:#6f5434;cursor:pointer;font-size:.72rem}
-  .volume{display:flex;align-items:center;gap:9px;color:#8b939b;font-size:.64rem;font-weight:800;letter-spacing:.08em}.volume input{width:120px}.sound-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:16px}.sound-card{padding:12px;border:1px solid #e7e3dd;border-radius:14px;background:#fff;transition:.16s transform,.16s border-color}.sound-card.playing{transform:translateY(-3px);border-color:#b89970}.sound-top{display:flex;justify-content:space-between;gap:8px;color:#9299a0;font-size:.58rem}.sound-top small{color:#9a6a32;font-weight:900}.sound-play{width:100%;min-height:68px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;border:0;border-radius:12px;background:#f7f5f1;cursor:pointer}.sound-play b{font-size:1.15rem}.sound-play em{font-style:normal;color:#9a6a32}.sound-card>strong{display:block;margin-top:9px;font-size:.77rem}.sound-card>p{margin:2px 0 0;color:var(--muted);font-size:.65rem}
-  .reference-section,.manifest-section{display:grid;grid-template-columns:1fr auto;align-items:center;gap:22px}.reference-section p,.manifest-section p{max-width:760px;margin:7px 0 0;color:var(--muted);font-size:.74rem;line-height:1.65}.reference-section>a{padding:12px 14px;border:1px solid #d8d3cb;border-radius:11px;background:#fff;text-decoration:none;font-size:.72rem;font-weight:800;white-space:nowrap}.manifest-section{grid-template-columns:1fr auto}.manifest-actions{display:flex;gap:8px}.manifest-section pre{grid-column:1/-1;max-height:280px;overflow:auto;margin:14px 0 0;padding:14px;border-radius:12px;background:#20242a;color:#dfe6ed;font-size:.66rem;line-height:1.55}
-  @media(max-width:900px){.hero{grid-template-columns:1fr}.hero-actions{justify-content:flex-start}.slot-grid{grid-template-columns:1fr}.sound-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.reference-section,.manifest-section{grid-template-columns:1fr}.manifest-actions{justify-content:flex-start}}
-  @media(max-width:620px){.map-section,.bank-section,.reference-section,.manifest-section{padding:16px}.slot-card{grid-template-columns:1fr}.sound-grid{grid-template-columns:1fr}.section-head{align-items:flex-start;flex-direction:column}.hero h1{font-size:2.45rem}.volume{width:100%;justify-content:space-between}.hero-actions,.manifest-actions{width:100%}.hero-actions button,.manifest-actions button{flex:1}}
+  .cue-shell{--line:#e2ded7;--muted:#737b84;max-width:1180px;margin:0 auto;padding-bottom:52px}.kicker{margin:0;color:var(--gold-muted);font-size:.69rem;font-weight:900;letter-spacing:.13em}.hero{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end}.hero h1{margin:5px 0 0;font-size:clamp(2.15rem,5vw,4rem);letter-spacing:-.045em;line-height:1}.lead{max-width:780px;margin:14px 0 0;color:var(--muted);line-height:1.85;font-size:.94rem}.hero-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.hero-actions button,.manifest-actions button{padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#30363d;font-size:.72rem;font-weight:800;cursor:pointer}.hero-actions .primary{background:#20242a;color:#fff;border-color:#20242a}
+  .stage-section,.map-section,.preset-section,.reference-section,.manifest-section{margin-top:22px;padding:22px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.76)}.section-head{display:flex;align-items:end;justify-content:space-between;gap:18px}.section-head h2,.preset-section h2,.reference-section h2,.manifest-section h2{margin:4px 0 0;font-size:1.08rem}.section-head>span{color:#8b939b;font-size:.69rem}.volume{display:flex;align-items:center;gap:9px;color:#8b939b;font-size:.64rem;font-weight:800;letter-spacing:.08em}.volume input{width:120px}
+  .stage{position:relative;min-height:250px;margin-top:16px;display:grid;place-items:center;overflow:hidden;border-radius:18px;background:radial-gradient(circle at 50% 40%,#333b47 0,#20242a 44%,#171a1f 100%);color:#fff}.stage-orbit{position:absolute;width:280px;height:280px;border:1px solid rgba(255,255,255,.09);border-radius:50%;box-shadow:0 0 90px rgba(200,170,120,.08)}.stage-caption{position:relative;z-index:2;padding:10px 16px;font-size:clamp(1.5rem,5vw,3.2rem);font-weight:900;letter-spacing:-.04em;text-align:center}.stage>p{position:absolute;left:16px;bottom:12px;margin:0;color:#8f99a5;font-size:.65rem;letter-spacing:.04em}
+  .caption-none{visibility:hidden}.caption-clean{color:#fff}.caption-bold{color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35);font-weight:1000}.caption-boxed{border:2px solid rgba(255,255,255,.9);border-radius:8px;background:rgba(0,0,0,.28)}.caption-stamp{border:3px solid #fff;transform:rotate(-2deg);letter-spacing:.02em}.caption-spark{text-shadow:0 0 24px rgba(255,235,170,.65)}.caption-comic{border-radius:999px;background:#fff;color:#20242a;padding:10px 22px;transform:rotate(-2deg)}.caption-world{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.14em;text-shadow:0 0 30px rgba(255,255,255,.25)}
+  .motion-pop{animation:cuePop .18s ease-out}.motion-punch{animation:cuePunch .22s ease-out}.motion-bounce{animation:cueBounce .38s cubic-bezier(.2,.9,.2,1.4)}.motion-slide{animation:cueSlide .28s ease-out}.motion-zoom{animation:cueZoom .24s ease-out}.motion-shake{animation:cueShake .30s ease-out}.motion-float{animation:cueFloat .55s ease-out}.motion-reveal{animation:cueReveal .42s ease-out}@keyframes cuePop{0%{opacity:0;transform:scale(.72)}100%{opacity:1;transform:scale(1)}}@keyframes cuePunch{0%{opacity:.2;transform:scale(1.5)}55%{transform:scale(.94)}100%{opacity:1;transform:scale(1)}}@keyframes cueBounce{0%{opacity:0;transform:translateY(30px) scale(.7)}60%{transform:translateY(-9px) scale(1.08)}100%{opacity:1;transform:none}}@keyframes cueSlide{0%{opacity:0;transform:translateX(70px)}100%{opacity:1;transform:none}}@keyframes cueZoom{0%{opacity:0;transform:scale(2.1);filter:blur(4px)}100%{opacity:1;transform:scale(1);filter:none}}@keyframes cueShake{0%{transform:translateX(-10px) rotate(-3deg)}25%{transform:translateX(9px) rotate(3deg)}50%{transform:translateX(-6px) rotate(-2deg)}75%{transform:translateX(4px) rotate(1deg)}100%{transform:none}}@keyframes cueFloat{0%{opacity:0;transform:translateY(18px)}100%{opacity:1;transform:none}}@keyframes cueReveal{0%{opacity:0;letter-spacing:.45em;filter:blur(8px)}100%{opacity:1;letter-spacing:inherit;filter:none}}
+  .slot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:16px}.slot-card{display:grid;grid-template-columns:minmax(150px,.72fr) 1.35fr;gap:16px;padding:14px;border:1px solid #e6e2dc;border-radius:14px;background:#fff}.slot-copy small,.slot-copy strong,.slot-copy span,.slot-copy code{display:block}.slot-copy small{color:#9a6a32;font-size:.61rem;letter-spacing:.1em;font-weight:900}.slot-copy strong{margin-top:4px;font-size:.86rem}.slot-copy span{margin-top:3px;color:var(--muted);font-size:.68rem;line-height:1.45}.slot-copy code{margin-top:8px;color:#a2a8ae;font-size:.58rem}.cue-controls{display:grid;grid-template-columns:1fr 1fr;gap:7px}.cue-controls label{display:grid;gap:3px;color:#9299a0;font-size:.54rem;font-weight:900;letter-spacing:.08em}.cue-controls input,.cue-controls select{min-width:0;width:100%;padding:8px 9px;border:1px solid #dedad4;border-radius:9px;background:#faf9f7;color:#333;font-size:.68rem}.slot-preview{grid-column:1/-1;padding:8px;border:1px solid #ddd8d1;border-radius:9px;background:#fff;color:#74512b;font-size:.66rem;font-weight:800;cursor:pointer}
+  .preset-section,.reference-section,.manifest-section{display:grid;grid-template-columns:minmax(230px,.65fr) 1.35fr;align-items:center;gap:22px}.preset-section p,.reference-section p,.manifest-section p{max-width:760px;margin:7px 0 0;color:var(--muted);font-size:.74rem;line-height:1.65}.preset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.preset-grid button{min-height:82px;padding:11px;border:1px solid #e1ddd7;border-radius:12px;background:#fff;text-align:left;cursor:pointer}.preset-grid b,.preset-grid span{display:block}.preset-grid b{font-size:.68rem;letter-spacing:.07em}.preset-grid span{margin-top:5px;color:#7d858d;font-size:.61rem;line-height:1.4}.reference-section{grid-template-columns:1fr auto}.reference-section>a{padding:12px 14px;border:1px solid #d8d3cb;border-radius:11px;background:#fff;text-decoration:none;font-size:.72rem;font-weight:800;white-space:nowrap}.manifest-section{grid-template-columns:1fr auto}.manifest-actions{display:flex;gap:8px}.manifest-section pre{grid-column:1/-1;max-height:340px;overflow:auto;margin:14px 0 0;padding:14px;border-radius:12px;background:#20242a;color:#dfe6ed;font-size:.64rem;line-height:1.55}
+  @media(max-width:980px){.hero{grid-template-columns:1fr}.hero-actions{justify-content:flex-start}.slot-grid{grid-template-columns:1fr}.preset-section,.reference-section,.manifest-section{grid-template-columns:1fr}.preset-grid{grid-template-columns:repeat(2,1fr)}.manifest-actions{justify-content:flex-start}}
+  @media(max-width:620px){.stage-section,.map-section,.preset-section,.reference-section,.manifest-section{padding:16px}.slot-card{grid-template-columns:1fr}.cue-controls{grid-template-columns:1fr}.slot-preview{grid-column:auto}.preset-grid{grid-template-columns:1fr 1fr}.section-head{align-items:flex-start;flex-direction:column}.hero h1{font-size:2.45rem}.volume{width:100%;justify-content:space-between}.hero-actions,.manifest-actions{width:100%}.hero-actions button,.manifest-actions button{flex:1}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
