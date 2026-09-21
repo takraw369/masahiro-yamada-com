@@ -2,6 +2,7 @@
 import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
 import LineFlowAssistant from '../../components/dashboard/LineFlowAssistant';
 import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
+import LineRichMenuFieldMap from '../../components/dashboard/LineRichMenuFieldMap';
 import '../../styles/masa-readable.css';
 ---
 <!doctype html>
@@ -23,6 +24,7 @@ import '../../styles/masa-readable.css';
       </div>
     </nav>
     <div class="copy-os-wrap"><CopyOsReference surface="LINE" /></div>
+    <LineRichMenuFieldMap client:load />
     <LineFlowAssistant client:load />
     <LineFlowManagerV2 client:load />
     <script is:inline src="/scripts/line-flow-asset-bridge.js"></script>
