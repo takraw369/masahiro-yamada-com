@@ -18,7 +18,7 @@ import '../../styles/masa-readable.css';
   <body>
     <nav class="flow-context" aria-label="LINE Control Plane context">
       <a class="flow-primary" href="/dashboard/lian">← PRIMARY / リアン</a>
-      <span>LINE EXPERIENCE</span>
+      <span>LINE EXPERIENCE · VISUAL SELECTOR</span>
       <div>
         <a href="/dashboard/knowledge">Knowledge</a>
         <a href="/dashboard/graph">Graph</a>
@@ -70,188 +70,44 @@ import '../../styles/masa-readable.css';
     color: #9a6c31;
   }
 
-  .flow-context > div {
-    justify-self: end;
-    display: flex;
-    gap: 6px;
-  }
-
   .flow-context a {
-    min-height: 36px;
-    display: inline-flex;
-    align-items: center;
-    padding: 0 11px;
-    border: 1px solid #d8d2c9;
-    border-radius: 8px;
-    background: rgba(255,255,255,.78);
-    color: #58636d;
+    color: #5f695f;
     text-decoration: none;
   }
 
-  .flow-context .flow-primary {
-    justify-self: start;
-    color: #744b18;
-    font-weight: 700;
+  .flow-context > div {
+    justify-self: end;
+    display: flex;
+    gap: 12px;
+  }
+
+  .flow-primary {
+    font-weight: 800;
   }
 
   .copy-os-wrap {
     max-width: 1440px;
     margin: 0 auto;
-    padding: 12px 22px 0;
+    padding: 8px 22px 0;
   }
 
-  body,
-  .lf2 {
-    font-family:
-      -apple-system,
-      BlinkMacSystemFont,
-      "SF Pro Text",
-      "Hiragino Sans",
-      "Hiragino Kaku Gothic ProN",
-      "Yu Gothic",
-      "Noto Sans JP",
-      system-ui,
-      sans-serif !important;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    font-feature-settings: "palt" 1;
-  }
-
-  .lf2 .metrics b,
-  .lf2 .step-stat,
-  .lf2 .badge,
-  .lf2 input[type="number"],
-  .lf2 input[type="time"] {
-    font-variant-numeric: tabular-nums;
-  }
-
-  .lf2 button,
-  .lf2 select,
-  .lf2 input,
-  .lf2 textarea {
-    font: inherit;
-  }
-
-  .lf2 button,
-  .lf2 select {
-    touch-action: manipulation;
-  }
-
-  @media (min-width: 1121px) {
-    .lf2 .layout {
-      grid-template-columns: 250px minmax(520px, 1fr) 370px !important;
-    }
-  }
-
-  .lf2 .top a { font-size: 12px !important; }
-  .lf2 .top p { font-size: 13px !important; line-height: 1.5 !important; }
-  .lf2 .top-actions select,
-  .lf2 .top-actions button { font-size: 13px !important; }
-
-  .lf2 .side-title { font-size: 12px !important; }
-  .lf2 .flow-item b { font-size: 14px !important; line-height: 1.35 !important; }
-  .lf2 .flow-item small { font-size: 11px !important; line-height: 1.45 !important; }
-  .lf2 .block-help { font-size: 11px !important; line-height: 1.55 !important; }
-  .lf2 .blocks button { padding: 10px 8px !important; gap: 3px !important; }
-  .lf2 .blocks button span { font-size: 18px !important; }
-  .lf2 .blocks button b { font-size: 13px !important; line-height: 1.35 !important; }
-  .lf2 .blocks button small { font-size: 11px !important; line-height: 1.4 !important; }
-
-  .lf2 .flow-head p { font-size: 13px !important; line-height: 1.5 !important; }
-  .lf2 .badge { font-size: 11px !important; }
-  .lf2 .metrics span { font-size: 11px !important; }
-  .lf2 .metrics b { font-size: 20px !important; }
-  .lf2 .trigger b { font-size: 14px !important; }
-  .lf2 .trigger small { font-size: 11px !important; }
-  .lf2 .arrow small { font-size: 10px !important; }
-
-  .lf2 .steps,
-  .lf2 .trigger { max-width: 720px !important; }
-  .lf2 .step {
-    grid-template-columns: 34px minmax(0, 1fr) 122px !important;
-    gap: 12px !important;
-    padding: 15px 14px !important;
-  }
-  .lf2 .step-copy > small { font-size: 11px !important; line-height: 1.4 !important; }
-  .lf2 .step-copy > b { font-size: 14.5px !important; line-height: 1.65 !important; margin-top: 5px !important; }
-  .lf2 .step-copy em i { font-size: 10.5px !important; line-height: 1.35 !important; padding: 3px 6px !important; }
-  .lf2 .step-stat > b { font-size: 15px !important; }
-  .lf2 .step-stat > small,
-  .lf2 .step-stat > i { font-size: 11px !important; line-height: 1.45 !important; }
-  .lf2 .add { font-size: 13px !important; padding: 11px 18px !important; }
-  .lf2 .add small { font-size: 11px !important; line-height: 1.4 !important; }
-
-  .lf2 .inspect-head span { font-size: 11px !important; }
-  .lf2 .inspect-head h2 { font-size: 22px !important; }
-  .lf2 .inspect-head small { font-size: 11px !important; line-height: 1.5 !important; }
-  .lf2 legend { font-size: 12px !important; }
-  .lf2 label span { font-size: 11px !important; line-height: 1.4 !important; }
-  .lf2 textarea,
-  .lf2 input,
-  .lf2 .inspect select,
-  .lf2 .modal select { font-size: 14px !important; line-height: 1.5 !important; }
-  .lf2 .routes > p,
-  .lf2 .route-unavailable { font-size: 11px !important; line-height: 1.6 !important; }
-  .lf2 .route input,
-  .lf2 .route select { font-size: 12px !important; }
-  .lf2 .mini-add { font-size: 12px !important; }
-  .lf2 .hint { font-size: 11px !important; line-height: 1.55 !important; }
-  .lf2 .aux-warning,
-  .lf2 .error,
-  .lf2 .toast { font-size: 12px !important; }
-  .lf2 .recipe-grid b { font-size: 14px !important; }
-  .lf2 .recipe-grid p { font-size: 11px !important; line-height: 1.55 !important; }
-  .lf2 .recipe-grid small { font-size: 10px !important; line-height: 1.45 !important; }
-
-  @media (max-width: 760px) {
+  @media (max-width: 640px) {
     .flow-context {
-      padding: 8px 14px 0;
       grid-template-columns: 1fr auto;
-      font-size: 12px;
+      padding: 8px 12px 0;
+      gap: 8px;
     }
 
-    .flow-context > span { display: none; }
-    .flow-context > div { gap: 4px; }
-    .flow-context a { min-height: 40px; padding: 0 9px; }
+    .flow-context > span {
+      display: none;
+    }
+
+    .flow-context > div {
+      gap: 9px;
+    }
 
     .copy-os-wrap {
-      padding: 10px 14px 0;
-    }
-
-    .lf2 .top-actions button,
-    .lf2 .top-actions select,
-    .lf2 .inspect-actions button,
-    .lf2 .save,
-    .lf2 .mini-add {
-      min-height: 44px;
-    }
-
-    .lf2 .blocks button { min-width: 124px !important; }
-    .lf2 .step {
-      grid-template-columns: 40px minmax(0, 1fr) 92px !important;
-      padding: 13px 10px !important;
-    }
-
-    .lf2 .handle {
-      min-width: 40px;
-      min-height: 44px;
-      touch-action: none;
-    }
-
-    .lf2 .step-copy > small { font-size: 11px !important; }
-    .lf2 .step-copy > b {
-      font-size: 15px !important;
-      line-height: 1.68 !important;
-    }
-    .lf2 .step-stat > b { font-size: 14px !important; }
-    .lf2 .step-stat > small,
-    .lf2 .step-stat > i { font-size: 10.5px !important; }
-
-    .lf2 textarea,
-    .lf2 input,
-    .lf2 select {
-      font-size: 16px !important;
+      padding: 8px 12px 0;
     }
   }
 </style>
