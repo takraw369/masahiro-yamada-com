@@ -1,5 +1,6 @@
 ---
 import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
+import LineExperienceStudio from '../../components/dashboard/LineExperienceStudio';
 import LineFlowAssistant from '../../components/dashboard/LineFlowAssistant';
 import LineFlowManagerV2 from '../../components/dashboard/LineFlowManagerV2';
 import '../../styles/masa-readable.css';
@@ -11,20 +12,23 @@ import '../../styles/masa-readable.css';
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#f3f1ed" />
-    <title>LINE Flow — MASA OS</title>
+    <title>LINE Experience — MASA OS</title>
   </head>
   <body>
     <nav class="flow-context" aria-label="LINE Control Plane context">
       <a class="flow-primary" href="/dashboard/lian">← PRIMARY / リアン</a>
-      <span>FLOW BUILDER</span>
+      <span>LINE EXPERIENCE</span>
       <div>
         <a href="/dashboard/knowledge">Knowledge</a>
         <a href="/dashboard/graph">Graph</a>
       </div>
     </nav>
     <div class="copy-os-wrap"><CopyOsReference surface="LINE" /></div>
-    <LineFlowAssistant client:load />
-    <LineFlowManagerV2 client:load />
+    <LineExperienceStudio client:load />
+    <div id="line-flow-builder" class="line-flow-builder-anchor">
+      <LineFlowAssistant client:load />
+      <LineFlowManagerV2 client:load />
+    </div>
     <script is:inline src="/scripts/line-flow-asset-bridge.js"></script>
     <script is:inline src="/scripts/line-asset-library.js"></script>
   </body>
@@ -36,6 +40,11 @@ import '../../styles/masa-readable.css';
     min-height: 100%;
     background: #f3f1ed;
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  .line-flow-builder-anchor {
+    scroll-margin-top: 18px;
   }
 
   .flow-context {
