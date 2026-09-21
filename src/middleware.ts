@@ -32,6 +32,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const { pathname } = url;
+  const isLocalHost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  const isLocalCodexPoc = isLocalHost && (pathname === '/dashboard/codex' || pathname === '/dashboard/codex/');
   const isFlowMindPage = pathname === '/mind' || pathname.startsWith('/mind/');
   const isDashboardPage =
     pathname.startsWith('/dashboard') &&
@@ -53,7 +55,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     });
   }
 
-  if (isFlowMindPage || isDashboardPage || isDashboardApi || isHarnessApi) {
+  if (!isLocalCodexPoc && (isFlowMindPage || isDashboardPage || isDashboardApi || isHarnessApi)) {
     const env = workerEnv as unknown as Record<string, string>;
     const password = env.DASHBOARD_PASSWORD ?? '';
     const cookie = context.cookies.get('ace-dash-auth')?.value;
