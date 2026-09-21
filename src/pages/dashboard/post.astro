@@ -3,11 +3,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
 import SocialAccountPlaybook from '../../components/dashboard/SocialAccountPlaybook';
 import PostDraftShelf from '../../components/dashboard/PostDraftShelf';
+import XProfileLoopBuilder from '../../components/dashboard/XProfileLoopBuilder';
 import XCommandCenter from '../../components/dashboard/XCommandCenter';
 import '../../styles/masa-readable.css';
 ---
 <DashboardLayout title="X Post">
   <SocialAccountPlaybook client:load />
+  <XProfileLoopBuilder client:load />
   <PostDraftShelf client:load />
   <CopyOsReference surface="X" />
   <XCommandCenter client:only="react" />
