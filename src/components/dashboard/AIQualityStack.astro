@@ -4,7 +4,7 @@ import { aiPromptBase, aiPromptModes } from '../../data/aiPromptModes';
 const promptOsUrl = 'https://docs.google.com/document/d/1RvF_l-AVailNxUGCnZo_firwNTb9_jstObAR4KxttAU/edit';
 ---
 
-<section class="quality-stack" data-quality-stack aria-labelledby="quality-stack-title">
+<section class="quality-stack" data-quality-stack data-base={aiPromptBase} aria-labelledby="quality-stack-title">
   <div class="quality-stack-head">
     <div>
       <p class="qs-kicker">QUALITY STACK · BASE + MODE</p>
@@ -73,10 +73,11 @@ const promptOsUrl = 'https://docs.google.com/document/d/1RvF_l-AVailNxUGCnZo_fir
   </div>
 </section>
 
-<script define:vars={{ aiPromptBase }}>
+<script>
   const root = document.querySelector<HTMLElement>('[data-quality-stack]');
 
   if (root) {
+    const basePrompt = root.dataset.base ?? '';
     const modeButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-mode]'));
     const target = root.querySelector<HTMLTextAreaElement>('#qs-target');
     const preview = root.querySelector<HTMLElement>('#qs-preview');
@@ -108,7 +109,7 @@ const promptOsUrl = 'https://docs.google.com/document/d/1RvF_l-AVailNxUGCnZo_fir
     const buildPrompt = () => {
       const modePrompt = activeMode?.dataset.prompt ?? '';
       const theme = target?.value.trim() ?? '';
-      const parts = [aiPromptBase];
+      const parts = [basePrompt];
       if (modePrompt) parts.push(`\n用途別モード:\n${modePrompt}`);
       if (theme) parts.push(`\n対象 / テーマ:\n${theme}`);
       return parts.join('\n');
@@ -148,7 +149,7 @@ const promptOsUrl = 'https://docs.google.com/document/d/1RvF_l-AVailNxUGCnZo_fir
 
     copyBase?.addEventListener('click', async () => {
       const original = copyBase.textContent;
-      const copied = await copyText(aiPromptBase);
+      const copied = await copyText(basePrompt);
       copyBase.textContent = copied ? 'コピーしました ✓' : 'コピーできませんでした';
       window.setTimeout(() => { copyBase.textContent = original; }, 1400);
     });
