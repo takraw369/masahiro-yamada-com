@@ -101,25 +101,38 @@ const first = visualStructureTemplates[0];
 </DashboardLayout>
 
 <script>
+  type StoredState = {
+    selectedId?: string;
+    theme?: string;
+    title?: string;
+    points?: string;
+    outputUse?: string;
+    ratio?: string;
+  };
+
   const STORAGE_KEY = 'masaVisualStructureLibraryV1';
-  const cards = Array.from(document.querySelectorAll('.template-card'));
-  const useButtons = Array.from(document.querySelectorAll('.use-button'));
-  const byId = (id) => document.getElementById(id);
+  const cards = Array.from(document.querySelectorAll<HTMLButtonElement>('.template-card'));
+  const useButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.use-button'));
+  const textEl = (id: string) => document.getElementById(id) as HTMLElement;
+  const fieldEl = (id: string) => document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+  const selectEl = (id: string) => document.getElementById(id) as HTMLSelectElement;
+  const textareaEl = (id: string) => document.getElementById(id) as HTMLTextAreaElement;
+  const buttonEl = (id: string) => document.getElementById(id) as HTMLButtonElement;
   let selectedId = cards[0]?.dataset.templateId || 'S01';
 
-  function loadState() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  function loadState(): StoredState {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') as StoredState; }
     catch { return {}; }
   }
 
   function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       selectedId,
-      theme: byId('theme').value,
-      title: byId('title').value,
-      points: byId('points').value,
-      outputUse: byId('output-use').value,
-      ratio: byId('ratio').value,
+      theme: fieldEl('theme').value,
+      title: fieldEl('title').value,
+      points: fieldEl('points').value,
+      outputUse: fieldEl('output-use').value,
+      ratio: fieldEl('ratio').value,
     }));
   }
 
@@ -127,78 +140,90 @@ const first = visualStructureTemplates[0];
     return cards.find((card) => card.dataset.templateId === selectedId) || cards[0];
   }
 
-  function setSelected(id) {
+  function setSelected(id?: string) {
     const card = cards.find((item) => item.dataset.templateId === id && !item.hidden) || cards.find((item) => !item.hidden) || cards[0];
     if (!card) return;
-    selectedId = card.dataset.templateId;
+    selectedId = card.dataset.templateId || 'S01';
     cards.forEach((item) => item.classList.toggle('is-active', item === card));
-    byId('detail-id').textContent = card.dataset.templateId;
-    byId('selected-badge').textContent = card.dataset.templateId;
-    byId('output-template-id').textContent = card.dataset.templateId;
-    byId('detail-name').textContent = card.dataset.name;
-    byId('detail-image').textContent = card.dataset.image;
-    byId('detail-best').textContent = card.dataset.bestFor;
-    byId('detail-copy').textContent = `「${card.dataset.copy}」`;
-    byId('detail-structure').textContent = card.dataset.structure;
+    textEl('detail-id').textContent = selectedId;
+    textEl('selected-badge').textContent = selectedId;
+    textEl('output-template-id').textContent = selectedId;
+    textEl('detail-name').textContent = card.dataset.name || '';
+    textEl('detail-image').textContent = card.dataset.image || '';
+    textEl('detail-best').textContent = card.dataset.bestFor || '';
+    textEl('detail-copy').textContent = `「${card.dataset.copy || ''}」`;
+    textEl('detail-structure').textContent = card.dataset.structure || '';
     saveState();
     generatePrompt(false);
   }
 
-  function filterByUseCase(button) {
+  function filterByUseCase(button: HTMLButtonElement) {
     useButtons.forEach((item) => item.classList.toggle('is-active', item === button));
     const ids = (button.dataset.templateIds || '').split(',').filter(Boolean);
-    cards.forEach((card) => { card.hidden = ids.length > 0 && !ids.includes(card.dataset.templateId); });
-    byId('visible-count').textContent = String(cards.filter((card) => !card.hidden).length);
-    byId('recommendation-note').textContent = button.dataset.note || '用途を選ぶと、第一推奨だけに絞り込む。';
+    cards.forEach((card) => { card.hidden = ids.length > 0 && !ids.includes(card.dataset.templateId || ''); });
+    textEl('visible-count').textContent = String(cards.filter((card) => !card.hidden).length);
+    textEl('recommendation-note').textContent = button.dataset.note || '用途を選ぶと、第一推奨だけに絞り込む。';
     if (selectedCard()?.hidden) setSelected(ids[0]);
   }
 
   function pointLines() {
-    return byId('points').value.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => `・${line}`).join('\n') || '・[要点1]\n・[要点2]\n・[要点3]';
+    return fieldEl('points').value.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => `・${line}`).join('\n') || '・[要点1]\n・[要点2]\n・[要点3]';
   }
 
   function buildPrompt() {
     const card = selectedCard();
-    const theme = byId('theme').value.trim() || '[テーマ]';
-    const title = byId('title').value.trim() || card.dataset.copy;
-    const outputUse = byId('output-use').value;
-    const ratio = byId('ratio').value;
-    return `「${theme}」を、${card.dataset.name}の構造で${outputUse}として設計してください。\n\n【基本】\n・比率：${ratio}\n・タイトル：「${title}」\n・型：${card.dataset.templateId}｜${card.dataset.name}\n\n【構造】\n${card.dataset.structure}\n\n【ビジュアルイメージ】\n${card.dataset.image}\n\n【今回入れる要点】\n${pointLines()}\n\n【構図キーワード】\n${card.dataset.promptHint}\n\n【制作ルール】\n・構造が一目で分かることを優先し、装飾を増やしすぎない\n・日本語テキストは短く正確に、見出しと要点の階層を明確にする\n・3秒で主題、10秒で全体構造が理解できる情報量にする\n・各要素の関係性は位置、矢印、線、余白で表現する\n・必要に応じてACE / Sun Loves Flowの既存ブランド表現へ合わせる`;
+    if (!card) return '';
+    const theme = fieldEl('theme').value.trim() || '[テーマ]';
+    const title = fieldEl('title').value.trim() || card.dataset.copy || '[タイトル]';
+    const outputUse = fieldEl('output-use').value;
+    const ratio = fieldEl('ratio').value;
+    const name = card.dataset.name || '[構造テンプレ]';
+    return `「${theme}」を、${name}の構造で${outputUse}として設計してください。\n\n【基本】\n・比率：${ratio}\n・タイトル：「${title}」\n・型：${card.dataset.templateId || ''}｜${name}\n\n【構造】\n${card.dataset.structure || ''}\n\n【ビジュアルイメージ】\n${card.dataset.image || ''}\n\n【今回入れる要点】\n${pointLines()}\n\n【構図キーワード】\n${card.dataset.promptHint || ''}\n\n【制作ルール】\n・構造が一目で分かることを優先し、装飾を増やしすぎない\n・日本語テキストは短く正確に、見出しと要点の階層を明確にする\n・3秒で主題、10秒で全体構造が理解できる情報量にする\n・各要素の関係性は位置、矢印、線、余白で表現する\n・必要に応じてACE / Sun Loves Flowの既存ブランド表現へ合わせる`;
   }
 
   function generatePrompt(showStatus = true) {
-    byId('prompt-output').value = buildPrompt();
+    textareaEl('prompt-output').value = buildPrompt();
     saveState();
     if (showStatus) setStatus('Promptを生成しました。');
   }
 
-  async function copyText(text, message) {
+  async function copyText(text: string, message: string) {
     try { await navigator.clipboard.writeText(text); setStatus(message); }
     catch {
-      const output = byId('prompt-output');
-      output.value = text; output.focus(); output.select(); document.execCommand('copy'); setStatus(message);
+      const output = textareaEl('prompt-output');
+      output.value = text;
+      output.focus();
+      output.select();
+      document.execCommand('copy');
+      setStatus(message);
     }
   }
 
-  function setStatus(message) { byId('status').textContent = message; }
+  function setStatus(message: string) { textEl('status').textContent = message; }
 
   cards.forEach((card) => card.addEventListener('click', () => setSelected(card.dataset.templateId)));
   useButtons.forEach((button) => button.addEventListener('click', () => filterByUseCase(button)));
-  ['theme','title','points','output-use','ratio'].forEach((id) => byId(id).addEventListener('input', () => { saveState(); generatePrompt(false); }));
-  byId('generate').addEventListener('click', () => generatePrompt(true));
-  byId('copy-prompt').addEventListener('click', () => copyText(byId('prompt-output').value || buildPrompt(), 'Promptをコピーしました。'));
-  byId('copy-copy').addEventListener('click', () => copyText(selectedCard().dataset.copy, '文言イメージをコピーしました。'));
-  byId('reset').addEventListener('click', () => {
-    byId('theme').value = ''; byId('title').value = ''; byId('points').value = ''; byId('output-use').value = '講座スライド'; byId('ratio').value = '16:9';
-    generatePrompt(false); saveState(); setStatus('入力をリセットしました。');
+  ['theme','title','points','output-use','ratio'].forEach((id) => fieldEl(id).addEventListener('input', () => { saveState(); generatePrompt(false); }));
+  buttonEl('generate').addEventListener('click', () => generatePrompt(true));
+  buttonEl('copy-prompt').addEventListener('click', () => copyText(textareaEl('prompt-output').value || buildPrompt(), 'Promptをコピーしました。'));
+  buttonEl('copy-copy').addEventListener('click', () => copyText(selectedCard()?.dataset.copy || '', '文言イメージをコピーしました。'));
+  buttonEl('reset').addEventListener('click', () => {
+    fieldEl('theme').value = '';
+    fieldEl('title').value = '';
+    fieldEl('points').value = '';
+    selectEl('output-use').value = '講座スライド';
+    selectEl('ratio').value = '16:9';
+    generatePrompt(false);
+    saveState();
+    setStatus('入力をリセットしました。');
   });
 
   const saved = loadState();
-  if (saved.theme) byId('theme').value = saved.theme;
-  if (saved.title) byId('title').value = saved.title;
-  if (saved.points) byId('points').value = saved.points;
-  if (saved.outputUse && Array.from(byId('output-use').options).some((o) => o.value === saved.outputUse)) byId('output-use').value = saved.outputUse;
-  if (saved.ratio && Array.from(byId('ratio').options).some((o) => o.value === saved.ratio)) byId('ratio').value = saved.ratio;
+  if (saved.theme) fieldEl('theme').value = saved.theme;
+  if (saved.title) fieldEl('title').value = saved.title;
+  if (saved.points) fieldEl('points').value = saved.points;
+  if (saved.outputUse && Array.from(selectEl('output-use').options).some((option) => option.value === saved.outputUse)) selectEl('output-use').value = saved.outputUse;
+  if (saved.ratio && Array.from(selectEl('ratio').options).some((option) => option.value === saved.ratio)) selectEl('ratio').value = saved.ratio;
   setSelected(saved.selectedId || selectedId);
 </script>
 
