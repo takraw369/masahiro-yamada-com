@@ -1,0 +1,45 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import CodexAppServerPanel from '../../components/dashboard/CodexAppServerPanel';
+---
+
+<DashboardLayout title="Codex Agent" eyebrow="BUILD / LOCAL AGENT">
+  <div class="codex-shell">
+    <header class="codex-head">
+      <div>
+        <p class="kicker">CODEX APP SERVER · POC</p>
+        <h1>Codex Agent</h1>
+        <p class="intro">MASA OSからローカルCodexへ仕事を渡し、進捗を見て、必要な時だけHuman Gateで承認するための最小クライアント。</p>
+      </div>
+      <div class="flow-chip">
+        <span>FLOW</span>
+        <strong>Task → Agent → Human Gate</strong>
+      </div>
+    </header>
+
+    <div class="notice">
+      <strong>LOCAL POC</strong>
+      <span>Dashboardは <code>127.0.0.1:4510</code> のローカルブリッジ経由で、<code>127.0.0.1:4500</code> のCodex App Serverへ接続します。どちらも外部へ公開しません。</span>
+    </div>
+
+    <CodexAppServerPanel client:load />
+
+    <footer class="codex-foot">
+      <span>PoC scope: initialize → thread/start → turn/start → stream → approval response → interrupt</span>
+      <span>Browser → localhost bridge → Codex App Server。公開Webへの直結はしない。</span>
+    </footer>
+  </div>
+</DashboardLayout>
+
+<style>
+  .codex-shell{max-width:1240px;margin:0 auto;padding-bottom:42px}
+  .kicker{margin:0;color:var(--gold-muted);font-size:.72rem;letter-spacing:.12em;font-weight:800}
+  .codex-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
+  .codex-head h1{margin-top:4px;font-size:clamp(2rem,4vw,3.35rem);line-height:1;letter-spacing:-.035em}
+  .intro{max-width:760px;margin-top:10px;color:#68717b;font-size:.94rem;line-height:1.75}
+  .flow-chip{flex-shrink:0;min-width:220px;padding:13px 15px;border:1px solid #ddd8d1;background:rgba(255,255,255,.7)}
+  .flow-chip span,.flow-chip strong{display:block}.flow-chip span{color:#969ca3;font-size:.62rem;letter-spacing:.12em;font-weight:800}.flow-chip strong{margin-top:3px;color:#5d6670;font-size:.76rem}
+  .notice{display:flex;align-items:center;gap:11px;margin-bottom:16px;padding:11px 13px;border:1px solid #dcc9aa;background:#faf4e9;color:#76552e;font-size:.72rem;line-height:1.55}.notice strong{flex-shrink:0;font-size:.62rem;letter-spacing:.1em}.notice code{font-size:.69rem}
+  .codex-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px;padding-top:13px;border-top:1px solid #dedad4;color:#8a9199;font-size:.66rem}
+  @media(max-width:720px){.codex-head{align-items:flex-start;flex-direction:column}.flow-chip{width:100%;min-width:0}.notice{align-items:flex-start;flex-direction:column}}
+</style>
