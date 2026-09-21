@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import AIQualityStack from '../../components/dashboard/AIQualityStack.astro';
 import { aiCommandCards, aiCommandSources } from '../../data/aiCommandLibrary';
 
 const categories = ['ALL', 'CORE', 'CONTENT', 'RESEARCH', 'PRODUCT', 'VIDEO', 'VISUAL', 'CANVA', 'THINK', 'VERIFY', 'TEACH', 'ACT', 'CREATE'] as const;
@@ -16,7 +17,7 @@ const sourceHref = (source: string) => {
       <div>
         <p class="kicker">AI COMMAND LIBRARY · DRIVE DERIVED</p>
         <h1>書くより、選ぶ。</h1>
-        <p class="lead">Driveで資産化したAI向け指示を、目的から選ぶ操作面。発信・Research・商品化・動画・Visual・Canvaまで、長いPromptを覚えずカードから使う。</p>
+        <p class="lead">Driveで資産化したAI向け指示を、目的から選ぶ操作面。まずQuality Stackで答え方を決め、必要なら短い実行Commandへ。長いPromptを覚えず使う。</p>
       </div>
       <div class="source-stack" aria-label="Drive source of truth">
         <span>SOURCE OF TRUTH</span>
@@ -26,14 +27,16 @@ const sourceHref = (source: string) => {
     </header>
 
     <section class="lane-strip" aria-label="Main command lanes">
-      <span>発信</span><b>→</b><span>Research</span><b>→</b><span>商品</span><b>→</b><span>Video</span><b>→</b><span>Visual</span><b>→</b><span>Canva</span>
+      <span>QUALITY</span><b>→</b><span>MODE</span><b>→</b><span>COMMAND</span><b>→</b><span>TARGET</span><b>→</b><span>COPY</span>
     </section>
+
+    <AIQualityStack />
 
     <section class="composer" aria-labelledby="composer-title">
       <div class="composer-head">
         <div>
           <p class="kicker">SELECT → TARGET → COPY</p>
-          <h2 id="composer-title">選んだ指示に、対象だけ足す。</h2>
+          <h2 id="composer-title">具体的な実行Commandを選ぶ。</h2>
         </div>
         <span id="selected-badge">未選択</span>
       </div>
