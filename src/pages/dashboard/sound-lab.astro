@@ -1,0 +1,238 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const sounds = [
+  { id:'tap', category:'UI', label:'ピッ', name:'Tap', use:'選択・軽い操作', feel:'軽い / 速い / 邪魔しない' },
+  { id:'pin', category:'UI', label:'ピン', name:'Confirm', use:'決定・確定', feel:'明るい / 明確 / 一点' },
+  { id:'pop', category:'EDIT', label:'ポン', name:'Pop', use:'テロップ・カード出現', feel:'丸い / 楽しい / 音ハメ向き' },
+  { id:'tick', category:'EDIT', label:'コッ', name:'Accent', use:'強調・注意・視線誘導', feel:'短い / 硬い / ピンポイント' },
+  { id:'sparkle', category:'REWARD', label:'キラッ', name:'Sparkle', use:'正解・発見', feel:'軽快 / 明るい / ご褒美' },
+  { id:'clear', category:'REWARD', label:'ティロン', name:'Quest Clear', use:'Quest完了', feel:'余韻 / 達成 / 上品' },
+  { id:'level', category:'REWARD', label:'ピロリン', name:'Level Up', use:'成長・昇格', feel:'上昇 / 高揚 / 特別' },
+  { id:'streak', category:'REWARD', label:'ピッピッピン', name:'Streak', use:'連続達成', feel:'テンポ / 加速 / 中毒性' },
+  { id:'whoosh', category:'MOTION', label:'シュン', name:'Whoosh', use:'画面遷移・解放', feel:'移動 / 速度 / 映像同期' },
+  { id:'bounce', category:'MOTION', label:'ポヨン', name:'Bounce', use:'ズーム・リアクション', feel:'柔らかい / コミカル / 弾む' },
+  { id:'stamp', category:'EDIT', label:'ドン', name:'Stamp', use:'大見出し・強い一言', feel:'低い / 太い / 決め' },
+  { id:'moon', category:'WORLD', label:'コォン…', name:'Moon Resonance', use:'月・世界・章の解放', feel:'静けさ / 深さ / ACE世界観' },
+];
+
+const categories = ['ALL','UI','EDIT','REWARD','MOTION','WORLD'];
+---
+
+<DashboardLayout title="Sound Lab" eyebrow="ACE EXPERIENCE DESIGN">
+  <main class="sound-shell">
+    <header class="hero">
+      <div>
+        <p class="kicker">ACE SOUND LAB · MOTION × SOUND</p>
+        <h1>音を、ハメて選ぶ。</h1>
+        <p class="lead">韓国バラエティやYouTube編集のように、文字・ズーム・報酬の瞬間へ短い音を刺すための試聴室。まずは音色ではなく「役割」と「気持ちよさ」で選ぶ。</p>
+      </div>
+      <div class="principle">
+        <span>RULE</span>
+        <strong>全部に鳴らさない。</strong>
+        <small>意味のある瞬間だけ。</small>
+      </div>
+    </header>
+
+    <section class="control-panel" aria-label="Sound Lab controls">
+      <div class="filters" role="group" aria-label="カテゴリフィルター">
+        {categories.map(category => <button class="filter-btn" data-filter={category}>{category}</button>)}
+      </div>
+      <label class="volume">VOLUME <input id="volume" type="range" min="0.05" max="0.5" step="0.01" value="0.22" /></label>
+    </section>
+
+    <section class="sound-grid" id="sound-grid">
+      {sounds.map(sound => (
+        <article class="sound-card" data-category={sound.category} data-id={sound.id}>
+          <div class="card-top">
+            <span class="category">{sound.category}</span>
+            <button class="fav-btn" data-fav={sound.id} aria-label={`${sound.label}を採用候補にする`} title="採用候補">☆</button>
+          </div>
+          <button class="play-btn" data-sound={sound.id} aria-label={`${sound.label}を再生`}>
+            <span class="sound-label">{sound.label}</span>
+            <span class="pulse" aria-hidden="true"></span>
+          </button>
+          <h2>{sound.name}</h2>
+          <p class="use">{sound.use}</p>
+          <p class="feel">{sound.feel}</p>
+          <button class="motion-demo" data-demo={sound.id}><span>DEMO</span><b>文字と音をハメる</b></button>
+        </article>
+      ))}
+    </section>
+
+    <section class="selection-panel">
+      <div>
+        <p class="kicker">SHORTLIST</p>
+        <h2>ACE採用候補</h2>
+        <p id="selection-copy">☆を押した音がここに残る。まず4〜6音に絞る。</p>
+      </div>
+      <div class="selection-actions">
+        <span id="selection-count">0 sounds</span>
+        <button id="copy-selection">候補をコピー</button>
+        <button id="clear-selection">クリア</button>
+      </div>
+    </section>
+
+    <section class="timing-guide">
+      <p class="kicker">TIMING</p>
+      <h2>音ハメは「音」より「瞬間」。</h2>
+      <div class="timing-track">
+        <div><b>0ms</b><span>文字 / カード出現</span></div>
+        <i>→</i>
+        <div class="hit"><b>+30ms</b><span>ピンポイント音</span></div>
+        <i>→</i>
+        <div><b>+120ms</b><span>軽い拡大 / バウンス</span></div>
+        <i>→</i>
+        <div><b>+240ms</b><span>余韻を切る</span></div>
+      </div>
+    </section>
+
+    <p class="note">※ このページの音はWeb Audio APIで生成した試作音。外部のYouTube音源をコピーしていないため、ACEの方向性を選ぶための安全なプロトタイプとして使える。</p>
+  </main>
+</DashboardLayout>
+
+<script>
+  const soundMeta = ${JSON.stringify(sounds)};
+  let audioCtx;
+  const getCtx = () => {
+    audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  };
+
+  const volumeEl = document.querySelector('#volume');
+  const volume = () => Number(volumeEl?.value || 0.22);
+
+  function tone(freq, start, duration, type = 'sine', gain = 1, endFreq = null) {
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const amp = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, start + duration);
+    amp.gain.setValueAtTime(Math.max(0.0001, volume() * gain), start);
+    amp.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    osc.connect(amp).connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + duration + 0.02);
+  }
+
+  function noise(start, duration, gain = .45, highpass = 800) {
+    const ctx = getCtx();
+    const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    const filter = ctx.createBiquadFilter();
+    const amp = ctx.createGain();
+    src.buffer = buffer;
+    filter.type = 'highpass';
+    filter.frequency.value = highpass;
+    amp.gain.setValueAtTime(volume() * gain, start);
+    amp.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    src.connect(filter).connect(amp).connect(ctx.destination);
+    src.start(start);
+  }
+
+  function playSound(id) {
+    const ctx = getCtx();
+    const t = ctx.currentTime + 0.015;
+    switch (id) {
+      case 'tap': tone(820,t,.055,'sine',.55,930); break;
+      case 'pin': tone(1180,t,.14,'sine',.72,1480); tone(1760,t+.025,.11,'sine',.26,2100); break;
+      case 'pop': tone(320,t,.11,'sine',.8,520); tone(650,t+.025,.07,'triangle',.22,760); break;
+      case 'tick': tone(1450,t,.045,'square',.22,1050); noise(t,.035,.12,2200); break;
+      case 'sparkle': [1260,1680,2240].forEach((f,i)=>tone(f,t+i*.045,.12,'sine',.42-i*.07,f*1.06)); break;
+      case 'clear': [660,880,1100].forEach((f,i)=>tone(f,t+i*.085,.25,'sine',.42-i*.06,f*1.02)); break;
+      case 'level': [620,830,1110,1480].forEach((f,i)=>tone(f,t+i*.06,.16,'triangle',.42-i*.05,f*1.08)); break;
+      case 'streak': tone(760,t,.05,'sine',.45,860); tone(900,t+.085,.05,'sine',.48,1000); tone(1320,t+.17,.13,'sine',.64,1650); break;
+      case 'whoosh': noise(t,.22,.5,900); tone(260,t,.2,'sine',.14,720); break;
+      case 'bounce': tone(240,t,.16,'sine',.65,420); tone(370,t+.11,.13,'sine',.34,290); break;
+      case 'stamp': tone(115,t,.16,'triangle',.72,72); noise(t,.08,.16,120); break;
+      case 'moon': tone(196,t,.9,'sine',.36,185); tone(392,t+.05,.7,'sine',.18,370); tone(588,t+.12,.55,'sine',.08,560); break;
+    }
+  }
+
+  document.querySelectorAll('[data-sound]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.sound;
+      playSound(id);
+      const card = btn.closest('.sound-card');
+      card?.classList.remove('playing');
+      requestAnimationFrame(() => card?.classList.add('playing'));
+      setTimeout(() => card?.classList.remove('playing'), 420);
+    });
+  });
+
+  document.querySelectorAll('[data-demo]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.demo;
+      const card = btn.closest('.sound-card');
+      card?.classList.remove('demo-hit');
+      requestAnimationFrame(() => card?.classList.add('demo-hit'));
+      setTimeout(() => playSound(id), 30);
+      setTimeout(() => card?.classList.remove('demo-hit'), 650);
+    });
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(el => el.classList.toggle('active', el === btn));
+      document.querySelectorAll('.sound-card').forEach(card => {
+        card.hidden = filter !== 'ALL' && card.dataset.category !== filter;
+      });
+    });
+  });
+  document.querySelector('.filter-btn[data-filter="ALL"]')?.classList.add('active');
+
+  const storageKey = 'ace-sound-lab:selected';
+  let selected = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
+  const renderSelection = () => {
+    document.querySelectorAll('[data-fav]').forEach(btn => {
+      const active = selected.has(btn.dataset.fav);
+      btn.classList.toggle('active', active);
+      btn.textContent = active ? '★' : '☆';
+    });
+    const labels = soundMeta.filter(s => selected.has(s.id)).map(s => `${s.label} / ${s.name}`);
+    document.querySelector('#selection-count').textContent = `${labels.length} sounds`;
+    document.querySelector('#selection-copy').textContent = labels.length ? labels.join(' · ') : '☆を押した音がここに残る。まず4〜6音に絞る。';
+    localStorage.setItem(storageKey, JSON.stringify([...selected]));
+  };
+  renderSelection();
+
+  document.querySelectorAll('[data-fav]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.fav;
+      selected.has(id) ? selected.delete(id) : selected.add(id);
+      renderSelection();
+    });
+  });
+
+  document.querySelector('#clear-selection')?.addEventListener('click', () => {
+    selected.clear();
+    renderSelection();
+  });
+
+  document.querySelector('#copy-selection')?.addEventListener('click', async () => {
+    const picked = soundMeta.filter(s => selected.has(s.id)).map(({id,label,name,use}) => ({id,label,name,use}));
+    const text = `ACE SOUND SHORTLIST\n${picked.map(s => `- ${s.label} / ${s.name} — ${s.use} [${s.id}]`).join('\n')}`;
+    await navigator.clipboard.writeText(text);
+    const btn = document.querySelector('#copy-selection');
+    const original = btn.textContent;
+    btn.textContent = 'コピー済み ✓';
+    setTimeout(() => btn.textContent = original, 1200);
+  });
+</script>
+
+<style>
+  .sound-shell{--line:#e2ded7;--muted:#737b84;max-width:1180px;margin:0 auto;padding-bottom:48px}.kicker{margin:0;color:var(--gold-muted);font-size:.7rem;font-weight:900;letter-spacing:.13em}.hero{display:grid;grid-template-columns:1fr 230px;gap:28px;align-items:end}.hero h1{margin:5px 0 0;font-size:clamp(2.15rem,5vw,4rem);letter-spacing:-.045em;line-height:1}.lead{max-width:760px;margin:14px 0 0;color:var(--muted);line-height:1.85;font-size:.94rem}.principle{padding:18px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.78)}.principle span,.principle strong,.principle small{display:block}.principle span{color:#9c7c52;font-size:.62rem;letter-spacing:.13em;font-weight:900}.principle strong{margin-top:8px;font-size:1rem}.principle small{margin-top:3px;color:var(--muted)}
+  .control-panel{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:28px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff}.filters{display:flex;gap:6px;flex-wrap:wrap}.filter-btn{border:1px solid #e5e1db;background:#f8f7f4;border-radius:999px;padding:8px 11px;color:#6d747c;font-size:.65rem;font-weight:900;letter-spacing:.07em;cursor:pointer}.filter-btn.active{background:#22272c;border-color:#22272c;color:white}.volume{display:flex;align-items:center;gap:8px;color:#8b9299;font-size:.62rem;font-weight:900;letter-spacing:.08em}.volume input{width:110px}
+  .sound-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.sound-card{position:relative;overflow:hidden;padding:15px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.88);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.sound-card:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(50,45,38,.07)}.sound-card.playing{border-color:#b59669;box-shadow:0 0 0 3px rgba(181,150,105,.12)}.card-top{display:flex;justify-content:space-between;align-items:center}.category{color:#9a784f;font-size:.59rem;letter-spacing:.12em;font-weight:900}.fav-btn{border:0;background:transparent;color:#bbb2a7;font-size:1.2rem;cursor:pointer}.fav-btn.active{color:#9a6a29}.play-btn{position:relative;width:100%;height:112px;margin-top:5px;border:0;border-radius:15px;background:linear-gradient(145deg,#f4f1eb,#fff);cursor:pointer;overflow:hidden}.sound-label{position:relative;z-index:2;font-size:1.75rem;font-weight:900;letter-spacing:-.04em}.pulse{position:absolute;left:50%;top:50%;width:20px;height:20px;border:1px solid rgba(154,120,79,.3);border-radius:50%;transform:translate(-50%,-50%) scale(.5);opacity:0}.playing .pulse{animation:pulse .38s ease-out}.sound-card h2{margin:12px 0 0;font-size:.88rem}.use{margin:3px 0 0;font-size:.73rem;color:#4d555e}.feel{margin:8px 0 0;color:#9299a0;font-size:.66rem}.motion-demo{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;padding:9px 10px;border:1px solid #e5e1da;border-radius:10px;background:#fff;cursor:pointer}.motion-demo span{color:#9a784f;font-size:.57rem;font-weight:900;letter-spacing:.11em}.motion-demo b{font-size:.66rem;color:#666f77}.demo-hit .sound-label{animation:hit .56s cubic-bezier(.2,1.8,.4,1)}.demo-hit .motion-demo{animation:flash .55s ease}
+  .selection-panel{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:20px;padding:20px;border:1px solid #dcd7cf;border-radius:18px;background:#262b31;color:#fff}.selection-panel h2{margin:4px 0 0;font-size:1rem}.selection-panel p:not(.kicker){max-width:690px;margin:6px 0 0;color:#b9c0c6;font-size:.72rem;line-height:1.6}.selection-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}.selection-actions span{margin-right:4px;color:#d8c6aa;font-size:.67rem}.selection-actions button{padding:8px 10px;border:1px solid #4b535b;border-radius:9px;background:#343a41;color:#fff;font-size:.65rem;cursor:pointer}
+  .timing-guide{margin-top:16px;padding:20px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.7)}.timing-guide h2{margin:4px 0 14px;font-size:1rem}.timing-track{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;align-items:center;gap:8px}.timing-track div{padding:11px;border:1px solid #e3dfd8;border-radius:11px;background:#fff}.timing-track b,.timing-track span{display:block}.timing-track b{font-size:.7rem}.timing-track span{margin-top:3px;color:#7c848c;font-size:.64rem}.timing-track i{color:#b9afa3;font-style:normal}.timing-track .hit{border-color:#b59669;background:#fbf6ee}.note{margin:14px 4px 0;color:#9299a0;font-size:.64rem;line-height:1.7}
+  @keyframes pulse{0%{opacity:.55;transform:translate(-50%,-50%) scale(.5)}100%{opacity:0;transform:translate(-50%,-50%) scale(6)}}@keyframes hit{0%{transform:scale(.88)}45%{transform:scale(1.13)}100%{transform:scale(1)}}@keyframes flash{0%,100%{background:#fff}40%{background:#f0e5d5}}
+  @media(max-width:950px){.sound-grid{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}.principle{max-width:300px}.timing-track{grid-template-columns:1fr}.timing-track i{transform:rotate(90deg);justify-self:center}}
+  @media(max-width:620px){.sound-grid{grid-template-columns:1fr}.control-panel,.selection-panel{align-items:flex-start;flex-direction:column}.volume{width:100%;justify-content:space-between}.volume input{width:52%}.selection-actions{justify-content:flex-start}.hero h1{font-size:2.45rem}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
