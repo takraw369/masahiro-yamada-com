@@ -156,18 +156,26 @@ const slots = [
 </DashboardLayout>
 
 <script>
-  let audioCtx;
+  type CueKind = 'text' | 'motion' | 'sound' | 'caption';
+  type Cue = Record<CueKind, string>;
+  type CueControl = HTMLInputElement | HTMLSelectElement;
+  type CueMap = Record<string, Cue>;
+  type CuePreset = Record<string, [sound: string, motion: string, caption: string]>;
+  type AudioWindow = Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
+
+  let audioCtx: AudioContext | undefined;
   const getCtx = () => {
-    const AudioContextCtor = window.AudioContext || window['webkitAudioContext'];
+    const AudioContextCtor = window.AudioContext || (window as AudioWindow).webkitAudioContext;
+    if (!AudioContextCtor) throw new Error('Web Audio API is not supported in this browser.');
     audioCtx ??= new AudioContextCtor();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   };
 
-  const volumeEl = document.querySelector('#volume');
+  const volumeEl = document.querySelector<HTMLInputElement>('#volume');
   const volume = () => Number(volumeEl?.value || 0.22);
 
-  function tone(freq, start, duration, type = 'sine', gain = 1, endFreq = null) {
+  function tone(freq: number, start: number, duration: number, type: OscillatorType = 'sine', gain = 1, endFreq?: number) {
     const ctx = getCtx();
     const osc = ctx.createOscillator();
     const amp = ctx.createGain();
@@ -181,7 +189,7 @@ const slots = [
     osc.stop(start + duration + 0.02);
   }
 
-  function noise(start, duration, gain = .45, highpass = 800) {
+  function noise(start: number, duration: number, gain = .45, highpass = 800) {
     const ctx = getCtx();
     const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -198,7 +206,7 @@ const slots = [
     src.start(start);
   }
 
-  function playSound(id) {
+  function playSound(id: string) {
     if (!id || id === 'none') return;
     const ctx = getCtx();
     const t = ctx.currentTime + 0.015;
@@ -221,27 +229,33 @@ const slots = [
   }
 
   const storageKey = 'ace-cue-map:v1';
-  const controls = [...document.querySelectorAll('[data-slot][data-kind]')];
-  const defaults = {};
+  const controls = [...document.querySelectorAll<CueControl>('[data-slot][data-kind]')];
+  const defaults: Record<string, Partial<Cue>> = {};
   controls.forEach(control => {
-    defaults[control.dataset.slot] ??= {};
-    defaults[control.dataset.slot][control.dataset.kind] = control.value;
+    const slot = control.dataset.slot;
+    const kind = control.dataset.kind as CueKind | undefined;
+    if (!slot || !kind) return;
+    defaults[slot] ??= {};
+    defaults[slot][kind] = control.value;
   });
 
-  function currentMap() {
-    const map = {};
+  function currentMap(): CueMap {
+    const map: Record<string, Partial<Cue>> = {};
     controls.forEach(control => {
-      map[control.dataset.slot] ??= {};
-      map[control.dataset.slot][control.dataset.kind] = control.value;
+      const slot = control.dataset.slot;
+      const kind = control.dataset.kind as CueKind | undefined;
+      if (!slot || !kind) return;
+      map[slot] ??= {};
+      map[slot][kind] = control.value;
     });
-    return map;
+    return map as CueMap;
   }
 
-  function controlFor(slot, kind) {
-    return document.querySelector(`[data-slot="${slot}"][data-kind="${kind}"]`);
+  function controlFor(slot: string, kind: CueKind) {
+    return document.querySelector<CueControl>(`[data-slot="${slot}"][data-kind="${kind}"]`);
   }
 
-  function cueFor(slot) {
+  function cueFor(slot: string): Cue {
     return {
       text: controlFor(slot, 'text')?.value || '',
       motion: controlFor(slot, 'motion')?.value || 'none',
@@ -250,10 +264,10 @@ const slots = [
     };
   }
 
-  function previewCue(slot) {
+  function previewCue(slot: string) {
     const cue = cueFor(slot);
-    const caption = document.querySelector('#stage-caption');
-    const meta = document.querySelector('#stage-meta');
+    const caption = document.querySelector<HTMLElement>('#stage-caption');
+    const meta = document.querySelector<HTMLElement>('#stage-meta');
     if (!caption || !meta) return;
     caption.className = `stage-caption caption-${cue.caption}`;
     caption.textContent = cue.text || ' '; 
@@ -290,16 +304,19 @@ const slots = [
 
   function loadMap() {
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      const saved = JSON.parse(localStorage.getItem(storageKey) || '{}') as Partial<CueMap>;
       controls.forEach(control => {
-        const value = saved?.[control.dataset.slot]?.[control.dataset.kind];
+        const slot = control.dataset.slot;
+        const kind = control.dataset.kind as CueKind | undefined;
+        if (!slot || !kind) return;
+        const value = saved[slot]?.[kind];
         if (value !== undefined) control.value = value;
       });
     } catch {}
     renderManifest();
   }
 
-  async function copyText(text, button) {
+  async function copyText(text: string, button: HTMLButtonElement | null) {
     await navigator.clipboard.writeText(text);
     if (!button) return;
     const before = button.textContent;
@@ -311,12 +328,16 @@ const slots = [
     const eventName = control.tagName === 'INPUT' ? 'input' : 'change';
     control.addEventListener(eventName, () => {
       saveMap();
-      if (control.dataset.kind !== 'text') previewCue(control.dataset.slot);
+      const slot = control.dataset.slot;
+      if (slot && control.dataset.kind !== 'text') previewCue(slot);
     });
   });
 
-  document.querySelectorAll('[data-preview-slot]').forEach(button => {
-    button.addEventListener('click', () => previewCue(button.dataset.previewSlot));
+  document.querySelectorAll<HTMLButtonElement>('[data-preview-slot]').forEach(button => {
+    button.addEventListener('click', () => {
+      const slot = button.dataset.previewSlot;
+      if (slot) previewCue(slot);
+    });
   });
 
   document.querySelector('#preview-flow')?.addEventListener('click', async () => {
@@ -327,7 +348,7 @@ const slots = [
     }
   });
 
-  const presets = {
+  const presets: Record<string, CuePreset> = {
     minimal: {
       'ui.tap': ['tap','pop','clean'], 'ui.confirm':['pin','pop','clean'], 'quest.correct':['sparkle','pop','clean'],
       'quest.clear':['clear','zoom','bold'], 'quest.levelup':['level','pop','bold'], 'quest.streak':['pin','pop','clean'],
@@ -354,28 +375,39 @@ const slots = [
     }
   };
 
-  document.querySelectorAll('[data-preset]').forEach(button => {
+  document.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach(button => {
     button.addEventListener('click', () => {
-      const preset = presets[button.dataset.preset];
+      const presetId = button.dataset.preset;
+      if (!presetId) return;
+      const preset = presets[presetId];
       Object.entries(preset).forEach(([slot, values]) => {
-        controlFor(slot,'sound').value = values[0];
-        controlFor(slot,'motion').value = values[1];
-        controlFor(slot,'caption').value = values[2];
+        const sound = controlFor(slot, 'sound');
+        const motion = controlFor(slot, 'motion');
+        const caption = controlFor(slot, 'caption');
+        if (sound) sound.value = values[0];
+        if (motion) motion.value = values[1];
+        if (caption) caption.value = values[2];
       });
       saveMap();
       previewCue('video.emphasis');
     });
   });
 
-  document.querySelector('#copy-json')?.addEventListener('click', event => copyText(JSON.stringify(manifest(), null, 2), event.currentTarget));
-  document.querySelector('#copy-manifest')?.addEventListener('click', event => {
+  document.querySelector<HTMLButtonElement>('#copy-json')?.addEventListener('click', event => copyText(JSON.stringify(manifest(), null, 2), event.currentTarget as HTMLButtonElement));
+  document.querySelector<HTMLButtonElement>('#copy-manifest')?.addEventListener('click', event => {
     const lines = Object.entries(currentMap()).map(([slot, cue]) => `- ${slot}: motion=${cue.motion}, sound=${cue.sound}, caption=${cue.caption}, text="${cue.text}"`).join('\n');
     const text = `ACE CUE MAP v1\n今後のACE UI / Quest / 動画 / コンテンツ生成では以下を基本演出ルールとして使う。\n${lines}\n\nJSON:\n${JSON.stringify(manifest(), null, 2)}`;
-    copyText(text, event.currentTarget);
+    copyText(text, event.currentTarget as HTMLButtonElement);
   });
 
   document.querySelector('#reset-map')?.addEventListener('click', () => {
-    controls.forEach(control => control.value = defaults[control.dataset.slot][control.dataset.kind]);
+    controls.forEach(control => {
+      const slot = control.dataset.slot;
+      const kind = control.dataset.kind as CueKind | undefined;
+      if (!slot || !kind) return;
+      const value = defaults[slot]?.[kind];
+      if (value !== undefined) control.value = value;
+    });
     localStorage.removeItem(storageKey);
     renderManifest();
     previewCue('ui.tap');
