@@ -14,7 +14,8 @@ Prefer reliable delivery, canonical data flow, and reversible changes over cleve
 3. `package.json`
 4. `wrangler.toml` when touching deploy, domains, bindings, auth, storage, or Workers
 5. `DESIGN.md` when touching UI / copy layout / visual components
-6. Only task-relevant source files after that
+6. `.agents/skills/masa-taste-frontend/SKILL.md` for landing pages, editorial pages, campaign pages, redesigns, or visual polish
+7. Only task-relevant source files after that
 
 Do not load the whole repository unless necessary.
 
@@ -25,7 +26,8 @@ When documents disagree:
 1. Executable config / code (`package.json`, `wrangler.toml`, current source)
 2. Current production architecture and verified behavior
 3. Repository docs such as `DESIGN.md`
-4. Old notes / comments / assumptions
+4. Project-local skills such as `.agents/skills/masa-taste-frontend/SKILL.md`
+5. Old notes / comments / assumptions
 
 Fix stale documentation when a verified mismatch is found.
 
@@ -53,9 +55,12 @@ Fix stale documentation when a verified mismatch is found.
 ## UI rules
 
 - Follow `DESIGN.md` for visual work.
+- For landing pages, editorial pages, campaign pages, redesigns, and visual polish, also apply `.agents/skills/masa-taste-frontend/SKILL.md` as an anti-slop / bias-correction layer.
+- `DESIGN.md` always wins over generic Taste Skill defaults. Do not replace the ACE palette, typography, motion philosophy, or Astro architecture because a generic skill recommends another stack.
 - Reuse existing tokens/components before introducing a new design language.
 - Mobile-first behavior must remain usable.
 - A visually nicer result is not acceptable if navigation, auth, performance, accessibility, or funnel flow regresses.
+- Do not use the Taste Skill adapter as the primary pattern library for dashboards, dense tables, admin tools, or multi-step product UI.
 
 ## Validation
 
