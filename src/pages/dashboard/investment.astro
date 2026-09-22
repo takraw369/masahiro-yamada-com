@@ -1,8 +1,10 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import InvestmentDashboard from '../../components/dashboard/InvestmentDashboard';
+import TenbaggerSignalLab from '../../components/dashboard/TenbaggerSignalLab';
 ---
 
 <DashboardLayout title="Investment">
   <InvestmentDashboard client:only="react" />
+  <TenbaggerSignalLab client:only="react" />
 </DashboardLayout>
