@@ -12,7 +12,7 @@ const dateLabel = new Intl.DateTimeFormat('ja-JP', {
 const flowSteps = [
   { no:'01', label:'CAPTURE', title:'残す', detail:'思いつき・体験・違和感', href:'/mind?action=capture' },
   { no:'02', label:'THINK', title:'意味をつくる', detail:'FLOW MIND / Intelligence', href:'/mind' },
-  { no:'03', label:'SHIP', title:'外へ流す', detail:'X / LINE / ACE', href:'#output' },
+  { no:'03', label:'SHIP', title:'外へ流す', detail:'Publishing Flow → X / LINE / ACE', href:'/dashboard/content-flow' },
   { no:'04', label:'LEARN', title:'反応を戻す', detail:'Evidence / Review', href:'/dashboard/evidence' },
 ];
 
@@ -23,9 +23,10 @@ const deepDoors = [
   { group:'THINK', title:'Intelligence', detail:'外部情報を選別する', href:'/dashboard/intelligence' },
   { group:'LEARN', title:'Evidence Lab', detail:'結果を学習へ戻す', href:'/dashboard/evidence' },
   { group:'DECIDE', title:'Choice Lab', detail:'横断判断が必要な時だけ', href:'/dashboard/choice-lab' },
+  { group:'CREATE', title:'Publishing Flow', detail:'JourneyからResultまで1本で決める', href:'/dashboard/content-flow' },
   { group:'AI', title:'AI Commands', detail:'Driveの指示を目的から選ぶ', href:'/dashboard/ai-commands' },
   { group:'CREATE', title:'Visual Structures', detail:'20型から図解・スライド構造を選ぶ', href:'/dashboard/visual-structures' },
-  { group:'CREATE', title:'X Post', detail:'投稿を編集・確認する', href:'/dashboard/post' },
+  { group:'CREATE', title:'X Post', detail:'決まった1本を編集・確認する', href:'/dashboard/post' },
   { group:'BUILD', title:'Quest', detail:'実践できる形へ変換', href:'/dashboard/quest' },
   { group:'AGENT', title:'Codex Agent', detail:'Task → Agent → Human Gate', href:'/dashboard/codex' },
   { group:'SYSTEM', title:'MASA OS', detail:'正本・統合の詳細へ', href:'/dashboard/os' },
@@ -64,10 +65,11 @@ const deepDoors = [
     <section class="output-section" id="output" aria-labelledby="output-title">
       <div class="section-head">
         <div><p class="kicker">OUTPUT</p><h2 id="output-title">外へ流す。</h2></div>
-        <p>細かい制作・公開は各ページへ。公開はHuman Gate。</p>
+        <p>まずPublishing Flowで順番を決める。公開はHuman Gate。</p>
       </div>
       <div class="output-grid">
-        <a class="output-card dark" href="/dashboard/post"><span>X</span><div><strong>X / Social</strong><small>仮説・体験・問いを出す</small></div><b>→</b></a>
+        <a class="output-card publish" href="/dashboard/content-flow"><span>P</span><div><strong>Publishing Flow</strong><small>今どこ？ → 次なに？を1本で決める</small></div><b>→</b></a>
+        <a class="output-card" href="/dashboard/post"><span>X</span><div><strong>X / Social</strong><small>決まった仮説・体験・問いを編集する</small></div><b>→</b></a>
         <a class="output-card green" href="/dashboard/line"><span>L</span><div><strong>LINE Flow</strong><small>教育・関係・顧客導線を動かす</small></div><b>→</b></a>
         <a class="output-card blue" href="/dashboard/ace-assets"><span>A</span><div><strong>ACE Assets</strong><small>学びを教材へ変える</small></div><b>→</b></a>
       </div>
@@ -102,10 +104,11 @@ const deepDoors = [
   .flow-track{display:grid;grid-template-columns:repeat(4,1fr);margin-top:16px;border:1px solid #e5e1db;border-radius:14px;overflow:hidden;background:#fff}
   .flow-step{position:relative;min-width:0;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:14px;text-decoration:none;border-right:1px solid #e8e4de}.flow-step:last-child{border-right:0}
   .flow-step .no{color:#b5a58f;font-family:'Cormorant Garamond',serif;font-size:1.25rem}.flow-step small,.flow-step strong,.flow-step em{display:block}.flow-step small{color:#8b5b2c;font-size:.64rem;letter-spacing:.1em;font-weight:800}.flow-step strong{margin-top:2px;font-size:.82rem}.flow-step em{margin-top:2px;color:#7c858e;font-size:.67rem;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.flow-step>b{color:#c5bdb3;font-weight:500}
-  .output-section{scroll-margin-top:90px}.output-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:15px}.output-card{min-height:92px;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:14px;border:1px solid #dedbd6;border-radius:14px;background:#fff;text-decoration:none}.output-card>span{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:#fff;background:#20242a;font-weight:900}.output-card.green>span{background:#2b8f65}.output-card.blue>span{background:#507fb6}.output-card strong,.output-card small{display:block}.output-card strong{font-size:.86rem}.output-card small{margin-top:2px;color:#7c858e;font-size:.7rem}.output-card>b{color:#a56c22}
+  .output-section{scroll-margin-top:90px}.output-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:15px}.output-card{min-height:92px;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:14px;border:1px solid #dedbd6;border-radius:14px;background:#fff;text-decoration:none}.output-card>span{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:#fff;background:#20242a;font-weight:900}.output-card.publish>span{background:#a56c22}.output-card.green>span{background:#2b8f65}.output-card.blue>span{background:#507fb6}.output-card strong,.output-card small{display:block}.output-card strong{font-size:.86rem}.output-card small{margin-top:2px;color:#7c858e;font-size:.7rem}.output-card>b{color:#a56c22}
   .deep-section{margin-top:16px;border:1px solid var(--hairline);border-radius:16px;background:rgba(255,255,255,.52);overflow:hidden}.deep-section>summary{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;cursor:pointer;list-style:none;color:#606a74;font-size:.76rem}.deep-section>summary::-webkit-details-marker{display:none}.deep-section>summary b{margin-right:9px;color:#8b5b2c;font-size:.68rem;letter-spacing:.1em}.deep-section[open]>summary em{transform:rotate(45deg)}.deep-section>summary em{font-size:1rem;font-style:normal}.deep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid #e5e1db}.deep-grid a{position:relative;min-height:108px;padding:14px;border-right:1px solid #e8e4de;border-bottom:1px solid #e8e4de;text-decoration:none}.deep-grid a:nth-child(4n){border-right:0}.deep-grid small,.deep-grid strong,.deep-grid span{display:block}.deep-grid small{color:#8b5b2c;font-size:.62rem;letter-spacing:.09em;font-weight:800}.deep-grid strong{margin-top:7px;font-size:.82rem}.deep-grid span{margin-top:3px;color:#7c858e;font-size:.68rem}.deep-grid a>b{position:absolute;right:13px;top:12px;color:#b79c75;font-weight:500}
   .dash-foot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:1px solid #dedad4;color:#8a9199;font-size:.68rem}
-  @media(max-width:900px){.flow-track{grid-template-columns:repeat(2,1fr)}.flow-step:nth-child(2){border-right:0}.output-grid{grid-template-columns:1fr}.deep-grid{grid-template-columns:repeat(2,1fr)}.deep-grid a:nth-child(2n){border-right:0}}
-  @media(max-width:620px){.dash-head,.section-head{align-items:flex-start;flex-direction:column}.date-chip{min-width:0;width:100%}.flow-section,.output-section{padding:16px}.flow-track,.deep-grid{grid-template-columns:1fr}.flow-step{border-right:0;border-bottom:1px solid #e8e4de}.flow-step:last-child{border-bottom:0}.deep-grid a{border-right:0}.section-head>p{max-width:100%}}
+  @media(max-width:1050px){.output-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:900px){.flow-track{grid-template-columns:repeat(2,1fr)}.flow-step:nth-child(2){border-right:0}.deep-grid{grid-template-columns:repeat(2,1fr)}.deep-grid a:nth-child(2n){border-right:0}}
+  @media(max-width:620px){.dash-head,.section-head{align-items:flex-start;flex-direction:column}.date-chip{min-width:0;width:100%}.flow-section,.output-section{padding:16px}.flow-track,.deep-grid,.output-grid{grid-template-columns:1fr}.flow-step{border-right:0;border-bottom:1px solid #e8e4de}.flow-step:last-child{border-bottom:0}.deep-grid a{border-right:0}.section-head>p{max-width:100%}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
