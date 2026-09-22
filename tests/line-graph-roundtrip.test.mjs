@@ -53,13 +53,22 @@ test('Graph runtime returns by opener, parent, or BroadcastChannel and visibly r
   assert.match(runtime, /window\.close\(\)/);
 });
 
-test('LINE-launched Graph prioritizes the roundtrip panel on mobile', async () => {
+test('LINE-launched Graph prioritizes a simple two-stage mobile action flow', async () => {
   const runtime = await readFile(new URL('../public/scripts/graph-line-roundtrip-runtime.js', import.meta.url), 'utf8');
 
   assert.match(runtime, /matchMedia\('\(max-width: 760px\)'\)/);
   assert.match(runtime, /graphApp\.prepend\(panel\)/);
   assert.match(runtime, /glk-mobile-docked/);
-  assert.match(runtime, /LINEから開いています · 戻す文を選ぶ/);
+  assert.match(runtime, /LINEに使う文を選ぶ/);
+  assert.match(runtime, /この文を選ぶ/);
+  assert.match(runtime, /この文をLINEで使う/);
+  assert.match(runtime, /今のStepと入れ替える/);
+  assert.match(runtime, /下に足す/);
+  assert.match(runtime, /新しいStepにする/);
+  assert.match(runtime, /data-action="replace"/);
+  assert.match(runtime, /data-action="append"/);
+  assert.match(runtime, /data-action="new-step"/);
+  assert.match(runtime, /\.glk-actions\{display:none!important\}/);
   assert.match(runtime, /panel\.scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
 });
 

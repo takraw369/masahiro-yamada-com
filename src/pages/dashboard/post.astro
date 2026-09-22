@@ -3,6 +3,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
 import SocialAccountPlaybook from '../../components/dashboard/SocialAccountPlaybook';
 import PostDraftShelf from '../../components/dashboard/PostDraftShelf';
+import XProfileLoopBuilder from '../../components/dashboard/XProfileLoopBuilder';
 import XCommandCenter from '../../components/dashboard/XCommandCenter';
 import '../../styles/masa-readable.css';
 ---
@@ -25,6 +26,7 @@ import '../../styles/masa-readable.css';
   </section>
 
   <SocialAccountPlaybook client:load />
+  <XProfileLoopBuilder client:load />
   <PostDraftShelf client:load />
   <CopyOsReference surface="X" />
   <XCommandCenter client:only="react" />
@@ -115,7 +117,6 @@ import '../../styles/masa-readable.css';
   window.addEventListener('masa:x-compose', (event) => {
     handoffToComposer((event as CustomEvent<ComposeDetail>).detail ?? {});
   });
-
   renderPublishingHandoff();
 </script>
 

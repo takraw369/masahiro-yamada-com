@@ -8,9 +8,16 @@ on:
 permissions:
   contents: read
 
+# Cost guard: when a PR receives a newer commit, the older CI result is stale.
+# Cancel that stale run instead of paying to finish work that can no longer merge.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -47,6 +54,7 @@ jobs:
 
   secret-scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Check out current change
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

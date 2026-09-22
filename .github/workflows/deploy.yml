@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+    # Cost guard: workflow-only maintenance cannot change the deployed site.
+    # If a commit also changes production files, the deploy still runs.
+    paths-ignore:
+      - ".github/**"
   workflow_dispatch:
 
 permissions:

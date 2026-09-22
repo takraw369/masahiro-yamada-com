@@ -4,6 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
+    "codex:bridge": "node scripts/codex-dashboard-bridge.mjs",
+    "codex:server": "codex app-server --listen ws://127.0.0.1:4500",
     "build": "astro build && node ./scripts/patch-worker.mjs && node scripts/verify-worker-config.mjs",
     "preview": "node scripts/preview.mjs",
     "deploy": "npm run build && wrangler deploy",

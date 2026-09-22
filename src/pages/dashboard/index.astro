@@ -24,8 +24,11 @@ const deepDoors = [
   { group:'LEARN', title:'Evidence Lab', detail:'結果を学習へ戻す', href:'/dashboard/evidence' },
   { group:'DECIDE', title:'Choice Lab', detail:'横断判断が必要な時だけ', href:'/dashboard/choice-lab' },
   { group:'CREATE', title:'Publishing Flow', detail:'JourneyからResultまで1本で決める', href:'/dashboard/content-flow' },
+  { group:'AI', title:'AI Commands', detail:'Driveの指示を目的から選ぶ', href:'/dashboard/ai-commands' },
+  { group:'CREATE', title:'Visual Structures', detail:'20型から図解・スライド構造を選ぶ', href:'/dashboard/visual-structures' },
   { group:'CREATE', title:'X Post', detail:'決まった1本を編集・確認する', href:'/dashboard/post' },
   { group:'BUILD', title:'Quest', detail:'実践できる形へ変換', href:'/dashboard/quest' },
+  { group:'AGENT', title:'Codex Agent', detail:'Task → Agent → Human Gate', href:'/dashboard/codex' },
   { group:'SYSTEM', title:'MASA OS', detail:'正本・統合の詳細へ', href:'/dashboard/os' },
 ];
 ---
@@ -78,6 +81,9 @@ const deepDoors = [
         {deepDoors.map(item => (
           <a href={item.href}><small>{item.group}</small><strong>{item.title}</strong><span>{item.detail}</span><b>↗</b></a>
         ))}
+        <a href="https://opencut.app" target="_blank" rel="noreferrer" aria-label="OpenCutを新しいタブで開く">
+          <small>CREATE</small><strong>OpenCut</strong><span>ブラウザで動画を編集する · Web Classic</span><b>↗</b>
+        </a>
       </div>
     </details>
 

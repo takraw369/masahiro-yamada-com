@@ -1,0 +1,37 @@
+---
+const { id } = Astro.props as { id: string };
+---
+
+<div class="visual-thumb" aria-hidden="true" data-structure-thumb={id}>
+  {id === 'S01' && <svg viewBox="0 0 160 82"><path d="M20 58 54 40l28 14-34 18zM74 38l25-14 27 14-26 15zM91 60l25-14 26 14-25 14z"/><path d="M48 46V27l14-8 14 8v19M105 31V16l12-7 12 7v17" class="line"/><path d="M58 61 84 48m15 7 16 8" class="line"/></svg>}
+  {id === 'S02' && <svg viewBox="0 0 160 82"><path d="M22 68 80 14l58 54z"/><path d="M48 44h64M61 31h38M34 56h92" class="line"/></svg>}
+  {id === 'S03' && <svg viewBox="0 0 160 82"><path d="M73 12h14l-2 14H75zM54 34h18l-2 16H56zM88 34h18l-2 16H90zM34 56h20l-2 16H36zM66 56h20l-2 16H68zM98 56h20l-2 16H100z"/><path d="M80 27v7M63 50l-15 7m49-7 15 7M69 50l7 7m15-7-7 7" class="line"/></svg>}
+  {id === 'S04' && <svg viewBox="0 0 160 82"><path d="M18 60c24 0 24-30 49-30s24 30 49 30 22-22 30-22" class="line bold"/><circle cx="18" cy="60" r="5"/><circle cx="67" cy="30" r="5"/><circle cx="116" cy="60" r="5"/><circle cx="146" cy="38" r="5"/></svg>}
+  {id === 'S05' && <svg viewBox="0 0 160 82"><path d="M16 19h55l18 18h55M22 66h38l29-29 26 26h30M37 11v57M117 12v54" class="line"/><circle cx="71" cy="19" r="5"/><circle cx="89" cy="37" r="6"/><circle cx="60" cy="66" r="5"/><circle cx="117" cy="63" r="5"/></svg>}
+  {id === 'S06' && <svg viewBox="0 0 160 82"><circle cx="80" cy="41" r="28" class="line"/><path d="M77 12l10 4-7 8M109 35l5 10-10 2M84 69l-10 2 1-10M49 47l-5-10 10-2"/><circle cx="80" cy="41" r="9"/></svg>}
+  {id === 'S07' && <svg viewBox="0 0 160 82"><circle cx="80" cy="41" r="9"/><circle cx="37" cy="25" r="13"/><circle cx="123" cy="24" r="11"/><circle cx="40" cy="62" r="10"/><circle cx="121" cy="60" r="14"/><path d="M49 29 71 37m18 0 24-9M48 58l24-12m18 1 20 9M37 38v14m86-17v11" class="line"/></svg>}
+  {id === 'S08' && <svg viewBox="0 0 160 82"><path d="M21 37h118" class="line"/><path d="M65 36 80 15l16 21zM52 41h57L96 72H64z"/><path d="M58 50h45M63 59h35" class="line"/></svg>}
+  {id === 'S09' && <svg viewBox="0 0 160 82"><rect x="30" y="56" width="100" height="13" rx="2"/><rect x="38" y="39" width="84" height="12" rx="2"/><rect x="47" y="23" width="66" height="11" rx="2"/><rect x="61" y="9" width="38" height="9" rx="2"/></svg>}
+  {id === 'S10' && <svg viewBox="0 0 160 82"><path d="M32 42 61 23l25 19 31-23 18 27M61 23l5 33 20-14 26 20M66 56l46-37M86 42l49 4" class="line"/><circle cx="32" cy="42" r="6"/><circle cx="61" cy="23" r="7"/><circle cx="66" cy="56" r="5"/><circle cx="86" cy="42" r="8"/><circle cx="112" cy="19" r="6"/><circle cx="112" cy="62" r="5"/><circle cx="135" cy="46" r="7"/></svg>}
+  {id === 'S11' && <svg viewBox="0 0 160 82"><rect x="15" y="23" width="37" height="36" rx="4"/><rect x="108" y="16" width="37" height="43" rx="4"/><path d="M52 48c18-22 38-22 56 0M61 48h38" class="line bold"/><path d="m94 43 8 5-8 5"/></svg>}
+  {id === 'S12' && <svg viewBox="0 0 160 82"><path d="M19 63c16-20 20-7 33-28s25 3 38-12 25 14 51-7" class="line bold"/><circle cx="21" cy="63" r="6"/><path d="M48 35 58 20l9 15zM92 25l8-11 8 11z"/><rect x="118" y="8" width="20" height="16" rx="2"/><path d="M124 8V3m8 5V3" class="line"/></svg>}
+  {id === 'S13' && <svg viewBox="0 0 160 82"><path d="M80 70V34M80 38 54 24m26 12 25-17M80 47 48 40m32 7 34-5M78 69 60 77m20-8 18 8M80 68l-4 10" class="line bold"/><circle cx="54" cy="24" r="10"/><circle cx="105" cy="19" r="12"/><circle cx="48" cy="40" r="9"/><circle cx="114" cy="42" r="10"/></svg>}
+  {id === 'S14' && <svg viewBox="0 0 160 82"><ellipse cx="80" cy="41" rx="57" ry="23" class="line"/><ellipse cx="80" cy="41" rx="35" ry="33" class="line"/><circle cx="80" cy="41" r="13"/><circle cx="24" cy="37" r="5"/><circle cx="113" cy="17" r="5"/><circle cx="126" cy="57" r="6"/><circle cx="58" cy="71" r="4"/></svg>}
+  {id === 'S15' && <svg viewBox="0 0 160 82"><path d="M31 70h98V18L80 5 31 18z" class="line bold"/><path d="M31 56h98M31 42h98M31 29h98M58 18v52M103 18v52" class="line"/></svg>}
+  {id === 'S16' && <svg viewBox="0 0 160 82"><path d="M16 20c28 4 17 23 45 24s20 19 47 18 26-14 40-9M26 11c8 17 15 22 35 33M68 10c-4 18 2 25 18 38" class="line bold"/><path d="M130 49c8 2 13 5 18 11" class="line"/></svg>}
+  {id === 'S17' && <svg viewBox="0 0 160 82"><circle cx="80" cy="41" r="31" class="line"/><path d="M80 8v66M47 41h66" class="line"/><path d="m80 11-5 14h10z"/><circle cx="80" cy="41" r="7"/></svg>}
+  {id === 'S18' && <svg viewBox="0 0 160 82"><rect x="28" y="12" width="104" height="58" rx="3" class="line"/><path d="M80 12v58M28 41h104" class="line bold"/><circle cx="54" cy="27" r="5"/><circle cx="105" cy="55" r="7"/></svg>}
+  {id === 'S19' && <svg viewBox="0 0 160 82"><path d="M18 45h124" class="line bold"/><circle cx="28" cy="45" r="6"/><circle cx="60" cy="45" r="6"/><circle cx="94" cy="45" r="6"/><circle cx="130" cy="45" r="6"/><path d="M28 39V20M60 51v16M94 39V15M130 51v13" class="line"/></svg>}
+  {id === 'S20' && <svg viewBox="0 0 160 82"><path d="M21 20h16v16H21zM49 28h16v16H49zM77 36h16v16H77zM105 44h16v16h-16zM133 52h16v16h-16z"/><path d="M37 28h12m16 8h12m16 8h12m16 8h12" class="line bold"/></svg>}
+</div>
+
+<style>
+  .visual-thumb{width:100%;height:78px;display:grid;place-items:center;overflow:hidden;color:var(--gold-muted);opacity:.26;transition:opacity .2s ease,transform .2s ease}
+  .visual-thumb svg{width:100%;height:100%;overflow:visible}
+  .visual-thumb :global(svg > *:not(.line)){fill:currentColor;stroke:none}
+  .visual-thumb :global(.line){fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .visual-thumb :global(.bold){stroke-width:3}
+  :global(.template-card:hover) .visual-thumb,:global(.template-card.is-active) .visual-thumb{opacity:.68;transform:translateY(-1px)}
+  @media(max-width:480px){.visual-thumb{height:66px}}
+  @media(prefers-reduced-motion:reduce){.visual-thumb{transition:none}}
+</style>

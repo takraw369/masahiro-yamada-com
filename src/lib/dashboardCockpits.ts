@@ -29,6 +29,7 @@ const routes: Array<{ route: string; cockpit: DashboardCockpit }> = [
   { route: '/dashboard/voice', cockpit: { see: '未処理の音声・意味', decide: '捨てる・残す・育てる', act: '資産へ振り分ける' } },
   { route: '/dashboard/schedule', cockpit: { see: '予定・制約・空白', decide: '時間をどこへ配るか', act: '次の予定を確定する' } },
   { route: '/dashboard/content-flow', cockpit: { see: 'Journey・Core・Where・CTA・反応', decide: '次に出す1本と次の状態変化', act: 'ScheduleかDraftへ送る' } },
+  { route: '/dashboard/ai-commands', cockpit: { see: '目的・使える指示・対象', decide: '今使う思考モード', act: 'カードを選びPromptを確定する' } },
   { route: '/dashboard/post', cockpit: { see: '素材・目的・CTA', decide: '今出す1本', act: '下書きからHuman Gateへ' } },
   { route: '/dashboard/visual-prompt', cockpit: { see: '用途・画・感情', decide: '伝える構図', act: '生成用Promptを確定する' } },
   { route: '/dashboard/funnel', cockpit: { see: '流入・CTA・反応', decide: '最大の漏れ', act: '1点修正して再計測する' } },

@@ -1,0 +1,260 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import AIQualityStack from '../../components/dashboard/AIQualityStack.astro';
+import { aiCommandCards, aiCommandSources } from '../../data/aiCommandLibrary';
+
+const categories = ['ALL', 'CORE', 'CONTENT', 'RESEARCH', 'PRODUCT', 'VIDEO', 'VISUAL', 'CANVA', 'THINK', 'VERIFY', 'TEACH', 'ACT', 'CREATE'] as const;
+const sourceHref = (source: string) => {
+  if (source === 'PROMPT_OS') return aiCommandSources.promptOs;
+  if (source === 'Brand Identity OS + VISUAL_PROMPT_LIBRARY') return aiCommandSources.brandOs;
+  return aiCommandSources.registry;
+};
+---
+
+<DashboardLayout title="AI Commands" eyebrow="PROMPT PALETTE">
+  <main class="library-shell">
+    <header class="hero">
+      <div>
+        <p class="kicker">AI COMMAND LIBRARY · DRIVE DERIVED</p>
+        <h1>書くより、選ぶ。</h1>
+        <p class="lead">Driveで資産化したAI向け指示を、目的から選ぶ操作面。まずQuality Stackで答え方を決め、必要なら短い実行Commandへ。長いPromptを覚えず使う。</p>
+      </div>
+      <div class="source-stack" aria-label="Drive source of truth">
+        <span>SOURCE OF TRUTH</span>
+        <a href={aiCommandSources.registry} target="_blank" rel="noopener noreferrer">07_AI_COMMANDS ↗</a>
+        <a href={aiCommandSources.promptOs} target="_blank" rel="noopener noreferrer">PROMPT_OS ↗</a>
+      </div>
+    </header>
+
+    <section class="lane-strip" aria-label="Main command lanes">
+      <span>QUALITY</span><b>→</b><span>MODE</span><b>→</b><span>COMMAND</span><b>→</b><span>TARGET</span><b>→</b><span>COPY</span>
+    </section>
+
+    <AIQualityStack />
+
+    <section class="composer" aria-labelledby="composer-title">
+      <div class="composer-head">
+        <div>
+          <p class="kicker">SELECT → TARGET → COPY</p>
+          <h2 id="composer-title">具体的な実行Commandを選ぶ。</h2>
+        </div>
+        <span id="selected-badge">未選択</span>
+      </div>
+      <label for="target-input">対象 / テーマ</label>
+      <textarea id="target-input" rows="3" placeholder="例：今日撮ったトレーニング動画を、Instagramの教育カルーセルにする"></textarea>
+      <div class="selected-command" id="selected-command" aria-live="polite">下のカードから1つ選んでください。</div>
+      <div class="composer-actions">
+        <button class="copy-primary" id="copy-final" type="button" disabled>完成Promptをコピー</button>
+        <button class="clear-button" id="clear-selection" type="button">クリア</button>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="AI command filters">
+      <div class="search-wrap">
+        <span aria-hidden="true">⌕</span>
+        <input id="command-search" type="search" placeholder="用途・名前・言葉で検索" autocomplete="off" />
+      </div>
+      <div class="filter-row" role="group" aria-label="Category">
+        {categories.map((category) => (
+          <button class:list={['filter-chip', category === 'ALL' && 'is-active']} type="button" data-filter={category}>{category}</button>
+        ))}
+      </div>
+      <p class="result-line"><strong id="visible-count">{aiCommandCards.length}</strong> commands · Drive sync 2026-09-20 · ACTIVEを入口に必要な時だけExtendedへ。</p>
+    </section>
+
+    <section class="cards-section" aria-labelledby="cards-title">
+      <div class="section-head">
+        <div>
+          <p class="kicker">COMMANDS</p>
+          <h2 id="cards-title">目的で選ぶ。</h2>
+        </div>
+        <a href="/dashboard/visual-prompt">Visual Prompt Lab →</a>
+      </div>
+
+      <div class="command-grid" id="command-grid">
+        {aiCommandCards.map((card) => (
+          <article
+            class:list={['command-card', card.tier === 'ACTIVE' && 'is-active-tier', card.category === 'CANVA' && 'is-canva', card.category === 'VISUAL' && 'is-visual']}
+            data-card
+            data-category={card.category}
+            data-search={`${card.label} ${card.summary} ${card.command} ${card.category}`.toLowerCase()}
+            data-label={card.label}
+            data-command={card.command}
+          >
+            <div class="card-top">
+              <div class="tag-row">
+                <span class="category-tag">{card.category}</span>
+                <span class="tier-tag">{card.tier}</span>
+              </div>
+              <button class="select-button" type="button" data-select>選ぶ</button>
+            </div>
+            <h3>{card.label}</h3>
+            <p class="summary">{card.summary}</p>
+            <details>
+              <summary>指示を見る <span>＋</span></summary>
+              <pre>{card.command}</pre>
+              <div class="detail-actions">
+                <button type="button" data-copy-command>この指示だけコピー</button>
+                <a href={sourceHref(card.source)} target="_blank" rel="noopener noreferrer">{card.source} ↗</a>
+              </div>
+            </details>
+          </article>
+        ))}
+      </div>
+
+      <div class="empty-state" id="empty-state" hidden>該当する指示がありません。検索語かカテゴリを変えてください。</div>
+    </section>
+
+    <aside class="canva-note">
+      <div>
+        <p class="kicker">CANVA ADAPTER</p>
+        <h2>MASA用Canvaテンプレも同じ入口へ。</h2>
+      </div>
+      <p>Flow図解 / 教育カルーセル / 共通キービジュアル / 講座1枚 / Questカード / 4コマ。Brand Identity OSとVISUAL_PROMPT_LIBRARYを元に、Canvaへそのまま渡せる実行形へ薄く変換しています。</p>
+      <div class="canva-links">
+        <a href={aiCommandSources.brandOs} target="_blank" rel="noopener noreferrer">Brand Identity OS ↗</a>
+        <a href={aiCommandSources.visualLibrary} target="_blank" rel="noopener noreferrer">Visual Prompt Library ↗</a>
+      </div>
+    </aside>
+  </main>
+</DashboardLayout>
+
+<script>
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-card]'));
+  const filterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-filter]'));
+  const searchInput = document.querySelector<HTMLInputElement>('#command-search');
+  const targetInput = document.querySelector<HTMLTextAreaElement>('#target-input');
+  const selectedCommand = document.querySelector<HTMLElement>('#selected-command');
+  const selectedBadge = document.querySelector<HTMLElement>('#selected-badge');
+  const copyFinal = document.querySelector<HTMLButtonElement>('#copy-final');
+  const clearSelection = document.querySelector<HTMLButtonElement>('#clear-selection');
+  const visibleCount = document.querySelector<HTMLElement>('#visible-count');
+  const emptyState = document.querySelector<HTMLElement>('#empty-state');
+
+  let activeFilter = 'ALL';
+  let activeCard: HTMLElement | null = null;
+
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.append(area);
+      area.select();
+      const copied = document.execCommand('copy');
+      area.remove();
+      return copied;
+    }
+  };
+
+  const applyFilters = () => {
+    const term = searchInput?.value.trim().toLowerCase() ?? '';
+    let count = 0;
+
+    cards.forEach((card) => {
+      const category = card.dataset.category ?? '';
+      const haystack = card.dataset.search ?? '';
+      const categoryMatch = activeFilter === 'ALL' || category === activeFilter;
+      const searchMatch = !term || haystack.includes(term);
+      const visible = categoryMatch && searchMatch;
+      card.hidden = !visible;
+      if (visible) count += 1;
+    });
+
+    if (visibleCount) visibleCount.textContent = String(count);
+    if (emptyState) emptyState.hidden = count !== 0;
+  };
+
+  filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      activeFilter = button.dataset.filter ?? 'ALL';
+      filterButtons.forEach((item) => item.classList.toggle('is-active', item === button));
+      applyFilters();
+    });
+  });
+
+  searchInput?.addEventListener('input', applyFilters);
+
+  cards.forEach((card) => {
+    const select = card.querySelector<HTMLButtonElement>('[data-select]');
+    const copy = card.querySelector<HTMLButtonElement>('[data-copy-command]');
+
+    select?.addEventListener('click', () => {
+      activeCard?.classList.remove('is-selected');
+      activeCard = card;
+      activeCard.classList.add('is-selected');
+
+      const label = card.dataset.label ?? 'COMMAND';
+      const command = card.dataset.command ?? '';
+      if (selectedBadge) selectedBadge.textContent = label;
+      if (selectedCommand) selectedCommand.textContent = command;
+      if (copyFinal) copyFinal.disabled = !command;
+      document.querySelector('.composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    copy?.addEventListener('click', async () => {
+      const command = card.dataset.command ?? '';
+      if (!command) return;
+      const original = copy.textContent;
+      const copied = await copyText(command);
+      copy.textContent = copied ? 'コピーしました ✓' : 'コピーできませんでした';
+      window.setTimeout(() => { copy.textContent = original; }, 1400);
+    });
+  });
+
+  copyFinal?.addEventListener('click', async () => {
+    if (!activeCard) return;
+    const command = activeCard.dataset.command ?? '';
+    const target = targetInput?.value.trim() ?? '';
+    const finalPrompt = target ? `${command}\n\n対象 / テーマ:\n${target}` : command;
+    const original = copyFinal.textContent;
+    const copied = await copyText(finalPrompt);
+    copyFinal.textContent = copied ? 'コピーしました ✓' : 'コピーできませんでした';
+    window.setTimeout(() => { copyFinal.textContent = original; }, 1400);
+  });
+
+  clearSelection?.addEventListener('click', () => {
+    activeCard?.classList.remove('is-selected');
+    activeCard = null;
+    if (selectedBadge) selectedBadge.textContent = '未選択';
+    if (selectedCommand) selectedCommand.textContent = '下のカードから1つ選んでください。';
+    if (copyFinal) copyFinal.disabled = true;
+    if (targetInput) targetInput.value = '';
+  });
+</script>
+
+<style>
+  .library-shell{--panel:#fff;--line:#e3dfd8;--muted:#747d86;--ink:#272b30;max-width:1240px;margin:0 auto;padding-bottom:48px;min-width:0}
+  .kicker{margin:0;color:var(--gold-muted);font-size:.68rem;letter-spacing:.13em;font-weight:800}
+  .hero{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;margin-bottom:14px}
+  .hero h1{margin:4px 0 0;font-size:clamp(2.25rem,5vw,4.2rem);line-height:.96;letter-spacing:-.045em;font-weight:500}
+  .lead{max-width:760px;margin-top:13px;color:var(--muted);font-size:.94rem;line-height:1.8}
+  .source-stack{flex:0 0 190px;display:grid;gap:5px;padding:13px 15px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.68)}
+  .source-stack span{color:#9b8d7a;font-size:.6rem;letter-spacing:.12em;font-weight:800}.source-stack a,.section-head a,.detail-actions a,.canva-links a{color:#8b5b2c;font-size:.68rem;text-decoration:none;overflow-wrap:anywhere}
+  .lane-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:9px 12px;border:1px solid #e5e0d9;border-radius:12px;background:rgba(255,255,255,.56);color:#7b838b;font-size:.66rem}.lane-strip span{font-weight:800}.lane-strip b{color:#c0b4a5;font-weight:500}
+
+  .composer{scroll-margin-top:90px;padding:20px;border:1px solid #d6c7b4;border-radius:20px;background:linear-gradient(145deg,#fffdf9,#f7f1e8);box-shadow:0 14px 40px rgba(74,58,38,.055)}
+  .composer-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:14px}.composer h2,.section-head h2,.canva-note h2{margin:3px 0 0;font-size:1.05rem}
+  #selected-badge{max-width:45%;padding:6px 9px;border:1px solid #d8cab8;border-radius:999px;color:#7e5e37;background:#fff;font-size:.66rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .composer label{display:block;margin-bottom:6px;color:#6f6253;font-size:.7rem;font-weight:700}.composer textarea{box-sizing:border-box;width:100%;min-width:0;resize:vertical;padding:11px 12px;border:1px solid #ddd3c6;border-radius:11px;background:#fff;color:var(--ink);font:inherit;font-size:.82rem;line-height:1.6;outline:none}.composer textarea:focus{border-color:#b18b5f;box-shadow:0 0 0 3px rgba(177,139,95,.09)}
+  .selected-command{min-height:54px;margin-top:10px;padding:12px;border:1px dashed #d7c9b6;border-radius:11px;background:rgba(255,255,255,.7);color:#4c5258;font-size:.78rem;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+  .composer-actions{display:flex;gap:8px;margin-top:10px}.copy-primary,.clear-button,.select-button,.detail-actions button,.filter-chip{font:inherit;cursor:pointer}.copy-primary{min-height:38px;padding:0 14px;border:0;border-radius:10px;background:#2b2e31;color:#fff;font-size:.72rem;font-weight:800}.copy-primary:disabled{opacity:.35;cursor:not-allowed}.clear-button{min-height:38px;padding:0 12px;border:1px solid #d8d1c8;border-radius:10px;background:#fff;color:#737a80;font-size:.7rem}
+
+  .controls{margin-top:18px;padding:14px 0 4px}.search-wrap{position:relative;max-width:520px}.search-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#969da3}.search-wrap input{box-sizing:border-box;width:100%;min-width:0;height:42px;padding:0 14px 0 35px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:.78rem;outline:none}.search-wrap input:focus{border-color:#b18b5f;box-shadow:0 0 0 3px rgba(177,139,95,.08)}
+  .filter-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.filter-chip{padding:7px 10px;border:1px solid #dfdcd6;border-radius:999px;background:rgba(255,255,255,.68);color:#7b8288;font-size:.62rem;font-weight:800;letter-spacing:.04em}.filter-chip.is-active{border-color:#aa8352;background:#2f3133;color:#fff}.result-line{margin:9px 0 0;color:#92989e;font-size:.64rem}.result-line strong{color:#625442}
+
+  .cards-section{margin-top:18px}.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:11px}.command-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.command-card{box-sizing:border-box;min-width:0;padding:14px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.78);box-shadow:0 8px 24px rgba(45,41,36,.025);transition:transform .16s,border-color .16s,box-shadow .16s}.command-card:hover{transform:translateY(-2px);border-color:#cfc3b3;box-shadow:0 12px 30px rgba(45,41,36,.055)}.command-card.is-active-tier{background:#fff}.command-card.is-canva{border-color:#d8c9b4}.command-card.is-visual{border-color:#cfd7dd}.command-card.is-selected{border-color:#8e642f;box-shadow:0 0 0 2px rgba(142,100,47,.11),0 12px 30px rgba(45,41,36,.055)}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.tag-row{display:flex;flex-wrap:wrap;gap:5px;min-width:0}.category-tag,.tier-tag{padding:4px 6px;border-radius:6px;font-size:.52rem;letter-spacing:.07em;font-weight:900}.category-tag{background:#f1ece5;color:#7b5d39}.tier-tag{background:#f3f4f5;color:#8a9198}.is-active-tier .tier-tag{background:#2f3133;color:#fff}.is-canva .category-tag{background:#eee5d8;color:#79572d}.is-visual .category-tag{background:#e9eef1;color:#536c7a}
+  .select-button{flex-shrink:0;padding:6px 9px;border:1px solid #d9d4cd;border-radius:8px;background:#fff;color:#5e6266;font-size:.64rem;font-weight:800}.select-button:hover{border-color:#a77d49;color:#7f5727}.command-card h3{margin:14px 0 0;color:var(--ink);font-size:.93rem;line-height:1.25;overflow-wrap:anywhere}.summary{min-height:40px;margin:6px 0 0;color:var(--muted);font-size:.72rem;line-height:1.55;overflow-wrap:anywhere}
+  .command-card details{margin-top:12px;border-top:1px solid #ebe8e3}.command-card summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;cursor:pointer;list-style:none;color:#7d6d59;font-size:.65rem;font-weight:700}.command-card summary::-webkit-details-marker{display:none}.command-card details[open] summary span{transform:rotate(45deg)}.command-card pre{margin:10px 0 0;padding:10px;border-radius:9px;background:#f6f4f1;color:#555c62;font-family:inherit;font-size:.67rem;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}.detail-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}.detail-actions button{padding:0;border:0;background:transparent;color:#8b5b2c;font-size:.64rem;font-weight:800}.empty-state{padding:42px 18px;text-align:center;border:1px dashed #d8d3cb;border-radius:14px;color:#8c9399;font-size:.78rem}
+
+  .canva-note{display:grid;grid-template-columns:minmax(200px,.8fr) minmax(280px,1.5fr) auto;align-items:center;gap:22px;margin-top:20px;padding:18px;border:1px solid #dcd1c2;border-radius:17px;background:#f7f1e8}.canva-note>p{margin:0;color:#6e747a;font-size:.72rem;line-height:1.65}.canva-links{display:grid;gap:5px;justify-items:end;min-width:0}
+
+  @media(max-width:960px){.command-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.canva-note{grid-template-columns:1fr}.canva-links{justify-items:start}}
+  @media(max-width:660px){.hero,.composer-head,.section-head{align-items:flex-start;flex-direction:column}.source-stack{box-sizing:border-box;width:100%;flex-basis:auto}.lane-strip{flex-wrap:nowrap;overflow-x:auto}.lane-strip span,.lane-strip b{flex-shrink:0}.command-grid{grid-template-columns:1fr}.composer{padding:15px}.composer-actions{display:grid;grid-template-columns:1fr auto}.copy-primary{width:100%}#selected-badge{max-width:100%}.summary{min-height:0}.filter-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.filter-chip{flex-shrink:0}.canva-note{gap:12px}.section-head a{align-self:flex-start}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+</style>
