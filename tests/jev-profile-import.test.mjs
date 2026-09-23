@@ -22,7 +22,7 @@ test('profile import requires explicit review before local persistence', () => {
   assert.match(page, /HUMAN GATE/);
   assert.match(page, /id="save-profile"/);
   assert.match(page, /localStorage\.setItem\(STORAGE_KEY/);
-  assert.match(page, /const STORAGE_KEY = 'masa\.profile\.v1'/);
+  assert.match(page, /const\s+STORAGE_KEY\s*=\s*'masa\.profile\.v1'/);
   assert.doesNotMatch(page, /localStorage\.setItem\([^\n]+rawText/);
 });
 
