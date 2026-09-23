@@ -33,6 +33,8 @@ If one applicable item fails, fix it and run the checklist again.
 - [ ] No destructive migration or data operation was introduced casually.
 - [ ] Every migration that creates a table in `public` explicitly decides Data API access with `GRANT` or `REVOKE` in the same migration; do not rely on Supabase default grants.
 - [ ] Any table exposed to `anon`, `authenticated`, or `service_role` receives only the privileges actually required; RLS and policies are reviewed before client access is enabled.
+- [ ] Every new `public` function explicitly decides `EXECUTE` access. `SECURITY DEFINER` functions have no implicit `PUBLIC` exposure and include the required auth/secret guard before privileged work.
+- [ ] RLS-enabled tables with no policies remain fail-closed: `anon` and `authenticated` have no direct table privileges. Adding a policy also requires the matching explicit `GRANT` in the same migration.
 
 ## UX / design
 
