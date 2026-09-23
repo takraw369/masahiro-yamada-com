@@ -1,0 +1,365 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="JEV Profile Import" eyebrow="OPERATE">
+  <main class="profile-page">
+    <header class="intro">
+      <p class="kicker">JEV PROFILE IMPORT</p>
+      <h1>個人情報を、ひとまとめで。</h1>
+      <p class="lead">文章を貼る。Jevが項目を整理する。内容を自分で確認してから、一括で反映する。</p>
+      <div class="flow" aria-label="入力フロー">
+        <span>PASTE</span><i>→</i><span>JEV</span><i>→</i><span>REVIEW</span><i>→</i><span>SAVE</span>
+      </div>
+    </header>
+
+    <section class="panel" aria-labelledby="input-title">
+      <div class="panel-head">
+        <div>
+          <p class="step">01 / INPUT</p>
+          <h2 id="input-title">まとめて貼る</h2>
+        </div>
+        <span class="privacy-mark">RAW NOT STORED</span>
+      </div>
+
+      <textarea
+        id="profile-raw"
+        maxlength="4000"
+        rows="12"
+        spellcheck="false"
+        autocomplete="off"
+        placeholder={`氏名：山田太郎
+フリガナ：ヤマダ タロウ
+生年月日：1980年1月1日
+メール：taro@example.com
+電話：090-1234-5678
+郵便番号：100-0001
+住所：東京都千代田区...
+職業：コーチ
+所属：Example Team
+Web：https://example.com`}
+        aria-describedby="privacy-note danger-note"
+      ></textarea>
+
+      <div class="input-meta">
+        <span id="char-count">0 / 4000</span>
+        <button id="clear-raw" class="text-button" type="button">入力を消す</button>
+      </div>
+
+      <div id="privacy-note" class="notice">
+        <strong>データ最小化</strong>
+        <p>メール・電話・郵便番号・生年月日・URLはコードで抽出し、Jevの意味判定には送らない。氏名・住所・職業・所属など、意味判断が必要な候補だけをJevで分類する。入力した原文をこの機能の保存データには残さない。</p>
+      </div>
+
+      <div id="danger-note" class="notice danger">
+        <strong>ここには入れない</strong>
+        <p>マイナンバー、パスポート番号、銀行口座・暗証番号、クレジットカード番号・CVV、パスワード、APIキー、アクセストークン。検出した場合はJevへ送る前に処理を止める。</p>
+      </div>
+
+      <div class="actions">
+        <button id="analyze" class="primary-button" type="button">JEVで解析</button>
+        <span id="analyze-status" class="status" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section id="review-panel" class="panel" aria-labelledby="review-title" hidden>
+      <div class="panel-head">
+        <div>
+          <p class="step">02 / REVIEW</p>
+          <h2 id="review-title">確認してから反映</h2>
+        </div>
+        <span id="review-state" class="review-state">HUMAN GATE</span>
+      </div>
+
+      <p class="review-copy">AIの結果は自動保存しない。誤りを直し、不要な項目を空にしてから確定する。</p>
+      <div id="field-grid" class="field-grid"></div>
+
+      <div class="actions split">
+        <button id="save-profile" class="primary-button" type="button">この内容を反映</button>
+        <button id="discard-preview" class="secondary-button" type="button">解析結果を破棄</button>
+      </div>
+      <p id="save-status" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel saved" aria-labelledby="saved-title">
+      <div class="panel-head">
+        <div>
+          <p class="step">03 / LOCAL PROFILE</p>
+          <h2 id="saved-title">保存状態</h2>
+        </div>
+        <span id="saved-badge" class="saved-badge">EMPTY</span>
+      </div>
+      <p id="saved-summary">まだ保存されていません。</p>
+      <div class="storage-note">
+        <strong>MVPの保存先</strong>
+        <p>確定した構造化プロフィールだけを、このブラウザの localStorage に保存する。サーバー側プロフィールDBへの書き込みはまだ行わない。</p>
+      </div>
+      <button id="delete-profile" class="secondary-button" type="button" disabled>保存済みプロフィールを削除</button>
+    </section>
+  </main>
+
+  <style>
+    .profile-page { max-width: 900px; margin: 0 auto; padding: 52px 32px 88px; }
+    .intro { max-width: 760px; margin-bottom: 44px; }
+    .kicker, .step { color: var(--gold-muted); font-family: 'Cormorant Garamond', serif; font-size: .7rem; letter-spacing: .22em; }
+    h1, h2 { font-family: 'Cormorant Garamond', serif; font-weight: 600; color: #3b332a; }
+    h1 { margin-top: 8px; font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.03; letter-spacing: -.02em; }
+    h2 { margin-top: 3px; font-size: 1.45rem; }
+    .lead { max-width: 650px; margin-top: 18px; color: var(--text-muted); font-size: .94rem; line-height: 1.85; }
+    .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 22px; color: #7d694e; font: 600 .68rem/1 'Cormorant Garamond', serif; letter-spacing: .16em; }
+    .flow i { color: var(--gold-dim); font-style: normal; }
+
+    .panel { margin-top: 22px; padding: 26px; background: var(--bg-surface); border: 1px solid var(--border-default); }
+    .panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+    .privacy-mark, .review-state, .saved-badge { flex-shrink: 0; padding: 5px 7px; border: 1px solid var(--border-accent); color: #7d694e; font: 600 .6rem/1 'Cormorant Garamond', serif; letter-spacing: .12em; }
+
+    textarea { width: 100%; min-height: 280px; resize: vertical; padding: 16px 14px; border: 1px solid #d8d4cd; border-radius: 0; outline: none; background: #fbfaf8; color: var(--text-primary); font: 400 .88rem/1.8 'Zen Kaku Gothic New', sans-serif; }
+    textarea:focus { border-color: #b58a53; box-shadow: 0 0 0 2px rgba(165,108,34,.08); }
+    textarea::placeholder { color: #9a958d; }
+    .input-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 7px; color: var(--text-dim); font-size: .69rem; }
+    .text-button { padding: 0; border: 0; background: transparent; color: #80633f; cursor: pointer; font: inherit; }
+    .text-button:hover { text-decoration: underline; }
+
+    .notice, .storage-note { margin-top: 16px; padding: 14px 16px; border-left: 2px solid #b79c75; background: #fbfaf8; }
+    .notice.danger { border-left-color: #a86a52; }
+    .notice strong, .storage-note strong { display: block; margin-bottom: 4px; color: #544637; font-size: .76rem; }
+    .notice p, .storage-note p { color: var(--text-muted); font-size: .76rem; line-height: 1.75; }
+
+    .actions { display: flex; align-items: center; gap: 16px; margin-top: 22px; }
+    .actions.split { justify-content: space-between; }
+    .primary-button, .secondary-button { min-height: 46px; border-radius: 0; cursor: pointer; font-family: 'Zen Kaku Gothic New', sans-serif; font-size: .76rem; font-weight: 700; letter-spacing: .04em; transition: border-color .2s ease, background .2s ease, color .2s ease; }
+    .primary-button { padding: 0 24px; border: 1px solid #8b642e; background: #9b6c2b; color: #fff; }
+    .primary-button:hover:not(:disabled) { background: #80561f; }
+    .secondary-button { padding: 0 18px; border: 1px solid #cfc8bd; background: transparent; color: #646b72; }
+    .secondary-button:hover:not(:disabled) { border-color: #b58a53; color: #493c2e; }
+    button:disabled { cursor: not-allowed; opacity: .48; }
+    .status { color: var(--text-muted); font-size: .75rem; line-height: 1.55; }
+    .status.error { color: #9a4336; }
+    .status.success { color: #20704d; }
+
+    .review-copy { margin: -4px 0 20px; color: var(--text-muted); font-size: .8rem; line-height: 1.7; }
+    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px 22px; }
+    .field { min-width: 0; }
+    .field.wide { grid-column: 1 / -1; }
+    .field label { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; color: #65584b; font-size: .72rem; font-weight: 700; }
+    .field .meta { color: #8c847a; font: 500 .58rem/1 'Cormorant Garamond', serif; letter-spacing: .08em; }
+    .field input { width: 100%; min-height: 44px; padding: 10px 4px; border: 0; border-bottom: 1px solid #d7d1c8; border-radius: 0; outline: none; background: transparent; color: var(--text-primary); font: 400 .85rem/1.4 'Zen Kaku Gothic New', sans-serif; }
+    .field input:focus { border-bottom-color: #9b6c2b; }
+    .field[data-low-confidence="true"] input { border-bottom-color: #b56d4c; }
+    .field[data-low-confidence="true"] .meta::after { content: ' · 要確認'; color: #a3533b; }
+
+    .saved #saved-summary { color: var(--text-muted); font-size: .82rem; line-height: 1.7; }
+    .saved .secondary-button { margin-top: 18px; }
+
+    @media (max-width: 760px) {
+      .profile-page { padding: 34px 18px 68px; }
+      .panel { padding: 20px 17px; }
+      .panel-head { align-items: flex-start; }
+      .field-grid { grid-template-columns: 1fr; }
+      .field.wide { grid-column: auto; }
+      .actions, .actions.split { align-items: stretch; flex-direction: column; }
+      .primary-button, .secondary-button { width: 100%; }
+      textarea { min-height: 330px; }
+    }
+  </style>
+
+  <script>
+    const STORAGE_KEY = 'masa.profile.v1';
+    const FIELD_CONFIG = [
+      ['fullName', '氏名', false],
+      ['nameKana', 'フリガナ', false],
+      ['birthDate', '生年月日', false],
+      ['email', 'メール', false],
+      ['phone', '電話', false],
+      ['postalCode', '郵便番号', false],
+      ['address', '住所', true],
+      ['occupation', '職業・肩書', false],
+      ['organization', '所属', false],
+      ['website', 'Web', true],
+    ];
+
+    const raw = document.querySelector('#profile-raw');
+    const count = document.querySelector('#char-count');
+    const analyze = document.querySelector('#analyze');
+    const analyzeStatus = document.querySelector('#analyze-status');
+    const reviewPanel = document.querySelector('#review-panel');
+    const fieldGrid = document.querySelector('#field-grid');
+    const reviewState = document.querySelector('#review-state');
+    const saveStatus = document.querySelector('#save-status');
+    const savedBadge = document.querySelector('#saved-badge');
+    const savedSummary = document.querySelector('#saved-summary');
+    const deleteProfile = document.querySelector('#delete-profile');
+
+    const setStatus = (node, message, type = '') => {
+      if (!node) return;
+      node.textContent = message;
+      node.className = `status${type ? ` ${type}` : ''}`;
+    };
+
+    const updateCount = () => {
+      if (!raw || !count) return;
+      count.textContent = `${raw.value.length} / 4000`;
+    };
+
+    const sourceLabel = (source) => source === 'jev' ? 'JEV' : 'CODE';
+
+    function renderFields(fields = {}, lowConfidenceFields = []) {
+      if (!fieldGrid) return;
+      fieldGrid.textContent = '';
+      const low = new Set(lowConfidenceFields);
+      for (const [key, label, wide] of FIELD_CONFIG) {
+        const entry = fields[key] || {};
+        const wrapper = document.createElement('div');
+        wrapper.className = `field${wide ? ' wide' : ''}`;
+        wrapper.dataset.field = key;
+        wrapper.dataset.lowConfidence = low.has(key) ? 'true' : 'false';
+
+        const labelNode = document.createElement('label');
+        labelNode.htmlFor = `profile-${key}`;
+        const labelText = document.createElement('span');
+        labelText.textContent = label;
+        const meta = document.createElement('span');
+        meta.className = 'meta';
+        const confidence = Number(entry.confidence);
+        meta.textContent = entry.source
+          ? `${sourceLabel(entry.source)} · ${Number.isFinite(confidence) ? Math.round(confidence * 100) : '--'}%`
+          : 'EMPTY';
+        labelNode.append(labelText, meta);
+
+        const input = document.createElement('input');
+        input.id = `profile-${key}`;
+        input.name = key;
+        input.type = key === 'email' ? 'email' : key === 'website' ? 'url' : 'text';
+        input.autocomplete = 'off';
+        input.value = typeof entry.value === 'string' ? entry.value : '';
+
+        wrapper.append(labelNode, input);
+        fieldGrid.append(wrapper);
+      }
+    }
+
+    function confirmedFields() {
+      const fields = {};
+      for (const [key] of FIELD_CONFIG) {
+        const input = document.querySelector(`#profile-${key}`);
+        if (!input) continue;
+        const value = input.value.trim();
+        if (value) fields[key] = value;
+      }
+      return fields;
+    }
+
+    function refreshSavedState() {
+      if (!savedBadge || !savedSummary || !deleteProfile) return;
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) {
+        savedBadge.textContent = 'EMPTY';
+        savedSummary.textContent = 'まだ保存されていません。';
+        deleteProfile.disabled = true;
+        return;
+      }
+      try {
+        const profile = JSON.parse(saved);
+        const fieldCount = Object.keys(profile?.fields || {}).length;
+        const updated = profile?.updatedAt ? new Date(profile.updatedAt).toLocaleString('ja-JP') : '日時不明';
+        savedBadge.textContent = 'SAVED';
+        savedSummary.textContent = `${fieldCount}項目を保存中 · 最終更新 ${updated}`;
+        deleteProfile.disabled = false;
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+        refreshSavedState();
+      }
+    }
+
+    async function analyzeProfile() {
+      if (!raw || !analyze || !reviewPanel) return;
+      const rawText = raw.value.trim();
+      if (!rawText) {
+        setStatus(analyzeStatus, '入力文を貼ってください。', 'error');
+        raw.focus();
+        return;
+      }
+
+      analyze.disabled = true;
+      setStatus(analyzeStatus, 'Jevで分類しています…');
+      try {
+        const response = await fetch('/api/dashboard/profile-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rawText }),
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload?.ok) throw new Error(payload?.error || 'preview_failed');
+        const data = payload.data;
+
+        if (data?.ok === false && data?.status === 'blocked_sensitive_input') {
+          const labels = {
+            credential: 'パスワード / APIキー等',
+            national_id: 'マイナンバー',
+            passport: 'パスポート番号',
+            financial_account: '銀行口座 / 暗証番号',
+            payment_card: 'カード情報',
+          };
+          const blocked = (data.blockedCategories || []).map((item) => labels[item] || item).join('、');
+          reviewPanel.hidden = true;
+          setStatus(analyzeStatus, `安全のため停止しました：${blocked}`, 'error');
+          return;
+        }
+
+        if (!data?.ok || data?.status !== 'preview_ready') throw new Error('invalid_preview');
+        renderFields(data.fields || {}, data.lowConfidenceFields || []);
+        reviewState.textContent = data.needsHumanReview ? 'REVIEW REQUIRED' : 'HUMAN GATE';
+        reviewPanel.hidden = false;
+        setStatus(analyzeStatus, `解析完了 · ${Object.keys(data.fields || {}).length}項目を検出`, 'success');
+        setStatus(saveStatus, '');
+        reviewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch {
+        reviewPanel.hidden = true;
+        setStatus(analyzeStatus, '解析に失敗しました。入力内容を確認して、もう一度試してください。', 'error');
+      } finally {
+        analyze.disabled = false;
+      }
+    }
+
+    raw?.addEventListener('input', updateCount);
+    document.querySelector('#clear-raw')?.addEventListener('click', () => {
+      if (!raw) return;
+      raw.value = '';
+      updateCount();
+      raw.focus();
+      setStatus(analyzeStatus, '');
+    });
+    analyze?.addEventListener('click', analyzeProfile);
+
+    document.querySelector('#discard-preview')?.addEventListener('click', () => {
+      if (reviewPanel) reviewPanel.hidden = true;
+      if (fieldGrid) fieldGrid.textContent = '';
+      setStatus(saveStatus, '');
+      setStatus(analyzeStatus, '解析結果を破棄しました。');
+    });
+
+    document.querySelector('#save-profile')?.addEventListener('click', () => {
+      const fields = confirmedFields();
+      if (Object.keys(fields).length === 0) {
+        setStatus(saveStatus, '保存する項目がありません。', 'error');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        fields,
+      }));
+      setStatus(saveStatus, '確認済みプロフィールをこのブラウザに保存しました。', 'success');
+      refreshSavedState();
+    });
+
+    deleteProfile?.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      refreshSavedState();
+      setStatus(saveStatus, '保存済みプロフィールを削除しました。');
+    });
+
+    updateCount();
+    refreshSavedState();
+  </script>
+</DashboardLayout>
