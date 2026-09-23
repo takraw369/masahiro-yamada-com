@@ -39,6 +39,8 @@ Fix stale documentation when a verified mismatch is found.
 - Supabase is primary storage where current code/config says so; D1 is legacy/fallback where explicitly retained.
 - Supabase `public` tables are fail-closed for Data API exposure: every new table must include an explicit `GRANT` or `REVOKE` decision in the same migration. Never rely on automatic default grants.
 - When granting Data API access, grant only the required privileges and keep the grant decision together with RLS enablement and the required policies.
+- Supabase `public` functions are fail-closed for RPC exposure. New functions must explicitly decide `EXECUTE` grants; never rely on default `PUBLIC`/role execution. Use `SECURITY DEFINER` only when required and pair it with an explicit caller-authentication or bearer-secret check.
+- A table with RLS enabled and no policies is an intentionally closed surface: `anon` and `authenticated` must have no direct table privileges. Opening it requires both a reviewed policy and the matching explicit `GRANT` in the same migration.
 - ACE public Tips are sourced from `ace-vault` and mirrored by `scripts/sync-from-vault.mjs`.
 - Only Tips explicitly marked public may enter this public repository.
 - Do not turn mirrored content into a second canonical copy.
