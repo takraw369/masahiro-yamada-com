@@ -31,6 +31,8 @@ If one applicable item fails, fix it and run the checklist again.
 - [ ] Public ACE Tips still require explicit public classification before mirroring.
 - [ ] Supabase / D1 responsibilities remain consistent with current code/config.
 - [ ] No destructive migration or data operation was introduced casually.
+- [ ] Every migration that creates a table in `public` explicitly decides Data API access with `GRANT` or `REVOKE` in the same migration; do not rely on Supabase default grants.
+- [ ] Any table exposed to `anon`, `authenticated`, or `service_role` receives only the privileges actually required; RLS and policies are reviewed before client access is enabled.
 
 ## UX / design
 
