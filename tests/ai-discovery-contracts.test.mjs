@@ -11,9 +11,11 @@ const [robots, llms, middleware, astroConfig, sitemap] = await Promise.all([
 ]);
 
 test('canonical origin is consistent across Astro, middleware, robots, and AI knowledge map', () => {
-  for (const source of [robots, llms, middleware, astroConfig, sitemap]) {
+  for (const source of [robots, llms, astroConfig, sitemap]) {
     assert.match(source, /https:\/\/masahiroyamada\.com/);
   }
+  assert.match(middleware, /const CANONICAL_HOST = 'masahiroyamada\.com'/);
+  assert.match(middleware, /const CANONICAL_ORIGIN = `https:\/\/\$\{CANONICAL_HOST\}`/);
 });
 
 test('public discovery allows search and AI grounding without granting training permission', () => {
