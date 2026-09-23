@@ -1,20 +1,13 @@
 {
-  "name": "消防設備士 乙6｜MASA SPRINT",
-  "short_name": "乙6 PASS",
-  "description": "MASA専用 消防設備士乙種第6類 試験対策アプリ",
+  "name": "消防設備士乙6 合格ダッシュ",
+  "short_name": "乙6ダッシュ",
+  "description": "9月27日の試験に向けた消防設備士乙種第6類の直前対策アプリ",
   "lang": "ja",
   "start_url": "/otsu6/",
   "scope": "/otsu6/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f4f6f9",
-  "theme_color": "#d92f2f",
-  "icons": [
-    {
-      "src": "/app-icons/masa-os-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+  "background_color": "#f4f0e8",
+  "theme_color": "#c63b2d",
+  "icons": [{ "src": "/otsu6/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }
