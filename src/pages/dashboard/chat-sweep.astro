@@ -1,0 +1,225 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const singleChatPrompt = `このチャットをMASA OSの整理対象として診断してください。
+
+目的：
+このChatを今後も残すべきか、PROJECTへ移すべきか、既存Canonicalへ資産化してアーカイブできるかを判断し、可能な範囲で実処理まで進めてください。
+
+最初に、このチャット内から以下を抽出してください。
+- このChatの目的
+- 現在も未完了の作業
+- Decision
+- Principle
+- Project State
+- reusable Asset
+- Next Action
+
+そのうえで、内容に関係する範囲だけCanonicalを確認してください。
+
+Canonical：
+- Google Drive /MASA_OS：知識・方針・事業・Projectの正本
+- GitHub takraw369/masa-automation：Skill / Automation / Agent OS / 運用ルールの正本
+- GitHub takraw369/masahiro-yamada-com：Dashboard / Web / UI実装の正本
+
+ルール：
+- このChat自体を正本にしない
+- Chat全文をそのまま保存しない
+- 新規文書・新規DB・新規仕組みを安易に作らず、既存Canonicalへの統合を優先する
+- Drive/GitHubを全走査せず、このChatに関係する候補だけ確認する
+- 同じ価値がCanonicalにある場合は再資産化しない
+- Merge、Production Deploy、秘密情報変更、本番DB変更、公開投稿、支払いはHuman Gateとして実行しない
+
+最終判定は必ず1つ：
+ACTIVE / ASSETIZE / ARCHIVE_READY / DUPLICATE / REFERENCE / HUMAN_REVIEW
+
+判定基準：
+- ACTIVE：未完了の作業があり、継続する価値がある
+- ASSETIZE：再利用価値がCanonicalへ未反映。資産化後にArchive候補
+- ARCHIVE_READY：重要内容は既にCanonicalにある、または保存不要。今すぐArchive可能
+- DUPLICATE：他のChat / Drive / GitHubに同じ価値があり固有差分がほぼない
+- REFERENCE：実行中ではないが履歴・証拠として参照価値がある
+- HUMAN_REVIEW：衝突・重要判断・不明点があり人間確認が必要
+
+ACTIVEの場合、推奨PROJECTを1つ選んでください：
+- 00｜MASA OS・AI・Automation
+- 10｜SLF・ACE・Business
+- 20｜MONEY・WORK
+- 30｜HOME・FAMILY
+- 40｜消防設備士
+- 50｜BODY・LIFE
+
+ASSETIZEの場合：
+- 何を資産化するか
+- 既存のどのCanonicalへ統合するか
+- Drive / GitHubのどちらか
+を明示し、可能で安全なら実際に更新してください。
+更新した場合はread-back / fetchで反映を確認してください。
+資産化後にもう一度判定し、ARCHIVE_READYになったか確認してください。
+
+出力形式：
+【診断】
+判定：
+推奨PROJECT：
+このChatの目的：
+現在の状態：
+
+【Canonical確認】
+Drive：
+GitHub：
+重複：
+不足している資産：
+
+【残すべき内容】
+- Decision：
+- Principle：
+- Project State：
+- Asset：
+- Next Action：
+
+【処理】
+今やること：
+資産化先：
+実行結果：
+アーカイブ可否：
+
+【一言】
+このChatを今後探し直す必要があるかを1〜2文で説明してください。
+
+調査だけで終わらず、可能で安全な範囲のCanonical更新まで進めてください。`;
+
+const classifications = [
+  { key:'ACTIVE', tone:'blue', action:'PROJECTへ移して継続', note:'未完了・次の一手あり' },
+  { key:'ASSETIZE', tone:'gold', action:'Canonicalへ統合 → 再判定', note:'価値がまだ外に出ていない' },
+  { key:'ARCHIVE_READY', tone:'green', action:'アーカイブ', note:'正本化済み / 保存不要' },
+  { key:'DUPLICATE', tone:'gray', action:'重複先だけ確認 → アーカイブ', note:'固有差分ほぼなし' },
+  { key:'REFERENCE', tone:'gray', action:'参照先を確認 → アーカイブ', note:'実行対象ではない' },
+  { key:'HUMAN_REVIEW', tone:'red', action:'MASAが判断', note:'衝突・重要判断・不明点' },
+];
+
+const projects = [
+  '00｜MASA OS・AI・Automation',
+  '10｜SLF・ACE・Business',
+  '20｜MONEY・WORK',
+  '30｜HOME・FAMILY',
+  '40｜消防設備士',
+  '50｜BODY・LIFE',
+];
+---
+
+<DashboardLayout title="Chat Sweep" eyebrow="MASA OS / CHAT HYGIENE">
+  <main class="sweep-shell">
+    <header class="hero">
+      <div>
+        <p class="kicker">PAST CHAT SWEEP · SINGLE CHAT</p>
+        <h1>Chatを、残す・資産化する・閉じる。</h1>
+        <p class="lead">今開いているChatをDrive / GitHubのCanonicalと照合して、PROJECT入りかArchiveかを判断する入口。Chatは作業机、正本は外へ。</p>
+      </div>
+      <a class="back" href="/dashboard">← Dashboard</a>
+    </header>
+
+    <section class="launcher" aria-labelledby="launcher-title">
+      <div class="launcher-copy">
+        <p class="kicker">01 · RUN</p>
+        <h2 id="launcher-title">今のChatで診断する</h2>
+        <ol>
+          <li>整理したいChatを開く</li>
+          <li>下のボタンで診断プロンプトをコピー</li>
+          <li>そのChatへ貼る</li>
+          <li>出た判定どおりにPROJECT移動 / 資産化 / Archive</li>
+        </ol>
+        <div class="button-row">
+          <button id="copy-sweep" type="button">診断プロンプトをコピー</button>
+          <span id="copy-status" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+      <aside class="rule-card">
+        <span>DEFAULT RULE</span>
+        <strong>Chatを保存するのではなく、価値をCanonicalへ戻す。</strong>
+        <p>新規資産より既存正本への統合を優先。Merge / Deploy / 公開 / 支払い等はHuman Gate。</p>
+      </aside>
+      <textarea id="sweep-prompt" class="sr-only" readonly>{singleChatPrompt}</textarea>
+    </section>
+
+    <section class="decision-section" aria-labelledby="decision-title">
+      <div class="section-head">
+        <div><p class="kicker">02 · DECIDE</p><h2 id="decision-title">判定は6つだけ。</h2></div>
+        <p>タイトルや古さではなく、未完了・固有差分・Canonical反映状況で決める。</p>
+      </div>
+      <div class="decision-grid">
+        {classifications.map(item => (
+          <article class={`decision-card ${item.tone}`}>
+            <span>{item.key}</span>
+            <strong>{item.action}</strong>
+            <p>{item.note}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="project-section" aria-labelledby="project-title">
+      <div class="section-head">
+        <div><p class="kicker">03 · ROUTE</p><h2 id="project-title">ACTIVEだけPROJECTへ。</h2></div>
+        <p>PROJECTは作業机。正本ではない。</p>
+      </div>
+      <div class="project-grid">
+        {projects.map((project, index) => (
+          <div class="project-card"><span>{String(index).padStart(2,'0')}</span><strong>{project}</strong></div>
+        ))}
+      </div>
+    </section>
+
+    <section class="batch-section" aria-labelledby="batch-title">
+      <div>
+        <p class="kicker">BATCH MODE</p>
+        <h2 id="batch-title">Exportが届いたら、ここをBatch Sweepへ拡張。</h2>
+        <p>10〜25 ChatずつのCanary → ACTIVE / ASSETIZE / HUMAN_REVIEWだけ深掘り → Canonicalへhandoff。</p>
+      </div>
+      <button type="button" disabled title="ChatGPT export input待ち">Export待ち</button>
+    </section>
+
+    <footer>
+      <span>Single Chat Mode · v0.1</span>
+      <strong>Think in Chat → Canonicalize in Drive/GitHub → Archive the workspace.</strong>
+    </footer>
+  </main>
+</DashboardLayout>
+
+<script>
+  const copyButton = document.querySelector<HTMLButtonElement>('#copy-sweep');
+  const prompt = document.querySelector<HTMLTextAreaElement>('#sweep-prompt');
+  const status = document.querySelector<HTMLSpanElement>('#copy-status');
+
+  copyButton?.addEventListener('click', async () => {
+    if (!prompt || !status) return;
+    try {
+      await navigator.clipboard.writeText(prompt.value);
+      status.textContent = 'コピーした。整理したいChatへ貼ればOK。';
+      copyButton.textContent = 'コピー済み ✓';
+      window.setTimeout(() => {
+        copyButton.textContent = '診断プロンプトをコピー';
+        status.textContent = '';
+      }, 3200);
+    } catch {
+      prompt.classList.remove('sr-only');
+      prompt.focus();
+      prompt.select();
+      status.textContent = '自動コピーできなかったので、下の全文を選択した。';
+    }
+  });
+</script>
+
+<style>
+  .sweep-shell{--panel:#fff;--line:#e4e0d9;--muted:#6f7882;max-width:1160px;margin:0 auto;padding-bottom:44px}
+  .kicker{margin:0;color:var(--gold-muted);font-size:.7rem;letter-spacing:.12em;font-weight:900}
+  .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;margin-bottom:18px}.hero h1{max-width:830px;margin:5px 0 0;font-size:clamp(2rem,4.8vw,4.2rem);line-height:.98;letter-spacing:-.045em}.lead{max-width:790px;margin:13px 0 0;color:var(--muted);font-size:.94rem;line-height:1.8}.back{flex-shrink:0;color:#6d747b;font-size:.78rem;text-decoration:none}
+  .launcher{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.75fr);gap:14px;padding:18px;border:1px solid var(--line);border-radius:22px;background:rgba(255,255,255,.78)}.launcher-copy{padding:8px}.launcher h2,.decision-section h2,.project-section h2,.batch-section h2{margin:4px 0 0;font-size:1.2rem}.launcher ol{margin:18px 0 0;padding-left:1.3rem;color:#5f6871;font-size:.86rem;line-height:1.9}.button-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}.button-row button{min-height:46px;padding:0 18px;border:0;border-radius:12px;background:#1f252b;color:#fff;font-weight:900;cursor:pointer}.button-row button:hover{transform:translateY(-1px)}#copy-status{color:#47735f;font-size:.76rem;font-weight:700}.rule-card{display:flex;flex-direction:column;justify-content:center;padding:20px;border-radius:16px;background:#23282d;color:#fff}.rule-card span{color:#c9a976;font-size:.65rem;letter-spacing:.12em;font-weight:900}.rule-card strong{margin-top:9px;font-size:1.03rem;line-height:1.5}.rule-card p{margin:9px 0 0;color:#bbc1c6;font-size:.74rem;line-height:1.7}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}.section-head>p{max-width:470px;margin:0;color:#838a92;font-size:.72rem;text-align:right}.decision-section,.project-section{margin-top:20px;padding:20px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.66)}.decision-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}.decision-card{min-height:112px;padding:14px;border:1px solid #e4e1dc;border-radius:14px;background:#fff}.decision-card>span{display:inline-block;padding:3px 7px;border-radius:99px;background:#f0f1f2;color:#616b74;font-size:.59rem;letter-spacing:.07em;font-weight:900}.decision-card strong,.decision-card p{display:block}.decision-card strong{margin-top:10px;font-size:.82rem}.decision-card p{margin:4px 0 0;color:#7e8790;font-size:.69rem}.decision-card.blue>span{background:#e8f0fb;color:#416b9c}.decision-card.gold>span{background:#f8eedf;color:#9a681f}.decision-card.green>span{background:#e6f3ea;color:#3d7554}.decision-card.red>span{background:#f7e9e7;color:#9b514a}
+  .project-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px}.project-card{display:flex;align-items:center;gap:10px;padding:13px;border:1px solid #e5e1db;border-radius:12px;background:#fff}.project-card span{color:#b9a68a;font-family:'Cormorant Garamond',serif;font-size:1rem}.project-card strong{font-size:.75rem}
+  .batch-section{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:20px;padding:20px;border:1px dashed #cec7bc;border-radius:18px;background:rgba(250,248,244,.72)}.batch-section p:last-child{max-width:720px;margin:7px 0 0;color:#78818a;font-size:.75rem;line-height:1.6}.batch-section button{min-width:120px;height:40px;border:1px solid #d8d4ce;border-radius:10px;background:#efede9;color:#9a9da0;font-weight:800;cursor:not-allowed}
+  footer{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid #ddd9d3;color:#8a9198;font-size:.67rem}footer strong{color:#737b83;font-weight:700}
+  .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}.launcher textarea:not(.sr-only){width:100%;min-height:360px;grid-column:1/-1;padding:14px;border:1px solid #d8d3cb;border-radius:12px;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}
+  @media(max-width:800px){.launcher{grid-template-columns:1fr}.decision-grid,.project-grid{grid-template-columns:repeat(2,1fr)}.section-head{align-items:flex-start;flex-direction:column}.section-head>p{text-align:left}.batch-section{align-items:flex-start;flex-direction:column}}
+  @media(max-width:560px){.hero{align-items:flex-start;flex-direction:column}.launcher,.decision-section,.project-section{padding:15px}.decision-grid,.project-grid{grid-template-columns:1fr}.hero h1{font-size:2.4rem}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
