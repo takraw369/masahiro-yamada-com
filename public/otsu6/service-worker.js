@@ -1,5 +1,5 @@
-const CACHE = "otsu6-cram-v5";
-const ASSETS = ["./", "./styles.css", "./questions.js", "./app.js", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "otsu6-cram-v6";
+const ASSETS = ["./", "./styles.css", "./questions.js", "./question-overrides-20260924.js", "./app.js", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
