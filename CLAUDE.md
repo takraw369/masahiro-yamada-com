@@ -45,6 +45,21 @@ Fix stale documentation when a verified mismatch is found.
 - Only Tips explicitly marked public may enter this public repository.
 - Do not turn mirrored content into a second canonical copy.
 
+## Otsu6 canonical implementation
+
+The消防設備士乙6 app has exactly one implementation. Do not create or revive a second `/otsu6` app.
+
+Canonical files:
+
+- Route: `src/pages/otsu6/index.astro`
+- Runtime/state/learning logic: `public/otsu6/app.js`
+- Question database: `public/otsu6/questions.js`
+- Styles: `public/otsu6/styles.css`
+- PWA worker: `public/otsu6/service-worker.js`
+- `public/otsu6/sw.js` is compatibility-only and may only delegate to `service-worker.js`.
+
+When changing Otsu6, modify the canonical files above. Do not add `src/pages/otsu6.astro`, an Otsu6 React implementation, another Otsu6 question DB, or a separate feedback-injection script. `tests/otsu6-single-source.test.mjs` enforces this rule in CI.
+
 ## Change rules
 
 - Read existing implementation before creating a replacement.
