@@ -148,11 +148,14 @@
   const modeGrid = dashboard.querySelector('.mode-grid');
   const resumeCard = document.createElement('section');
   resumeCard.id = 'resumeSessionCard'; resumeCard.className = 'resume-card'; resumeCard.hidden = true;
-  resumeCard.innerHTML = `<div><strong>前回の続きがあります</strong><p id="resumeSessionMeta"></p><small>途中経過はこの端末に保存されています。</small></div><div class="resume-actions"><button type="button" class="resume-button" data-resume-clear>最初から</button><button type="button" class="resume-button primary" data-resume-start>続きから再開</button></div>`;
+  resumeCard.innerHTML = `<div><strong>前回の続きがあります</strong><p id="resumeSessionMeta"></p><small>途中経過はこの端末に保存されています。次回は自動で続きから開きます。</small></div><div class="resume-actions"><button type="button" class="resume-button" data-resume-clear>最初から</button><button type="button" class="resume-button primary" data-resume-start>続きから再開</button></div>`;
   modeGrid?.insertAdjacentElement('beforebegin', resumeCard);
+
   const loadResume = () => {
-    try { const v = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null'); return v?.version === 1 && Array.isArray(v.queueIds) && v.queueIds.length ? v : null; }
-    catch { return null; }
+    try {
+      const v = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null');
+      return v?.version === 1 && Array.isArray(v.queueIds) && v.queueIds.length ? v : null;
+    } catch { return null; }
   };
   const clearResume = () => { try { localStorage.removeItem(RESUME_KEY); } catch {} };
   function saveResume() {
@@ -161,11 +164,19 @@
     try {
       const answers = Array.isArray(s.answers) ? s.answers : [];
       localStorage.setItem(RESUME_KEY, JSON.stringify({
-        version: 1, mode: s.mode || 'sprint', title: s.title || '', queueIds: s.queue.map((q) => q.id), answers,
-        index: Math.min(s.queue.length, Math.max(Number(s.index) || 0, answers.length)),
+        version: 1,
+        mode: s.mode || 'sprint',
+        title: s.title || '',
+        queueIds: s.queue.map((q) => q.id),
+        answers,
+        index: Math.min(s.queue.length - 1, Math.max(Number(s.index) || 0, Math.min(answers.length, s.queue.length - 1))),
         complete: answers.length >= s.queue.length,
         elapsedMs: Math.max(0, Date.now() - (Number(s.startedAt) || Date.now())),
-        draft: { index: Number(s.index) || 0, selectedChoice: typeof selectedChoice !== 'undefined' ? selectedChoice : null, typedAnswer: typeof typedAnswer !== 'undefined' ? typedAnswer : '' },
+        draft: {
+          index: Number(s.index) || 0,
+          selectedChoice: typeof selectedChoice !== 'undefined' ? selectedChoice : null,
+          typedAnswer: typeof typedAnswer !== 'undefined' ? typedAnswer : ''
+        },
         savedAt: new Date().toISOString(),
       }));
       renderResumeCard();
@@ -227,7 +238,10 @@
         const result = base(q, correct), store = wrongStore();
         if (store && q?.id) {
           if (correct) delete store[q.id];
-          else { const prev = store[q.id] || {}; store[q.id] = { id: q.id, misses: (Number(prev.misses) || 0) + 1, lastWrongAt: new Date().toISOString() }; }
+          else {
+            const prev = store[q.id] || {};
+            store[q.id] = { id: q.id, misses: (Number(prev.misses) || 0) + 1, lastWrongAt: new Date().toISOString() };
+          }
           persistStats(); renderWrongList();
         }
         return result;
@@ -245,7 +259,9 @@
           const ok = confirm('途中のセッションがあります。新しく始めると保存中の続きは上書きされます。新しく始めますか？');
           if (!ok) { renderResumeCard(); return; }
         }
-        const result = baseStartSession(mode, queueOverride); saveResume(); return result;
+        const result = baseStartSession(mode, queueOverride);
+        saveResume();
+        return result;
       };
     }
   } catch {}
@@ -253,46 +269,76 @@
   try {
     if (typeof finishSession === 'function') {
       const base = finishSession;
-      finishSession = function(...args) { const result = base(...args); clearResume(); renderResumeCard(); return result; };
+      finishSession = function(...args) {
+        const result = base(...args);
+        clearResume();
+        renderResumeCard();
+        return result;
+      };
     }
   } catch {}
 
   function restoreDraft(saved) {
-    const s = safeSession(); if (!s || !saved?.draft || Number(saved.draft.index) !== Number(s.index)) return;
-    const q = s.queue[s.index]; if (!q) return;
-    if (q.type === 'choice' && Number.isInteger(saved.draft.selectedChoice)) document.querySelector(`.choice-button[data-index="${saved.draft.selectedChoice}"]`)?.click();
+    const s = safeSession();
+    if (!s || !saved?.draft || Number(saved.draft.index) !== Number(s.index)) return;
+    const q = s.queue[s.index];
+    if (!q) return;
+    if (q.type === 'choice' && Number.isInteger(saved.draft.selectedChoice)) {
+      document.querySelector(`.choice-button[data-index="${saved.draft.selectedChoice}"]`)?.click();
+    }
     if (q.type === 'text' && saved.draft.typedAnswer) {
-      const input = document.getElementById('textAnswer'); if (!input) return;
-      input.value = saved.draft.typedAnswer; try { typedAnswer = saved.draft.typedAnswer; } catch {}
+      const input = document.getElementById('textAnswer');
+      if (!input) return;
+      input.value = saved.draft.typedAnswer;
+      try { typedAnswer = saved.draft.typedAnswer; } catch {}
       document.getElementById('submitAnswer').disabled = !String(saved.draft.typedAnswer).trim();
     }
   }
+
   function restoreSession() {
-    const saved = loadResume(); if (!saved || !baseStartSession) return;
-    const byId = new Map(bank().map((q) => [q.id, q])); const queue = saved.queueIds.map((id) => byId.get(id)).filter(Boolean);
+    const saved = loadResume();
+    if (!saved || !baseStartSession) return;
+    const byId = new Map(bank().map((q) => [q.id, q]));
+    const queue = saved.queueIds.map((id) => byId.get(id)).filter(Boolean);
     if (!queue.length) { clearResume(); renderResumeCard(); return; }
     restoring = true;
     try {
       baseStartSession(saved.mode || 'sprint', queue);
-      const s = safeSession(); if (!s) return;
+      const s = safeSession();
+      if (!s) return;
+      s.title = saved.title || s.title;
       s.answers = Array.isArray(saved.answers) ? saved.answers : [];
       s.startedAt = Date.now() - Math.max(0, Number(saved.elapsedMs) || 0);
       s.index = Math.min(Math.max(0, Number(saved.index) || 0), queue.length - 1);
-      if (saved.complete && s.answers.length >= queue.length) { if (typeof finishSession === 'function') finishSession(); return; }
-      if (typeof renderQuestion === 'function') renderQuestion(); if (typeof startTimer === 'function') startTimer();
-      restoreDraft(saved); saveResume();
+      if (saved.complete && s.answers.length >= queue.length) {
+        if (typeof finishSession === 'function') finishSession();
+        return;
+      }
+      if (typeof renderQuestion === 'function') renderQuestion();
+      if (typeof startTimer === 'function') startTimer();
+      restoreDraft(saved);
+      saveResume();
     } catch {} finally { restoring = false; }
   }
+
   function startWrong(queue) {
     if (!queue.length || typeof startSession !== 'function') return;
     startSession('weak', queue);
-    const s = safeSession(); if (!s?.queue?.length) return;
-    s.title = `間違い復習 ${queue.length}問`; const label = document.getElementById('modeLabel'); if (label) label.textContent = '間違い復習'; saveResume();
+    const s = safeSession();
+    if (!s?.queue?.length) return;
+    s.title = `間違い復習 ${queue.length}問`;
+    const label = document.getElementById('modeLabel');
+    if (label) label.textContent = '間違い復習';
+    saveResume();
   }
 
   wrongPanel.addEventListener('click', (event) => {
     const one = event.target.closest('[data-review-wrong]');
-    if (one) { const q = bank().find((x) => x.id === one.dataset.reviewWrong); if (q) startWrong([q]); return; }
+    if (one) {
+      const q = bank().find((x) => x.id === one.dataset.reviewWrong);
+      if (q) startWrong([q]);
+      return;
+    }
     if (event.target.closest('#reviewAllWrong')) startWrong(wrongEntries().map((x) => x.q));
   });
   resumeCard.addEventListener('click', (event) => {
@@ -306,14 +352,27 @@
   document.getElementById('submitAnswer')?.addEventListener('click', () => queueMicrotask(saveResume));
   document.getElementById('nextQuestion')?.addEventListener('click', () => queueMicrotask(saveResume));
   document.getElementById('textAnswer')?.addEventListener('input', () => queueMicrotask(saveResume));
-  document.addEventListener('click', (event) => { if (event.target.closest('.choice-button')) queueMicrotask(saveResume); });
-  document.getElementById('quitQuiz')?.addEventListener('click', () => queueMicrotask(() => { if (!safeSession()) { clearResume(); renderResumeCard(); } }));
-  document.getElementById('backDashboard')?.addEventListener('click', () => queueMicrotask(() => { if (!safeSession()) { clearResume(); renderResumeCard(); } }));
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('.choice-button')) queueMicrotask(saveResume);
+  });
+
+  // Save before the original quit handler sets session = null. Never delete resume on quit.
+  document.getElementById('quitQuiz')?.addEventListener('click', saveResume, { capture: true });
   window.addEventListener('pagehide', saveResume);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveResume(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveResume();
+  });
 
   migrateWrongHistory();
   updateFeedbackSummary();
   renderWrongList();
   renderResumeCard();
+
+  // If an incomplete session exists, reopen it automatically on the next visit.
+  const savedAtBoot = loadResume();
+  if (savedAtBoot && !savedAtBoot.complete) {
+    queueMicrotask(() => {
+      if (!safeSession() && dashboard.classList.contains('active')) restoreSession();
+    });
+  }
 })();
