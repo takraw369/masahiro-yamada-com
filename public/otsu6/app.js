@@ -6,7 +6,18 @@
   // 2026年6月更新の公式公開問題から、乙6に直接効く論点を優先。
   // 受験報告由来の論点は10問特訓の重み付けには使うが、ここでは公式を優先する。
   const LATEST_SET_IDS = ["lc01", "lc03", "lc04", "lc05", "lc06", "lc07", "l601", "m01", "m03", "m04", "p05", "p06"];
-  const defaultState = { attempts: {}, correct: {}, wrong: {}, streak: {}, sound: false, sessions: 0 };
+  const defaultState = {
+    attempts: {},
+    correct: {},
+    wrong: {},
+    streak: {},
+    comments: {},
+    rating: {},
+    activeSession: null,
+    sound: false,
+    sessions: 0
+  };
+
   let state = loadState();
   let session = null;
   let timerHandle = null;
@@ -18,7 +29,17 @@
   function loadState() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      return { ...defaultState, ...saved, attempts: saved?.attempts || {}, correct: saved?.correct || {}, wrong: saved?.wrong || {}, streak: saved?.streak || {} };
+      return {
+        ...defaultState,
+        ...saved,
+        attempts: saved?.attempts || {},
+        correct: saved?.correct || {},
+        wrong: saved?.wrong || {},
+        streak: saved?.streak || {},
+        comments: saved?.comments || {},
+        rating: saved?.rating || {},
+        activeSession: saved?.activeSession || null
+      };
     } catch {
       return { ...defaultState };
     }
@@ -38,18 +59,22 @@
   }
 
   function weightedPool() {
+    const selfWeak = QUESTIONS.filter((item) => state.rating[item.id] === "weak");
     const weak = QUESTIONS.filter((item) => (state.wrong[item.id] || 0) > 0)
       .sort((a, b) => (state.wrong[b.id] || 0) - (state.wrong[a.id] || 0));
+    const selfReview = QUESTIONS.filter((item) => state.rating[item.id] === "review");
     const latest = shuffle(QUESTIONS.filter((item) => item.priority === "latest"));
     const high = shuffle(QUESTIONS.filter((item) => item.priority === "high"));
-    return [...new Map([...weak, ...latest, ...high, ...shuffle(QUESTIONS)].map((item) => [item.id, item])).values()];
+    const normal = shuffle(QUESTIONS.filter((item) => state.rating[item.id] !== "solid"));
+    const solid = shuffle(QUESTIONS.filter((item) => state.rating[item.id] === "solid"));
+    return [...new Map([...selfWeak, ...weak, ...selfReview, ...latest, ...high, ...normal, ...solid].map((item) => [item.id, item])).values()];
   }
 
   function getModeQuestions(mode) {
     if (mode === "latest") return LATEST_SET_IDS.map((id) => QUESTIONS.find((item) => item.id === id)).filter(Boolean);
     if (mode === "quick") return weightedPool().slice(0, 10);
     if (mode === "weak") {
-      const weak = QUESTIONS.filter((item) => (state.wrong[item.id] || 0) > 0)
+      const weak = QUESTIONS.filter((item) => (state.wrong[item.id] || 0) > 0 || ["weak", "review"].includes(state.rating[item.id]))
         .sort((a, b) => (state.wrong[b.id] || 0) - (state.wrong[a.id] || 0));
       return weak.length ? weak.slice(0, 20) : weightedPool().slice(0, 10);
     }
@@ -77,8 +102,126 @@
     }[mode] || "特訓";
   }
 
+  function ensureQuestionNoteUi() {
+    if ($("#question-note-panel")) return;
+    const style = document.createElement("style");
+    style.textContent = `
+      .question-note-panel{margin-top:18px;padding:14px;border:1px solid #e2d8c8;border-radius:18px;background:#fffaf3}
+      .question-note-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+      .question-note-head strong{font-size:14px;color:#282826}.question-note-head small{font-size:11px;color:#8a8177}
+      .question-rating{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
+      .question-rating button{min-height:40px;padding:8px 6px;border:1px solid #ddd3c5;border-radius:12px;background:#fff;color:#4b4741;font:inherit;font-size:11px;font-weight:800}
+      .question-rating button.active{border-color:#c63b2d;background:#fbe7e1;color:#8f291f}
+      #question-note{display:block;width:100%;min-height:72px;padding:11px 12px;border:1px solid #ddd3c5;border-radius:12px;background:#fff;color:#282826;font:inherit;font-size:14px;line-height:1.55;resize:vertical}
+      #question-note:focus{outline:2px solid rgba(198,59,45,.18);border-color:#c63b2d}
+      @media(max-width:520px){.question-rating{grid-template-columns:1fr}.question-note-panel{padding:12px}}
+    `;
+    document.head.appendChild(style);
+
+    const panel = document.createElement("section");
+    panel.id = "question-note-panel";
+    panel.className = "question-note-panel";
+    panel.innerHTML = `
+      <div class="question-note-head"><strong>コメント・自分メモ</strong><small id="question-note-status">自動保存</small></div>
+      <div class="question-rating" role="group" aria-label="この問題の定着度">
+        <button type="button" data-rating="weak">🔴 ここ弱い</button>
+        <button type="button" data-rating="review">🟡 もう1回</button>
+        <button type="button" data-rating="solid">🟢 もう大丈夫</button>
+      </div>
+      <textarea id="question-note" maxlength="300" placeholder="例：焼入れと焼戻しが混ざる／この数値まだ不安"></textarea>`;
+    $("#choices").insertAdjacentElement("afterend", panel);
+
+    $("#question-note").addEventListener("input", () => saveCurrentNote());
+    $$("#question-note-panel [data-rating]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const item = currentQuestion();
+        if (!item) return;
+        const next = state.rating[item.id] === button.dataset.rating ? "" : button.dataset.rating;
+        if (next) state.rating[item.id] = next;
+        else delete state.rating[item.id];
+        saveState();
+        renderQuestionNote(item);
+        $("#question-note-status").textContent = "保存済み";
+      });
+    });
+  }
+
+  function currentQuestion() {
+    return session?.questions?.[session.index] || null;
+  }
+
+  function saveCurrentNote() {
+    const item = currentQuestion();
+    if (!item || !$("#question-note")) return;
+    const value = $("#question-note").value.trim();
+    if (value) state.comments[item.id] = value;
+    else delete state.comments[item.id];
+    saveState();
+    $("#question-note-status").textContent = "保存済み";
+  }
+
+  function renderQuestionNote(item) {
+    if (!item || !$("#question-note")) return;
+    $("#question-note").value = state.comments[item.id] || "";
+    const active = state.rating[item.id] || "";
+    $$("#question-note-panel [data-rating]").forEach((button) => button.classList.toggle("active", button.dataset.rating === active));
+    $("#question-note-status").textContent = state.comments[item.id] || active ? "保存済み" : "自動保存";
+  }
+
+  function persistActiveSession() {
+    if (!session?.questions?.length) return;
+    state.activeSession = {
+      version: 1,
+      mode: session.mode,
+      questionIds: session.questions.map((item) => item.id),
+      index: session.index,
+      answers: session.answers,
+      mistakes: session.mistakes,
+      startedAt: session.startedAt,
+      endsAt: session.endsAt,
+      answered: Boolean(session.answered),
+      updatedAt: Date.now()
+    };
+    saveState();
+  }
+
+  function clearActiveSession() {
+    state.activeSession = null;
+    saveState();
+  }
+
+  function restoreActiveSession() {
+    const saved = state.activeSession;
+    if (!saved?.questionIds?.length) return false;
+    const questionMap = new Map(QUESTIONS.map((item) => [item.id, item]));
+    const questions = saved.questionIds.map((id) => questionMap.get(id)).filter(Boolean);
+    if (!questions.length) {
+      clearActiveSession();
+      return false;
+    }
+    session = {
+      mode: saved.mode || "quick",
+      questions,
+      index: Math.min(Math.max(Number(saved.index) || 0, 0), questions.length - 1),
+      answers: Array.isArray(saved.answers) ? saved.answers : [],
+      mistakes: Array.isArray(saved.mistakes) ? saved.mistakes : [],
+      startedAt: Number(saved.startedAt) || Date.now(),
+      endsAt: saved.endsAt ? Number(saved.endsAt) : null,
+      answered: Boolean(saved.answered)
+    };
+    $("#quiz-mode-label").textContent = modeLabel(session.mode);
+    showView("quiz");
+    startTimer();
+    renderQuestion(true);
+    toast(`前回の続き ${session.index + 1}/${session.questions.length} から再開`);
+    return true;
+  }
+
   function showView(name) {
-    if (session && name !== "quiz" && name !== "results") stopTimer();
+    if (session && name !== "quiz" && name !== "results") {
+      persistActiveSession();
+      stopTimer();
+    }
     $(".bottom-nav").hidden = name === "quiz";
     $$(".view").forEach((view) => view.classList.toggle("active", view.id === `view-${name}`));
     $$(".bottom-nav button").forEach((button) => button.classList.toggle("active", button.dataset.view === name));
@@ -89,6 +232,14 @@
   }
 
   function startQuiz(mode) {
+    if (state.activeSession?.questionIds?.length) {
+      const startNew = window.confirm("途中の問題があります。保存中の続きは残っています。新しいコースを始めますか？");
+      if (!startNew) {
+        restoreActiveSession();
+        return;
+      }
+      state.activeSession = null;
+    }
     const questions = getModeQuestions(mode);
     if (!questions.length) {
       toast("まだ弱点問題がありません。10問特訓を始めます。");
@@ -107,12 +258,14 @@
     $("#quiz-mode-label").textContent = modeLabel(mode);
     showView("quiz");
     startTimer();
-    renderQuestion();
+    renderQuestion(false);
+    persistActiveSession();
   }
 
-  function renderQuestion() {
-    const item = session.questions[session.index];
-    session.answered = false;
+  function renderQuestion(restoring = false) {
+    const item = currentQuestion();
+    if (!item) return;
+    if (!restoring) session.answered = false;
     $("#quiz-counter").textContent = `${session.index + 1} / ${session.questions.length}`;
     $("#quiz-progress-bar").style.width = `${(session.index / session.questions.length) * 100}%`;
     $("#question-category").textContent = CATEGORY_META[item.category].label;
@@ -124,7 +277,14 @@
       .map((choice, index) => `<button class="choice" type="button" data-answer="${index}"><span class="choice-letter">${LETTERS[index]}</span><span>${escapeHtml(choice)}</span></button>`)
       .join("");
     $$("#choices .choice").forEach((button) => button.addEventListener("click", () => answerQuestion(Number(button.dataset.answer))));
-    if (state.sound) speakQuestion(item);
+    renderQuestionNote(item);
+
+    if (restoring && session.answered) {
+      const savedAnswer = [...session.answers].reverse().find((answer) => answer.id === item.id);
+      if (savedAnswer) paintAnsweredState(item, savedAnswer, false);
+      else session.answered = false;
+    }
+    if (state.sound && !session.answered) speakQuestion(item);
   }
 
   function updateWeakState(itemId, isCorrect) {
@@ -139,57 +299,63 @@
     }
   }
 
-  function answerQuestion(selected) {
-    if (!session || session.answered) return;
-    session.answered = true;
-    const item = session.questions[session.index];
-    const isCorrect = selected === item.answer;
-    session.answers.push({ id: item.id, category: item.category, correct: isCorrect, selected });
-    state.attempts[item.id] = (state.attempts[item.id] || 0) + 1;
-    updateWeakState(item.id, isCorrect);
-    if (!isCorrect) session.mistakes.push(item.id);
-    saveState();
-
+  function paintAnsweredState(item, answer, focusNext = true) {
     $$("#choices .choice").forEach((button, index) => {
       button.disabled = true;
       if (session.mode === "mock") {
-        if (index === selected) button.classList.add("selected");
+        if (index === answer.selected) button.classList.add("selected");
       } else {
         if (index === item.answer) button.classList.add("correct");
-        if (index === selected && !isCorrect) button.classList.add("wrong");
+        if (index === answer.selected && !answer.correct) button.classList.add("wrong");
       }
     });
 
     if (session.mode === "mock") {
       $("#feedback").hidden = true;
-      $("#next-question").hidden = false;
-      $("#next-question").textContent = session.index === session.questions.length - 1 ? "採点する" : "次の問題へ";
-      $("#next-question").focus({ preventScroll: true });
-      return;
+    } else {
+      $("#feedback-verdict").textContent = answer.correct ? "正解。ここは取れる。" : `不正解。正解は ${LETTERS[item.answer]}。`;
+      $("#feedback-verdict").style.color = answer.correct ? "var(--green)" : "var(--red)";
+      $("#feedback-explanation").textContent = item.explanation;
+      $("#feedback-source").href = item.source.url;
+      $("#feedback-source").textContent = `根拠：${item.source.label}`;
+      $("#feedback").hidden = false;
     }
-
-    $("#feedback-verdict").textContent = isCorrect ? "正解。ここは取れる。" : `不正解。正解は ${LETTERS[item.answer]}。`;
-    $("#feedback-verdict").style.color = isCorrect ? "var(--green)" : "var(--red)";
-    $("#feedback-explanation").textContent = item.explanation;
-    $("#feedback-source").href = item.source.url;
-    $("#feedback-source").textContent = `根拠：${item.source.label}`;
-    $("#feedback").hidden = false;
     $("#next-question").hidden = false;
-    $("#next-question").textContent = session.index === session.questions.length - 1 ? "結果を見る" : "次の問題へ";
-    $("#next-question").focus({ preventScroll: true });
+    $("#next-question").textContent = session.index === session.questions.length - 1
+      ? (session.mode === "mock" ? "採点する" : "結果を見る")
+      : "次の問題へ";
+    if (focusNext) $("#next-question").focus({ preventScroll: true });
+  }
+
+  function answerQuestion(selected) {
+    if (!session || session.answered) return;
+    session.answered = true;
+    const item = currentQuestion();
+    const isCorrect = selected === item.answer;
+    const answer = { id: item.id, category: item.category, correct: isCorrect, selected };
+    session.answers.push(answer);
+    state.attempts[item.id] = (state.attempts[item.id] || 0) + 1;
+    updateWeakState(item.id, isCorrect);
+    if (!isCorrect) session.mistakes.push(item.id);
+    saveState();
+    paintAnsweredState(item, answer, true);
+    persistActiveSession();
   }
 
   function nextQuestion() {
     if (!session?.answered) return;
     if (session.index >= session.questions.length - 1) return finishQuiz();
     session.index += 1;
-    renderQuestion();
+    session.answered = false;
+    renderQuestion(false);
+    persistActiveSession();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function finishQuiz() {
     stopTimer();
     state.sessions += 1;
+    state.activeSession = null;
     saveState();
     const total = session.answers.length;
     const correct = session.answers.filter((answer) => answer.correct).length;
@@ -259,7 +425,7 @@
     const percent = attempts ? Math.round((correct / attempts) * 100) : 0;
     $("#readiness-value").textContent = attempts ? `${percent}%` : "--";
     $(".readiness").style.setProperty("--score", `${percent}%`);
-    const weakCount = QUESTIONS.filter((item) => (state.wrong[item.id] || 0) > 0).length;
+    const weakCount = QUESTIONS.filter((item) => (state.wrong[item.id] || 0) > 0 || ["weak", "review"].includes(state.rating[item.id])).length;
     $("#weak-count-home").textContent = weakCount ? `${weakCount}問を復習` : "まだ0問";
     const target = new Date("2026-09-27T00:00:00+09:00");
     const now = new Date();
@@ -275,10 +441,14 @@
   }
 
   function renderWeakList() {
-    const weak = QUESTIONS.filter((item) => (state.wrong[item.id] || 0) > 0)
+    const weak = QUESTIONS.filter((item) => (state.wrong[item.id] || 0) > 0 || ["weak", "review"].includes(state.rating[item.id]))
       .sort((a, b) => (state.wrong[b.id] || 0) - (state.wrong[a.id] || 0));
     $("#weak-list").innerHTML = weak.length
-      ? weak.map((item) => `<article class="weak-item"><div><strong>${escapeHtml(item.topic)}</strong><span>ミス ${state.wrong[item.id]}回 / 連続正解 ${state.streak[item.id] || 0}/2</span></div><p>${escapeHtml(item.question)}</p></article>`).join("")
+      ? weak.map((item) => {
+          const rating = state.rating[item.id] === "weak" ? " / 🔴ここ弱い" : state.rating[item.id] === "review" ? " / 🟡もう1回" : "";
+          const comment = state.comments[item.id] ? `<small>メモ：${escapeHtml(state.comments[item.id])}</small>` : "";
+          return `<article class="weak-item"><div><strong>${escapeHtml(item.topic)}</strong><span>ミス ${state.wrong[item.id] || 0}回 / 連続正解 ${state.streak[item.id] || 0}/2${rating}</span></div><p>${escapeHtml(item.question)}</p>${comment}</article>`;
+        }).join("")
       : `<div class="empty-state">まだ弱点はありません。まず10問特訓で診断しましょう。</div>`;
   }
 
@@ -341,29 +511,33 @@
     });
     $("#next-question").addEventListener("click", nextQuestion);
     $("#quit-quiz").addEventListener("click", () => {
-      if (!session?.answers.length || window.confirm("このセッションを終了してホームへ戻りますか？")) {
-        window.speechSynthesis?.cancel();
-        session = null;
-        showView("home");
-      }
+      if (!session) return showView("home");
+      persistActiveSession();
+      window.speechSynthesis?.cancel();
+      stopTimer();
+      session = null;
+      showView("home");
+      toast("途中位置を保存しました");
     });
     $("#sound-toggle").addEventListener("click", () => {
       state.sound = !state.sound;
       $("#sound-toggle").setAttribute("aria-pressed", String(state.sound));
       saveState();
       toast(state.sound ? "自動読み上げをONにしました" : "自動読み上げをOFFにしました");
-      if (state.sound && session) speakQuestion(session.questions[session.index]);
+      if (state.sound && session) speakQuestion(currentQuestion());
       else window.speechSynthesis?.cancel();
     });
     $("#reset-progress").addEventListener("click", () => {
-      if (!window.confirm("正答率・弱点・学習回数をすべて消しますか？")) return;
-      state = { ...defaultState };
+      if (!window.confirm("正答率・弱点・コメント・途中位置をすべて消しますか？")) return;
+      state = { ...defaultState, attempts: {}, correct: {}, wrong: {}, streak: {}, comments: {}, rating: {}, activeSession: null };
+      session = null;
       saveState();
       renderDashboard();
       toast("学習記録をリセットしました");
     });
     document.addEventListener("keydown", (event) => {
       if (!session || !$("#view-quiz").classList.contains("active")) return;
+      if (event.target?.matches?.("textarea,input")) return;
       if (event.key === "Enter" && session.answered) return nextQuestion();
       const key = event.key.toUpperCase();
       const index = LETTERS.indexOf(key) >= 0
@@ -373,14 +547,25 @@
           : -1;
       if (index >= 0) answerQuestion(index);
     });
+    window.addEventListener("pagehide", () => persistActiveSession());
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") persistActiveSession();
+    });
   }
 
   function init() {
+    ensureQuestionNoteUi();
     bindEvents();
     $("#sound-toggle").setAttribute("aria-pressed", String(state.sound));
     renderDashboard();
     renderMemoryCards();
-    if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+    const restored = restoreActiveSession();
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" })
+        .then((registration) => registration.update())
+        .catch(() => {});
+    }
+    if (!restored) showView("home");
   }
 
   init();
