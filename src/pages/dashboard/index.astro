@@ -16,6 +16,18 @@ const flowSteps = [
   { no:'04', label:'LEARN', title:'反応を戻す', detail:'Evidence / Review', href:'/dashboard/evidence' },
 ];
 
+const designOpportunities = [
+  {
+    status: 'NEW',
+    title: '画像を「ここだけ」直せる',
+    principle: 'CHANGE → LOCK → VERIFY',
+    detail: '全体を作り直さず、変える箇所・保持する箇所・差分確認を分けて修正する。',
+    uses: ['SNS差し替え', '広告A/B', 'Character consistency', 'Storyboard', '教材図解'],
+    command: 'この画像、ここだけ直して',
+    href: '/dashboard/visual-prompt',
+  },
+];
+
 const deepDoors = [
   { group:'EXECUTE', title:'Task Flow', detail:'Project・Task・WAITの詳細', href:'/dashboard/tasks' },
   { group:'SPRINT', title:'72H Flow Build', detail:'既存資産を72時間で現実へ流す', href:'/dashboard/sprint' },
@@ -74,6 +86,25 @@ const deepDoors = [
       </div>
     </section>
 
+    <section class="radar-section" aria-labelledby="radar-title">
+      <div class="section-head">
+        <div><p class="kicker">DESIGN RADAR · NEW CAPABILITY</p><h2 id="radar-title">「今なら、これできる」を使い道へ変える。</h2></div>
+        <p>Driveを正本に、今試す価値があるものだけ最大5件まで表示。</p>
+      </div>
+      <div class="radar-grid">
+        {designOpportunities.map(item => (
+          <a class="radar-card" href={item.href}>
+            <div class="radar-top"><span>{item.status}</span><small>{item.principle}</small></div>
+            <h3>{item.title}</h3>
+            <p>{item.detail}</p>
+            <div class="use-tags" aria-label="使いどころ">{item.uses.map(use => <span>{use}</span>)}</div>
+            <div class="command-row"><small>一言</small><strong>「{item.command}」</strong><b aria-hidden="true">→</b></div>
+          </a>
+        ))}
+      </div>
+      <p class="radar-rule">CAPABILITY → OPPORTUNITY → PROJECT → REAL USE → KEEP / PROMOTE / DROP</p>
+    </section>
+
     <details class="deep-section">
       <summary><span><b>MORE / DEEP WORK</b> 詳細に入りたい時だけ開く</span><em>＋</em></summary>
       <div class="deep-grid">
@@ -104,6 +135,7 @@ const deepDoors = [
   .flow-step{position:relative;min-width:0;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:14px;text-decoration:none;border-right:1px solid #e8e4de}.flow-step:last-child{border-right:0}
   .flow-step .no{color:#b5a58f;font-family:'Cormorant Garamond',serif;font-size:1.25rem}.flow-step small,.flow-step strong,.flow-step em{display:block}.flow-step small{color:#8b5b2c;font-size:.64rem;letter-spacing:.1em;font-weight:800}.flow-step strong{margin-top:2px;font-size:.82rem}.flow-step em{margin-top:2px;color:#7c858e;font-size:.67rem;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.flow-step>b{color:#c5bdb3;font-weight:500}
   .output-section{scroll-margin-top:90px}.output-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:15px}.output-card{min-height:92px;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:14px;border:1px solid #dedbd6;border-radius:14px;background:#fff;text-decoration:none}.output-card>span{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:#fff;background:#20242a;font-weight:900}.output-card.green>span{background:#2b8f65}.output-card.blue>span{background:#507fb6}.output-card strong,.output-card small{display:block}.output-card strong{font-size:.86rem}.output-card small{margin-top:2px;color:#7c858e;font-size:.7rem}.output-card>b{color:#a56c22}
+  .radar-section{margin-top:16px;padding:22px;border:1px solid #d8cdbd;border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(248,244,237,.9))}.radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:15px}.radar-card{display:block;padding:17px;border:1px solid #ddd2c2;border-radius:14px;background:#fff;color:inherit;text-decoration:none}.radar-card:hover{border-color:#b99d77}.radar-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.radar-top>span{padding:4px 7px;border-radius:999px;background:#20242a;color:#fff;font-size:.64rem;font-weight:800;letter-spacing:.08em}.radar-top small{color:#8b5b2c;font-size:.66rem;font-weight:800;letter-spacing:.06em}.radar-card h3{margin-top:12px;font-size:1.05rem}.radar-card>p{margin-top:6px;color:#68717b;font-size:.76rem;line-height:1.65}.use-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}.use-tags span{padding:4px 7px;border:1px solid #e2ddd5;border-radius:999px;background:#faf8f5;color:#6f7881;font-size:.63rem}.command-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-top:13px;padding-top:11px;border-top:1px solid #ece7e0}.command-row small{color:#92999f;font-size:.64rem}.command-row strong{font-size:.76rem}.command-row b{color:#9a641f}.radar-rule{margin:10px 2px 0;color:#8a9199;font-size:.65rem;letter-spacing:.045em}
   .deep-section{margin-top:16px;border:1px solid var(--hairline);border-radius:16px;background:rgba(255,255,255,.52);overflow:hidden}.deep-section>summary{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;cursor:pointer;list-style:none;color:#606a74;font-size:.76rem}.deep-section>summary::-webkit-details-marker{display:none}.deep-section>summary b{margin-right:9px;color:#8b5b2c;font-size:.68rem;letter-spacing:.1em}.deep-section[open]>summary em{transform:rotate(45deg)}.deep-section>summary em{font-size:1rem;font-style:normal}.deep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid #e5e1db}.deep-grid a{position:relative;min-height:108px;padding:14px;border-right:1px solid #e8e4de;border-bottom:1px solid #e8e4de;text-decoration:none}.deep-grid a:nth-child(4n){border-right:0}.deep-grid small,.deep-grid strong,.deep-grid span{display:block}.deep-grid small{color:#8b5b2c;font-size:.62rem;letter-spacing:.09em;font-weight:800}.deep-grid strong{margin-top:7px;font-size:.82rem}.deep-grid span{margin-top:3px;color:#7c858e;font-size:.68rem}.deep-grid a>b{position:absolute;right:13px;top:12px;color:#b79c75;font-weight:500}
   .dash-foot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:1px solid #dedad4;color:#8a9199;font-size:.68rem}
   @media(max-width:900px){.flow-track{grid-template-columns:repeat(2,1fr)}.flow-step:nth-child(2){border-right:0}.output-grid{grid-template-columns:1fr}.deep-grid{grid-template-columns:repeat(2,1fr)}.deep-grid a:nth-child(2n){border-right:0}}
