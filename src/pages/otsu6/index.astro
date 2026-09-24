@@ -14,6 +14,17 @@
     <link rel="icon" href="/otsu6/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/app-icons/masa-os-512.png" />
     <link rel="stylesheet" href="/otsu6/styles.css" />
+    <style>
+      .mission-copy{margin:-.2rem 0 .8rem;color:var(--muted);font-size:.82rem;line-height:1.6}
+      .why-now{margin:-.35rem 0 .9rem;padding:.65rem .75rem;border-radius:.75rem;background:#eef4f8;color:var(--blue);font-size:.73rem;font-weight:800;line-height:1.5}
+      .why-now[hidden]{display:none}
+      .question-note-panel{margin-top:1rem;padding:.9rem;border:1px solid var(--line);border-radius:1rem;background:#fffaf3}
+      .question-note-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.65rem}.question-note-head strong{font-size:.8rem}.question-note-head small{color:var(--muted);font-size:.66rem}
+      .question-rating{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:.55rem}.question-rating button{min-height:2.45rem;padding:.45rem .35rem;border:1px solid var(--line);border-radius:.7rem;background:#fff;color:var(--ink);font-size:.68rem;font-weight:800}.question-rating button.active{border-color:var(--red);background:#fee9e2;color:var(--red-dark)}
+      #question-note{display:block;width:100%;min-height:4.1rem;padding:.65rem .7rem;border:1px solid var(--line);border-radius:.7rem;background:#fff;color:var(--ink);font:inherit;font-size:.78rem;line-height:1.55;resize:vertical}
+      .progress-row{grid-template-columns:minmax(6.7rem,1.2fr) minmax(4rem,1fr) 3rem auto}.risk-chip{justify-self:end;padding:.2rem .38rem;border-radius:99px;font-size:.58rem;font-style:normal;font-weight:900;white-space:nowrap}.risk-chip.high{background:#fee1dc;color:#a52e22}.risk-chip.mid{background:#fff0c9;color:#835800}.risk-chip.low{background:#dcf2e6;color:#176a4a}
+      @media(max-width:520px){.question-rating{grid-template-columns:1fr}.progress-row{grid-template-columns:6.5rem 1fr 2.8rem}.risk-chip{display:none}}
+    </style>
     <title>乙6 合格スプリント</title>
   </head>
   <body>
