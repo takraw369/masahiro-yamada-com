@@ -20,7 +20,7 @@ import '../../styles/masa-readable.css';
 
   function handoffToComposer(detail: ComposeDetail, remaining = 15) {
     const textarea = Array.from(document.querySelectorAll('textarea')).find((node) =>
-      node.getAttribute('placeholder')?.includes('今日の気づき')
+      node.getAttribute('placeholder')?.includes('今日の気づき') && node.getClientRects().length > 0
     ) as HTMLTextAreaElement | undefined;
 
     if (!textarea) {

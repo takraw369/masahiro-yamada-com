@@ -31,7 +31,8 @@ export default function XOperationsCenter() {
           🩺 X Health
         </button>
       </div>
-      {tab === 'publish' ? <XCommandCenter /> : <XHealthPanel />}
+      <div hidden={tab !== 'publish'}><XCommandCenter /></div>
+      {tab === 'health' && <XHealthPanel />}
     </section>
   );
 }

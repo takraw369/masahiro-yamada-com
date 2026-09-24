@@ -83,7 +83,7 @@ export default function XHealthPanel() {
       const json = JSON.parse(rawJson);
       const next = parseXUnderTheHoodReport(json);
       setParsed(next);
-      if (next.reportMonth) setReportMonth(next.reportMonth);
+      setReportMonth(next.reportMonth!);
       setStatus('JSONを解析しました。内容を確認して保存できます。');
     } catch (error) {
       setParsed(null);
@@ -92,7 +92,7 @@ export default function XHealthPanel() {
   };
 
   const handleSave = async () => {
-    if (!parsed || !selectedAccountId || !/^\d{4}-\d{2}$/.test(reportMonth)) {
+    if (!parsed || !selectedAccountId || reportMonth !== parsed.reportMonth) {
       setStatus('アカウント・対象月・解析済みJSONを確認してください。');
       return;
     }
@@ -196,7 +196,7 @@ export default function XHealthPanel() {
       <textarea
         className="xh-json"
         value={rawJson}
-        onChange={(event) => setRawJson(event.target.value)}
+        onChange={(event) => { setRawJson(event.target.value); setParsed(null); setStatus(''); }}
         placeholder={'Under the Hoodから取得したJSONをそのまま貼り付け\n{\n  "period": { "startDate": "2026-08-01", ... },\n  "postCount": "...",\n  "postLabels": [...],\n  "accountLabels": [...]\n}'}
       />
       <div className="xh-actions">

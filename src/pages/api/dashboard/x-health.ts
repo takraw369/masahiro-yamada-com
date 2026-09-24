@@ -4,6 +4,7 @@ import {
   getSiteStorageEnv,
   supabaseRpc,
 } from '../../../lib/siteStorage';
+import { parseXUnderTheHoodReport } from '../../../lib/xHealth';
 
 type StoredRow = {
   account_id: string;
@@ -104,6 +105,18 @@ export const POST = async ({ request, locals }: APIContext) => {
   const rawSize = JSON.stringify(rawReport).length;
   if (labelsSize > 180_000 || rawSize > 450_000) {
     return json({ ok: false, error: 'x_health_report_too_large' }, 413);
+  }
+
+  try {
+    const parsed = parseXUnderTheHoodReport(rawReport);
+    if (
+      parsed.reportMonth !== reportMonth || parsed.postCount !== postCount ||
+      parsed.postLabelCount !== postLabelCount || parsed.accountLabelDays !== accountLabelDays ||
+      parsed.legalRestrictionCount !== legalRestrictionCount ||
+      JSON.stringify(parsed.labels) !== JSON.stringify(labels)
+    ) throw new Error('report_mismatch');
+  } catch {
+    return json({ ok: false, error: 'invalid_x_health_report' }, 400);
   }
 
   try {

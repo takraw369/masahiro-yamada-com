@@ -130,6 +130,16 @@ export function parseXUnderTheHoodReport(input: unknown): ParsedXHealthReport {
   const periodEnd = stringValue(period.endDate) || null;
   const reportMonth = monthFromDate(period.startDate) ?? monthFromDate(period.endDate) ?? monthFromDate(rawReport.generatedAt);
 
+  if (
+    !monthFromDate(period.startDate) ||
+    (periodEnd && monthFromDate(periodEnd) !== reportMonth) ||
+    finiteNumber(rawReport.postCount ?? rawReport.totalPostsInMonth ?? rawReport.totalPosts) === null ||
+    !Array.isArray(rawReport.postLabels) ||
+    !Array.isArray(rawReport.accountLabels)
+  ) {
+    throw new Error('対象月・投稿数・ラベル一覧を含むX公式のレポートJSONを貼り付けてください。');
+  }
+
   const postLabels = Array.isArray(rawReport.postLabels)
     ? rawReport.postLabels.map((row) => normalizeLabelRow(row, 'post')).filter((row): row is XHealthLabelStat => Boolean(row))
     : [];

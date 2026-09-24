@@ -91,7 +91,7 @@ returns boolean
 language plpgsql
 security definer
 set search_path = public, private
-as $$;
+as $$
 begin
   if p_owner_key is null or p_owner_key !~ '^[0-9a-f]{64}$' then raise exception 'invalid_owner_key'; end if;
   if not exists (select 1 from private.masa_dashboard_owner_keys k where k.owner_key = p_owner_key) then raise exception 'invalid_owner_key'; end if;

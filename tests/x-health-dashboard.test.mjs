@@ -78,6 +78,18 @@ test('unwraps reportJson when the GraphQL envelope is pasted', () => {
   assert.equal(parsed.accountLabelDays, 0);
 });
 
+test('rejects empty and incomplete reports instead of treating them as zero-label months', () => {
+  assert.throws(() => parseXUnderTheHoodReport({}), /対象月/);
+  assert.throws(() => parseXUnderTheHoodReport({
+    period: { startDate: '2026-08-01', endDate: '2026-08-31' },
+    postCount: '120',
+  }), /ラベル一覧/);
+  assert.throws(() => parseXUnderTheHoodReport({
+    period: { startDate: '2026-08-01', endDate: '2026-09-01' },
+    postCount: '120', postLabels: [], accountLabels: [],
+  }), /対象月/);
+});
+
 test('GET maps the Supabase X Health read model', async (t) => {
   t.mock.method(globalThis, 'fetch', async (url, init) => {
     assert.ok(String(url).endsWith('/rest/v1/rpc/masa_x_health_reports_get_v1'));
@@ -110,6 +122,13 @@ test('GET maps the Supabase X Health read model', async (t) => {
 });
 
 test('POST validates and persists a normalized monthly report', async (t) => {
+  const rawReport = {
+    period: { startDate: '2026-08-01', endDate: '2026-08-31' },
+    postCount: '120',
+    postLabels: [{ label: 'NSFW_HIGH_RECALL', posts: 2, totalPostsInMonth: 120 }],
+    accountLabels: [],
+  };
+  const normalized = parseXUnderTheHoodReport(rawReport);
   t.mock.method(globalThis, 'fetch', async (url, init) => {
     assert.ok(String(url).endsWith('/rest/v1/rpc/masa_x_health_report_upsert_v1'));
     assert.equal(init?.method, 'POST');
@@ -133,8 +152,8 @@ test('POST validates and persists a normalized monthly report', async (t) => {
         postLabelCount: 2,
         accountLabelDays: 0,
         legalRestrictionCount: 0,
-        labels: [],
-        rawReport: { postCount: '120' },
+        labels: normalized.labels,
+        rawReport,
       }),
     }),
     locals: {},
@@ -168,4 +187,22 @@ test('POST rejects malformed report months before storage', async () => {
   assert.equal(response.status, 400);
   const body = await response.json();
   assert.equal(body.error, 'invalid_x_health_report');
+});
+
+test('POST rejects a fabricated empty report before calling storage', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => { throw new Error('storage should not be called'); });
+  const response = await xHealthApi.POST({
+    request: new Request(`${origin}/api/dashboard/x-health`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accountId: 'acct-1', username: 'masa', reportMonth: '2026-08',
+        postCount: 0, postLabelCount: 0, accountLabelDays: 0,
+        legalRestrictionCount: 0, labels: [], rawReport: {},
+      }),
+    }),
+    locals: {},
+  });
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error, 'invalid_x_health_report');
 });
