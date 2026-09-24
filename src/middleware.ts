@@ -77,21 +77,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const response = await next();
 
-  if ((pathname === '/otsu6' || pathname === '/otsu6/') && response.headers.get('content-type')?.includes('text/html')) {
-    const html = await response.text();
-    const injectedHtml = html.includes('/otsu6-feedback.js')
-      ? html
-      : html.replace('</body>', '  <script src="/otsu6-feedback.js" defer></script>\n</body>');
-    const headers = new Headers(response.headers);
-    headers.delete('content-length');
-    headers.delete('etag');
-    return new Response(injectedHtml, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
-  }
-
   if (isPrivate) {
     for (const [name, value] of Object.entries(privateHeaders())) response.headers.set(name, value);
   }
