@@ -4,76 +4,108 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#c63b2d" />
-    <meta name="description" content="消防設備士乙種6類の試験直前対策。2026年6月更新の公式公開問題を優先し、35問模試・弱点復習に対応。" />
+    <meta name="description" content="消防設備士乙種6類。9月27日の合格に向け、弱点・未出・本番判断を優先する3日間の直前対策。" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="乙6ダッシュ" />
+    <meta name="apple-mobile-web-app-title" content="乙6合格スプリント" />
     <meta name="format-detection" content="telephone=no" />
     <link rel="manifest" href="/otsu6/manifest.webmanifest" />
     <link rel="icon" href="/otsu6/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/app-icons/masa-os-512.png" />
     <link rel="stylesheet" href="/otsu6/styles.css" />
-    <title>乙6 合格ダッシュ</title>
+    <title>乙6 合格スプリント</title>
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
     <header class="topbar">
       <button class="brand" data-view="home" aria-label="ホームへ">
         <span class="brand-mark" aria-hidden="true">6</span>
-        <span><strong>乙6 合格ダッシュ</strong><small>9/27までの直前対策</small></span>
+        <span><strong>乙6 合格スプリント</strong><small>9/27まで、点になる問題だけ</small></span>
       </button>
       <button id="sound-toggle" class="icon-button" type="button" aria-pressed="false" aria-label="問題の自動読み上げを切り替える">🔊</button>
     </header>
+
     <main id="main" tabindex="-1">
       <section id="view-home" class="view active" aria-labelledby="home-title">
         <div class="hero">
-          <div><p class="eyebrow">試験日 2026.09.27</p><h1 id="home-title"><span id="days-left">あと4日</span>。出る順で潰す。</h1><p>2026年6月更新の公式公開問題と、配点50%の構造・機能を先に。間違えた問題は自動で弱点コースへ送ります。</p></div>
+          <div>
+            <p class="eyebrow">PASS SPRINT / 2026.09.27</p>
+            <h1 id="home-title"><span id="days-left">あと3日</span>。穴から潰す。</h1>
+            <p>既習の単純問題は卒業。弱点・未出・本番で迷う二択を優先し、科目の足切りも同時に防ぎます。</p>
+          </div>
           <div class="readiness" aria-label="総合正答率"><span id="readiness-value">--</span><small>総合正答率</small></div>
         </div>
-        <div class="alert-card"><span class="pulse" aria-hidden="true"></span><div><strong>2026年6月更新の公式公開問題を優先</strong><p>講習義務・改正規定・複合用途・第6類地下街・機械基礎・指示圧力計・鑑別部品を優先出題。</p></div></div>
-        <section class="section-block" aria-labelledby="next-title">
-          <div class="section-heading"><div><p class="eyebrow">NEXT ACTION</p><h2 id="next-title">今すぐやる</h2></div><span class="time-chip">約8分</span></div>
-          <button class="primary-action" data-start="latest"><span><small>最優先</small><strong>最新公式・頻出 12問</strong><em>公式2026年6月更新 → 乙6直結論点</em></span><span aria-hidden="true">→</span></button>
+
+        <div id="phase-card" class="alert-card"><span class="pulse" aria-hidden="true"></span><div><strong id="phase-title">得点力強化</strong><p id="phase-copy">今日の回答履歴から、次に落としそうな論点を優先します。</p></div></div>
+
+        <section class="section-block mission-block" aria-labelledby="next-title">
+          <div class="section-heading"><div><p class="eyebrow">NEXT ACTION</p><h2 id="next-title">今やる10問</h2></div><span class="time-chip">約6〜8分</span></div>
+          <p id="mission-copy" class="mission-copy">弱点と未出を解析中…</p>
+          <button class="primary-action" data-start="quick"><span><small>自動最適化</small><strong>合格スプリント10</strong><em>弱点 → 未出 → 本番比率 → 直近重複回避</em></span><span aria-hidden="true">→</span></button>
         </section>
+
         <section class="section-block" aria-labelledby="courses-title">
-          <div class="section-heading"><h2 id="courses-title">コース</h2></div>
+          <div class="section-heading"><h2 id="courses-title">目的別</h2></div>
           <div class="course-grid">
-            <button class="course-card hot" data-start="quick"><span class="course-icon">⚡</span><strong>10問特訓</strong><small>弱点 → 最新 → 頻出</small></button>
-            <button class="course-card" data-start="mock"><span class="course-icon">⏱</span><strong>35問模試</strong><small>本番配点・105分・一括採点</small></button>
-            <button class="course-card" data-start="weak"><span class="course-icon">↻</span><strong>弱点だけ</strong><small id="weak-count-home">まだ0問</small></button>
-            <button class="course-card" data-view="memorize"><span class="course-icon">▤</span><strong>数値暗記</strong><small>直前の取りこぼし防止</small></button>
+            <button class="course-card hot" data-start="weak"><span class="course-icon">↻</span><strong>弱点回収</strong><small id="weak-count-home">弱点を解析</small></button>
+            <button class="course-card" data-start="unseen"><span class="course-icon">◌</span><strong>未出を埋める</strong><small id="unseen-count-home">未出を解析</small></button>
+            <button class="course-card" data-start="mock"><span class="course-icon">⏱</span><strong>35問 本番</strong><small>法令10・基礎5・構造15・鑑別5</small></button>
+            <button class="course-card" data-view="memorize"><span class="course-icon">▤</span><strong>直前カード</strong><small>数字・対比・取りこぼし防止</small></button>
           </div>
         </section>
-        <section class="section-block" aria-labelledby="progress-title"><div class="section-heading"><h2 id="progress-title">科目別の現在地</h2><small>目標 70%以上</small></div><div id="category-progress" class="progress-list"></div></section>
+
+        <section class="section-block" aria-labelledby="progress-title">
+          <div class="section-heading"><h2 id="progress-title">科目別の危険度</h2><small>目標 70%以上 / 足切り監視</small></div>
+          <div id="category-progress" class="progress-list"></div>
+        </section>
       </section>
+
       <section id="view-quiz" class="view quiz-view" aria-live="polite">
-        <div class="quiz-meta"><button id="quit-quiz" class="text-button" type="button">← 終了</button><div><span id="quiz-mode-label">10問特訓</span><strong id="quiz-counter">1 / 10</strong></div><span id="quiz-timer" class="timer"></span></div>
+        <div class="quiz-meta"><button id="quit-quiz" class="text-button" type="button">← 終了</button><div><span id="quiz-mode-label">合格スプリント10</span><strong id="quiz-counter">1 / 10</strong></div><span id="quiz-timer" class="timer"></span></div>
         <div class="quiz-progress"><span id="quiz-progress-bar"></span></div>
         <article class="question-card">
-          <div class="question-tags"><span id="question-category"></span><span id="question-priority"></span></div><h2 id="question-text"></h2><div id="choices" class="choices" role="group" aria-labelledby="question-text"></div>
+          <div class="question-tags"><span id="question-category"></span><span id="question-priority"></span></div>
+          <p id="why-now" class="why-now"></p>
+          <h2 id="question-text"></h2>
+          <div id="choices" class="choices" role="group" aria-labelledby="question-text"></div>
           <div id="feedback" class="feedback" hidden><div id="feedback-verdict" class="feedback-verdict"></div><p id="feedback-explanation"></p><a id="feedback-source" target="_blank" rel="noreferrer">根拠を確認</a></div>
+          <section id="question-note-panel" class="question-note-panel">
+            <div class="question-note-head"><strong>自分の感覚を反映</strong><small id="question-note-status">自動保存</small></div>
+            <div class="question-rating" role="group" aria-label="この問題の定着度">
+              <button type="button" data-rating="weak">🔴 ここ弱い</button>
+              <button type="button" data-rating="review">🟡 別角度でもう1回</button>
+              <button type="button" data-rating="solid">🟢 もう大丈夫</button>
+            </div>
+            <textarea id="question-note" maxlength="300" placeholder="例：数字混同／二択で迷った／これはもう大丈夫"></textarea>
+          </section>
           <button id="next-question" class="next-button" type="button" hidden>次の問題へ</button>
-        </article><p class="keyboard-hint">A〜D / 1〜4で回答・Enterで次へ。模試では途中の正解を表示しません。</p>
+        </article>
+        <p class="keyboard-hint">A〜D / 1〜4で回答・Enterで次へ。本番モードは途中で正解を出しません。</p>
       </section>
+
       <section id="view-results" class="view" aria-labelledby="results-title">
         <div class="results-hero"><p class="eyebrow">SESSION COMPLETE</p><h1 id="results-title">結果</h1><div class="score-ring"><strong id="result-score">0%</strong><small id="result-ratio">0 / 0</small></div><p id="result-message"></p></div>
-        <div id="result-breakdown" class="breakdown"></div><div class="result-actions"><button class="primary-button" data-start="review-session">今回のミスを解き直す</button><button class="secondary-button" data-view="home">ホームへ戻る</button></div>
+        <div id="result-breakdown" class="breakdown"></div>
+        <div class="result-actions"><button class="primary-button" data-start="quick">次の最適10問</button><button class="secondary-button" data-start="review-session">今回のミスだけ</button><button class="secondary-button" data-view="home">ホームへ戻る</button></div>
       </section>
-      <section id="view-weak" class="view" aria-labelledby="weak-title"><p class="eyebrow">WEAK POINTS</p><h1 id="weak-title">弱点リスト</h1><p class="lead">一度間違えた問題は弱点へ。別セッションを含めて2連続正解すると卒業します。</p><div id="weak-list" class="weak-list"></div><button class="primary-button" data-start="weak">弱点だけ解く</button></section>
-      <section id="view-memorize" class="view" aria-labelledby="memorize-title"><p class="eyebrow">LAST-MINUTE MEMORY</p><h1 id="memorize-title">数値・対比カード</h1><p class="lead">カードをタップして答えを表示。試験直前はここだけでも回せます。</p><div id="memory-cards" class="memory-grid"></div></section>
+
+      <section id="view-weak" class="view" aria-labelledby="weak-title"><p class="eyebrow">WEAK POINTS</p><h1 id="weak-title">弱点リスト</h1><p class="lead">間違い・「ここ弱い」・「もう1回」を優先。2連続正解または「もう大丈夫」で卒業します。</p><div id="weak-list" class="weak-list"></div><button class="primary-button" data-start="weak">弱点から10問</button></section>
+
+      <section id="view-memorize" class="view" aria-labelledby="memorize-title"><p class="eyebrow">LAST-MINUTE RECALL</p><h1 id="memorize-title">数字・対比カード</h1><p class="lead">9/27は新しい難問より、数字・法令・類似用語・消火器ごとの差をここで回収。</p><div id="memory-cards" class="memory-grid"></div></section>
+
       <section id="view-info" class="view" aria-labelledby="info-title">
         <p class="eyebrow">EXAM GUIDE</p><h1 id="info-title">本番ルールと根拠</h1>
         <div class="info-card"><h2>合格条件</h2><p>筆記は各科目40%以上かつ全体60%以上。さらに鑑別等も60%以上が必要です。</p><div class="mini-grid"><span><strong>30問</strong>筆記</span><span><strong>5問</strong>鑑別</span><span><strong>105分</strong>免除なし</span></div></div>
-        <div class="info-card"><h2>このアプリの優先順位</h2><ol><li>2026年6月更新の公式公開問題で確認できる乙6直結論点</li><li>出題数が最も多い構造・機能・整備</li><li>実技60%の足切りを防ぐ鑑別</li><li>法令・機械基礎の40%足切り防止</li><li>受験報告は問題文を使わず、補助的なテーマ優先度にだけ利用</li></ol></div>
-        <div class="info-card"><h2>出典</h2><ul class="source-list"><li><a href="https://www.shoubo-shiken.or.jp/shoubou/exercise.html" target="_blank" rel="noreferrer">消防試験研究センター｜過去に出題された問題（2026年6月更新）</a></li><li><a href="https://www.shoubo-shiken.or.jp/shoubou/annai/subject.html" target="_blank" rel="noreferrer">試験科目及び問題数</a></li><li><a href="https://www.shoubo-shiken.or.jp/shoubou/annai/way.html" target="_blank" rel="noreferrer">試験の方法・合格基準</a></li><li><a href="https://www.shoubo-shiken.or.jp/faq/index_shoubou.html" target="_blank" rel="noreferrer">公式FAQ・試験時間</a></li></ul><p class="copyright-note">公式問題の転載ではありません。公開された論点と法令をもとに、個人学習用の独自問題へ再構成しています。</p></div>
+        <div class="info-card"><h2>このアプリの判断順</h2><ol><li>直近で間違えた・自己評価で弱い論点</li><li>まだ一度も触れていない論点</li><li>構造・機能・整備・規格など配点の厚い分野</li><li>法令・基礎の40%足切り防止</li><li>鑑別の60%足切り防止</li><li>既習の単純問題は原則スキップし、別角度へ変換</li></ol></div>
+        <div class="info-card"><h2>出典</h2><ul class="source-list"><li><a href="https://www.shoubo-shiken.or.jp/shoubou/exercise.html" target="_blank" rel="noreferrer">消防試験研究センター｜過去に出題された問題（2026年6月更新）</a></li><li><a href="https://www.shoubo-shiken.or.jp/shoubou/annai/subject.html" target="_blank" rel="noreferrer">試験科目及び問題数</a></li><li><a href="https://www.shoubo-shiken.or.jp/shoubou/annai/way.html" target="_blank" rel="noreferrer">試験の方法・合格基準</a></li><li><a href="https://www.shoubo-shiken.or.jp/faq/index_shoubou.html" target="_blank" rel="noreferrer">公式FAQ</a></li></ul><p class="copyright-note">公式問題の丸写しはせず、公開論点・法令・点検資料から独自問題へ再構成しています。</p></div>
         <button id="reset-progress" class="danger-button" type="button">学習記録をリセット</button>
       </section>
     </main>
-    <nav class="bottom-nav" aria-label="メインナビゲーション"><button data-view="home" class="active"><span>⌂</span>ホーム</button><button data-start="quick"><span>▶</span>問題</button><button data-view="weak"><span>↻</span>弱点</button><button data-view="info"><span>ⓘ</span>試験情報</button></nav>
+
+    <nav class="bottom-nav" aria-label="メインナビゲーション"><button data-view="home" class="active"><span>⌂</span>ホーム</button><button data-start="quick"><span>▶</span>10問</button><button data-view="weak"><span>↻</span>弱点</button><button data-view="info"><span>ⓘ</span>試験情報</button></nav>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script is:inline src="/otsu6/questions.js"></script>
-    <script is:inline src="/otsu6/question-overrides-20260924.js"></script>
     <script is:inline src="/otsu6/app.js"></script>
   </body>
 </html>
