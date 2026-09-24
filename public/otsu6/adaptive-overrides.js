@@ -1,0 +1,140 @@
+/*
+ * 2026-09-24 MASA feedback overrides.
+ * Direct/basic questions already considered mastered are converted into
+ * applied, comparison, and abnormality-judgement variants without changing IDs,
+ * so existing progress data stays intact while the prompt itself advances.
+ */
+(() => {
+  "use strict";
+
+  const replaceQuestion = (id, patch) => {
+    const item = QUESTIONS.find((question) => question.id === id);
+    if (item) Object.assign(item, patch);
+  };
+
+  // 講習の「目的」は卒業。弱点だった点検周期と報告周期を横断させる。
+  replaceQuestion("lc01", {
+    topic: "点検・報告周期",
+    priority: "latest",
+    question: "特定防火対象物について、機器点検の周期と消防用設備等の点検結果報告の周期の組合せとして正しいものはどれか。",
+    choices: [
+      "機器点検1年・報告1年",
+      "機器点検6か月・報告3年",
+      "機器点検6か月・報告1年",
+      "機器点検1年・報告3年"
+    ],
+    answer: 2,
+    explanation: "機器点検は6か月に1回。点検結果の報告は、特定防火対象物では1年に1回です。『点検周期』と『報告周期』を混ぜないのがポイントです。",
+    source: SOURCES.official
+  });
+
+  // 緑色を答えるだけの問題は卒業。別の異常と組み合わせる。
+  replaceQuestion("s01", {
+    topic: "指示圧力計・異常判定",
+    priority: "latest",
+    question: "蓄圧式消火器を点検すると、指示圧力計の針は緑色範囲内だが、安全栓の封印が切れていた。最も適切な判断はどれか。",
+    choices: [
+      "圧力が正常なので、他の状態に関係なく正常とする",
+      "圧力は正常の目安だが、封印異常として点検・確認の対象とする",
+      "安全栓を一度抜いて差し直せば正常とする",
+      "緑色範囲内なら薬剤量も必ず規定量あると判断する"
+    ],
+    answer: 1,
+    explanation: "緑色範囲は容器内圧力が使用圧力範囲にある目安です。ただし、封印切れなど別の異常があれば正常判定にはできません。",
+    source: SOURCES.standard
+  });
+
+  replaceQuestion("s02", {
+    topic: "指示圧力計・容器点検",
+    priority: "latest",
+    question: "蓄圧式消火器の指示圧力計は正常範囲を示しているが、本体容器の底部に著しい腐食が認められた。点検判定として適切なものはどれか。",
+    choices: [
+      "圧力計が正常なら使用可能とする",
+      "腐食部に塗料を塗ればそのまま使用できる",
+      "圧力を少し下げれば正常になる",
+      "容器の腐食異常として不良と判断し、整備・交換等を検討する"
+    ],
+    answer: 3,
+    explanation: "圧力計が正常でも、容器の著しい腐食や変形は別の不良項目です。ゲージだけで全体を正常判定しないことが重要です。",
+    source: SOURCES.standard
+  });
+
+  replaceQuestion("s03", {
+    topic: "指示圧力計・判断範囲",
+    priority: "latest",
+    question: "蓄圧式消火器の指示圧力計の針が緑色範囲内にある。この事実だけからは直接確認できないものはどれか。",
+    choices: [
+      "容器内圧力が使用圧力範囲にある目安",
+      "圧力計の指針位置",
+      "消火薬剤が規定量充填されていること",
+      "圧力が著しく低下していないことの目安"
+    ],
+    answer: 2,
+    explanation: "指示圧力計が直接示すのは圧力状態です。針が緑でも、薬剤量そのものが規定量あることまで直接証明するものではありません。",
+    source: SOURCES.standard
+  });
+
+  // 「ゲージがある＝蓄圧式」単発は卒業。2台比較にする。
+  replaceQuestion("p03", {
+    topic: "方式鑑別・比較",
+    priority: "latest",
+    question: "粉末消火器Aには指示圧力計があり、粉末消火器Bには指示圧力計がなく内部に小型の加圧用ガス容器がある。最も考えやすい方式の組合せはどれか。",
+    choices: [
+      "A：蓄圧式　B：ガス加圧式",
+      "A：ガス加圧式　B：蓄圧式",
+      "A：反応式　B：蓄圧式",
+      "A：手動ポンプ式　B：反応式"
+    ],
+    answer: 0,
+    explanation: "指示圧力計は蓄圧式粉末消火器の強い手掛かりです。内部の独立した加圧用ガス容器を使用時に作動させるものはガス加圧式です。",
+    source: SOURCES.recent
+  });
+
+  // 安全栓の名称当ては卒業。現場の異常判定へ。
+  replaceQuestion("p05", {
+    topic: "安全栓・封印の異常判定",
+    priority: "latest",
+    question: "消火器を点検すると、安全栓は差し込まれているが封印が切れている。外観上、放射したかどうかは断定できない。最初の判断として適切なものはどれか。",
+    choices: [
+      "安全栓があるので正常とする",
+      "圧力計があれば封印は点検しなくてよい",
+      "封印を新しく付けるだけで必ず正常になる",
+      "使用・作動の可能性を含む異常として、状態を確認する"
+    ],
+    answer: 3,
+    explanation: "安全栓が残っていても、封印切れは異常です。『安全栓あり＝正常』と即断せず、使用・作動の可能性を含めて状態確認します。",
+    source: SOURCES.standard
+  });
+
+  // 減圧孔は卒業。直近で優先度の高い圧力調整器の鑑別へ差替え。
+  replaceQuestion("p06", {
+    topic: "整備工具・圧力調整器",
+    priority: "latest",
+    question: "蓄圧式消火器へ窒素ガスを充填する整備作業で、窒素ガス容器の高い圧力を所定の充填圧力まで下げて調整する器具はどれか。",
+    choices: [
+      "ろ過網",
+      "指示圧力計",
+      "圧力調整器",
+      "安全栓"
+    ],
+    answer: 2,
+    explanation: "圧力調整器は、窒素ガス容器側の高圧を消火器へ充填する適切な圧力まで減圧・調整する器具です。名称だけでなく役割まで答えられるようにします。",
+    source: SOURCES.recent
+  });
+
+  // 「まず何を整理するか」だけの問題は卒業。150㎡/300㎡を場面で判定する。
+  replaceQuestion("p11", {
+    topic: "設置基準・用途比較",
+    priority: "latest",
+    question: "用途ごとの消火器具設置基準面積を比較する場面で、飲食店部分180㎡と事務所部分280㎡がある。150㎡群・300㎡群の基本基準からみた説明として適切なものはどれか。",
+    choices: [
+      "飲食店は300㎡基準、事務所は150㎡基準である",
+      "飲食店は150㎡基準を超え、事務所は300㎡基準未満である",
+      "飲食店も事務所も300㎡基準である",
+      "飲食店も事務所も150㎡基準である"
+    ],
+    answer: 1,
+    explanation: "飲食店・店舗等は150㎡以上、事務所等は300㎡以上が基本の設置対象面積です。用途と数字を逆にしないことが重要です。",
+    source: SOURCES.regulation
+  });
+})();
