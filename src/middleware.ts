@@ -82,10 +82,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const injectedHtml = html.includes('/otsu6-feedback.js')
       ? html
       : html.replace('</body>', '  <script src="/otsu6-feedback.js" defer></script>\n</body>');
+    const headers = new Headers(response.headers);
+    headers.delete('content-length');
+    headers.delete('etag');
     return new Response(injectedHtml, {
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers,
     });
   }
 
