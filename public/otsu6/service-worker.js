@@ -1,5 +1,5 @@
-const CACHE = "otsu6-cram-v7";
-const ASSETS = ["./", "./styles.css", "./questions.js", "./question-overrides-20260924.js", "./app.js", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "otsu6-pass-sprint-v9";
+const ASSETS = ["./", "./styles.css", "./questions.js", "./app.js", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -18,13 +18,16 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (event.request.mode === "navigate") {
+  const networkFirst = event.request.mode === "navigate" || /\/otsu6\/(app|questions)\.js$/.test(url.pathname);
+  if (networkFirst) {
     event.respondWith(
-      fetch(event.request).then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE).then((cache) => cache.put("./", copy));
-        return response;
-      }).catch(() => caches.match("./"))
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request.mode === "navigate" ? "./" : event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request.mode === "navigate" ? "./" : event.request))
     );
     return;
   }
