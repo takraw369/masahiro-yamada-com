@@ -1,0 +1,336 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="FLOW TYPE" eyebrow="CREATE · TEXT MOTION">
+  <main class="flow-type-shell">
+    <header class="flow-head">
+      <div>
+        <p class="kicker">FLOW TYPE · JIZURA BRIDGE</p>
+        <h1>言葉を、そのまま文字PVへ。</h1>
+        <p class="intro">X・note・講義メモ・名言を、JIZURA向けの記法に整えて文字PVへ流す。まず文章を入れる。整形してコピー。そのまま右で映像化する。</p>
+      </div>
+      <div class="head-actions">
+        <a class="btn ghost" href="https://852wa.github.io/JIZURA/" target="_blank" rel="noopener noreferrer">JIZURAを別タブで開く ↗</a>
+      </div>
+    </header>
+
+    <section class="workspace" aria-label="FLOW TYPE workspace">
+      <div class="editor-panel">
+        <div class="panel-head">
+          <div><span>01</span><strong>SOURCE</strong></div>
+          <button type="button" class="text-btn" id="sample-btn">サンプル</button>
+        </div>
+
+        <label class="field-label" for="source-text">元の文章</label>
+        <textarea id="source-text" rows="10" placeholder="例：&#10;人間は、省エネの生き物だ。&#10;脳は、なるべく処理に労力をかけない。&#10;だから反応は、自動化されていく。"></textarea>
+
+        <div class="preset-row" aria-label="整形プリセット">
+          <button type="button" class="preset active" data-preset="short">SHORT</button>
+          <button type="button" class="preset" data-preset="hook">HOOK</button>
+          <button type="button" class="preset" data-preset="story">STORY</button>
+          <button type="button" class="preset" data-preset="quote">QUOTE</button>
+        </div>
+
+        <div class="controls-grid">
+          <label>
+            <span>1行の目安</span>
+            <select id="line-length">
+              <option value="12">12字 · 速い</option>
+              <option value="16" selected>16字 · 標準</option>
+              <option value="22">22字 · ゆっくり</option>
+              <option value="30">30字 · 長め</option>
+            </select>
+          </label>
+          <label>
+            <span>1シーン</span>
+            <select id="scene-seconds">
+              <option value="1.6">1.6秒</option>
+              <option value="2.2" selected>2.2秒</option>
+              <option value="3.0">3.0秒</option>
+              <option value="4.0">4.0秒</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <label><input id="emphasize-first" type="checkbox" checked /> 最初の一文を強調</label>
+          <label><input id="impact-last" type="checkbox" /> 最後にフラッシュ演出</label>
+        </div>
+
+        <div class="primary-actions">
+          <button type="button" class="btn primary" id="format-btn">JIZURA記法に整える</button>
+          <button type="button" class="btn" id="format-copy-btn">整えてコピー</button>
+        </div>
+
+        <div class="panel-head output-head">
+          <div><span>02</span><strong>JIZURA SCRIPT</strong></div>
+          <button type="button" class="text-btn" id="copy-btn">コピー</button>
+        </div>
+        <textarea id="jizura-output" rows="10" spellcheck="false" placeholder="ここにJIZURA用の文章が出ます"></textarea>
+
+        <div class="stats" aria-live="polite">
+          <div><span>SCENES</span><strong id="scene-count">0</strong></div>
+          <div><span>CHARS</span><strong id="char-count">0</strong></div>
+          <div><span>EST.</span><strong id="duration-estimate">0:00</strong></div>
+        </div>
+
+        <div class="syntax-guide">
+          <p><code>*強調*</code> は大きく強く、<code>/</code> は1行内のカット、行末 <code>!</code> はフラッシュと揺れ。JIZURA側で音源・BPM・タップ同期・縦動画・MP4書き出しまで調整できる。</p>
+        </div>
+      </div>
+
+      <div class="motion-panel">
+        <div class="panel-head">
+          <div><span>03</span><strong>MOTION ENGINE</strong></div>
+          <a href="https://github.com/852wa/JIZURA" target="_blank" rel="noopener noreferrer">MIT / SOURCE ↗</a>
+        </div>
+        <div class="embed-note">
+          <strong>使い方</strong>
+          <span>左で「整えてコピー」→ 下のJIZURAの「歌詞」欄へ貼り付け →「おまかせで作る」。音源を入れるなら、その後に曲とタイミングを合わせる。</span>
+        </div>
+        <div class="jizura-frame-wrap">
+          <iframe
+            title="JIZURA lyric motion engine"
+            src="https://852wa.github.io/JIZURA/"
+            loading="eager"
+            allow="autoplay; clipboard-read; clipboard-write"
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+        <div class="fallback-row">
+          <p>埋め込みが端末やブラウザで動かない場合は、別タブで開けばそのまま使える。</p>
+          <a class="btn ghost" href="https://852wa.github.io/JIZURA/" target="_blank" rel="noopener noreferrer">別タブで使う ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="why-panel">
+      <div>
+        <p class="kicker">FLOW</p>
+        <h2>発信 → 文字PV → 再利用</h2>
+      </div>
+      <div class="flow-line">
+        <span><b>01</b> X / note / 講義メモ</span><i>→</i>
+        <span><b>02</b> FLOW TYPEで分節</span><i>→</i>
+        <span><b>03</b> JIZURAで映像化</span><i>→</i>
+        <span><b>04</b> Shorts / Reels / X動画</span>
+      </div>
+      <p class="license-note">JIZURA本体はMIT License。ツール自体は改変・商用利用・再配布が可能。生成した動画・画像の権利は作成者側にあり、使用した文章・歌詞・音源の権利はそれぞれの権利者に帰属する。</p>
+    </section>
+  </main>
+</DashboardLayout>
+
+<script is:inline>
+(() => {
+  const STORAGE_KEY = 'masa-flow-type-v1';
+  const source = document.getElementById('source-text');
+  const output = document.getElementById('jizura-output');
+  const lineLength = document.getElementById('line-length');
+  const sceneSeconds = document.getElementById('scene-seconds');
+  const emphasizeFirst = document.getElementById('emphasize-first');
+  const impactLast = document.getElementById('impact-last');
+  const presets = [...document.querySelectorAll('[data-preset]')];
+  const sceneCount = document.getElementById('scene-count');
+  const charCount = document.getElementById('char-count');
+  const durationEstimate = document.getElementById('duration-estimate');
+  let preset = 'short';
+
+  const presetConfig = {
+    short: { max: 16, seconds: 2.2, emphasize: true, impact: false },
+    hook: { max: 12, seconds: 1.6, emphasize: true, impact: true },
+    story: { max: 22, seconds: 3.0, emphasize: false, impact: false },
+    quote: { max: 16, seconds: 3.0, emphasize: true, impact: false },
+  };
+
+  const sample = `人間は、省エネの生き物だ。\n脳は、なるべく処理に労力をかけない。\nだから日々の反応は、自動化されていく。\n問題は、その自動化を誰が設計したか。`;
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        source: source.value,
+        output: output.value,
+        preset,
+        lineLength: lineLength.value,
+        sceneSeconds: sceneSeconds.value,
+        emphasizeFirst: emphasizeFirst.checked,
+        impactLast: impactLast.checked,
+      }));
+    } catch {}
+  }
+
+  function load() {
+    try {
+      const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (typeof state.source === 'string') source.value = state.source;
+      if (typeof state.output === 'string') output.value = state.output;
+      if (state.preset && presetConfig[state.preset]) preset = state.preset;
+      if (state.lineLength) lineLength.value = state.lineLength;
+      if (state.sceneSeconds) sceneSeconds.value = state.sceneSeconds;
+      if (typeof state.emphasizeFirst === 'boolean') emphasizeFirst.checked = state.emphasizeFirst;
+      if (typeof state.impactLast === 'boolean') impactLast.checked = state.impactLast;
+    } catch {}
+    renderPreset();
+    updateStats();
+  }
+
+  function renderPreset() {
+    presets.forEach(btn => btn.classList.toggle('active', btn.dataset.preset === preset));
+  }
+
+  function stripDecoration(text) {
+    return text.replace(/^[-–—・●○■□◆◇▶︎▷\d.\s]+/, '').trim();
+  }
+
+  function splitJapanese(text, max) {
+    const clean = stripDecoration(text.replace(/\s+/g, ' ').trim());
+    if (!clean) return [];
+    if (clean.length <= max) return [clean];
+
+    const sentencePieces = clean.split(/(?<=[。！？!?])/u).filter(Boolean);
+    const result = [];
+
+    sentencePieces.forEach(piece => {
+      let rest = piece.trim();
+      while (rest.length > max) {
+        const search = rest.slice(0, max + 5);
+        const candidates = ['、', '，', ',', '：', ':', '；', ';', '・', ' '];
+        let cut = -1;
+        for (const mark of candidates) {
+          const idx = search.lastIndexOf(mark);
+          if (idx >= Math.floor(max * 0.55)) { cut = idx + 1; break; }
+        }
+        if (cut < 0) cut = max;
+        result.push(rest.slice(0, cut).trim());
+        rest = rest.slice(cut).trim();
+      }
+      if (rest) result.push(rest);
+    });
+
+    return result.filter(Boolean);
+  }
+
+  function buildLines() {
+    const max = Number(lineLength.value) || 16;
+    const rawBlocks = source.value
+      .replace(/\r/g, '')
+      .split(/\n+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const lines = [];
+    rawBlocks.forEach(block => {
+      splitJapanese(block, max).forEach(piece => lines.push(piece));
+    });
+
+    if (!lines.length) return [];
+
+    const formatted = lines.map((line, index) => {
+      let value = line;
+      if (emphasizeFirst.checked && index === 0 && !value.startsWith('*')) value = `*${value}*`;
+      if (impactLast.checked && index === lines.length - 1 && !/[!]$/.test(value)) value = `${value}!`;
+      return value;
+    });
+
+    return formatted;
+  }
+
+  function format() {
+    output.value = buildLines().join('\n');
+    updateStats();
+    save();
+  }
+
+  function updateStats() {
+    const lines = output.value.split(/\n/).map(s => s.trim()).filter(Boolean);
+    const chars = output.value.replace(/[\s*/!|#[\].:0-9]/g, '').length;
+    const seconds = lines.length * (Number(sceneSeconds.value) || 2.2);
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60).toString().padStart(2, '0');
+    sceneCount.textContent = String(lines.length);
+    charCount.textContent = String(chars);
+    durationEstimate.textContent = `${mins}:${secs}`;
+  }
+
+  async function copyText() {
+    if (!output.value.trim()) format();
+    try {
+      await navigator.clipboard.writeText(output.value);
+      flashCopy('コピー済み');
+    } catch {
+      output.focus();
+      output.select();
+      document.execCommand('copy');
+      flashCopy('コピー済み');
+    }
+  }
+
+  function flashCopy(label) {
+    const button = document.getElementById('copy-btn');
+    const original = button.textContent;
+    button.textContent = label;
+    window.setTimeout(() => { button.textContent = original; }, 1200);
+  }
+
+  presets.forEach(btn => {
+    btn.addEventListener('click', () => {
+      preset = btn.dataset.preset;
+      const cfg = presetConfig[preset];
+      lineLength.value = String(cfg.max);
+      sceneSeconds.value = String(cfg.seconds);
+      emphasizeFirst.checked = cfg.emphasize;
+      impactLast.checked = cfg.impact;
+      renderPreset();
+      if (source.value.trim()) format();
+      save();
+    });
+  });
+
+  document.getElementById('sample-btn').addEventListener('click', () => {
+    source.value = sample;
+    format();
+  });
+  document.getElementById('format-btn').addEventListener('click', format);
+  document.getElementById('format-copy-btn').addEventListener('click', async () => { format(); await copyText(); });
+  document.getElementById('copy-btn').addEventListener('click', copyText);
+
+  [source, output, lineLength, sceneSeconds, emphasizeFirst, impactLast].forEach(el => {
+    el.addEventListener('input', () => { updateStats(); save(); });
+    el.addEventListener('change', () => { updateStats(); save(); });
+  });
+
+  load();
+})();
+</script>
+
+<style>
+  .flow-type-shell{max-width:1500px;margin:0 auto;padding-bottom:48px;color:#17191c}
+  .kicker{margin:0;color:#8b5b2c;font-size:.68rem;font-weight:800;letter-spacing:.14em}
+  .flow-head{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:18px}
+  .flow-head h1{margin:.2rem 0 0;font-family:'Cormorant Garamond',serif;font-size:clamp(2.25rem,4.6vw,4.6rem);font-weight:600;line-height:.98;letter-spacing:-.035em;color:#2e3135}
+  .intro{max-width:760px;margin-top:12px;color:#6f7780;font-size:.91rem;line-height:1.8}
+  .head-actions{display:flex;gap:8px;flex-shrink:0}
+  .workspace{display:grid;grid-template-columns:minmax(320px,430px) minmax(0,1fr);gap:14px;align-items:start}
+  .editor-panel,.motion-panel,.why-panel{border:1px solid #ddd8d0;background:#fff;box-shadow:0 12px 40px rgba(50,45,39,.04)}
+  .editor-panel{padding:18px;position:sticky;top:84px}
+  .motion-panel{min-width:0;padding:18px}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
+  .panel-head>div{display:flex;align-items:center;gap:9px}.panel-head span{color:#b39a77;font-family:'Cormorant Garamond',serif;font-size:1.25rem}.panel-head strong{font-size:.68rem;letter-spacing:.12em;color:#656e77}.panel-head>a,.text-btn{border:0;background:transparent;color:#8b5b2c;font-size:.68rem;font-weight:700;text-decoration:none;cursor:pointer;padding:4px 0}.text-btn:hover,.panel-head>a:hover{text-decoration:underline}
+  .field-label{display:block;margin:0 0 6px;color:#7d858e;font-size:.7rem}
+  textarea,select{width:100%;border:1px solid #d8d4cd;background:#fbfaf8;color:#25292e;font:inherit;outline:none}
+  textarea{resize:vertical;min-height:138px;padding:12px;font-size:.84rem;line-height:1.75}
+  textarea:focus,select:focus{border-color:#b58a53;box-shadow:0 0 0 3px rgba(165,108,34,.08)}
+  .preset-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:9px}.preset{min-height:36px;border:1px solid #d8d4cd;background:#fff;color:#7b838c;font-size:.65rem;font-weight:800;letter-spacing:.07em;cursor:pointer}.preset:hover{border-color:#b9b1a5;color:#2e3135}.preset.active{border-color:#b58a53;background:#f5ecdf;color:#754a16}
+  .controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.controls-grid label{display:grid;gap:5px}.controls-grid span{color:#7d858e;font-size:.67rem}.controls-grid select{min-height:38px;padding:0 9px;font-size:.76rem}
+  .toggle-row{display:flex;flex-wrap:wrap;gap:7px 14px;margin:12px 0;color:#6f7780;font-size:.72rem}.toggle-row label{display:flex;align-items:center;gap:6px;cursor:pointer}.toggle-row input{accent-color:#8b5b2c}
+  .primary-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.btn{min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid #cfc8bd;background:#fff;color:#5b646e;font-size:.74rem;font-weight:700;text-decoration:none;cursor:pointer}.btn:hover{border-color:#b58a53;color:#2e3135}.btn.primary{border-color:#7c531f;background:#8b5b2c;color:#fff}.btn.primary:hover{background:#754a16}.btn.ghost{background:#fbfaf8;color:#754a16}
+  .output-head{margin-top:20px}.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:8px;border:1px solid #e2ded7}.stats>div{padding:9px 10px;border-right:1px solid #e2ded7}.stats>div:last-child{border-right:0}.stats span,.stats strong{display:block}.stats span{color:#9aa0a6;font-size:.58rem;letter-spacing:.1em}.stats strong{margin-top:2px;color:#4c535b;font-family:'Cormorant Garamond',serif;font-size:1.2rem}
+  .syntax-guide{margin-top:9px;padding:10px 11px;border-left:2px solid #b58a53;background:#faf7f1}.syntax-guide p{margin:0;color:#777f87;font-size:.68rem;line-height:1.7}.syntax-guide code{color:#754a16;font-weight:700}
+  .embed-note{display:grid;grid-template-columns:auto 1fr;gap:10px;margin-bottom:10px;padding:10px 12px;border:1px solid #e2ded7;background:#fbfaf8}.embed-note strong{color:#754a16;font-size:.72rem}.embed-note span{color:#737b84;font-size:.7rem;line-height:1.65}
+  .jizura-frame-wrap{position:relative;min-height:760px;border:1px solid #ccc6bd;background:#0c0c0e;overflow:hidden}.jizura-frame-wrap iframe{display:block;width:100%;height:920px;border:0;background:#0c0c0e}
+  .fallback-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:10px}.fallback-row p{margin:0;color:#8a9199;font-size:.68rem}.fallback-row .btn{flex-shrink:0}
+  .why-panel{margin-top:14px;padding:20px}.why-panel h2{margin:3px 0 0;font-size:1.05rem}.flow-line{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:center;margin-top:15px}.flow-line span{min-height:58px;display:flex;align-items:center;gap:9px;padding:10px;border:1px solid #e2ded7;background:#fbfaf8;color:#5f6871;font-size:.72rem}.flow-line b{color:#a56c22;font-family:'Cormorant Garamond',serif;font-size:1rem}.flow-line i{color:#b79c75;font-style:normal}.license-note{max-width:980px;margin:14px 0 0;color:#91979e;font-size:.65rem;line-height:1.7}
+  @media(max-width:1100px){.workspace{grid-template-columns:1fr}.editor-panel{position:static}.jizura-frame-wrap{min-height:680px}.jizura-frame-wrap iframe{height:820px}}
+  @media(max-width:700px){.flow-head{align-items:flex-start;flex-direction:column}.head-actions,.head-actions .btn{width:100%}.editor-panel,.motion-panel,.why-panel{padding:14px}.controls-grid,.primary-actions{grid-template-columns:1fr}.preset-row{grid-template-columns:repeat(2,1fr)}.jizura-frame-wrap{min-height:620px;margin:0 -14px;border-left:0;border-right:0}.jizura-frame-wrap iframe{height:760px}.fallback-row{align-items:flex-start;flex-direction:column}.fallback-row .btn{width:100%}.flow-line{grid-template-columns:1fr}.flow-line i{transform:rotate(90deg);justify-self:center}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
