@@ -1,0 +1,61 @@
+name: UI Lab Preview
+
+on:
+  push:
+    branches:
+      - feat/obsidian-ui-lab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ui-lab-preview
+      cancel-in-progress: true
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Select isolated preview configuration
+        run: cp wrangler.ui-lab-preview.toml wrangler.toml
+
+      - name: Build isolated preview artifact
+        run: npx --no-install astro build
+
+      - name: Deploy isolated preview
+        run: npx --no-install wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Verify UI Lab URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          preview_url="https://masahiro-yamada-com-ui-lab-preview.takraw501.workers.dev/ui-lab"
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --location --max-time 20 "${preview_url}" > /tmp/ui-lab.html; then
+              grep -q "ACE METHOD" /tmp/ui-lab.html
+              {
+                echo "### UI Lab Preview"
+                echo "${preview_url}"
+              } >> "${GITHUB_STEP_SUMMARY}"
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
