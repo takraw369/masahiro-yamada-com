@@ -4,7 +4,7 @@ import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
 import SocialAccountPlaybook from '../../components/dashboard/SocialAccountPlaybook';
 import PostDraftShelf from '../../components/dashboard/PostDraftShelf';
 import XProfileLoopBuilder from '../../components/dashboard/XProfileLoopBuilder';
-import XCommandCenter from '../../components/dashboard/XCommandCenter';
+import XOperationsCenter from '../../components/dashboard/XOperationsCenter';
 import '../../styles/masa-readable.css';
 ---
 <DashboardLayout title="X Post">
@@ -12,7 +12,7 @@ import '../../styles/masa-readable.css';
   <XProfileLoopBuilder client:load />
   <PostDraftShelf client:load />
   <CopyOsReference surface="X" />
-  <XCommandCenter client:only="react" />
+  <XOperationsCenter client:only="react" />
 </DashboardLayout>
 
 <script>
@@ -20,7 +20,7 @@ import '../../styles/masa-readable.css';
 
   function handoffToComposer(detail: ComposeDetail, remaining = 15) {
     const textarea = Array.from(document.querySelectorAll('textarea')).find((node) =>
-      node.getAttribute('placeholder')?.includes('今日の気づき')
+      node.getAttribute('placeholder')?.includes('今日の気づき') && node.getClientRects().length > 0
     ) as HTMLTextAreaElement | undefined;
 
     if (!textarea) {
