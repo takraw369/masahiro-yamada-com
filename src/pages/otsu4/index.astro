@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#28648b" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="description" content="消防設備士乙種第4類の学習。共通法令、電気、感知器・受信機、鑑別を弱点に応じて練習。" />
+    <link rel="stylesheet" href="/otsu4/styles.css?v=1" />
+    <title>乙4 学習コース</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ</a>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">4</span><span><strong>乙4 学習コース</strong><small>11月1日まで、弱点から育てる</small></span></div>
+      <a class="course-switch" href="/otsu6/">乙6の記録へ ↗</a>
+    </header>
+    <main id="main">
+      <section id="view-home" class="view active">
+        <div class="hero"><div><p class="eyebrow">OTSU 4 / 2026.11.01</p><h1><span id="days-left">試験まで</span>。穴から学ぶ。</h1><p>乙6の記録は保持。共通法令を確認し、電気・自動火災報知設備・鑑別を新たに学習。</p></div><div class="readiness"><strong id="readiness-value">--</strong></div></div>
+        <section id="resume-card" class="panel resume" hidden><b>途中のセッション</b><p id="resume-copy"></p><div class="resume-actions"><button id="resume-quiz">続きから</button><button id="discard-session">破棄</button></div></section>
+        <section class="panel mission"><div class="mission-head"><p class="eyebrow">NEXT ACTION</p><span id="phase-label" class="phase">土台づくり</span></div><h2>今日の10問</h2><p id="mission-copy"></p><div class="actions"><button class="primary wide" data-start="adaptive">最適な10問</button><button class="secondary" data-start="weak">弱点だけ</button><button class="secondary" data-start="unseen">未出だけ</button></div></section>
+        <section class="section"><h2>科目別の現在地</h2><div id="risk-bars"></div></section>
+        <section class="section"><h2>本番と範囲</h2><div class="mode-grid"><button class="mode-card hot" data-start="mock"><b>35問 本番モード</b><small>法令10・電気5・構造15・記述式鑑別5</small></button><button class="mode-card" data-view="map"><b>全範囲マップ</b><small>未出・弱点を確認</small></button></div></section>
+        <p class="source-note">10月の勉強会：前日に未出を解き、当日の疑問をメモし、帰路と翌日に別角度で復習。公開問題の論点を参考にした独自問題です。鑑別は写真・実物を使う追加練習も行ってください。</p>
+      </section>
+      <section id="view-quiz" class="view"><div class="quiz-meta"><button id="quit-quiz" class="text-button">← 一時中断</button><div><span id="quiz-mode-label"></span><strong id="quiz-counter"></strong></div><span id="quiz-timer" class="timer"></span></div><div class="quiz-progress"><span id="quiz-progress-bar"></span></div><article class="question-card"><div class="question-tags"><span id="question-category"></span><span id="question-priority"></span></div><p id="why-now"></p><h2 id="question-text"></h2><div id="choices" class="choices"></div><div id="write-answer" hidden><label for="written-response">答えを自分の言葉で書く</label><input id="written-response" autocomplete="off" /><button id="submit-written" class="secondary">回答する</button></div><div id="feedback" class="feedback" hidden><div id="feedback-verdict" class="feedback-verdict"></div><p id="feedback-explanation"></p><a id="feedback-source" target="_blank" rel="noopener noreferrer">根拠を見る</a></div><div class="self-feedback"><div class="self-buttons"><button data-self="weak">ここ弱い</button><button data-self="repeat">別角度でもう1回</button><button data-self="mastered">もう大丈夫</button></div><textarea id="question-note" class="note" maxlength="300" placeholder="数字の混同や勉強会で聞きたいこと"></textarea></div><button id="next-question" class="next-button" hidden>次へ</button></article></section>
+      <section id="view-results" class="view"><div class="results-hero"><p class="eyebrow">SESSION COMPLETE</p><div id="result-score" class="score"></div><strong id="result-ratio"></strong><p id="result-message"></p></div><div id="result-breakdown" class="breakdown"></div><div id="written-review"></div><div class="result-actions"><button class="primary" data-start="adaptive">次の10問</button><button class="secondary" data-view="home">ホーム</button></div></section>
+      <section id="view-map" class="view"><p class="eyebrow">COVERAGE</p><h1>全範囲の穴</h1><div id="coverage-list"></div><div class="result-actions"><button class="primary" data-start="unseen">未出10問</button><button class="secondary" data-view="home">ホーム</button></div></section>
+    </main>
+    <nav class="bottom-nav"><button data-view="home">ホーム</button><button data-start="adaptive">10問</button><button data-view="map">範囲</button></nav>
+    <script is:inline src="/otsu4/questions.js?v=1"></script>
+    <script is:inline src="/otsu4/app.js?v=1"></script>
+  </body>
+</html>
