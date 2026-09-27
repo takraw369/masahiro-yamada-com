@@ -93,7 +93,7 @@
 
   function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   function daysLeft() { return Math.max(0, Math.ceil((EXAM_AT - new Date()) / 86400000)); }
-  function phase() { const d = daysLeft(); return d === 0 ? "final" : d <= 2 ? "exam" : "build"; }
+  function phase() { if (new Date() >= new Date("2026-09-28T00:00:00+09:00")) return "build"; const d = daysLeft(); return d === 0 ? "final" : d <= 2 ? "exam" : "build"; }
   function subjectOf(item) { return item.category === "law-common" || item.category === "law-class" ? "law" : item.category; }
   function conceptOf(item) { return item.concept || item.topic || item.id; }
   function isDirectMastered(item) { return DIRECT_MASTERED_PATTERNS.some((pattern) => pattern.test(item.question)); }
@@ -397,10 +397,10 @@
     const weakCount = eligible.filter(isWeak).length, unseenCount = eligible.filter((item) => attempts(item) === 0).length;
     $("#weak-count-home").textContent = weakCount ? `${weakCount}論点を優先` : "弱点なし";
     $("#unseen-count-home").textContent = unseenCount ? `未出 ${unseenCount}問` : "未出なし";
-    const d = daysLeft(); $("#days-left").textContent = d === 0 ? "本番当日" : `あと${d}日`;
+    const d = daysLeft(); $("#days-left").textContent = new Date() >= new Date("2026-09-28T00:00:00+09:00") ? "乙6の記録" : d === 0 ? "本番当日" : `あと${d}日`;
     const p = phase();
-    $("#phase-title").textContent = p === "final" ? "最終確認" : p === "exam" ? "本番モード" : "得点力強化";
-    $("#phase-copy").textContent = p === "final" ? "新しい難問は増やさず、ミス・数字・法令・類似用語・鑑別を短く回収。" : p === "exam" ? "分野名を隠し、本試験と同じ判断テンポへ。全範囲混合を優先。" : "弱点と未出を先に潰し、簡単な既習問題には戻りません。";
+    $("#phase-title").textContent = new Date() >= new Date("2026-09-28T00:00:00+09:00") ? "復習・再挑戦に備える" : p === "final" ? "最終確認" : p === "exam" ? "本番モード" : "得点力強化";
+    $("#phase-copy").textContent = new Date() >= new Date("2026-09-28T00:00:00+09:00") ? "乙6の問題・メモ・学習履歴をそのまま保存。結果が分かったら復習や再挑戦に使えます。" : p === "final" ? "新しい難問は増やさず、ミス・数字・法令・類似用語・鑑別を短く回収。" : p === "exam" ? "分野名を隠し、本試験と同じ判断テンポへ。全範囲混合を優先。" : "弱点と未出を先に潰し、簡単な既習問題には戻りません。";
     const riskOrder = Object.keys(SUBJECTS).sort((a, b) => subjectRisk(b) - subjectRisk(a));
     const worst = riskOrder[0];
     $("#mission-copy").textContent = `弱点 ${weakCount} / 未出 ${unseenCount}。現在の最優先は「${SUBJECTS[worst].label}」。`;
