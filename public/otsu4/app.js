@@ -2,6 +2,7 @@
   "use strict";
   const KEY = "otsu4-study-state-v1";
   const SESSION = "otsu4-study-session-v1";
+  const FEEDBACK_EMAIL = "otsu4-feedback-email-v1";
   const CATEGORIES = {
     "law-common": { label: "共通法令", subject: "law" },
     "law-class": { label: "第4類法令", subject: "law" },
@@ -13,8 +14,8 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
-  const state = read(KEY, { attempts: {}, correct: {}, streak: {}, wrong: {}, notes: {}, ratings: {}, history: [] });
-  for (const field of ["attempts", "correct", "streak", "wrong", "notes", "ratings"]) state[field] ||= {};
+  const state = read(KEY, { attempts: {}, correct: {}, streak: {}, wrong: {}, notes: {}, ratings: {}, feedbackDrafts: {}, history: [] });
+  for (const field of ["attempts", "correct", "streak", "wrong", "notes", "ratings", "feedbackDrafts"]) state[field] ||= {};
   state.history ||= [];
   let session = read(SESSION, null);
   let timer = null;
@@ -157,6 +158,10 @@
     $("#feedback").hidden = true;
     $("#next-question").hidden = !answered;
     $("#question-note").value = state.notes[q.id] || "";
+    $("#improvement-message").value = state.feedbackDrafts[q.id] || "";
+    $("#improvement-email").value = localStorage.getItem(FEEDBACK_EMAIL) || "";
+    $("#improvement-panel").open = Boolean(state.feedbackDrafts[q.id]);
+    $("#improvement-status").textContent = "";
     $$("[data-self]").forEach((button) => button.classList.toggle("active",state.ratings[q.id] === button.dataset.self));
     $$("[data-answer]").forEach((button) => button.addEventListener("click",() => answer(Number(button.dataset.answer))));
     if (answered && session.mode !== "mock") feedback(q,session.answers.find((row) => row.index === session.index));
@@ -166,8 +171,17 @@
     $("#feedback-verdict").textContent = row.correct ? "○ 正解" : `× 正解：${q.category === "practical" ? q.expected : q.choices[q.answer]}`;
     $("#feedback-verdict").className = `feedback-verdict ${row.correct ? "ok" : "ng"}`;
     $("#feedback-explanation").textContent = q.explanation;
+    $("#choice-explanations").innerHTML = choiceExplanations(q, row);
     $("#feedback-source").href = q.source.url;
     $("#feedback-source").textContent = q.source.label;
+  }
+  function choiceExplanations(q, row) {
+    if (!q.choices) return "";
+    return `<h3>各選択肢は何を指す？</h3><ol class="choice-reasons">${q.choices.map((label, index) => {
+      const result = index === q.answer ? "正解" : "違う理由";
+      const selected = row?.choice === index ? "・自分の回答" : "";
+      return `<li class="${index === q.answer ? "right" : ""}"><strong>${"ABCD"[index]}｜${escapeHtml(label)} <small>（${result}${selected}）</small></strong><p>${escapeHtml(q.choiceNotes[index])}</p></li>`;
+    }).join("")}</ol>`;
   }
   function answer(choice, written = "") {
     const q = current(); if (!q || session.answers.some((row) => row.index === session.index)) return;
@@ -204,7 +218,42 @@
     $("#result-message").textContent = session?.mode === "mock" ? (pass ? "基準達成。70%の安定を目指す。" : "基準未達の科目を次の10問で補強。") : "迷った論点は次回、別角度から優先します。";
     $("#result-breakdown").innerHTML = checks.filter((check) => check.rows.length).map((check) => `<div class="breakdown-row ${rate(check.rows) < check.threshold ? "fail" : "pass"}"><span>${SUBJECTS[check.name]}</span><strong>${rate(check.rows)}%</strong></div>`).join("") + (session?.mode === "mock" ? `<div class="breakdown-row ${rate(written)<60 ? "fail" : "pass"}"><span>筆記全体</span><strong>${rate(written)}%（基準60%）</strong></div>` : "");
     $("#written-review").innerHTML = session?.mode === "mock" ? rows.filter((row) => row.subject === "practical").map((row) => { const q = OTSU4_QUESTIONS.find((item) => item.id === row.id); return `<div class="coverage-row"><span><b>${escapeHtml(q.question)}</b><small>自分：${escapeHtml(row.written)} ／ 模範：${escapeHtml(q.expected)}</small></span><strong class="${row.correct ? "" : "weak"}">${row.correct ? "○" : "要確認"}</strong></div>`; }).join("") : "";
+    $("#answer-review").innerHTML = session?.mode === "mock" ? `<h2>全選択肢の振り返り</h2>${rows.filter((row) => row.subject !== "practical").map((row) => {
+      const q = OTSU4_QUESTIONS.find((item) => item.id === row.id);
+      return `<details class="review-question"><summary>${row.correct ? "○" : "×"} ${escapeHtml(q.question)}</summary><p>${escapeHtml(q.explanation)}</p>${choiceExplanations(q, row)}<a href="${escapeHtml(q.source.url)}" target="_blank" rel="noopener noreferrer">根拠を見る</a></details>`;
+    }).join("")}` : "";
     session = null; saveSession(); show("results");
+  }
+  async function submitImprovement(event) {
+    event.preventDefault();
+    const q = current();
+    const message = $("#improvement-message").value.trim();
+    const email = $("#improvement-email").value.trim();
+    const status = $("#improvement-status");
+    if (!q || !message || !email || !$("#improvement-consent").checked) return;
+    const button = $("#improvement-submit");
+    button.disabled = true;
+    status.textContent = "送信中…";
+    // Keep the address after an explicit send attempt, including when the network is unavailable.
+    localStorage.setItem(FEEDBACK_EMAIL, email);
+    try {
+      const selected = session.answers.find((row) => row.index === session.index)?.choice;
+      const context = `[乙4アプリ改善][${q.id}][${CATEGORIES[q.category].label}] ${q.question}`;
+      const body = `${context}\n${selected == null ? "" : `選択: ${"ABCD"[selected]}\n`}コメント: ${message}`;
+      const response = await fetch('/api/contact', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ category: 'technical', name: '乙4アプリ改善', email, message: body, consent: true }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok || !result.id) throw new Error('send_failed');
+      delete state.feedbackDrafts[q.id]; save();
+      if (current()?.id === q.id) {
+        $("#improvement-message").value = "";
+        status.textContent = "送信しました。続けて学習できます。";
+      }
+    } catch {
+      if (current()?.id === q.id) status.textContent = "送信できませんでした。コメントは端末に残っています。ここから再送できます。";
+    } finally { button.disabled = false; }
   }
   function startTimer() {
     clearInterval(timer);
@@ -220,6 +269,13 @@
   $("#resume-quiz").addEventListener("click",() => { show("quiz"); renderQuestion(); startTimer(); });
   $("#discard-session").addEventListener("click",() => { session=null; saveSession(); renderHome(); });
   $("#question-note").addEventListener("input",(event) => { const q=current(); if(q){ state.notes[q.id]=event.target.value; save(); } });
+  $("#jump-improvement").addEventListener("click",() => {
+    $("#improvement-panel").open = true;
+    $("#improvement-panel").scrollIntoView({ behavior: "smooth", block: "center" });
+    $("#improvement-message").focus({ preventScroll: true });
+  });
+  $("#improvement-message").addEventListener("input",(event) => { const q=current(); if(q){ state.feedbackDrafts[q.id]=event.target.value; save(); } });
+  $("#improvement-form").addEventListener("submit",submitImprovement);
   $$("[data-self]").forEach((button) => button.addEventListener("click",() => {
     const q=current(); if (!q) return;
     state.ratings[q.id]=button.dataset.self;
