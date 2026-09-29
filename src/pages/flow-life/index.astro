@@ -4,92 +4,118 @@ import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
 
 <PublicPageLayout
   title="FLOW LIFE"
-  description="今の状態を知り、今日のQuestを選び、気づきを自分のKnowledgeへ変えていくローカルファーストのセルフコーチングMVP。"
-  eyebrow="FLOW CHECK × LIFE RPG × PERSONAL WIKI"
+  description="今の自分をチェックして、Questをクリアし、気づきを集める。毎日育つライフRPG。"
+  eyebrow="CHECK × QUEST × LEVEL UP"
 >
-  <p slot="lead" class="public-lead">毎日の状態を30秒で見える化し、いま必要な一歩だけをQuestに変える。行動と気づきは、使うほど自分専用の取扱説明書として育っていきます。</p>
+  <p slot="lead" class="public-lead">今日の自分を30秒で読む。小さなQuestをクリアする。気づきが、自分だけの攻略本になっていく。</p>
 
-  <section class="public-section hero-grid">
-    <article class="panel state-panel">
-      <p class="kicker">TODAY</p>
-      <h2>いまのFLOWを測る</h2>
-      <div id="check-form" class="check-grid">
-        <label>身体 <span id="body-v">3</span><input id="body" type="range" min="1" max="5" value="3" /></label>
-        <label>エネルギー <span id="energy-v">3</span><input id="energy" type="range" min="1" max="5" value="3" /></label>
-        <label>集中 <span id="focus-v">3</span><input id="focus" type="range" min="1" max="5" value="3" /></label>
-        <label>感情 <span id="emotion-v">3</span><input id="emotion" type="range" min="1" max="5" value="3" /></label>
-        <label>つながり <span id="relation-v">3</span><input id="relation" type="range" min="1" max="5" value="3" /></label>
-        <label>意味・方向性 <span id="purpose-v">3</span><input id="purpose" type="range" min="1" max="5" value="3" /></label>
-      </div>
-      <button id="diagnose-btn" class="public-btn" type="button">今日のFLOWを出す</button>
-    </article>
-
-    <article class="panel result-panel">
-      <p class="kicker">FLOW MODE</p>
-      <div id="mode-badge" class="mode-badge">未チェック</div>
-      <h2 id="mode-title">まず、今の自分を観る。</h2>
-      <p id="mode-copy">良い・悪いではなく、今日はどんな流れにいるのかを確認します。</p>
-      <div class="score-row"><span>FLOW SCORE</span><strong id="flow-score">--</strong></div>
-      <p id="focus-note" class="focus-note">診断すると、今日いちばん整える価値がある領域を1つ出します。</p>
-    </article>
+  <section class="life-status" aria-label="FLOW LIFE status">
+    <div class="level"><span>LV.</span><strong id="level-number">1</strong></div>
+    <div class="xp-block"><div class="xp-label"><span id="xp-label">0 / 100 XP</span><span id="streak-label">🔥 0 DAY</span></div><div class="xp-track"><i id="xp-fill"></i></div></div>
+    <div class="mission-progress"><strong id="mission-progress">0/3</strong><span>QUEST</span></div>
   </section>
 
-  <section class="public-section">
-    <div class="section-head"><div><p class="kicker">QUEST</p><h2>今日の3つ</h2></div><strong id="xp-total">0 XP</strong></div>
+  <section class="flow-hero">
+    <div class="orb-wrap">
+      <div class="orb-ring ring-one"></div><div class="orb-ring ring-two"></div>
+      <div id="flow-orb" class="flow-orb"><span id="orb-emoji">◎</span><strong id="orb-score">--</strong><small>FLOW</small></div>
+    </div>
+    <div class="hero-copy">
+      <span class="daily-label">TODAY'S CHECK</span>
+      <h2 id="hero-title">今日の流れを<br/>見つけよう。</h2>
+      <p id="hero-copy">良い・悪いではなく、今どこにいるかを見つける。チェックすると今日のQuestが3つ出ます。</p>
+      <button id="open-check" class="hero-action" type="button">✨ 30秒でFLOW CHECK</button>
+    </div>
+  </section>
+
+  <section id="check-panel" class="public-section check-panel" hidden>
+    <div class="panel-head"><div><p class="kicker">01 CHECK</p><h2>今の自分を6方向から見る</h2></div><span class="bonus">DAILY +20 XP</span></div>
+    <div id="check-form" class="check-grid">
+      <label><span class="axis-title">🫀 身体</span><strong id="body-v">3</strong><input id="body" type="range" min="1" max="5" value="3" /></label>
+      <label><span class="axis-title">⚡️ エネルギー</span><strong id="energy-v">3</strong><input id="energy" type="range" min="1" max="5" value="3" /></label>
+      <label><span class="axis-title">🎯 集中</span><strong id="focus-v">3</strong><input id="focus" type="range" min="1" max="5" value="3" /></label>
+      <label><span class="axis-title">🌊 感情</span><strong id="emotion-v">3</strong><input id="emotion" type="range" min="1" max="5" value="3" /></label>
+      <label><span class="axis-title">🤝 つながり</span><strong id="relation-v">3</strong><input id="relation" type="range" min="1" max="5" value="3" /></label>
+      <label><span class="axis-title">🧭 方向性</span><strong id="purpose-v">3</strong><input id="purpose" type="range" min="1" max="5" value="3" /></label>
+    </div>
+    <button id="diagnose-btn" class="primary-action" type="button">今日のFLOWを出す</button>
+  </section>
+
+  <section id="mode-panel" class="public-section mode-panel" hidden>
+    <div class="mode-main"><span id="mode-badge" class="mode-badge">FLOW MODE</span><h2 id="mode-title">今の流れ</h2><p id="mode-copy"></p><div id="focus-note" class="focus-note"></div></div>
+    <div class="mode-score"><small>FLOW SCORE</small><strong id="flow-score">--</strong><span>/100</span></div>
+  </section>
+
+  <section class="public-section quest-shell">
+    <div class="section-head"><div><p class="kicker">02 QUEST</p><h2>今日の3つ</h2></div><div class="quest-counter"><strong id="quest-counter">0</strong><span>/ 3 COMPLETE</span></div></div>
     <div id="quest-list" class="quest-grid"></div>
   </section>
 
   <section class="public-section wiki-shell">
-    <div class="section-head"><div><p class="kicker">PERSONAL WIKI</p><h2>気づきを資産にする</h2></div><span id="wiki-count">0 notes</span></div>
+    <div class="section-head"><div><p class="kicker">03 DISCOVERY</p><h2>気づきを攻略本にする</h2></div><span class="bonus">+5 XP</span></div>
     <div class="wiki-compose">
-      <textarea id="wiki-note" maxlength="800" placeholder="今日わかったこと、身体感覚、判断、繰り返したくないこと、うまくいったこと…"></textarea>
-      <div class="wiki-actions"><input id="wiki-tags" maxlength="120" placeholder="タグ：例 仕事, 身体, 家族" /><button id="save-note" class="public-btn" type="button">Knowledgeに追加</button></div>
+      <textarea id="wiki-note" maxlength="800" placeholder="今日わかったこと、身体感覚、判断、うまくいったこと…"></textarea>
+      <div class="wiki-actions"><input id="wiki-tags" maxlength="120" placeholder="タグ：仕事, 身体, 家族…" /><button id="save-note" class="primary-action" type="button">💡 発見を保存</button></div>
     </div>
-    <div class="wiki-tools"><input id="wiki-search" type="search" placeholder="Knowledgeを検索" /><button id="export-btn" type="button">JSONで書き出す</button></div>
+    <div class="wiki-tools"><input id="wiki-search" type="search" placeholder="攻略本を検索" /><button id="export-btn" type="button">JSON</button></div>
     <div id="wiki-list" class="wiki-list"></div>
   </section>
 
-  <section class="public-section flow-map">
-    <p class="kicker">HOW IT GROWS</p>
-    <div class="flow-steps"><span>観る</span><i>→</i><span>選ぶ</span><i>→</i><span>動く</span><i>→</i><span>気づく</span><i>→</i><span>知識化</span></div>
-    <p>このMVPではデータをブラウザ内に保存します。将来は本人が選んだものだけをSupabaseのFLOW / Quest / Knowledge Layerへ同期できる設計に広げます。</p>
+  <section class="public-section growth-shell">
+    <p class="kicker">YOUR LOOP</p>
+    <div class="growth-loop"><span>観る</span><i>→</i><span>Quest</span><i>→</i><span>動く</span><i>→</i><span>発見</span><i>→</i><span>LEVEL UP</span></div>
+    <p>このMVPではデータをブラウザ内に保存。使うほど、自分だけの行動パターンと攻略本が育っていきます。</p>
   </section>
+
+  <div id="reward-burst" class="reward-burst" aria-hidden="true"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </PublicPageLayout>
 
 <style>
-  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.panel{border:1px solid #2e2822;background:#17130f;padding:24px}.kicker{font-size:.62rem;letter-spacing:.18em;color:#8b7355;margin:0 0 5px}.panel h2,.public-section h2{font:300 1.65rem 'Cormorant Garamond',serif;color:#c9a96e;margin:0 0 18px}.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}.check-grid label{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:.78rem;color:#b9aa95}.check-grid label span{color:#c9a96e}.check-grid input{grid-column:1/-1;width:100%;accent-color:#c9a96e}.mode-badge{display:inline-block;border:1px solid rgba(201,169,110,.35);padding:6px 10px;font-size:.66rem;letter-spacing:.14em;color:#c9a96e;margin-bottom:16px}.result-panel>p:not(.kicker){font-size:.82rem;line-height:1.8;color:#968876}.score-row{display:flex;align-items:end;justify-content:space-between;border-top:1px solid #2e2822;border-bottom:1px solid #2e2822;padding:16px 0;margin:18px 0}.score-row span{font-size:.62rem;letter-spacing:.14em;color:#7b6c5b}.score-row strong{font:300 2.6rem 'Cormorant Garamond',serif;color:#d6bd8e}.focus-note{padding:12px;border-left:2px solid #c9a96e;background:rgba(201,169,110,.04)}.section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:16px}.section-head h2{margin-bottom:0}.section-head>strong,.section-head>span{font-size:.75rem;color:#c9a96e}.quest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.quest-card{border:1px solid #2e2822;background:#14110e;padding:18px;display:grid;gap:10px}.quest-card.done{opacity:.58}.quest-card .meta{display:flex;justify-content:space-between;color:#7e705f;font-size:.68rem}.quest-card h3{font-size:.92rem;font-weight:500;margin:0;color:#d8c9ad}.quest-card p{font-size:.77rem;line-height:1.65;color:#918574;margin:0}.quest-card button{border:1px solid #4b3f31;background:transparent;color:#c9a96e;padding:10px;cursor:pointer}.wiki-shell{border:1px solid rgba(201,169,110,.14);padding:24px}.wiki-compose textarea{width:100%;min-height:110px;background:#0f0d0a;border:1px solid #312a23;color:#d7c7aa;padding:13px;font:inherit;resize:vertical}.wiki-actions,.wiki-tools{display:flex;gap:10px;margin-top:10px}.wiki-actions input,.wiki-tools input{flex:1;background:#0f0d0a;border:1px solid #312a23;color:#d7c7aa;padding:0 12px;min-height:42px}.wiki-tools button{border:1px solid #312a23;background:#17130f;color:#9f8f79;padding:0 12px}.wiki-list{display:grid;gap:10px;margin-top:16px}.wiki-card{border-top:1px solid #2c261f;padding:15px 2px 4px}.wiki-card p{font-size:.82rem;line-height:1.75;color:#c4b49c;white-space:pre-wrap}.wiki-card .wiki-meta{display:flex;gap:10px;flex-wrap:wrap;color:#776a5a;font-size:.66rem}.wiki-card button{margin-left:auto;border:0;background:transparent;color:#715f50;cursor:pointer}.flow-map{text-align:center}.flow-steps{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:18px 0}.flow-steps span{border:1px solid #3a3128;padding:8px 12px;color:#c7b79e;font-size:.76rem}.flow-steps i{font-style:normal;color:#665846}.flow-map>p:last-child{max-width:720px;margin:0 auto;color:#7f7262;font-size:.76rem;line-height:1.8}@media(max-width:760px){.hero-grid{grid-template-columns:1fr}.check-grid{grid-template-columns:1fr}.quest-grid{grid-template-columns:1fr}.wiki-actions,.wiki-tools{display:grid}.section-head{align-items:center}}
+  :global(body){background:radial-gradient(circle at 50% -10%,#1f2619 0,#0c0e0a 30%,#080907 100%)}
+  .life-status{position:sticky;top:76px;z-index:15;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin:-26px 0 18px;padding:10px 12px;border-radius:18px;background:rgba(10,13,9,.9);border:1px solid #2a3325;backdrop-filter:blur(8px)}.level{display:flex;align-items:baseline;gap:4px;padding:7px 10px;border-radius:12px;background:#182015;border:1px solid #3c4d35}.level span{font-size:.58rem;color:#718269}.level strong{font:600 1.3rem 'Cormorant Garamond',serif;color:#b8d98c}.xp-label{display:flex;justify-content:space-between;font-size:.58rem;color:#83907a;margin-bottom:4px}.xp-track{height:7px;border-radius:999px;overflow:hidden;background:#1a2017;border:1px solid #2f3929}.xp-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6e9f54,#c5e68f);box-shadow:0 0 12px rgba(176,224,124,.3);transition:width .45s cubic-bezier(.2,.9,.2,1)}.mission-progress{text-align:center;min-width:52px}.mission-progress strong{display:block;color:#cbe5a4}.mission-progress span{font-size:.5rem;letter-spacing:.1em;color:#66715f}
+  .flow-hero{position:relative;overflow:hidden;min-height:430px;border-radius:28px;border:1px solid #2a3525;background:radial-gradient(circle at 26% 50%,rgba(150,194,106,.13),transparent 28%),linear-gradient(145deg,#141a11,#0d100b);display:grid;grid-template-columns:.9fr 1.1fr;align-items:center;padding:34px}.orb-wrap{position:relative;display:grid;place-items:center;min-height:300px}.flow-orb{position:relative;z-index:3;width:180px;height:180px;border-radius:50%;display:grid;place-items:center;align-content:center;background:radial-gradient(circle at 35% 28%,#c7e69a,#6f9c56 42%,#22311d 78%);box-shadow:0 0 45px rgba(138,190,94,.18),inset 0 0 26px rgba(255,255,255,.1);transition:.6s}.flow-orb span{font-size:1.5rem}.flow-orb strong{font:600 3.3rem 'Cormorant Garamond',serif;color:#111a0e;line-height:.9}.flow-orb small{font-size:.54rem;letter-spacing:.18em;color:#26371e}.orb-ring{position:absolute;border:1px solid rgba(170,211,124,.2);border-radius:50%}.ring-one{width:230px;height:230px;animation:spin 20s linear infinite}.ring-two{width:285px;height:285px;border-style:dashed;animation:spin 30s linear reverse infinite}.hero-copy{position:relative;z-index:4}.daily-label{font-size:.62rem;letter-spacing:.18em;color:#7f9b69}.hero-copy h2{font:300 clamp(2.4rem,6vw,4rem) 'Cormorant Garamond',serif;line-height:.95;color:#d8e3c7;margin:10px 0 16px}.hero-copy p{max-width:470px;color:#839079;font-size:.82rem;line-height:1.7}.hero-action,.primary-action{min-height:54px;border-radius:15px;border:1px solid rgba(175,220,128,.4);background:linear-gradient(145deg,#314627,#1f2e19);color:#c9e6a5;font-weight:600;padding:13px 20px;cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,.2);transition:transform .16s}.hero-action:active,.primary-action:active{transform:scale(.98)}
+  .check-panel,.mode-panel,.quest-shell,.wiki-shell,.growth-shell{border:1px solid #283123;border-radius:24px;background:linear-gradient(180deg,#141812,#0f120d);padding:22px}.panel-head,.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:16px}.kicker{font-size:.58rem;letter-spacing:.18em;color:#6f8065;margin:0}.panel-head h2,.section-head h2,.mode-panel h2{font:300 1.8rem 'Cormorant Garamond',serif;color:#c8d9ad;margin:0}.bonus{font-size:.62rem;color:#a7cb7b;border:1px solid rgba(167,203,123,.24);background:rgba(167,203,123,.06);padding:5px 9px;border-radius:999px}.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}.check-grid label{display:grid;grid-template-columns:1fr auto;gap:8px;padding:13px;border-radius:14px;border:1px solid #293225;background:#10130e}.axis-title{font-size:.76rem;color:#aebc9f}.check-grid strong{color:#b9db8c}.check-grid input{grid-column:1/-1;width:100%;accent-color:#93bd6a}.mode-panel{display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px}.mode-badge{display:inline-block;font-size:.58rem;letter-spacing:.16em;color:#a8cc7c;border:1px solid #405137;border-radius:999px;padding:5px 9px}.mode-main p{color:#859179;font-size:.8rem;line-height:1.7}.focus-note{margin-top:12px;padding:11px 13px;border-radius:12px;background:#10160e;border-left:2px solid #93bd6a;color:#9aaa8d;font-size:.76rem}.mode-score{text-align:center}.mode-score small{display:block;font-size:.54rem;color:#687560}.mode-score strong{font:600 3.2rem 'Cormorant Garamond',serif;color:#c7e694}.mode-score span{font-size:.65rem;color:#67745f}.quest-counter{text-align:right}.quest-counter strong{font:600 1.6rem 'Cormorant Garamond',serif;color:#bfe08f}.quest-counter span{font-size:.54rem;color:#68745f}.quest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.quest-card{position:relative;overflow:hidden;display:grid;gap:11px;min-height:210px;padding:17px;border-radius:18px;border:1px solid #293325;background:radial-gradient(circle at top right,rgba(144,188,99,.07),transparent 42%),#11140f}.quest-card.done{border-color:#536b46;background:#151d12}.quest-card.done::after{content:'✓';position:absolute;right:12px;top:8px;font-size:3.8rem;color:rgba(174,221,126,.09);font-weight:700}.quest-meta{display:flex;justify-content:space-between;color:#738069;font-size:.63rem}.quest-card h3{margin:0;color:#d0dcc0;font-size:.92rem}.quest-card p{margin:0;color:#839079;font-size:.74rem;line-height:1.6}.quest-card button{margin-top:auto;min-height:42px;border-radius:12px;border:1px solid #3d5035;background:#182115;color:#b8da8c;cursor:pointer}.quest-card.done button{opacity:.45}.wiki-compose textarea,.wiki-actions input,.wiki-tools input{width:100%;background:#0c0f0b;border:1px solid #293125;color:#d0ddc1;border-radius:12px;padding:12px;font:inherit}.wiki-compose textarea{min-height:110px;resize:vertical}.wiki-actions,.wiki-tools{display:flex;gap:10px;margin-top:10px}.wiki-actions input,.wiki-tools input{flex:1}.wiki-tools button{border:1px solid #2c3527;border-radius:10px;background:#141912;color:#809174;padding:0 12px}.wiki-list{display:grid;gap:9px;margin-top:14px}.wiki-card{position:relative;padding:14px;border-radius:14px;border:1px solid #252d22;background:#10130e}.wiki-card p{white-space:pre-wrap;margin:0 0 9px;color:#bdcbb0;font-size:.8rem;line-height:1.65}.wiki-meta{display:flex;gap:9px;align-items:center;flex-wrap:wrap;color:#68755f;font-size:.62rem}.wiki-card button{margin-left:auto;border:0;background:transparent;color:#68755f}.growth-shell{text-align:center}.growth-loop{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:15px 0}.growth-loop span{border:1px solid #34412e;border-radius:999px;padding:7px 11px;color:#aebe9b;font-size:.72rem}.growth-loop i{font-style:normal;color:#53604c}.growth-shell>p:last-child{max-width:680px;margin:0 auto;color:#71806a;font-size:.72rem}.toast{position:fixed;left:50%;bottom:22px;z-index:60;transform:translate(-50%,18px);opacity:0;pointer-events:none;padding:11px 16px;border-radius:999px;background:#c7e694;color:#172010;font-weight:700;font-size:.78rem;box-shadow:0 12px 34px rgba(0,0,0,.35);transition:.25s}.toast.show{opacity:1;transform:translate(-50%,0)}.reward-burst{position:fixed;inset:0;z-index:55;pointer-events:none;overflow:hidden}.spark{position:absolute;left:50%;top:50%;font-size:1.2rem;animation:sparkOut .8s ease-out forwards}.empty{grid-column:1/-1;text-align:center;padding:30px;border:1px dashed #2f382a;border-radius:16px;color:#6c7864;font-size:.76rem}
+  @keyframes spin{to{transform:rotate(360deg)}}@keyframes sparkOut{to{opacity:0;transform:translate(var(--x),var(--y)) rotate(200deg) scale(.4)}}@media(max-width:760px){.life-status{top:70px;margin-top:-18px}.flow-hero{grid-template-columns:1fr;min-height:580px;text-align:center;padding:24px 17px}.orb-wrap{min-height:280px}.hero-copy p{margin-left:auto;margin-right:auto}.check-grid{grid-template-columns:1fr}.mode-panel{grid-template-columns:1fr}.mode-score{text-align:left}.quest-grid{grid-template-columns:1fr}.wiki-actions,.wiki-tools{display:grid}.check-panel,.mode-panel,.quest-shell,.wiki-shell,.growth-shell{padding:17px;border-radius:20px}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important}}
 </style>
 
 <script is:inline>
   const KEY='flow-life-v1';
-  const defaultState={xp:0,assessment:null,quests:[],notes:[]};
+  const defaultState={xp:0,assessment:null,quests:[],notes:[],streak:0,lastCheckDay:'',history:[]};
   let state={...defaultState};
   try{state={...defaultState,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{}
-  const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
   const ids=['body','energy','focus','emotion','relation','purpose'];
-  const labels={body:'身体',energy:'エネルギー',focus:'集中',emotion:'感情',relation:'つながり',purpose:'意味・方向性'};
-  ids.forEach(id=>{const el=document.getElementById(id);const out=document.getElementById(id+'-v');el.addEventListener('input',()=>out.textContent=el.value)});
+  const labels={body:'身体',energy:'エネルギー',focus:'集中',emotion:'感情',relation:'つながり',purpose:'方向性'};
+  const emoji={RECOVER:'🌙',RESET:'🌿',BUILD:'🔥',FLOW:'⚡️'};
+  const toast=document.getElementById('toast');
+  const dayKey=()=>new Date().toISOString().slice(0,10);
+  const level=()=>Math.floor((state.xp||0)/100)+1;
+  const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));renderStatus()};
+  function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(showToast._t);showToast._t=setTimeout(()=>toast.classList.remove('show'),1600)}
+  function burst(){const box=document.getElementById('reward-burst');box.innerHTML='';for(let i=0;i<14;i++){const s=document.createElement('span');s.className='spark';s.textContent=['✨','✦','⭐️'][i%3];s.style.setProperty('--x',`${(Math.random()-.5)*320}px`);s.style.setProperty('--y',`${(Math.random()-.5)*360}px`);box.appendChild(s)}setTimeout(()=>box.innerHTML='',900)}
+  function addXp(amount,label){state.xp=(state.xp||0)+amount;save();showToast(`+${amount} XP ${label||''}`.trim())}
+  function updateStreak(){const today=dayKey();if(state.lastCheckDay===today)return;const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);state.streak=state.lastCheckDay===yesterday?(state.streak||0)+1:1;state.lastCheckDay=today}
+  function renderStatus(){const inLevel=(state.xp||0)%100,done=(state.quests||[]).filter(q=>q.done).length;document.getElementById('level-number').textContent=level();document.getElementById('xp-label').textContent=`${inLevel} / 100 XP`;document.getElementById('xp-fill').style.width=`${inLevel}%`;document.getElementById('streak-label').textContent=`🔥 ${state.streak||0} DAY`;document.getElementById('mission-progress').textContent=`${done}/3`;document.getElementById('quest-counter').textContent=done}
+  ids.forEach(id=>{const el=document.getElementById(id),out=document.getElementById(id+'-v');el.addEventListener('input',()=>out.textContent=el.value)});
   const questBank={
-    body:[['水を一杯、ゆっくり飲む','身体感覚を確認しながら1杯。','3分',10],['5分だけ歩く','速度ではなく呼吸と足裏を観察。','5分',15]],
-    energy:[['10分だけ休む','画面を閉じ、何もしない時間をつくる。','10分',20],['机の上を1か所だけ整える','環境からエネルギー漏れを減らす。','5分',10]],
-    focus:[['次の1手だけ決める','今日いちばん重要な行動を1つ書く。','3分',15],['15分シングルタスク','通知を切り、1つだけ進める。','15分',25]],
-    emotion:[['感情に名前をつける','正そうとせず、今の感情を3語で書く。','3分',15],['呼吸を5回観察する','変えようとせず、吐く息を最後まで感じる。','2分',10]],
-    relation:[['1人に一言送る','感謝・労い・近況のどれかを伝える。','5分',20],['誰かの話を1つ聴く','結論を急がず、質問を1回する。','10分',25]],
-    purpose:[['今日やらないことを決める','目的から外れるものを1つ減らす。','3分',15],['未来から逆算する','1年後から見て今日必要なことを1つ書く。','5分',20]]
+    body:[['水を一杯、ゆっくり飲む','身体感覚を確認しながら1杯。','3分',10,'💧'],['5分だけ歩く','速度ではなく呼吸と足裏を観察。','5分',15,'🚶']],
+    energy:[['10分だけ休む','画面を閉じ、何もしない時間をつくる。','10分',20,'🔋'],['机の上を1か所だけ整える','環境からエネルギー漏れを減らす。','5分',10,'🧹']],
+    focus:[['次の1手だけ決める','今日いちばん重要な行動を1つ書く。','3分',15,'🎯'],['15分シングルタスク','通知を切り、1つだけ進める。','15分',25,'⚔️']],
+    emotion:[['感情に名前をつける','正そうとせず、今の感情を3語で書く。','3分',15,'🌊'],['呼吸を5回観察する','変えようとせず、吐く息を最後まで感じる。','2分',10,'🫁']],
+    relation:[['1人に一言送る','感謝・労い・近況のどれかを伝える。','5分',20,'💬'],['誰かの話を1つ聴く','結論を急がず、質問を1回する。','10分',25,'👂']],
+    purpose:[['今日やらないことを決める','目的から外れるものを1つ減らす。','3分',15,'🧭'],['未来から逆算する','1年後から見て今日必要なことを1つ書く。','5分',20,'🔭']]
   };
-  const universal=[['外に出て空を見る','視野を広げ、30秒だけ遠くを見る。','2分',10],['今日の良かった1つを書く','小さな前進を記録する。','2分',10],['未完了を1つ閉じる','2〜10分で終わるものを1つだけ完了。','10分',20]];
-  function buildQuests(lowKey){const source=[...(questBank[lowKey]||[]),...universal];return source.slice(0,3).map((q,i)=>({id:Date.now()+'-'+i,title:q[0],desc:q[1],time:q[2],xp:q[3],done:false,axis:lowKey}))}
-  function diagnose(){const scores=Object.fromEntries(ids.map(id=>[id,Number(document.getElementById(id).value)]));const avg=ids.reduce((a,id)=>a+scores[id],0)/ids.length;const lowKey=ids.slice().sort((a,b)=>scores[a]-scores[b])[0];let mode,title,copy;if(avg<2.2){mode='RECOVER';title='今日は、回復を最優先。';copy='足すより減らす。まず回復できる余白をつくる日。'}else if(avg<3.1){mode='RESET';title='流れを整える日。';copy='全部を変えず、詰まりを1つだけほどく。'}else if(avg<4.1){mode='BUILD';title='積み上げられる状態。';copy='小さな行動を完了させるほどFLOWが太くなる。'}else{mode='FLOW';title='流れに乗れている。';copy='今ある勢いを、意味のある方向へ使う。'}
-    state.assessment={at:new Date().toISOString(),scores,avg,mode,lowKey};state.quests=buildQuests(lowKey);save();render();
-    document.getElementById('mode-badge').textContent=mode;document.getElementById('mode-title').textContent=title;document.getElementById('mode-copy').textContent=copy;document.getElementById('flow-score').textContent=Math.round(avg*20);document.getElementById('focus-note').textContent=`今日の焦点：${labels[lowKey]}。ここを1段整えるQuestから始める。`;
-  }
+  const universal=[['外に出て空を見る','視野を広げ、30秒だけ遠くを見る。','2分',10,'🌤️'],['今日の良かった1つを書く','小さな前進を記録する。','2分',10,'✨'],['未完了を1つ閉じる','2〜10分で終わるものを1つだけ完了。','10分',20,'✅']];
+  function buildQuests(lowKey){const source=[...(questBank[lowKey]||[]),...universal];return source.slice(0,3).map((q,i)=>({id:Date.now()+'-'+i,title:q[0],desc:q[1],time:q[2],xp:q[3],icon:q[4],done:false,axis:lowKey}))}
+  function restoreAssessment(){if(!state.assessment)return;const a=state.assessment;document.getElementById('mode-panel').hidden=false;document.getElementById('mode-badge').textContent=a.mode;document.getElementById('mode-title').textContent=a.title||'今の流れ';document.getElementById('mode-copy').textContent=a.copy||'';document.getElementById('flow-score').textContent=Math.round(a.avg*20);document.getElementById('focus-note').textContent=`今日の焦点：${labels[a.lowKey]||'FLOW'}。ここを1段整えるQuestから始める。`;document.getElementById('orb-score').textContent=Math.round(a.avg*20);document.getElementById('orb-emoji').textContent=emoji[a.mode]||'◎';document.getElementById('hero-title').innerHTML=`${a.mode} MODE`;document.getElementById('hero-copy').textContent=a.copy||''}
+  function diagnose(){const firstToday=state.lastCheckDay!==dayKey();const scores=Object.fromEntries(ids.map(id=>[id,Number(document.getElementById(id).value)]));const avg=ids.reduce((a,id)=>a+scores[id],0)/ids.length;const lowKey=ids.slice().sort((a,b)=>scores[a]-scores[b])[0];let mode,title,copy;if(avg<2.2){mode='RECOVER';title='今日は、回復を最優先。';copy='足すより減らす。まず回復できる余白をつくる日。'}else if(avg<3.1){mode='RESET';title='流れを整える日。';copy='全部を変えず、詰まりを1つだけほどく。'}else if(avg<4.1){mode='BUILD';title='積み上げられる状態。';copy='小さな行動を完了させるほどFLOWが太くなる。'}else{mode='FLOW';title='流れに乗れている。';copy='今ある勢いを、意味のある方向へ使う。'}state.assessment={at:new Date().toISOString(),scores,avg,mode,lowKey,title,copy};state.quests=buildQuests(lowKey);state.history=[...(state.history||[]),state.assessment].slice(-30);updateStreak();save();if(firstToday)addXp(20,'DAILY CHECK');document.getElementById('mode-panel').hidden=false;restoreAssessment();renderQuests();burst();document.getElementById('mode-panel').scrollIntoView({behavior:'smooth',block:'center'})}
+  document.getElementById('open-check').addEventListener('click',()=>{const p=document.getElementById('check-panel');p.hidden=false;p.scrollIntoView({behavior:'smooth',block:'start'})});
   document.getElementById('diagnose-btn').addEventListener('click',diagnose);
-  function render(){document.getElementById('xp-total').textContent=`${state.xp||0} XP`;const q=document.getElementById('quest-list');q.innerHTML=(state.quests||[]).length?state.quests.map((x,i)=>`<article class="quest-card ${x.done?'done':''}"><div class="meta"><span>${labels[x.axis]||'FLOW'}</span><span>+${x.xp} XP</span></div><h3>${x.title}</h3><p>${x.desc}</p><div class="meta"><span>${x.time}</span><span>${x.done?'COMPLETE':'READY'}</span></div><button data-q="${i}" ${x.done?'disabled':''}>${x.done?'完了済み':'Quest完了'}</button></article>`).join(''):'<p class="empty">FLOW診断すると、今日のQuestが3つ出ます。</p>';q.querySelectorAll('[data-q]').forEach(btn=>btn.addEventListener('click',()=>{const x=state.quests[Number(btn.dataset.q)];if(!x.done){x.done=true;state.xp=(state.xp||0)+x.xp;save();render()}}));renderNotes()}
-  function renderNotes(){const term=(document.getElementById('wiki-search')?.value||'').toLowerCase();const notes=(state.notes||[]).filter(n=>(n.text+' '+n.tags.join(' ')).toLowerCase().includes(term));document.getElementById('wiki-count').textContent=`${state.notes.length} notes`;const box=document.getElementById('wiki-list');box.innerHTML=notes.length?notes.map(n=>`<article class="wiki-card"><p>${escapeHtml(n.text)}</p><div class="wiki-meta"><span>${new Date(n.at).toLocaleString('ja-JP')}</span>${n.tags.map(t=>`<span>#${escapeHtml(t)}</span>`).join('')}<button data-del="${n.id}">削除</button></div></article>`).join(''):'<p class="empty">まだKnowledgeはありません。</p>';box.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{state.notes=state.notes.filter(n=>n.id!==b.dataset.del);save();renderNotes()}))}
-  function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  document.getElementById('save-note').addEventListener('click',()=>{const t=document.getElementById('wiki-note');const g=document.getElementById('wiki-tags');const text=t.value.trim();if(!text)return;state.notes.unshift({id:crypto.randomUUID(),at:new Date().toISOString(),text,tags:g.value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,8)});state.xp=(state.xp||0)+5;t.value='';g.value='';save();render()});
-  document.getElementById('wiki-search').addEventListener('input',renderNotes);
-  document.getElementById('export-btn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`flow-life-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
-  if(state.assessment){const a=state.assessment;ids.forEach(id=>{document.getElementById(id).value=a.scores[id];document.getElementById(id+'-v').textContent=a.scores[id]});document.getElementById('mode-badge').textContent=a.mode;document.getElementById('flow-score').textContent=Math.round(a.avg*20);document.getElementById('focus-note').textContent=`前回の焦点：${labels[a.lowKey]}。必要なら今日の状態で測り直す。`}
-  render();
+  function renderQuests(){const q=document.getElementById('quest-list');if(!(state.quests||[]).length){q.innerHTML='<p class="empty">FLOW CHECKすると、今日のQuestが3つ出ます。</p>';renderStatus();return}q.innerHTML=state.quests.map((x,i)=>`<article class="quest-card ${x.done?'done':''}"><div class="quest-meta"><span>${x.icon||'◉'} ${labels[x.axis]||'FLOW'}</span><span>+${x.xp} XP</span></div><h3>${x.title}</h3><p>${x.desc}</p><div class="quest-meta"><span>⏱ ${x.time}</span><span>${x.done?'COMPLETE':'READY'}</span></div><button data-q="${i}" ${x.done?'disabled':''}>${x.done?'✓ クリア済み':'Questクリア'}</button></article>`).join('');q.querySelectorAll('[data-q]').forEach(btn=>btn.addEventListener('click',()=>{const x=state.quests[Number(btn.dataset.q)];if(!x.done){x.done=true;addXp(x.xp,'QUEST CLEAR');save();renderQuests();burst()}}));renderStatus()}
+  function renderNotes(filter=''){const list=document.getElementById('wiki-list');const notes=(state.notes||[]).filter(n=>!filter||`${n.text} ${(n.tags||[]).join(' ')}`.toLowerCase().includes(filter.toLowerCase()));document.getElementById('wiki-count')?.remove();list.innerHTML=notes.length?notes.slice().reverse().map(n=>`<article class="wiki-card"><p>${escapeHtml(n.text)}</p><div class="wiki-meta"><span>${new Date(n.at).toLocaleDateString('ja-JP')}</span>${(n.tags||[]).map(t=>`<span>#${escapeHtml(t)}</span>`).join('')}<button data-del="${n.id}" type="button">削除</button></div></article>`).join(''):'<p class="empty">発見を保存すると、ここに自分の攻略本が育ちます。</p>';list.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{state.notes=state.notes.filter(n=>n.id!==b.dataset.del);save();renderNotes(document.getElementById('wiki-search').value)}))}
+  function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+  document.getElementById('save-note').addEventListener('click',()=>{const note=document.getElementById('wiki-note'),tags=document.getElementById('wiki-tags');if(!note.value.trim())return;state.notes.push({id:crypto.randomUUID?.()||String(Date.now()),at:new Date().toISOString(),text:note.value.trim(),tags:tags.value.split(',').map(x=>x.trim()).filter(Boolean)});note.value='';tags.value='';addXp(5,'DISCOVERY');save();renderNotes();burst()});
+  document.getElementById('wiki-search').addEventListener('input',e=>renderNotes(e.target.value));
+  document.getElementById('export-btn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='flow-life.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
+  renderStatus();restoreAssessment();renderQuests();renderNotes();
 </script>
