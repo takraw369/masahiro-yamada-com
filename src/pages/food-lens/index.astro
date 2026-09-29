@@ -4,100 +4,136 @@ import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
 
 <PublicPageLayout
   title="Food Lens"
-  description="成分表示を写真・スクショから読み取り、原材料の役割と身体で見るポイントを整理する試作アプリ。"
-  eyebrow="SCAN × UNDERSTAND × FEEDBACK"
+  description="成分表示を撮って、発見して、集める。商品理解をゲームのように楽しむFood Lens。"
+  eyebrow="SCAN × DISCOVER × COLLECT"
 >
-  <p slot="lead" class="public-lead">裏面表示を撮る・スクショを選ぶ・文字を貼る。原材料を“怖い/安全”の二択にせず、何のために入っているか、どんな人が何を見ればよいかを分解します。</p>
+  <p slot="lead" class="public-lead">裏面を1枚撮るたび、食べものの見え方が1つ増える。撮る → 発見する → 集める → 自分に合う選び方が育つ。</p>
 
-  <section class="public-section scanner-shell">
-    <div class="scanner-grid">
-      <article class="panel">
-        <p class="kicker">01 SCAN</p>
-        <h2>成分表示を読み取る</h2>
-        <label class="upload-box">
-          <input id="image-input" type="file" accept="image/*" capture="environment" />
-          <span>📷 写真・スクショを選ぶ</span>
-          <small>iPhoneならカメラ起動もできます</small>
-        </label>
-        <div id="preview-wrap" class="preview-wrap" hidden><img id="preview" alt="成分表示プレビュー" /></div>
-        <button id="ocr-btn" class="public-btn" type="button" disabled>画像から文字を読む</button>
-        <p id="ocr-status" class="status">画像を選ぶとOCRできます。読み取り後の文字は自由に修正できます。</p>
-      </article>
+  <section class="app-topbar" aria-label="Food Lens status">
+    <div class="level-chip"><span>LV.</span><strong id="level-number">1</strong></div>
+    <div class="xp-wrap"><div class="xp-copy"><span id="xp-copy">0 / 100 XP</span><span id="streak-copy">🔥 0 DAY</span></div><div class="xp-track"><i id="xp-fill"></i></div></div>
+    <button id="collection-jump" class="icon-btn" type="button" aria-label="コレクションへ">🎒</button>
+  </section>
 
-      <article class="panel">
-        <p class="kicker">02 TEXT</p>
-        <h2>原材料・栄養表示</h2>
-        <input id="product-name" class="text-input" maxlength="240" placeholder="商品名（任意）" />
-        <textarea id="ingredient-text" maxlength="6000" placeholder="例：原材料名：砂糖、植物油脂、乳化剤…\n\n画像を使わず、ここへ直接貼り付けてもOK"></textarea>
-        <button id="analyze-btn" class="public-btn" type="button">成分を見る</button>
-      </article>
+  <section class="scan-hero">
+    <div class="scan-glow"></div>
+    <div class="scan-orbit orbit-a"></div><div class="scan-orbit orbit-b"></div>
+    <div class="scan-copy">
+      <span class="eyebrow-mini">TODAY'S MISSION</span>
+      <h2>裏面を、<em>1枚</em>撮ってみよう。</h2>
+      <p>知らなかった成分を見つけるとXP。新しいカテゴリならコレクションが増える。</p>
+    </div>
+    <label class="camera-cta">
+      <input id="image-input" type="file" accept="image/*" capture="environment" />
+      <span class="camera-icon">📸</span>
+      <span class="camera-main">成分表示を撮る</span>
+      <span class="camera-sub">カメラ / スクショ</span>
+    </label>
+    <button id="paste-toggle" class="ghost-btn" type="button">文字を貼って調べる</button>
+  </section>
+
+  <section id="scan-workspace" class="public-section workspace" hidden>
+    <div class="workspace-head"><div><span class="step-dot">1</span><div><p class="kicker">SCAN READY</p><h2>この画像を読み取る</h2></div></div><span id="image-bonus" class="bonus-chip">+10 XP</span></div>
+    <div class="scan-grid">
+      <div id="preview-wrap" class="preview-wrap"><img id="preview" alt="成分表示プレビュー" /><div class="scanner-line"></div></div>
+      <div class="scan-actions">
+        <input id="product-name" class="text-input" maxlength="240" placeholder="商品名（あとでもOK）" />
+        <button id="ocr-btn" class="primary-action" type="button">✨ 画像から発見する</button>
+        <p id="ocr-status" class="status">押した時だけOCRを読み込むので、普段は軽く動きます。</p>
+      </div>
     </div>
   </section>
 
-  <section id="result-section" class="public-section" hidden>
-    <div class="section-head"><div><p class="kicker">03 UNDERSTAND</p><h2>見るポイント</h2></div><span id="match-count"></span></div>
+  <section id="text-panel" class="public-section text-panel" hidden>
+    <div class="workspace-head"><div><span class="step-dot">2</span><div><p class="kicker">TEXT</p><h2>読み取った文字</h2></div></div></div>
+    <textarea id="ingredient-text" maxlength="6000" placeholder="原材料名：砂糖、植物油脂、乳化剤…"></textarea>
+    <button id="analyze-btn" class="primary-action" type="button">🔍 成分を探索する</button>
+  </section>
+
+  <section id="result-section" class="public-section result-zone" hidden>
+    <div class="reward-burst" id="reward-burst" aria-hidden="true"></div>
+    <div class="result-head"><div><p class="kicker">DISCOVERY</p><h2>発見したもの</h2></div><div class="discovery-count"><strong id="match-count">0</strong><span>DISCOVERIES</span></div></div>
     <div id="summary-card" class="summary-card"></div>
     <div id="ingredient-cards" class="ingredient-cards"></div>
-    <div class="notice">これは医療診断や「安全/危険」の断定ではありません。原材料名だけでは摂取量・頻度・商品全体の栄養バランスまでは判断できないため、気になる成分を掘るための入口として使います。</div>
+    <button id="scan-again" class="scan-again" type="button">📸 もう1つ撮ってXPをためる</button>
+    <div class="notice">これは医療診断や「安全/危険」の断定ではありません。量・頻度・商品全体・個人差を分けて見ます。</div>
+  </section>
+
+  <section id="collection-section" class="public-section collection-shell">
+    <div class="collection-head"><div><p class="kicker">MY COLLECTION</p><h2>見つけた成分図鑑</h2></div><span id="collection-count">0 discovered</span></div>
+    <div id="collection-grid" class="collection-grid"></div>
   </section>
 
   <section class="public-section feedback-shell">
-    <p class="kicker">04 FEEDBACK</p>
-    <h2>実際に食べた人の声を残す</h2>
-    <p class="feedback-lead">「成分表の理論」と「実際の体感」を分けて蓄積します。個人差があるので、体感は体感として扱います。</p>
+    <div class="feedback-title"><div><p class="kicker">FIELD NOTE</p><h2>食べた後の体感も記録</h2></div><span class="bonus-chip">+5 XP</span></div>
+    <p class="feedback-lead">理論と体感を分けて蓄積。未来の自分が商品を選ぶヒントになります。</p>
     <form id="feedback-form">
       <div class="rating-row">
-        <label>総合印象<select id="sentiment"><option value="5">5 とても良い</option><option value="4">4 良い</option><option value="3" selected>3 普通</option><option value="2">2 あまり合わない</option><option value="1">1 合わない</option></select></label>
-        <label>また買う？<select id="buy-again"><option value="">未回答</option><option value="yes">はい</option><option value="no">いいえ</option></select></label>
+        <label>総合印象<select id="sentiment"><option value="5">😍 5 とても良い</option><option value="4">😊 4 良い</option><option value="3" selected>🙂 3 普通</option><option value="2">😕 2 あまり合わない</option><option value="1">😣 1 合わない</option></select></label>
+        <label>また買う？<select id="buy-again"><option value="">未回答</option><option value="yes">👍 はい</option><option value="no">👎 いいえ</option></select></label>
       </div>
-      <label>身体の体感 <small>任意</small><textarea id="body-note" maxlength="500" placeholder="例：食後の満足感、眠気、胃の重さ、運動時の感覚など。診断名や個人情報は書かなくてOK。"></textarea></label>
-      <label>口コミ・コメント <small>任意</small><textarea id="comment" maxlength="1200" placeholder="味、価格、使いやすさ、リピート理由など"></textarea></label>
+      <label>身体の体感 <small>任意</small><textarea id="body-note" maxlength="500" placeholder="満足感、眠気、胃の重さ、運動時の感覚など"></textarea></label>
+      <label>口コミ・コメント <small>任意</small><textarea id="comment" maxlength="1200" placeholder="味、価格、リピート理由など"></textarea></label>
       <label class="consent"><input id="share-public" type="checkbox" /><span>承認後、匿名の公開口コミとして使ってよい</span></label>
       <div class="hp" aria-hidden="true"><input id="website" type="text" tabindex="-1" autocomplete="off" /></div>
-      <button class="public-btn" id="feedback-btn" type="submit">フィードバックを送る</button>
+      <button class="primary-action" id="feedback-btn" type="submit">記録して +5 XP</button>
       <p id="feedback-status" class="status"></p>
     </form>
   </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </PublicPageLayout>
 
 <style>
-  .scanner-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{border:1px solid #2e2822;background:#17130f;padding:22px}.kicker{font-size:.62rem;letter-spacing:.17em;color:#8b7355;margin:0 0 4px}.panel h2,.public-section h2{font:300 1.65rem 'Cormorant Garamond',serif;color:#c9a96e;margin:0 0 16px}.upload-box{display:grid;place-items:center;text-align:center;min-height:150px;border:1px dashed #584a39;background:#110f0c;cursor:pointer;padding:20px}.upload-box input{position:absolute;opacity:0;pointer-events:none}.upload-box span{color:#d3c2a4}.upload-box small{color:#766a5b;margin-top:7px}.preview-wrap{margin:12px 0;border:1px solid #2e2822;max-height:300px;overflow:hidden}.preview-wrap img{display:block;width:100%;max-height:300px;object-fit:contain;background:#0d0b09}.text-input,.panel textarea,.feedback-shell textarea,.feedback-shell select{width:100%;background:#0f0d0a;border:1px solid #312a23;color:#d7c7aa;padding:12px;font:inherit}.panel textarea{min-height:250px;margin:10px 0;resize:vertical}.status{font-size:.72rem;color:#8d806f;line-height:1.6;margin:10px 0 0}.section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:14px}.section-head h2{margin-bottom:0}.section-head span{font-size:.72rem;color:#c9a96e}.summary-card{border:1px solid rgba(201,169,110,.25);background:linear-gradient(135deg,rgba(201,169,110,.07),transparent);padding:18px;margin-bottom:14px}.summary-card strong{color:#d8c196}.summary-card p{font-size:.8rem;line-height:1.75;color:#9b8d7a;margin:6px 0 0}.ingredient-cards{display:grid;gap:10px}.ingredient-card{border:1px solid #2e2822;background:#15120f;padding:17px}.ingredient-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.ingredient-card h3{font-size:.93rem;margin:0;color:#d6c5a7}.tag{font-size:.62rem;border:1px solid #514431;color:#bba47c;padding:4px 7px;white-space:nowrap}.ingredient-card dl{display:grid;grid-template-columns:95px 1fr;gap:8px 12px;margin:13px 0 0}.ingredient-card dt{font-size:.68rem;color:#766957}.ingredient-card dd{font-size:.78rem;line-height:1.65;color:#a99a84;margin:0}.notice{margin-top:14px;border-left:2px solid #7f6b4e;padding:11px 13px;color:#796d5f;font-size:.7rem;line-height:1.7}.feedback-shell{border:1px solid rgba(201,169,110,.14);padding:24px}.feedback-lead{font-size:.8rem;line-height:1.75;color:#8c7f6d}.feedback-shell form{display:grid;gap:13px;margin-top:16px}.feedback-shell label{display:grid;gap:6px;font-size:.74rem;color:#9e907c}.feedback-shell small{color:#6f6355}.rating-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.feedback-shell textarea{min-height:86px;resize:vertical}.consent{display:flex!important;grid-template-columns:auto 1fr;align-items:start}.consent input{margin-top:3px;accent-color:#c9a96e}.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}@media(max-width:760px){.scanner-grid,.rating-row{grid-template-columns:1fr}.section-head{align-items:center}.ingredient-card dl{grid-template-columns:1fr}.ingredient-card dt{margin-top:5px}}
+  :global(body){background:radial-gradient(circle at 50% -10%,#2a2014 0,#0d0b08 28%,#090807 100%)}
+  .app-topbar{position:sticky;top:76px;z-index:15;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:10px 12px;margin:-26px 0 18px;background:rgba(14,12,9,.88);border:1px solid #30291f;border-radius:18px;backdrop-filter:blur(8px)}
+  .level-chip{display:flex;align-items:baseline;gap:4px;min-width:58px;padding:8px 10px;border-radius:12px;background:linear-gradient(145deg,#2a2115,#17120d);border:1px solid #51412d}.level-chip span{font-size:.58rem;color:#8b7355}.level-chip strong{font:600 1.3rem 'Cormorant Garamond',serif;color:#f0ce84}.xp-wrap{min-width:0}.xp-copy{display:flex;justify-content:space-between;gap:8px;font-size:.58rem;color:#9b8d78;margin-bottom:4px}.xp-track{height:7px;border-radius:999px;background:#211c16;overflow:hidden;border:1px solid #30281f}.xp-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#bd8641,#f0d182);box-shadow:0 0 12px rgba(240,209,130,.45);transition:width .5s cubic-bezier(.2,.9,.2,1)}.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid #3b3228;background:#17130f;font-size:1.1rem;cursor:pointer}
+  .scan-hero{position:relative;overflow:hidden;min-height:440px;border:1px solid #3b3022;border-radius:28px;padding:34px 24px;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 50% 32%,rgba(236,192,111,.12),transparent 34%),linear-gradient(180deg,#18130d,#0f0d0a)}.scan-glow{position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(220,166,76,.12);filter:blur(25px);animation:pulseGlow 2.4s ease-in-out infinite}.scan-orbit{position:absolute;border:1px solid rgba(213,173,101,.16);border-radius:50%}.orbit-a{width:270px;height:270px;animation:spin 18s linear infinite}.orbit-b{width:350px;height:350px;border-style:dashed;animation:spin 26s linear reverse infinite}.scan-copy{position:relative;z-index:2;max-width:580px}.eyebrow-mini{font-size:.62rem;letter-spacing:.18em;color:#a78959}.scan-copy h2{font:300 clamp(2rem,7vw,3.8rem) 'Cormorant Garamond',serif;line-height:.98;margin:12px 0;color:#e7d6b8}.scan-copy h2 em{font-style:normal;color:#f0c66f;text-shadow:0 0 18px rgba(240,198,111,.28)}.scan-copy p{color:#8e806d;font-size:.78rem;line-height:1.7;margin:0 auto 18px;max-width:430px}.camera-cta{position:relative;z-index:3;display:grid;place-items:center;width:min(280px,82vw);min-height:150px;padding:18px;border-radius:24px;cursor:pointer;background:linear-gradient(145deg,#d5a44f,#f0ce81 58%,#b8782f);color:#1b140b;box-shadow:0 20px 40px rgba(0,0,0,.35),0 0 34px rgba(230,178,82,.16);transition:transform .18s ease}.camera-cta:active{transform:scale(.97)}.camera-cta input{position:absolute;opacity:0;pointer-events:none}.camera-icon{font-size:2.4rem;filter:drop-shadow(0 3px 8px rgba(0,0,0,.2))}.camera-main{font-weight:700;font-size:1.05rem}.camera-sub{font-size:.64rem;opacity:.65}.ghost-btn{position:relative;z-index:3;border:0;background:transparent;color:#82735f;text-decoration:underline;text-underline-offset:4px;margin-top:6px;cursor:pointer}
+  .workspace,.text-panel,.result-zone,.collection-shell,.feedback-shell{border-radius:24px;border:1px solid #2f281f;background:linear-gradient(180deg,#17130f,#11100d);padding:22px}.workspace-head,.result-head,.collection-head,.feedback-title{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}.workspace-head>div{display:flex;align-items:center;gap:10px}.step-dot{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#d2a75c;color:#1b140d;font-weight:700}.kicker{font-size:.58rem;letter-spacing:.17em;color:#8b7355;margin:0}.workspace h2,.text-panel h2,.result-zone h2,.collection-shell h2,.feedback-shell h2{font:300 1.7rem 'Cormorant Garamond',serif;color:#ddc69e;margin:0}.bonus-chip{font-size:.66rem;color:#e4b95e;border:1px solid rgba(228,185,94,.25);background:rgba(228,185,94,.06);padding:5px 9px;border-radius:999px}.scan-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:16px}.preview-wrap{position:relative;overflow:hidden;min-height:240px;border-radius:18px;border:1px solid #322a21;background:#0b0a08}.preview-wrap img{display:block;width:100%;height:100%;max-height:360px;object-fit:contain}.scanner-line{position:absolute;left:5%;right:5%;height:2px;top:10%;background:linear-gradient(90deg,transparent,#f0c66f,transparent);box-shadow:0 0 12px #f0c66f;animation:scanLine 2.2s ease-in-out infinite}.scan-actions{display:grid;align-content:center;gap:12px}.text-input,.text-panel textarea,.feedback-shell textarea,.feedback-shell select{width:100%;background:#0d0b09;border:1px solid #342c23;color:#ddccb0;padding:13px;border-radius:12px;font:inherit}.text-panel textarea{min-height:180px;resize:vertical}.primary-action{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:13px 18px;border:1px solid rgba(240,198,111,.5);border-radius:14px;background:linear-gradient(145deg,#2d2214,#20170d);color:#f0ce84;font-weight:600;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.04);transition:transform .16s,box-shadow .16s}.primary-action:active{transform:scale(.98)}.status{font-size:.7rem;color:#7d7160;line-height:1.55;margin:0}
+  .result-zone{position:relative;overflow:hidden}.result-head h2{margin:0}.discovery-count{text-align:right}.discovery-count strong{display:block;font:600 2rem 'Cormorant Garamond',serif;color:#f0ce84;line-height:1}.discovery-count span{font-size:.52rem;letter-spacing:.12em;color:#796b59}.summary-card{border-radius:16px;border:1px solid rgba(218,180,108,.22);background:radial-gradient(circle at top right,rgba(226,183,101,.08),transparent 38%),#13100d;padding:17px;margin-bottom:12px}.summary-card strong{color:#ebcc91}.summary-card p{font-size:.78rem;line-height:1.7;color:#948671;margin:6px 0 0}.ingredient-cards{display:grid;gap:10px}.ingredient-card{position:relative;border:1px solid #31291f;border-radius:16px;background:#12100d;padding:16px;overflow:hidden}.ingredient-card.new-card{animation:cardPop .5s cubic-bezier(.2,.9,.2,1) both}.ingredient-head{display:flex;justify-content:space-between;gap:10px}.ingredient-card h3{margin:0;color:#e0ceb0;font-size:.95rem}.tag{font-size:.6rem;border:1px solid #514431;border-radius:999px;color:#bba47c;padding:4px 7px}.ingredient-card dl{display:grid;grid-template-columns:90px 1fr;gap:7px 10px;margin:12px 0 0}.ingredient-card dt{font-size:.65rem;color:#746856}.ingredient-card dd{font-size:.76rem;line-height:1.6;color:#a99a84;margin:0}.scan-again{width:100%;min-height:52px;margin-top:14px;border-radius:14px;border:1px dashed #6a5535;background:rgba(211,168,91,.04);color:#d6ad63;cursor:pointer}.notice{margin-top:12px;color:#6f6456;font-size:.66rem;line-height:1.6}.reward-burst{position:absolute;inset:0;pointer-events:none;overflow:hidden}.spark{position:absolute;left:50%;top:38%;font-size:1rem;animation:sparkOut .8s ease-out forwards}
+  .collection-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.collection-card{min-height:104px;border-radius:16px;border:1px solid #302820;background:#12100d;padding:12px;display:grid;align-content:space-between}.collection-card.locked{opacity:.35;filter:grayscale(1)}.collection-card .emoji{font-size:1.5rem}.collection-card strong{font-size:.74rem;color:#ccb994}.collection-card small{font-size:.58rem;color:#6f6251}.collection-head>span{font-size:.65rem;color:#9a876d}.feedback-lead{font-size:.76rem;line-height:1.7;color:#8b7c68}.feedback-shell form{display:grid;gap:12px}.feedback-shell label{display:grid;gap:6px;font-size:.72rem;color:#9d8f7a}.rating-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.feedback-shell textarea{min-height:80px;resize:vertical}.consent{display:flex!important;grid-template-columns:auto 1fr;align-items:start}.hp{position:absolute;left:-9999px}.toast{position:fixed;left:50%;bottom:22px;z-index:50;transform:translate(-50%,18px);opacity:0;pointer-events:none;padding:11px 16px;border-radius:999px;background:#f0ce84;color:#21160a;font-weight:700;font-size:.78rem;box-shadow:0 12px 34px rgba(0,0,0,.35);transition:.25s}.toast.show{opacity:1;transform:translate(-50%,0)}
+  @keyframes pulseGlow{50%{transform:scale(1.12);opacity:.6}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes scanLine{0%,100%{top:10%;opacity:.3}50%{top:86%;opacity:1}}@keyframes cardPop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}@keyframes sparkOut{to{opacity:0;transform:translate(var(--x),var(--y)) rotate(180deg) scale(.5)}}
+  @media(max-width:760px){.app-topbar{top:70px;margin-top:-18px}.scan-hero{min-height:420px;padding:28px 16px;border-radius:22px}.scan-grid,.rating-row{grid-template-columns:1fr}.collection-grid{grid-template-columns:repeat(2,1fr)}.ingredient-card dl{grid-template-columns:1fr}.workspace,.text-panel,.result-zone,.collection-shell,.feedback-shell{padding:17px;border-radius:20px}.scan-copy h2{font-size:2.7rem}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important}}
 </style>
 
-<script is:inline src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script is:inline>
-  let selectedFile=null;
-  let currentProductKey='';
-  const input=document.getElementById('image-input');
-  const preview=document.getElementById('preview');
-  const previewWrap=document.getElementById('preview-wrap');
-  const ocrBtn=document.getElementById('ocr-btn');
-  const ocrStatus=document.getElementById('ocr-status');
-  const text=document.getElementById('ingredient-text');
-  const productName=document.getElementById('product-name');
-
+  const STORAGE_KEY='food-lens-game-v1';
+  const initial={xp:0,scans:0,collection:[],lastScanDay:'',streak:0,feedbackIds:[]};
+  let game={...initial};
+  try{game={...initial,...JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}}catch{}
+  let selectedFile=null,currentProductKey='';
+  const input=document.getElementById('image-input'),preview=document.getElementById('preview'),workspace=document.getElementById('scan-workspace'),ocrBtn=document.getElementById('ocr-btn'),ocrStatus=document.getElementById('ocr-status'),text=document.getElementById('ingredient-text'),productName=document.getElementById('product-name'),textPanel=document.getElementById('text-panel'),toast=document.getElementById('toast');
   const knowledge=[
-    {keys:['砂糖','果糖ぶどう糖液糖','ぶどう糖果糖液糖','異性化液糖'],name:'糖類・液糖',type:'量を見る',role:'甘味、食感、保存性など。',body:'原材料は使用量の多い順に並ぶため、前半に複数の糖類がある場合は「甘味源が複数ある」と把握できます。実際の影響は栄養成分表示の糖質・炭水化物量や食べる量と合わせて見るのが大切です。',for:'血糖変動や摂取エネルギーを意識する人は、量と頻度を確認。'},
-    {keys:['食塩','塩化ナトリウム'],name:'食塩',type:'量を見る',role:'味付け、保存、食感調整。',body:'原材料名だけでは量が分からないので、栄養成分表示の「食塩相当量」を確認するのが中心です。',for:'塩分を控えている人は1食・1包装あたりの量を確認。'},
-    {keys:['亜硝酸Na','亜硝酸ナトリウム'],name:'亜硝酸ナトリウム',type:'用途を知る',role:'主に加工肉の発色・保存目的で使われます。',body:'単一成分だけで商品全体の健康影響は決められません。加工肉をどのくらいの頻度・量で食べるかという食生活全体と合わせて見る成分です。',for:'加工肉を頻繁に食べる人は、商品選びと摂取頻度を一緒に確認。'},
-    {keys:['リン酸塩','リン酸Na','ポリリン酸'],name:'リン酸塩',type:'背景を見る',role:'食感、保水、品質安定などに使われます。',body:'表示だけでは添加量や総リン摂取量は分かりません。一般には「加工度を見る手がかり」の1つとして扱うのが現実的です。',for:'特別な食事制限がある場合は医療者の指示を優先。'},
-    {keys:['乳化剤','グリセリン脂肪酸エステル','レシチン'],name:'乳化剤',type:'中身を分ける',role:'水と油を混ざりやすくし、食感や品質を安定させます。',body:'「乳化剤」は複数の物質の総称です。表示名だけで身体への影響を一括判定するのは難しく、具体的な成分名・量・摂取頻度で考える必要があります。',for:'気になる場合は、乳化剤の具体名が分かる商品と比較。'},
-    {keys:['アスパルテーム'],name:'アスパルテーム',type:'体質注意',role:'少量で甘味をつける高甘味度甘味料。',body:'摂取許容量の考え方がある成分で、量が重要です。フェニルアラニンを含むため、フェニルケトン尿症の方は表示上の注意が必要です。',for:'甘味料を避けたい人、該当する代謝疾患がある人は表示確認。'},
-    {keys:['アセスルファムK','アセスルファムカリウム'],name:'アセスルファムK',type:'量と頻度',role:'砂糖の代わりに甘味をつける甘味料。',body:'原材料名だけで摂取量は分かりません。甘味料そのものの有無だけでなく、飲む頻度や他の甘味食品も含めて見る方が実用的です。',for:'日常的にゼロ系飲料を多く摂る人は頻度を記録すると比較しやすい。'},
-    {keys:['スクラロース'],name:'スクラロース',type:'量と頻度',role:'少量で甘味をつける高甘味度甘味料。',body:'商品中の量は原材料表示からは分かりません。「入っている＝即悪い」とは判断せず、摂取頻度や自分の嗜好・体感と合わせて比較します。',for:'人工甘味料の後味や体感が気になる人は商品ごとに記録。'},
-    {keys:['ソルビン酸K','ソルビン酸カリウム','安息香酸Na','安息香酸ナトリウム'],name:'保存料',type:'用途を知る',role:'微生物による劣化を抑え、保存性を高めます。',body:'保存料の使用には基準があり、原材料名だけで摂取量は判断できません。保存期間・保管方法・食品カテゴリーとのトレードオフもあります。',for:'添加物を減らしたい場合は、同カテゴリーの短い原材料の商品と比較。'},
-    {keys:['カフェイン','コーヒー抽出物','茶抽出物'],name:'カフェイン関連',type:'時間を見る',role:'覚醒作用のある成分を含む可能性があります。',body:'影響は量・摂取時刻・個人差が大きい項目です。特に夕方以降は睡眠との関係を自分の体感で記録すると役立ちます。',for:'睡眠、妊娠中、子ども、カフェイン感受性が気になる人は含有量確認。'},
-    {keys:['小麦','卵','乳成分','落花生','そば','えび','かに','くるみ'],name:'アレルゲン候補',type:'最優先確認',role:'食品として通常使われる原材料ですが、アレルギーのある人には重要な情報です。',body:'アレルギーは少量でも問題になる場合があります。この簡易検出だけに頼らず、商品の正式なアレルギー表示を必ず確認してください。',for:'食物アレルギーがある人はメーカー表示を最優先。'}
+    {keys:['砂糖','果糖ぶどう糖液糖','ぶどう糖果糖液糖','異性化液糖'],name:'糖類・液糖',type:'量を見る',emoji:'🍬',role:'甘味、食感、保存性など。',body:'原材料は使用量の多い順に並ぶため、前半に複数の糖類がある場合は甘味源が複数あると把握できます。実際の影響は栄養成分表示や食べる量と合わせて見ます。',for:'血糖変動や摂取エネルギーを意識する人は、量と頻度を確認。'},
+    {keys:['食塩','塩化ナトリウム'],name:'食塩',type:'量を見る',emoji:'🧂',role:'味付け、保存、食感調整。',body:'原材料名だけでは量が分からないので、栄養成分表示の食塩相当量を見るのが中心です。',for:'塩分を控えている人は1食・1包装あたりの量を確認。'},
+    {keys:['亜硝酸Na','亜硝酸ナトリウム'],name:'亜硝酸ナトリウム',type:'用途を知る',emoji:'🥓',role:'主に加工肉の発色・保存目的。',body:'単一成分だけで商品全体の健康影響は決められません。加工肉をどのくらいの頻度・量で食べるかと合わせて見ます。',for:'加工肉を頻繁に食べる人は、商品選びと摂取頻度を一緒に確認。'},
+    {keys:['リン酸塩','リン酸Na','ポリリン酸'],name:'リン酸塩',type:'背景を見る',emoji:'🧪',role:'食感、保水、品質安定など。',body:'表示だけでは添加量や総リン摂取量は分かりません。加工度を見る手がかりの1つとして扱います。',for:'特別な食事制限がある場合は医療者の指示を優先。'},
+    {keys:['乳化剤','グリセリン脂肪酸エステル','レシチン'],name:'乳化剤',type:'中身を分ける',emoji:'🫧',role:'水と油を混ざりやすくし、食感や品質を安定。',body:'乳化剤は複数の物質の総称。表示名だけで身体への影響を一括判定せず、具体名・量・頻度で見ます。',for:'気になる場合は具体名が分かる商品と比較。'},
+    {keys:['アスパルテーム'],name:'アスパルテーム',type:'体質注意',emoji:'🧬',role:'少量で甘味をつける高甘味度甘味料。',body:'量が重要です。フェニルアラニンを含むため、フェニルケトン尿症では表示上の注意が必要です。',for:'甘味料を避けたい人、該当する代謝疾患がある人は表示確認。'},
+    {keys:['アセスルファムK','アセスルファムカリウム'],name:'アセスルファムK',type:'量と頻度',emoji:'⚗️',role:'砂糖の代わりに甘味をつける甘味料。',body:'原材料名だけで摂取量は分かりません。飲む頻度や他の甘味食品も含めて見ます。',for:'日常的にゼロ系飲料を多く摂る人は頻度を記録。'},
+    {keys:['スクラロース'],name:'スクラロース',type:'量と頻度',emoji:'🧊',role:'少量で甘味をつける高甘味度甘味料。',body:'入っているだけで即悪いとは判断せず、摂取頻度や自分の嗜好・体感と合わせて比較します。',for:'人工甘味料の後味や体感が気になる人は商品ごとに記録。'},
+    {keys:['ソルビン酸','安息香酸'],name:'保存料',type:'用途を知る',emoji:'🛡️',role:'微生物の増殖を抑え保存性を高めます。',body:'保存料は用途も種類も異なります。表示の有無だけでなく、食品そのものの保存条件や摂取頻度も見ます。',for:'保存料を避けたい場合は代替商品の保存方法も確認。'},
+    {keys:['カフェイン','コーヒー抽出物','茶抽出物'],name:'カフェイン関連',type:'タイミング',emoji:'☕️',role:'覚醒感や風味に関わります。',body:'体感には個人差が大きく、量と摂る時刻が重要です。',for:'睡眠への影響が気になる人は午後〜夜の摂取を記録。'},
+    {keys:['小麦','乳成分','卵','落花生','えび','かに','そば','くるみ'],name:'主要アレルゲン候補',type:'体質注意',emoji:'⚠️',role:'食品の原材料そのものです。',body:'アレルギーがある場合は少量でも重要なので、商品の正式なアレルギー表示を最優先します。',for:'該当アレルギーがある人はメーカー表示を必ず確認。'}
   ];
-
-  input.addEventListener('change',()=>{selectedFile=input.files?.[0]||null;if(!selectedFile)return;preview.src=URL.createObjectURL(selectedFile);previewWrap.hidden=false;ocrBtn.disabled=false;ocrStatus.textContent='画像を選択しました。「画像から文字を読む」を押してください。'});
-
-  ocrBtn.addEventListener('click',async()=>{if(!selectedFile)return;if(!window.Tesseract){ocrStatus.textContent='OCRエンジンを読み込めませんでした。文字を直接貼り付けて解析してください。';return}ocrBtn.disabled=true;ocrStatus.textContent='OCR準備中…';try{const result=await window.Tesseract.recognize(selectedFile,'jpn+eng',{logger:m=>{if(m.status==='recognizing text')ocrStatus.textContent=`文字を読んでいます… ${Math.round((m.progress||0)*100)}%`}});text.value=(result.data?.text||'').trim();ocrStatus.textContent='読み取り完了。誤字があれば修正してから「成分を見る」へ。'}catch(e){ocrStatus.textContent='OCRに失敗しました。画像を撮り直すか、文字を直接貼ってください。'}finally{ocrBtn.disabled=false}});
-
-  function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  async function makeKey(raw){const normalized=(productName.value.trim()+'|'+raw.replace(/\s+/g,' ').trim()).slice(0,4000);const data=new TextEncoder().encode(normalized||crypto.randomUUID());const hash=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(hash)).slice(0,16).map(b=>b.toString(16).padStart(2,'0')).join('')}
-
-  document.getElementById('analyze-btn').addEventListener('click',async()=>{const raw=text.value.trim();if(!raw){ocrStatus.textContent='原材料や栄養表示の文字を入れてください。';return}const found=[];for(const item of knowledge){const hits=item.keys.filter(k=>raw.includes(k));if(hits.length)found.push({...item,hits})}currentProductKey=await makeKey(raw);document.getElementById('result-section').hidden=false;document.getElementById('match-count').textContent=`${found.length}ポイント検出`;document.getElementById('summary-card').innerHTML=`<strong>${escapeHtml(productName.value.trim()||'この商品')}</strong><p>${found.length?`原材料表示から ${found.length} 個の「確認すると理解が深まるポイント」を拾いました。検出数が多いほど悪い、少ないほど良いという意味ではありません。`:'登録済みの注目キーワードは見つかりませんでした。原材料が少ない/多いだけで健康度は決まらないため、栄養成分・量・食べる頻度も確認してください。'}</p>`;const box=document.getElementById('ingredient-cards');box.innerHTML=found.length?found.map(x=>`<article class="ingredient-card"><div class="ingredient-head"><h3>${escapeHtml(x.name)}</h3><span class="tag">${escapeHtml(x.type)}</span></div><dl><dt>検出</dt><dd>${x.hits.map(escapeHtml).join(' / ')}</dd><dt>何のため？</dt><dd>${escapeHtml(x.role)}</dd><dt>身体で見る</dt><dd>${escapeHtml(x.body)}</dd><dt>こんな時</dt><dd>${escapeHtml(x.for)}</dd></dl></article>`).join(''):'<p class="status">追加のキーワード分析は今後拡張予定です。</p>';document.getElementById('result-section').scrollIntoView({behavior:'smooth',block:'start'})});
-
-  document.getElementById('feedback-form').addEventListener('submit',async(e)=>{e.preventDefault();const status=document.getElementById('feedback-status');const btn=document.getElementById('feedback-btn');const raw=text.value.trim();if(!currentProductKey&&raw)currentProductKey=await makeKey(raw);if(!currentProductKey){status.textContent='先に商品名か成分表示を入れて「成分を見る」を押してください。';return}btn.disabled=true;status.textContent='送信中…';const buy=document.getElementById('buy-again').value;try{const res=await fetch('/api/food-lens/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientEventId:crypto.randomUUID(),productKey:currentProductKey,productName:productName.value.trim(),sentiment:Number(document.getElementById('sentiment').value),wouldBuyAgain:buy==='yes'?true:buy==='no'?false:null,bodyNote:document.getElementById('body-note').value.trim(),comment:document.getElementById('comment').value.trim(),sharePublic:document.getElementById('share-public').checked,sourceRef:location.pathname,website:document.getElementById('website').value})});const body=await res.json();if(!res.ok||!body.ok)throw new Error(body.error||'send_failed');status.textContent='送信しました。公開許可を付けた内容も、まず確認待ちとして保存されます。';document.getElementById('body-note').value='';document.getElementById('comment').value='';document.getElementById('share-public').checked=false}catch(err){status.textContent='送信できませんでした。少ししてから再度お試しください。'}finally{btn.disabled=false}});
+  const saveGame=()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(game));renderGame()};
+  const level=()=>Math.floor((game.xp||0)/100)+1;
+  const dayKey=()=>new Date().toISOString().slice(0,10);
+  function addXp(amount,label){game.xp=(game.xp||0)+amount;saveGame();showToast(`+${amount} XP ${label||''}`.trim())}
+  function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(showToast._t);showToast._t=setTimeout(()=>toast.classList.remove('show'),1700)}
+  function renderGame(){const inLevel=(game.xp||0)%100;document.getElementById('level-number').textContent=level();document.getElementById('xp-copy').textContent=`${inLevel} / 100 XP`;document.getElementById('xp-fill').style.width=`${inLevel}%`;document.getElementById('streak-copy').textContent=`🔥 ${game.streak||0} DAY`;document.getElementById('collection-count').textContent=`${game.collection.length} discovered`;const grid=document.getElementById('collection-grid');grid.innerHTML=knowledge.map(k=>{const open=game.collection.includes(k.name);return `<div class="collection-card ${open?'':'locked'}"><span class="emoji">${open?k.emoji:'❓'}</span><strong>${open?k.name:'未発見'}</strong><small>${open?k.type:'撮って解放'}</small></div>`}).join('')}
+  function updateStreak(){const today=dayKey();if(game.lastScanDay===today)return;const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);game.streak=game.lastScanDay===yesterday?(game.streak||0)+1:1;game.lastScanDay=today;saveGame()}
+  function burst(){const box=document.getElementById('reward-burst');box.innerHTML='';for(let i=0;i<12;i++){const s=document.createElement('span');s.className='spark';s.textContent=['✨','⭐️','✦'][i%3];s.style.setProperty('--x',`${(Math.random()-.5)*260}px`);s.style.setProperty('--y',`${(Math.random()-.5)*180}px`);box.appendChild(s)}setTimeout(()=>box.innerHTML='',900)}
+  input.addEventListener('change',()=>{selectedFile=input.files?.[0]||null;if(!selectedFile)return;preview.src=URL.createObjectURL(selectedFile);workspace.hidden=false;textPanel.hidden=true;workspace.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('image-bonus').textContent=game.lastScanDay===dayKey()?'+10 XP':'🔥 Daily +20 XP'});
+  document.getElementById('paste-toggle').addEventListener('click',()=>{textPanel.hidden=false;textPanel.scrollIntoView({behavior:'smooth',block:'start'})});
+  async function loadTesseract(){if(window.Tesseract)return window.Tesseract;ocrStatus.textContent='OCRエンジンを準備中…';await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});return window.Tesseract}
+  ocrBtn.addEventListener('click',async()=>{if(!selectedFile)return;ocrBtn.disabled=true;ocrBtn.textContent='🔄 発見中…';try{const firstToday=game.lastScanDay!==dayKey();const T=await loadTesseract();const out=await T.recognize(selectedFile,'jpn+eng',{logger:m=>{if(m.status==='recognizing text')ocrStatus.textContent=`読み取り ${Math.round((m.progress||0)*100)}%`}});text.value=out.data.text.trim();textPanel.hidden=false;textPanel.scrollIntoView({behavior:'smooth',block:'start'});ocrStatus.textContent='読み取り完了。文字を直してから探索できます。';game.scans=(game.scans||0)+1;updateStreak();addXp(firstToday?20:10,firstToday?'DAILY SCAN':'SCAN')}catch(e){ocrStatus.textContent='読み取りに失敗。文字を直接貼っても使えます。'}finally{ocrBtn.disabled=false;ocrBtn.textContent='✨ 画像から発見する'}});
+  const hash=async(value)=>{const bytes=new TextEncoder().encode(value);const digest=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('')};
+  async function analyze(){const raw=text.value.trim();if(!raw){showToast('原材料の文字を入れてね');return}const matches=knowledge.filter(k=>k.keys.some(x=>raw.includes(x)));currentProductKey=await hash(`${productName.value.trim()}\n${raw}`);const newOnes=matches.filter(m=>!game.collection.includes(m.name));newOnes.forEach(m=>game.collection.push(m.name));if(newOnes.length)addXp(newOnes.length*15,`${newOnes.length} NEW`);else addXp(3,'DISCOVERY');document.getElementById('match-count').textContent=matches.length;const summary=document.getElementById('summary-card');summary.innerHTML=matches.length?`<strong>${matches.length}個の見るポイントを発見。</strong><p>${newOnes.length?`うち ${newOnes.length}個は初発見。図鑑に追加しました。`:'前にも見つけた成分。商品ごとの差を比べてみよう。'} 原材料の有無だけで結論を出さず、量・頻度・体質を分けて見ます。</p>`:`<strong>まだ登録された成分は見つかりませんでした。</strong><p>未知の表示も発見です。今後の成分辞書拡張候補として扱えます。</p>`;document.getElementById('ingredient-cards').innerHTML=matches.map((m,i)=>`<article class="ingredient-card new-card" style="animation-delay:${i*.07}s"><div class="ingredient-head"><h3>${m.emoji} ${m.name}</h3><span class="tag">${m.type}</span></div><dl><dt>何のため？</dt><dd>${m.role}</dd><dt>身体で見る</dt><dd>${m.body}</dd><dt>こんな時</dt><dd>${m.for}</dd></dl></article>`).join('');document.getElementById('result-section').hidden=false;document.getElementById('result-section').scrollIntoView({behavior:'smooth',block:'start'});burst();saveGame()}
+  document.getElementById('analyze-btn').addEventListener('click',analyze);
+  document.getElementById('scan-again').addEventListener('click',()=>{input.click()});
+  document.getElementById('collection-jump').addEventListener('click',()=>document.getElementById('collection-section').scrollIntoView({behavior:'smooth'}));
+  document.getElementById('feedback-form').addEventListener('submit',async(e)=>{e.preventDefault();const btn=document.getElementById('feedback-btn'),status=document.getElementById('feedback-status');if(!currentProductKey&&text.value.trim())currentProductKey=await hash(`${productName.value.trim()}\n${text.value.trim()}`);if(!currentProductKey){status.textContent='先に商品を1つ探索してください。';return}btn.disabled=true;status.textContent='記録中…';const clientEventId=crypto.randomUUID?.()||`${Date.now()}-${Math.random()}`;try{const buy=document.getElementById('buy-again').value;const res=await fetch('/api/food-lens/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientEventId,productKey:currentProductKey,productName:productName.value.trim()||null,sentiment:Number(document.getElementById('sentiment').value),wouldBuyAgain:buy==='yes'?true:buy==='no'?false:null,bodyNote:document.getElementById('body-note').value.trim()||null,comment:document.getElementById('comment').value.trim()||null,sharePublic:document.getElementById('share-public').checked,website:document.getElementById('website').value})});if(!res.ok)throw new Error('failed');if(!game.feedbackIds.includes(currentProductKey)){game.feedbackIds.push(currentProductKey);addXp(5,'FIELD NOTE')}status.textContent='記録できました。公開許可した口コミは承認後に公開できます。'}catch{status.textContent='送信できませんでした。少し後で再度試してください。'}finally{btn.disabled=false}});
+  renderGame();
 </script>
