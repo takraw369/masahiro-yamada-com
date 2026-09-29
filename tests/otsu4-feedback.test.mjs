@@ -17,27 +17,35 @@ test('every Otsu4 multiple-choice answer has a distinct explanation for all four
   }
 });
 
-test('inline study feedback reaches the existing contact store with a receipt', async (t) => {
-  const { POST } = await import('../src/pages/api/contact.ts');
+test('inline Otsu4 feedback reaches the reusable Supabase feedback pipeline', async (t) => {
+  const { POST } = await import('../src/pages/api/app-feedback.ts');
   Object.assign(env, {
     SUPABASE_URL: 'https://supabase.example.test',
     SUPABASE_PUBLISHABLE_KEY: 'test-only-publishable-key',
   });
   t.mock.method(globalThis, 'fetch', async (url, options) => {
-    assert.equal(url, 'https://supabase.example.test/rest/v1/rpc/submit_contact_inquiry_v1');
+    assert.equal(url, 'https://supabase.example.test/rest/v1/rpc/submit_app_feedback_v1');
     const args = JSON.parse(options.body);
-    assert.equal(args.p_category, 'technical');
-    assert.equal(args.p_email, 'study@example.test');
-    assert.match(args.p_message, /^\[乙4アプリ改善\]\[s10\]/);
-    return Response.json('test-receipt-id');
+    assert.equal(args.p_app_key, 'otsu4');
+    assert.equal(args.p_client_event_id, 'otsu4-test-event-001');
+    assert.equal(args.p_context_key, 'question:s10');
+    assert.equal(args.p_actor_ref, 'study@example.test');
+    assert.equal(args.p_message, 'M型の説明を見たい');
+    assert.equal(args.p_meta.questionId, 's10');
+    return Response.json({ ok: true, accepted: true, duplicate: false });
   });
-  const url = new URL('https://masahiroyamada.com/api/contact');
+  const url = new URL('https://masahiroyamada.com/api/app-feedback');
   const response = await POST({
     request: new Request(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ category: 'technical', name: '乙4アプリ改善', email: 'study@example.test',
-        message: '[乙4アプリ改善][s10] G型受信機の問題\nコメント: M型の説明を見たい', consent: true }) }),
+      body: JSON.stringify({
+        clientEventId: 'otsu4-test-event-001', appKey: 'otsu4', contextKey: 'question:s10',
+        message: 'M型の説明を見たい', actorRef: 'study@example.test', sourceRef: '/otsu4', consent: true,
+        meta: { questionId: 's10', category: 'structure', selectedOption: 'B' },
+      }) }),
     locals: {}, url,
   });
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).id, 'test-receipt-id');
+  assert.equal(response.status, 201);
+  const result = await response.json();
+  assert.equal(result.ok, true);
+  assert.equal(result.data.accepted, true);
 });
