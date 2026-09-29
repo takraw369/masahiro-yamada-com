@@ -1,0 +1,103 @@
+---
+import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
+---
+
+<PublicPageLayout
+  title="Food Lens"
+  description="成分表示を写真・スクショから読み取り、原材料の役割と身体で見るポイントを整理する試作アプリ。"
+  eyebrow="SCAN × UNDERSTAND × FEEDBACK"
+>
+  <p slot="lead" class="public-lead">裏面表示を撮る・スクショを選ぶ・文字を貼る。原材料を“怖い/安全”の二択にせず、何のために入っているか、どんな人が何を見ればよいかを分解します。</p>
+
+  <section class="public-section scanner-shell">
+    <div class="scanner-grid">
+      <article class="panel">
+        <p class="kicker">01 SCAN</p>
+        <h2>成分表示を読み取る</h2>
+        <label class="upload-box">
+          <input id="image-input" type="file" accept="image/*" capture="environment" />
+          <span>📷 写真・スクショを選ぶ</span>
+          <small>iPhoneならカメラ起動もできます</small>
+        </label>
+        <div id="preview-wrap" class="preview-wrap" hidden><img id="preview" alt="成分表示プレビュー" /></div>
+        <button id="ocr-btn" class="public-btn" type="button" disabled>画像から文字を読む</button>
+        <p id="ocr-status" class="status">画像を選ぶとOCRできます。読み取り後の文字は自由に修正できます。</p>
+      </article>
+
+      <article class="panel">
+        <p class="kicker">02 TEXT</p>
+        <h2>原材料・栄養表示</h2>
+        <input id="product-name" class="text-input" maxlength="240" placeholder="商品名（任意）" />
+        <textarea id="ingredient-text" maxlength="6000" placeholder="例：原材料名：砂糖、植物油脂、乳化剤…\n\n画像を使わず、ここへ直接貼り付けてもOK"></textarea>
+        <button id="analyze-btn" class="public-btn" type="button">成分を見る</button>
+      </article>
+    </div>
+  </section>
+
+  <section id="result-section" class="public-section" hidden>
+    <div class="section-head"><div><p class="kicker">03 UNDERSTAND</p><h2>見るポイント</h2></div><span id="match-count"></span></div>
+    <div id="summary-card" class="summary-card"></div>
+    <div id="ingredient-cards" class="ingredient-cards"></div>
+    <div class="notice">これは医療診断や「安全/危険」の断定ではありません。原材料名だけでは摂取量・頻度・商品全体の栄養バランスまでは判断できないため、気になる成分を掘るための入口として使います。</div>
+  </section>
+
+  <section class="public-section feedback-shell">
+    <p class="kicker">04 FEEDBACK</p>
+    <h2>実際に食べた人の声を残す</h2>
+    <p class="feedback-lead">「成分表の理論」と「実際の体感」を分けて蓄積します。個人差があるので、体感は体感として扱います。</p>
+    <form id="feedback-form">
+      <div class="rating-row">
+        <label>総合印象<select id="sentiment"><option value="5">5 とても良い</option><option value="4">4 良い</option><option value="3" selected>3 普通</option><option value="2">2 あまり合わない</option><option value="1">1 合わない</option></select></label>
+        <label>また買う？<select id="buy-again"><option value="">未回答</option><option value="yes">はい</option><option value="no">いいえ</option></select></label>
+      </div>
+      <label>身体の体感 <small>任意</small><textarea id="body-note" maxlength="500" placeholder="例：食後の満足感、眠気、胃の重さ、運動時の感覚など。診断名や個人情報は書かなくてOK。"></textarea></label>
+      <label>口コミ・コメント <small>任意</small><textarea id="comment" maxlength="1200" placeholder="味、価格、使いやすさ、リピート理由など"></textarea></label>
+      <label class="consent"><input id="share-public" type="checkbox" /><span>承認後、匿名の公開口コミとして使ってよい</span></label>
+      <div class="hp" aria-hidden="true"><input id="website" type="text" tabindex="-1" autocomplete="off" /></div>
+      <button class="public-btn" id="feedback-btn" type="submit">フィードバックを送る</button>
+      <p id="feedback-status" class="status"></p>
+    </form>
+  </section>
+</PublicPageLayout>
+
+<style>
+  .scanner-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{border:1px solid #2e2822;background:#17130f;padding:22px}.kicker{font-size:.62rem;letter-spacing:.17em;color:#8b7355;margin:0 0 4px}.panel h2,.public-section h2{font:300 1.65rem 'Cormorant Garamond',serif;color:#c9a96e;margin:0 0 16px}.upload-box{display:grid;place-items:center;text-align:center;min-height:150px;border:1px dashed #584a39;background:#110f0c;cursor:pointer;padding:20px}.upload-box input{position:absolute;opacity:0;pointer-events:none}.upload-box span{color:#d3c2a4}.upload-box small{color:#766a5b;margin-top:7px}.preview-wrap{margin:12px 0;border:1px solid #2e2822;max-height:300px;overflow:hidden}.preview-wrap img{display:block;width:100%;max-height:300px;object-fit:contain;background:#0d0b09}.text-input,.panel textarea,.feedback-shell textarea,.feedback-shell select{width:100%;background:#0f0d0a;border:1px solid #312a23;color:#d7c7aa;padding:12px;font:inherit}.panel textarea{min-height:250px;margin:10px 0;resize:vertical}.status{font-size:.72rem;color:#8d806f;line-height:1.6;margin:10px 0 0}.section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:14px}.section-head h2{margin-bottom:0}.section-head span{font-size:.72rem;color:#c9a96e}.summary-card{border:1px solid rgba(201,169,110,.25);background:linear-gradient(135deg,rgba(201,169,110,.07),transparent);padding:18px;margin-bottom:14px}.summary-card strong{color:#d8c196}.summary-card p{font-size:.8rem;line-height:1.75;color:#9b8d7a;margin:6px 0 0}.ingredient-cards{display:grid;gap:10px}.ingredient-card{border:1px solid #2e2822;background:#15120f;padding:17px}.ingredient-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.ingredient-card h3{font-size:.93rem;margin:0;color:#d6c5a7}.tag{font-size:.62rem;border:1px solid #514431;color:#bba47c;padding:4px 7px;white-space:nowrap}.ingredient-card dl{display:grid;grid-template-columns:95px 1fr;gap:8px 12px;margin:13px 0 0}.ingredient-card dt{font-size:.68rem;color:#766957}.ingredient-card dd{font-size:.78rem;line-height:1.65;color:#a99a84;margin:0}.notice{margin-top:14px;border-left:2px solid #7f6b4e;padding:11px 13px;color:#796d5f;font-size:.7rem;line-height:1.7}.feedback-shell{border:1px solid rgba(201,169,110,.14);padding:24px}.feedback-lead{font-size:.8rem;line-height:1.75;color:#8c7f6d}.feedback-shell form{display:grid;gap:13px;margin-top:16px}.feedback-shell label{display:grid;gap:6px;font-size:.74rem;color:#9e907c}.feedback-shell small{color:#6f6355}.rating-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.feedback-shell textarea{min-height:86px;resize:vertical}.consent{display:flex!important;grid-template-columns:auto 1fr;align-items:start}.consent input{margin-top:3px;accent-color:#c9a96e}.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}@media(max-width:760px){.scanner-grid,.rating-row{grid-template-columns:1fr}.section-head{align-items:center}.ingredient-card dl{grid-template-columns:1fr}.ingredient-card dt{margin-top:5px}}
+</style>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script is:inline>
+  let selectedFile=null;
+  let currentProductKey='';
+  const input=document.getElementById('image-input');
+  const preview=document.getElementById('preview');
+  const previewWrap=document.getElementById('preview-wrap');
+  const ocrBtn=document.getElementById('ocr-btn');
+  const ocrStatus=document.getElementById('ocr-status');
+  const text=document.getElementById('ingredient-text');
+  const productName=document.getElementById('product-name');
+
+  const knowledge=[
+    {keys:['砂糖','果糖ぶどう糖液糖','ぶどう糖果糖液糖','異性化液糖'],name:'糖類・液糖',type:'量を見る',role:'甘味、食感、保存性など。',body:'原材料は使用量の多い順に並ぶため、前半に複数の糖類がある場合は「甘味源が複数ある」と把握できます。実際の影響は栄養成分表示の糖質・炭水化物量や食べる量と合わせて見るのが大切です。',for:'血糖変動や摂取エネルギーを意識する人は、量と頻度を確認。'},
+    {keys:['食塩','塩化ナトリウム'],name:'食塩',type:'量を見る',role:'味付け、保存、食感調整。',body:'原材料名だけでは量が分からないので、栄養成分表示の「食塩相当量」を確認するのが中心です。',for:'塩分を控えている人は1食・1包装あたりの量を確認。'},
+    {keys:['亜硝酸Na','亜硝酸ナトリウム'],name:'亜硝酸ナトリウム',type:'用途を知る',role:'主に加工肉の発色・保存目的で使われます。',body:'単一成分だけで商品全体の健康影響は決められません。加工肉をどのくらいの頻度・量で食べるかという食生活全体と合わせて見る成分です。',for:'加工肉を頻繁に食べる人は、商品選びと摂取頻度を一緒に確認。'},
+    {keys:['リン酸塩','リン酸Na','ポリリン酸'],name:'リン酸塩',type:'背景を見る',role:'食感、保水、品質安定などに使われます。',body:'表示だけでは添加量や総リン摂取量は分かりません。一般には「加工度を見る手がかり」の1つとして扱うのが現実的です。',for:'特別な食事制限がある場合は医療者の指示を優先。'},
+    {keys:['乳化剤','グリセリン脂肪酸エステル','レシチン'],name:'乳化剤',type:'中身を分ける',role:'水と油を混ざりやすくし、食感や品質を安定させます。',body:'「乳化剤」は複数の物質の総称です。表示名だけで身体への影響を一括判定するのは難しく、具体的な成分名・量・摂取頻度で考える必要があります。',for:'気になる場合は、乳化剤の具体名が分かる商品と比較。'},
+    {keys:['アスパルテーム'],name:'アスパルテーム',type:'体質注意',role:'少量で甘味をつける高甘味度甘味料。',body:'摂取許容量の考え方がある成分で、量が重要です。フェニルアラニンを含むため、フェニルケトン尿症の方は表示上の注意が必要です。',for:'甘味料を避けたい人、該当する代謝疾患がある人は表示確認。'},
+    {keys:['アセスルファムK','アセスルファムカリウム'],name:'アセスルファムK',type:'量と頻度',role:'砂糖の代わりに甘味をつける甘味料。',body:'原材料名だけで摂取量は分かりません。甘味料そのものの有無だけでなく、飲む頻度や他の甘味食品も含めて見る方が実用的です。',for:'日常的にゼロ系飲料を多く摂る人は頻度を記録すると比較しやすい。'},
+    {keys:['スクラロース'],name:'スクラロース',type:'量と頻度',role:'少量で甘味をつける高甘味度甘味料。',body:'商品中の量は原材料表示からは分かりません。「入っている＝即悪い」とは判断せず、摂取頻度や自分の嗜好・体感と合わせて比較します。',for:'人工甘味料の後味や体感が気になる人は商品ごとに記録。'},
+    {keys:['ソルビン酸K','ソルビン酸カリウム','安息香酸Na','安息香酸ナトリウム'],name:'保存料',type:'用途を知る',role:'微生物による劣化を抑え、保存性を高めます。',body:'保存料の使用には基準があり、原材料名だけで摂取量は判断できません。保存期間・保管方法・食品カテゴリーとのトレードオフもあります。',for:'添加物を減らしたい場合は、同カテゴリーの短い原材料の商品と比較。'},
+    {keys:['カフェイン','コーヒー抽出物','茶抽出物'],name:'カフェイン関連',type:'時間を見る',role:'覚醒作用のある成分を含む可能性があります。',body:'影響は量・摂取時刻・個人差が大きい項目です。特に夕方以降は睡眠との関係を自分の体感で記録すると役立ちます。',for:'睡眠、妊娠中、子ども、カフェイン感受性が気になる人は含有量確認。'},
+    {keys:['小麦','卵','乳成分','落花生','そば','えび','かに','くるみ'],name:'アレルゲン候補',type:'最優先確認',role:'食品として通常使われる原材料ですが、アレルギーのある人には重要な情報です。',body:'アレルギーは少量でも問題になる場合があります。この簡易検出だけに頼らず、商品の正式なアレルギー表示を必ず確認してください。',for:'食物アレルギーがある人はメーカー表示を最優先。'}
+  ];
+
+  input.addEventListener('change',()=>{selectedFile=input.files?.[0]||null;if(!selectedFile)return;preview.src=URL.createObjectURL(selectedFile);previewWrap.hidden=false;ocrBtn.disabled=false;ocrStatus.textContent='画像を選択しました。「画像から文字を読む」を押してください。'});
+
+  ocrBtn.addEventListener('click',async()=>{if(!selectedFile)return;if(!window.Tesseract){ocrStatus.textContent='OCRエンジンを読み込めませんでした。文字を直接貼り付けて解析してください。';return}ocrBtn.disabled=true;ocrStatus.textContent='OCR準備中…';try{const result=await window.Tesseract.recognize(selectedFile,'jpn+eng',{logger:m=>{if(m.status==='recognizing text')ocrStatus.textContent=`文字を読んでいます… ${Math.round((m.progress||0)*100)}%`}});text.value=(result.data?.text||'').trim();ocrStatus.textContent='読み取り完了。誤字があれば修正してから「成分を見る」へ。'}catch(e){ocrStatus.textContent='OCRに失敗しました。画像を撮り直すか、文字を直接貼ってください。'}finally{ocrBtn.disabled=false}});
+
+  function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  async function makeKey(raw){const normalized=(productName.value.trim()+'|'+raw.replace(/\s+/g,' ').trim()).slice(0,4000);const data=new TextEncoder().encode(normalized||crypto.randomUUID());const hash=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(hash)).slice(0,16).map(b=>b.toString(16).padStart(2,'0')).join('')}
+
+  document.getElementById('analyze-btn').addEventListener('click',async()=>{const raw=text.value.trim();if(!raw){ocrStatus.textContent='原材料や栄養表示の文字を入れてください。';return}const found=[];for(const item of knowledge){const hits=item.keys.filter(k=>raw.includes(k));if(hits.length)found.push({...item,hits})}currentProductKey=await makeKey(raw);document.getElementById('result-section').hidden=false;document.getElementById('match-count').textContent=`${found.length}ポイント検出`;document.getElementById('summary-card').innerHTML=`<strong>${escapeHtml(productName.value.trim()||'この商品')}</strong><p>${found.length?`原材料表示から ${found.length} 個の「確認すると理解が深まるポイント」を拾いました。検出数が多いほど悪い、少ないほど良いという意味ではありません。`:'登録済みの注目キーワードは見つかりませんでした。原材料が少ない/多いだけで健康度は決まらないため、栄養成分・量・食べる頻度も確認してください。'}</p>`;const box=document.getElementById('ingredient-cards');box.innerHTML=found.length?found.map(x=>`<article class="ingredient-card"><div class="ingredient-head"><h3>${escapeHtml(x.name)}</h3><span class="tag">${escapeHtml(x.type)}</span></div><dl><dt>検出</dt><dd>${x.hits.map(escapeHtml).join(' / ')}</dd><dt>何のため？</dt><dd>${escapeHtml(x.role)}</dd><dt>身体で見る</dt><dd>${escapeHtml(x.body)}</dd><dt>こんな時</dt><dd>${escapeHtml(x.for)}</dd></dl></article>`).join(''):'<p class="status">追加のキーワード分析は今後拡張予定です。</p>';document.getElementById('result-section').scrollIntoView({behavior:'smooth',block:'start'})});
+
+  document.getElementById('feedback-form').addEventListener('submit',async(e)=>{e.preventDefault();const status=document.getElementById('feedback-status');const btn=document.getElementById('feedback-btn');const raw=text.value.trim();if(!currentProductKey&&raw)currentProductKey=await makeKey(raw);if(!currentProductKey){status.textContent='先に商品名か成分表示を入れて「成分を見る」を押してください。';return}btn.disabled=true;status.textContent='送信中…';const buy=document.getElementById('buy-again').value;try{const res=await fetch('/api/food-lens/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientEventId:crypto.randomUUID(),productKey:currentProductKey,productName:productName.value.trim(),sentiment:Number(document.getElementById('sentiment').value),wouldBuyAgain:buy==='yes'?true:buy==='no'?false:null,bodyNote:document.getElementById('body-note').value.trim(),comment:document.getElementById('comment').value.trim(),sharePublic:document.getElementById('share-public').checked,sourceRef:location.pathname,website:document.getElementById('website').value})});const body=await res.json();if(!res.ok||!body.ok)throw new Error(body.error||'send_failed');status.textContent='送信しました。公開許可を付けた内容も、まず確認待ちとして保存されます。';document.getElementById('body-note').value='';document.getElementById('comment').value='';document.getElementById('share-public').checked=false}catch(err){status.textContent='送信できませんでした。少ししてから再度お試しください。'}finally{btn.disabled=false}});
+</script>
