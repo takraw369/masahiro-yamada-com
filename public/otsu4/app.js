@@ -14,8 +14,8 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
-  const state = read(KEY, { attempts: {}, correct: {}, streak: {}, wrong: {}, notes: {}, ratings: {}, feedbackDrafts: {}, history: [] });
-  for (const field of ["attempts", "correct", "streak", "wrong", "notes", "ratings", "feedbackDrafts"]) state[field] ||= {};
+  const state = read(KEY, { attempts: {}, correct: {}, streak: {}, wrong: {}, notes: {}, ratings: {}, feedbackDrafts: {}, feedbackEventIds: {}, history: [] });
+  for (const field of ["attempts", "correct", "streak", "wrong", "notes", "ratings", "feedbackDrafts", "feedbackEventIds"]) state[field] ||= {};
   state.history ||= [];
   let session = read(SESSION, null);
   let timer = null;
@@ -238,15 +238,35 @@
     localStorage.setItem(FEEDBACK_EMAIL, email);
     try {
       const selected = session.answers.find((row) => row.index === session.index)?.choice;
-      const context = `[乙4アプリ改善][${q.id}][${CATEGORIES[q.category].label}] ${q.question}`;
-      const body = `${context}\n${selected == null ? "" : `選択: ${"ABCD"[selected]}\n`}コメント: ${message}`;
-      const response = await fetch('/api/contact', {
+      const clientEventId = state.feedbackEventIds[q.id] || (globalThis.crypto?.randomUUID?.() || `otsu4-${Date.now()}-${Math.random().toString(36).slice(2,10)}`);
+      state.feedbackEventIds[q.id] = clientEventId;
+      save();
+      const response = await fetch('/api/app-feedback', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
-        body: JSON.stringify({ category: 'technical', name: '乙4アプリ改善', email, message: body, consent: true }),
+        body: JSON.stringify({
+          clientEventId,
+          appKey: 'otsu4',
+          contextKey: `question:${q.id}`,
+          message,
+          actorRef: email,
+          sourceRef: window.location.pathname,
+          consent: true,
+          meta: {
+            questionId: q.id,
+            category: q.category,
+            categoryLabel: CATEGORIES[q.category].label,
+            question: q.question,
+            selectedOption: selected == null ? null : "ABCD"[selected],
+            selectedChoice: selected == null ? null : q.choices?.[selected] ?? null,
+            mode: session.mode,
+          },
+        }),
       });
       const result = await response.json();
-      if (!response.ok || !result.ok || !result.id) throw new Error('send_failed');
-      delete state.feedbackDrafts[q.id]; save();
+      if (!response.ok || !result.ok || !result.data?.accepted) throw new Error('send_failed');
+      delete state.feedbackDrafts[q.id];
+      delete state.feedbackEventIds[q.id];
+      save();
       if (current()?.id === q.id) {
         $("#improvement-message").value = "";
         status.textContent = "送信しました。続けて学習できます。";
@@ -274,7 +294,7 @@
     $("#improvement-panel").scrollIntoView({ behavior: "smooth", block: "center" });
     $("#improvement-message").focus({ preventScroll: true });
   });
-  $("#improvement-message").addEventListener("input",(event) => { const q=current(); if(q){ state.feedbackDrafts[q.id]=event.target.value; save(); } });
+  $("#improvement-message").addEventListener("input",(event) => { const q=current(); if(q){ state.feedbackDrafts[q.id]=event.target.value; delete state.feedbackEventIds[q.id]; save(); } });
   $("#improvement-form").addEventListener("submit",submitImprovement);
   $$("[data-self]").forEach((button) => button.addEventListener("click",() => {
     const q=current(); if (!q) return;
