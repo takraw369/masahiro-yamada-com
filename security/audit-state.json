@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "status": "not_reviewed",
+  "reviewed_at": null,
+  "scope": {
+    "branch": "chore/masa-security-os-v1-20260930",
+    "commit": null,
+    "notes": "Initial Security OS integration state. Run an evidence-based review before marking any evidence item true."
+  },
+  "profiles_reviewed": [],
+  "stack_overlays_reviewed": [],
+  "evidence": {
+    "profiles_match_features": false,
+    "no_open_p0": false,
+    "no_unwaived_p1": false,
+    "secrets_checked": false,
+    "client_bundle_checked": false,
+    "dependency_scan_completed": false,
+    "regression_tests_for_fixed_p0_p1": false,
+    "evidence_attached": false
+  },
+  "findings": []
+}
