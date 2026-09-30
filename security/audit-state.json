@@ -19,5 +19,15 @@
     "regression_tests_for_fixed_p0_p1": false,
     "evidence_attached": false
   },
+  "evidence_refs": {
+    "profiles_match_features": [],
+    "no_open_p0": [],
+    "no_unwaived_p1": [],
+    "secrets_checked": [],
+    "client_bundle_checked": [],
+    "dependency_scan_completed": [],
+    "regression_tests_for_fixed_p0_p1": [],
+    "evidence_attached": []
+  },
   "findings": []
 }
