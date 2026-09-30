@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "app": "masahiro-yamada-com",
+  "canonical_security_os_repo": "takraw369/masa-automation",
+  "profiles": [
+    "public-only",
+    "auth-account",
+    "admin",
+    "webhook"
+  ],
+  "stack_overlays": [
+    "astro",
+    "cloudflare"
+  ],
+  "critical_surfaces": [
+    "src/middleware.ts",
+    "src/lib/dashboardAuth.ts",
+    "src/lib/security",
+    "src/pages/api/dashboard",
+    "src/pages/api/x-harness",
+    "src/pages/api/line-harness"
+  ],
+  "required_predeploy_evidence": [
+    "profiles_match_features",
+    "no_open_p0",
+    "no_unwaived_p1",
+    "secrets_checked",
+    "client_bundle_checked",
+    "dependency_scan_completed",
+    "regression_tests_for_fixed_p0_p1",
+    "evidence_attached"
+  ]
+}
