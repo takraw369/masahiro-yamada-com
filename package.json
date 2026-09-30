@@ -14,7 +14,9 @@
     "typecheck": "astro check",
     "typecheck:release": "node scripts/typecheck-release.mjs",
     "test:preview": "node scripts/smoke-preview.mjs",
-    "security:check": "npm audit --omit=dev --audit-level=high"
+    "security:check": "npm audit --omit=dev --audit-level=high",
+    "security:gate": "node scripts/security-gate.mjs",
+    "security:predeploy": "npm run security:check && npm run security:gate"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
