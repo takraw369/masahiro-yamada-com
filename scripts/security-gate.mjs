@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
 const profilePath = path.resolve(root, process.env.SECURITY_PROFILE ?? 'security/app-security-profile.json');
@@ -18,6 +19,25 @@ function isNonEmpty(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function currentCommit() {
+  const override = process.env.SECURITY_EXPECTED_COMMIT?.trim();
+  if (override) return override;
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function hasEvidenceRefs(state, key) {
+  const refs = state?.evidence_refs?.[key];
+  return Array.isArray(refs) && refs.some(isNonEmpty);
+}
+
 function validWaiver(finding, now) {
   const waiver = finding?.waiver;
   if (!waiver) return false;
@@ -31,11 +51,16 @@ const state = readJson(statePath);
 const blockers = [];
 const warnings = [];
 const now = Date.now();
+const head = currentCommit();
+const reviewStatuses = new Set(['reviewed', 'reviewed_with_findings']);
 
 if (state.version !== 1 || profile.version !== 1) blockers.push('unsupported security profile/audit-state version');
 if (!isNonEmpty(profile.app)) blockers.push('profile.app is missing');
+if (!reviewStatuses.has(state.status)) blockers.push(`audit status is not reviewed: ${state.status ?? 'missing'}`);
 if (!state.scope || !isNonEmpty(state.scope.commit)) blockers.push('audit scope.commit is missing');
 if (!isNonEmpty(state.reviewed_at)) blockers.push('reviewed_at is missing');
+if (!head) blockers.push('cannot resolve current commit; run inside a git checkout or set SECURITY_EXPECTED_COMMIT');
+if (head && isNonEmpty(state.scope?.commit) && state.scope.commit !== head) blockers.push(`audit commit mismatch: reviewed ${state.scope.commit}, current ${head}`);
 
 const expectedProfiles = new Set(profile.profiles ?? []);
 const reviewedProfiles = new Set(state.profiles_reviewed ?? []);
@@ -47,21 +72,22 @@ for (const o of expectedOverlays) if (!reviewedOverlays.has(o)) blockers.push(`s
 
 for (const key of profile.required_predeploy_evidence ?? []) {
   if (state.evidence?.[key] !== true) blockers.push(`required evidence is not true: ${key}`);
+  if (!hasEvidenceRefs(state, key)) blockers.push(`required evidence has no reference: ${key}`);
 }
 
 for (const finding of state.findings ?? []) {
   const severity = finding?.severity;
   const status = finding?.status ?? 'open';
-  const open = !['fixed', 'closed', 'accepted'].includes(status);
+  const resolved = status === 'fixed' || status === 'closed';
 
-  if (severity === 'P0' && open) blockers.push(`open P0: ${finding.id ?? 'unnamed'}`);
-  if (severity === 'P1' && open && !validWaiver(finding, now)) blockers.push(`open/unwaived P1: ${finding.id ?? 'unnamed'}`);
+  if (severity === 'P0' && !resolved) blockers.push(`open P0: ${finding.id ?? 'unnamed'}`);
+  if (severity === 'P1' && !resolved && !validWaiver(finding, now)) blockers.push(`open/unwaived P1: ${finding.id ?? 'unnamed'}`);
 
   if ((severity === 'P0' || severity === 'P1') && status === 'fixed' && !isNonEmpty(finding.regression_test)) {
     blockers.push(`fixed ${severity} lacks regression_test: ${finding.id ?? 'unnamed'}`);
   }
 
-  if ((severity === 'P2' || severity === 'P3') && open) {
+  if ((severity === 'P2' || severity === 'P3') && !resolved) {
     if (!isNonEmpty(finding.tracking)) blockers.push(`untracked ${severity}: ${finding.id ?? 'unnamed'}`);
     else warnings.push(`${severity} tracked: ${finding.id ?? 'unnamed'} -> ${finding.tracking}`);
   }
