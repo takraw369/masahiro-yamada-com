@@ -31,6 +31,8 @@
     "wrangler": "4.129.0"
   },
   "overrides": {
+    "devalue": "5.9.4",
+    "undici": "7.30.0",
     "miniflare": {
       "sharp": "0.35.4"
     }
