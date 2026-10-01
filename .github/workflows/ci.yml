@@ -5,10 +5,8 @@ on:
     branches: [master]
   workflow_dispatch:
 
-# TEMPORARY on PR #214 only: allow the runner to commit the regenerated package-lock.
-# Reverted to contents: read immediately after the lock commit lands.
 permissions:
-  contents: write
+  contents: read
 
 # Cost guard: when a PR receives a newer commit, the older CI result is stale.
 # Cancel that stale run instead of paying to finish work that can no longer merge.
@@ -21,33 +19,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Check out PR head for one-time lock repair
+      - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
           cache: npm
-
-      - name: Regenerate lock for patched transitives
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-
-      - name: Commit regenerated lock once
-        run: |
-          if git diff --quiet -- package-lock.json; then
-            echo "package-lock already current"
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "chore(security): refresh lock for patched transitives"
-            git push origin HEAD:${GITHUB_HEAD_REF}
-          fi
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
