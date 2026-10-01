@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PrivatePlayground from '../../components/dashboard/PrivatePlayground';
+import '../../styles/masa-readable.css';
+---
+<DashboardLayout title="Private Playground" eyebrow="COLLECT → PLAY → RELEASE">
+  <PrivatePlayground client:load />
+</DashboardLayout>
