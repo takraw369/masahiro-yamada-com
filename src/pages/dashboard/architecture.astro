@@ -6,6 +6,8 @@ const architectureJson = JSON.stringify(architectureExplorerData).replace(/</g, 
 ---
 
 <DashboardLayout title="Architecture Explorer" fullHeight={true} eyebrow="MASA OS · SYSTEM MAP">
+  <link rel="stylesheet" href="/styles/architecture-explorer.css" />
+
   <div class="architecture-app">
     <header class="arch-header">
       <div>
@@ -41,12 +43,18 @@ const architectureJson = JSON.stringify(architectureExplorerData).replace(/</g, 
 
         <section class="canonical-card" aria-label="Current MASA canonical architecture">
           <div class="section-head">
-            <div><p class="section-kicker">PRIMARY NOW</p><h2>現行MASA OSの正本</h2></div>
+            <div>
+              <p class="section-kicker">PRIMARY NOW</p>
+              <h2>現行MASA OSの正本</h2>
+            </div>
             <span class="verified-pill">VERIFIED ROLE</span>
           </div>
           <div class="canonical-list">
-            {canonicalSystems.map(system => (
-              <div class="canonical-row"><strong>{system.label}</strong><small>{system.role}</small></div>
+            {canonicalSystems.map((system) => (
+              <div class="canonical-row">
+                <strong>{system.label}</strong>
+                <small>{system.role}</small>
+              </div>
             ))}
           </div>
         </section>
@@ -92,7 +100,10 @@ const architectureJson = JSON.stringify(architectureExplorerData).replace(/</g, 
         <button id="arch-detail-scrim" class="arch-detail-scrim" type="button" aria-label="詳細を閉じる" hidden></button>
         <aside id="arch-detail" class="arch-detail" aria-live="polite" aria-hidden="true">
           <div class="arch-detail-head">
-            <div><p id="arch-detail-status" class="arch-detail-status"></p><h2 id="arch-detail-title"></h2></div>
+            <div>
+              <p id="arch-detail-status" class="arch-detail-status"></p>
+              <h2 id="arch-detail-title"></h2>
+            </div>
             <button id="arch-detail-close" class="arch-icon-button" type="button" aria-label="閉じる">×</button>
           </div>
           <p id="arch-detail-meta" class="arch-detail-meta"></p>
@@ -105,229 +116,7 @@ const architectureJson = JSON.stringify(architectureExplorerData).replace(/</g, 
       </main>
     </div>
 
-    <script id="architecture-explorer-data" type="application/json" set:html={architectureJson}></script>
+    <script id="architecture-explorer-data" type="application/json" is:inline set:html={architectureJson}></script>
+    <script is:inline src="/scripts/architecture-explorer.js"></script>
   </div>
 </DashboardLayout>
-
-<script>
-  const dataElement = document.getElementById('architecture-explorer-data');
-  const architectureData = dataElement?.textContent ? JSON.parse(dataElement.textContent) : null;
-
-  if (architectureData) {
-    const NS = 'http://www.w3.org/2000/svg';
-    const viewport = document.getElementById('arch-viewport');
-    const world = document.getElementById('arch-world');
-    const detailPanel = document.getElementById('arch-detail');
-    const detailScrim = document.getElementById('arch-detail-scrim');
-    const searchInput = document.getElementById('arch-search');
-
-    const nodesById = new Map(architectureData.nodes.map((node) => [node.id, node]));
-    const nodeEls = new Map();
-    const edgeEls = [];
-    let selectedRoute = null;
-    let activeKind = 'all';
-    let activeStatus = 'all';
-    let query = '';
-    let selectedNode = null;
-
-    const svgEl = (name, attrs = {}, text = '') => {
-      const node = document.createElementNS(NS, name);
-      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
-      if (text) node.textContent = text;
-      return node;
-    };
-
-    const center = (node) => ({ x: node.x + node.w / 2, y: node.y + node.h / 2 });
-    const edgePath = (from, to) => {
-      const a = center(from), b = center(to);
-      const dx = b.x - a.x, dy = b.y - a.y;
-      if (Math.abs(dx) > Math.abs(dy)) {
-        const sx = dx > 0 ? from.x + from.w : from.x;
-        const ex = dx > 0 ? to.x : to.x + to.w;
-        const sy = a.y, ey = b.y;
-        const bend = Math.max(45, Math.abs(ex - sx) * .42);
-        return `M ${sx} ${sy} C ${sx + (dx > 0 ? bend : -bend)} ${sy}, ${ex - (dx > 0 ? bend : -bend)} ${ey}, ${ex} ${ey}`;
-      }
-      const sy = dy > 0 ? from.y + from.h : from.y;
-      const ey = dy > 0 ? to.y : to.y + to.h;
-      const sx = a.x, ex = b.x;
-      const bend = Math.max(45, Math.abs(ey - sy) * .42);
-      return `M ${sx} ${sy} C ${sx} ${sy + (dy > 0 ? bend : -bend)}, ${ex} ${ey - (dy > 0 ? bend : -bend)}, ${ex} ${ey}`;
-    };
-
-    const renderGraph = () => {
-      world.replaceChildren();
-      architectureData.groups.forEach((group) => {
-        world.appendChild(svgEl('rect', { class:'arch-lane', x:group.x, y:group.y, width:group.w, height:group.h, rx:24 }));
-        world.appendChild(svgEl('text', { class:'arch-lane-title', x:group.x + 30, y:group.y + 38 }, group.label));
-      });
-
-      const edgeLayer = svgEl('g', { class:'arch-edge-layer' });
-      architectureData.edges.forEach((edge, index) => {
-        const from = nodesById.get(edge.from), to = nodesById.get(edge.to);
-        if (!from || !to) return;
-        const path = svgEl('path', {
-          class:`arch-edge ${edge.kind}${edge.style ? ` ${edge.style}` : ''}`,
-          d:edgePath(from, to),
-          'data-index':index,
-          'data-from':edge.from,
-          'data-to':edge.to,
-        });
-        edgeLayer.appendChild(path);
-        edgeEls.push({ edge, el:path });
-      });
-      world.appendChild(edgeLayer);
-
-      const nodeLayer = svgEl('g', { class:'arch-node-layer' });
-      architectureData.nodes.forEach((node) => {
-        const g = svgEl('g', {
-          class:`arch-node status-${node.status} kind-${node.kind}`,
-          transform:`translate(${node.x} ${node.y})`, tabindex:'0', role:'button',
-          'aria-label':`${node.title}: ${node.meta}`, 'data-id':node.id,
-        });
-        g.appendChild(svgEl('rect', { width:node.w, height:node.h }));
-        g.appendChild(svgEl('text', { class:'arch-node-title', x:20, y:34 }, node.title));
-        g.appendChild(svgEl('text', { class:'arch-node-meta', x:20, y:58 }, node.meta));
-        const statusY = node.h >= 110 ? node.h - 20 : node.h - 14;
-        g.appendChild(svgEl('text', { class:'arch-node-status', x:20, y:statusY }, node.statusLabel));
-        g.appendChild(svgEl('text', { class:'arch-kind-pill', x:node.w - 18, y:statusY, 'text-anchor':'end' }, node.kind.toUpperCase()));
-        g.addEventListener('click', (event) => { event.stopPropagation(); openDetail(node.id); });
-        g.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDetail(node.id); }
-        });
-        nodeLayer.appendChild(g);
-        nodeEls.set(node.id, g);
-      });
-      world.appendChild(nodeLayer);
-      architectureData.callouts.forEach((callout) => world.appendChild(svgEl('text', { class:'arch-callout', x:callout.x, y:callout.y }, callout.text)));
-    };
-
-    const markButtons = (container, active, selector) => container?.querySelectorAll(selector).forEach((button) => button.classList.toggle('active', button === active));
-    const renderFilters = () => {
-      const routeContainer = document.getElementById('arch-route-filters');
-      const all = document.createElement('button');
-      all.type = 'button'; all.className = 'arch-route-button active'; all.textContent = 'All flows';
-      all.addEventListener('click', () => { selectedRoute = null; markButtons(routeContainer, all, '.arch-route-button'); applyFilters(); });
-      routeContainer?.appendChild(all);
-      architectureData.routes.forEach((route) => {
-        const button = document.createElement('button');
-        button.type = 'button'; button.className = 'arch-route-button'; button.textContent = route.label;
-        button.addEventListener('click', () => { selectedRoute = route.id; markButtons(routeContainer, button, '.arch-route-button'); applyFilters(); });
-        routeContainer?.appendChild(button);
-      });
-
-      const kindContainer = document.getElementById('arch-kind-filters');
-      ['all','identity','upload','compute','chat','model'].forEach((kind) => {
-        const button = document.createElement('button');
-        button.type = 'button'; button.className = `arch-chip${kind === 'all' ? ' active' : ''}`; button.textContent = kind === 'all' ? 'All' : kind;
-        button.addEventListener('click', () => { activeKind = kind; markButtons(kindContainer, button, '.arch-chip'); applyFilters(); });
-        kindContainer?.appendChild(button);
-      });
-
-      const statusContainer = document.getElementById('arch-status-filters');
-      [['all','All'],['confirmed','Brief'],['inferred','Inferred'],['unknown','Verify']].forEach(([value,label]) => {
-        const button = document.createElement('button');
-        button.type = 'button'; button.className = `arch-chip${value === 'all' ? ' active' : ''}`; button.textContent = label;
-        button.addEventListener('click', () => { activeStatus = value; markButtons(statusContainer, button, '.arch-chip'); applyFilters(); });
-        statusContainer?.appendChild(button);
-      });
-    };
-
-    const applyFilters = () => {
-      const route = architectureData.routes.find((item) => item.id === selectedRoute);
-      const routeNodes = route ? new Set(route.nodes) : null;
-      const matched = new Set();
-      architectureData.nodes.forEach((node) => {
-        const haystack = `${node.title} ${node.meta} ${node.body} ${node.kind} ${node.status}`.toLowerCase();
-        const visible = (!query || haystack.includes(query)) && (activeKind === 'all' || node.kind === activeKind) && (activeStatus === 'all' || node.status === activeStatus) && (!routeNodes || routeNodes.has(node.id));
-        if (visible) matched.add(node.id);
-        const element = nodeEls.get(node.id);
-        element?.classList.toggle('dimmed', !visible);
-        element?.classList.toggle('highlight', Boolean(routeNodes?.has(node.id)));
-        element?.classList.toggle('focused', selectedNode === node.id);
-      });
-      edgeEls.forEach(({ edge, el }) => {
-        const routeHighlight = routeNodes && routeNodes.has(edge.from) && routeNodes.has(edge.to);
-        el.classList.toggle('dimmed', !(matched.has(edge.from) && matched.has(edge.to)));
-        el.classList.toggle('highlight', Boolean(routeHighlight));
-      });
-    };
-
-    const openDetail = (id) => {
-      const node = nodesById.get(id); if (!node) return;
-      selectedNode = id;
-      document.getElementById('arch-detail-title').textContent = node.title;
-      document.getElementById('arch-detail-meta').textContent = `${node.meta} · ${node.kind}`;
-      document.getElementById('arch-detail-body').textContent = node.body;
-      document.getElementById('arch-detail-why').textContent = node.why;
-      const status = document.getElementById('arch-detail-status');
-      status.className = `arch-detail-status ${node.status}`; status.textContent = node.statusLabel;
-      const list = document.getElementById('arch-detail-verify');
-      list.replaceChildren(...node.verify.map((item) => { const li = document.createElement('li'); li.textContent = item; return li; }));
-      detailPanel?.classList.add('open'); detailPanel?.setAttribute('aria-hidden','false');
-      if (window.matchMedia('(max-width:700px)').matches && detailScrim) detailScrim.hidden = false;
-      applyFilters();
-    };
-    const closeDetail = () => {
-      selectedNode = null; detailPanel?.classList.remove('open'); detailPanel?.setAttribute('aria-hidden','true');
-      if (detailScrim) detailScrim.hidden = true; applyFilters();
-    };
-
-    renderGraph(); renderFilters(); applyFilters();
-
-    let scale = .72, tx = 0, ty = 0, dragging = false, lastX = 0, lastY = 0;
-    const applyTransform = () => world?.setAttribute('transform', `scale(${scale}) translate(${tx} ${ty})`);
-    const fit = () => {
-      if (!viewport) return;
-      const rect = viewport.getBoundingClientRect();
-      scale = Math.max(.10, Math.min(1.4, Math.min(rect.width / 2650, rect.height / 1750) * .94));
-      tx = (rect.width / scale - 2600) / 2; ty = (rect.height / scale - 1700) / 2; applyTransform();
-    };
-    const reset = () => { scale = .72; tx = 0; ty = 0; applyTransform(); };
-    const zoom = (factor, clientX = null, clientY = null) => {
-      if (!viewport) return;
-      const old = scale; scale = Math.max(.10, Math.min(2.4, scale * factor));
-      if (clientX !== null && clientY !== null) {
-        const rect = viewport.getBoundingClientRect(), px = clientX - rect.left, py = clientY - rect.top;
-        const worldX = px / old - tx, worldY = py / old - ty; tx = px / scale - worldX; ty = py / scale - worldY;
-      }
-      applyTransform();
-    };
-
-    viewport?.addEventListener('pointerdown', (event) => {
-      if (event.target.closest?.('.arch-node, .arch-detail, .arch-detail-scrim')) return;
-      dragging = true; lastX = event.clientX; lastY = event.clientY; viewport.classList.add('dragging');
-      try { viewport.setPointerCapture(event.pointerId); } catch (_) {}
-    });
-    viewport?.addEventListener('pointermove', (event) => {
-      if (!dragging) return; tx += (event.clientX - lastX) / scale; ty += (event.clientY - lastY) / scale; lastX = event.clientX; lastY = event.clientY; applyTransform();
-    });
-    const endDrag = () => { dragging = false; viewport?.classList.remove('dragging'); };
-    viewport?.addEventListener('pointerup', endDrag); viewport?.addEventListener('pointercancel', endDrag);
-    viewport?.addEventListener('wheel', (event) => { event.preventDefault(); zoom(event.deltaY < 0 ? 1.1 : .9, event.clientX, event.clientY); }, { passive:false });
-
-    document.getElementById('arch-zoom-in')?.addEventListener('click', () => zoom(1.15));
-    document.getElementById('arch-zoom-out')?.addEventListener('click', () => zoom(1 / 1.15));
-    document.getElementById('arch-fit')?.addEventListener('click', fit);
-    document.getElementById('arch-reset')?.addEventListener('click', reset);
-    document.getElementById('arch-detail-close')?.addEventListener('click', closeDetail);
-    detailScrim?.addEventListener('click', closeDetail);
-    searchInput?.addEventListener('input', () => { query = searchInput.value.trim().toLowerCase(); applyFilters(); });
-    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeDetail(); });
-    window.addEventListener('resize', fit);
-    fit();
-  }
-</script>
-
-<style is:global>
-  .architecture-app{--arch-bg:#090d12;--arch-panel:#101821;--arch-text:#eef4fb;--arch-muted:#92a5ba;--arch-confirmed:#62d6a6;--arch-inferred:#f2c66d;--arch-unknown:#ff7f8c;--arch-identity:#74a7ff;--arch-upload:#62d6a6;--arch-compute:#c797ff;--arch-chat:#f0ad68;--arch-model:#ff82bd;height:100%;min-height:calc(100vh - 66px);display:grid;grid-template-rows:auto 1fr;background:var(--arch-bg);color:var(--arch-text);overflow:hidden;font-family:Inter,'Zen Kaku Gothic New',system-ui,sans-serif}
-  .architecture-app *{box-sizing:border-box}.arch-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 16px;background:#0c1219;border-bottom:1px solid #1d2a39}.arch-eyebrow,.section-kicker{margin:0;color:#7388a1;font-size:10px;font-weight:800;letter-spacing:.1em}.arch-title-row{display:flex;align-items:center;gap:10px;margin-top:3px}.arch-title-row h1{margin:0;color:#f1f5fa;font-size:17px}.arch-count{border:1px solid #2d4155;border-radius:999px;padding:3px 7px;color:#91a6bc;font-size:9px}.arch-subtitle{margin:4px 0 0;color:#8296ac;font-size:10px}.arch-header-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}.arch-control,.arch-link{min-height:34px;border:1px solid #2b3c4f;background:#111a24;color:#dce7f2;border-radius:8px;padding:6px 9px;text-decoration:none;font-size:10px;cursor:pointer}.arch-control:hover,.arch-link:hover{background:#172331;border-color:#49627d}
-  .arch-workspace{min-height:0;display:grid;grid-template-columns:290px 1fr}.arch-sidebar{min-height:0;overflow:auto;padding:12px;border-right:1px solid #1c2937;background:#0c1219}.arch-sidebar section+section{margin-top:13px}.arch-source-card,.canonical-card{padding:11px;border:1px solid #28394c;border-radius:11px;background:linear-gradient(180deg,#111a24,#0f171f)}.arch-source-head,.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.arch-source-badge{border:1px solid rgba(255,127,140,.42);background:rgba(255,127,140,.08);color:var(--arch-unknown);border-radius:999px;padding:4px 7px;font-size:8px;font-weight:900;letter-spacing:.06em}.arch-date{color:#61758b;font-size:9px}.arch-source-card p{margin:8px 0 0;color:#a9b8c9;font-size:10px;line-height:1.5}.arch-source-card details{margin-top:8px}.arch-source-card summary{cursor:pointer;color:#8094aa;font-size:9px}.arch-source-card details p{color:#8297ad}.canonical-card h2{margin:2px 0 0;color:#dfe8f2;font-size:12px}.verified-pill{color:var(--arch-confirmed);font-size:8px;font-weight:800}.canonical-list{display:grid;gap:6px;margin-top:9px}.canonical-row{padding-top:6px;border-top:1px solid #202f3f}.canonical-row:first-child{padding-top:0;border-top:0}.canonical-row strong,.canonical-row small{display:block}.canonical-row strong{color:#cbd7e4;font-size:9px}.canonical-row small{margin-top:2px;color:#6f849a;font-size:8px;line-height:1.35}
-  .arch-search{display:grid;gap:5px;margin:13px 0}.arch-search span{color:#7489a0;font-size:9px;font-weight:800;letter-spacing:.08em}.arch-search input{width:100%;border:1px solid #293a4c;background:#101821;color:#edf3fa;border-radius:9px;padding:8px 9px;outline:none;font-size:10px}.arch-search input:focus{border-color:#557aa1}.stack-list{display:grid;gap:5px;margin-top:7px}.arch-route-button,.arch-chip{border:1px solid #28394b;background:#111923;color:#9eafc1;border-radius:8px;cursor:pointer}.arch-route-button{width:100%;text-align:left;padding:7px 8px;font-size:10px}.arch-route-button.active,.arch-chip.active{border-color:#6385ad;color:#eef5fc;background:#172536}.chip-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.arch-chip{padding:5px 7px;font-size:9px}.arch-legend{display:grid;gap:5px;padding:3px 0 8px}.arch-legend div{display:flex;align-items:center;color:#8ea2b8;font-size:9px}.evidence-dot{width:7px;height:7px;border-radius:50%;margin-right:6px}.evidence-dot.confirmed{background:var(--arch-confirmed)}.evidence-dot.inferred{background:var(--arch-inferred)}.evidence-dot.unknown{background:var(--arch-unknown)}
-  .arch-viewport{position:relative;min-width:0;min-height:0;overflow:hidden;cursor:grab;background:radial-gradient(circle at 18% 15%,rgba(131,170,255,.055),transparent 28%),radial-gradient(circle at 78% 72%,rgba(98,214,166,.045),transparent 28%),linear-gradient(#0a0f15,#080c11)}.arch-viewport.dragging{cursor:grabbing}.arch-canvas-hint{position:absolute;left:13px;top:10px;z-index:3;color:#5f7389;font-size:9px;pointer-events:none}.arch-viewport svg{width:100%;height:100%;display:block;user-select:none;touch-action:none}.arch-lane{fill:#0e151d;stroke:#1e2c3a;stroke-width:1.4}.arch-lane-title{fill:#72869d;font-size:16px;font-weight:800;letter-spacing:1px}.arch-callout{fill:#697e94;font-size:13px;font-weight:700}.arch-edge{fill:none;stroke:#455f79;stroke-width:2;opacity:.72;marker-end:url(#arch-arrow)}#arch-arrow path{fill:#455f79}.arch-edge.identity{stroke:var(--arch-identity)}.arch-edge.upload{stroke:var(--arch-upload)}.arch-edge.compute{stroke:var(--arch-compute)}.arch-edge.chat{stroke:var(--arch-chat)}.arch-edge.model{stroke:var(--arch-model)}.arch-edge.secondary{stroke-dasharray:7 7;opacity:.48}.arch-edge.dimmed{opacity:.05}.arch-edge.highlight{opacity:1;stroke-width:4;filter:drop-shadow(0 0 5px currentColor)}
-  .arch-node{cursor:pointer;transition:opacity .12s}.arch-node rect{fill:#121b26;stroke:#33485d;stroke-width:1.5;rx:16;transition:stroke .12s,filter .12s}.arch-node:hover rect,.arch-node.focused rect{stroke:#7697bc;filter:drop-shadow(0 8px 16px rgba(0,0,0,.25))}.arch-node-title{fill:#f0f5fb;font-size:17px;font-weight:750}.arch-node-meta{fill:#91a5ba;font-size:12px}.arch-node-status{font-size:10px;font-weight:900;letter-spacing:.5px}.arch-kind-pill{font-size:9px;font-weight:800;letter-spacing:.5px}.arch-node.status-confirmed .arch-node-status{fill:var(--arch-confirmed)}.arch-node.status-inferred .arch-node-status{fill:var(--arch-inferred)}.arch-node.status-unknown .arch-node-status{fill:var(--arch-unknown)}.arch-node.kind-identity .arch-kind-pill{fill:var(--arch-identity)}.arch-node.kind-upload .arch-kind-pill{fill:var(--arch-upload)}.arch-node.kind-compute .arch-kind-pill{fill:var(--arch-compute)}.arch-node.kind-chat .arch-kind-pill{fill:var(--arch-chat)}.arch-node.kind-model .arch-kind-pill{fill:var(--arch-model)}.arch-node.dimmed{opacity:.1}.arch-node.highlight rect{stroke-width:3;stroke:#dbe8f8;filter:drop-shadow(0 0 8px rgba(131,170,255,.45))}
-  .arch-detail{position:absolute;z-index:9;right:13px;top:13px;width:min(390px,calc(100% - 26px));max-height:calc(100% - 26px);overflow:auto;padding:14px;background:rgba(15,22,31,.98);border:1px solid #2b3d51;border-radius:13px;box-shadow:0 24px 80px rgba(0,0,0,.52);transform:translateX(calc(100% + 30px));transition:transform .2s ease}.arch-detail.open{transform:translateX(0)}.arch-detail-head{display:flex;justify-content:space-between;gap:12px}.arch-detail-head h2{margin:3px 0 0;color:#f0f5fb;font-size:17px}.arch-detail-status{margin:0;font-size:9px;font-weight:900;letter-spacing:.08em}.arch-detail-status.confirmed{color:var(--arch-confirmed)}.arch-detail-status.inferred{color:var(--arch-inferred)}.arch-detail-status.unknown{color:var(--arch-unknown)}.arch-icon-button{border:1px solid #304256;background:#131d28;color:#aebed0;border-radius:8px;width:31px;height:31px;cursor:pointer}.arch-detail-meta{margin:8px 0 0;color:#70859c;font-size:10px}.arch-detail-body{color:#abbacc;font-size:11px;line-height:1.6}.arch-detail h3{margin:14px 0 6px;color:#7f94aa;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.arch-detail ul{margin:0;padding-left:17px;color:#c3d0df;font-size:10px;line-height:1.55}.arch-detail-scrim{display:none}
-  @media(max-width:980px){.arch-workspace{grid-template-columns:245px 1fr}.arch-header{align-items:flex-start}.arch-header-actions{flex-wrap:wrap;justify-content:flex-end}.arch-title-row{align-items:flex-start;flex-direction:column;gap:4px}.arch-subtitle{max-width:520px}}
-  @media(max-width:760px){.architecture-app{min-height:calc(100dvh - 58px)}.arch-header{padding:9px 10px}.arch-title-row h1{font-size:14px}.arch-subtitle,.arch-count,.arch-link{display:none}.arch-header-actions{gap:4px}.arch-control{min-height:31px;padding:5px 7px;font-size:9px}.arch-workspace{grid-template-columns:1fr}.arch-sidebar{position:absolute;z-index:8;left:8px;bottom:8px;width:min(285px,calc(100% - 16px));max-height:38%;border:1px solid #253649;border-radius:11px;box-shadow:0 16px 60px rgba(0,0,0,.48);background:rgba(12,18,25,.96)}.canonical-card{display:none}.arch-source-card{display:none}.arch-canvas-hint{display:none}.arch-detail{right:8px;top:8px;width:calc(100% - 16px);max-height:58%}.arch-detail-scrim{display:block;position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.18);border:0}}
-  @media(prefers-reduced-motion:reduce){.arch-detail{transition:none}}
-</style>
