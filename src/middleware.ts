@@ -4,6 +4,7 @@ import { createDashboardSession, verifyDashboardSession, dashboardCookieOptions 
 import { isSameOriginRequest, privateHeaders } from './lib/security/request.mjs';
 
 const CANONICAL_HOST = 'masahiroyamada.com';
+const CANONICAL_ORIGIN = `https://${CANONICAL_HOST}`;
 const DASHBOARD_AUTH_BOOTSTRAP_APIS = new Set([
   '/api/dashboard/google-login',
   '/api/dashboard/password-login',
@@ -79,6 +80,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (isPrivate) {
     for (const [name, value] of Object.entries(privateHeaders())) response.headers.set(name, value);
+    return response;
   }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  const isPublicHtml = response.ok && contentType.includes('text/html');
+  if (isPublicHtml) {
+    const canonicalUrl = new URL(pathname, CANONICAL_ORIGIN).toString();
+    response.headers.append('Link', `<${canonicalUrl}>; rel="canonical"`);
+    response.headers.set('Content-Signal', 'search=yes, ai-input=yes, ai-train=no');
+  }
+
   return response;
 });

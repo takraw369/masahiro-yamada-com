@@ -1,0 +1,7 @@
+# MASA / ACE METHOD — crawler policy
+# Public discovery and AI-assisted answers are welcome; model training is not granted here.
+User-agent: *
+Content-signal: search=yes, ai-input=yes, ai-train=no, use=reference
+Allow: /
+
+Sitemap: https://masahiroyamada.com/sitemap.xml
