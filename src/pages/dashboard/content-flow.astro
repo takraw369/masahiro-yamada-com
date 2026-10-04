@@ -280,7 +280,7 @@ const drive = {
   if (resultForm && resultText) resultForm.onsubmit = e => { e.preventDefault(); const value = resultText.value.trim(); if (!value) return; state.results.unshift({text:value,phase:state.phase,at:new Intl.DateTimeFormat('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date())}); state.results = state.results.slice(0,20); resultText.value=''; save(); renderResults(); };
 
   document.querySelectorAll('[data-handoff="post"]').forEach(link => link.addEventListener('click', () => {
-    localStorage.setItem('masa-publishing-handoff-v1', JSON.stringify({phase:state.phase,theme:state.theme,question:state.question,coreId:state.coreId,coreTitle:state.coreTitle,audience:state.audience,channel:channelLabel(),cta:state.cta}));
+    localStorage.setItem('masa-publishing-handoff-v1', JSON.stringify({phase:state.phase,theme:state.theme,question:state.question,coreId:state.coreId,coreTitle:state.coreTitle,audience:state.audience,channel:channelLabel(),cta:state.cta,createdAt:Date.now()}));
   }));
 
   const jsDay = new Date().getDay(); const today = jsDay === 0 ? 6 : jsDay - 1; document.querySelector(`[data-day="${today}"]`)?.classList.add('today');
