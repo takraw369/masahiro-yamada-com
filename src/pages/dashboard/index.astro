@@ -1,6 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import DashboardCockpit from '../../components/dashboard/DashboardCockpit';
+import RevenueMission from '../../components/dashboard/RevenueMission';
 
 const dateLabel = new Intl.DateTimeFormat('ja-JP', {
   timeZone: 'Asia/Tokyo',
@@ -45,6 +46,10 @@ const deepDoors = [
     </header>
 
     <DashboardCockpit client:load />
+
+    <RevenueMission client:only="react">
+      <p slot="fallback">First Product の共有進捗を読み込み中…</p>
+    </RevenueMission>
 
     <section class="flow-section" aria-labelledby="flow-title">
       <div class="section-head">
