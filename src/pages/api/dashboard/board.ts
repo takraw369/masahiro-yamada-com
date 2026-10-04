@@ -1,5 +1,6 @@
 import type { APIContext } from 'astro';
 import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../../lib/siteStorage';
+import { getRevenueMission, RevenueMissionError, validateRevenueBoardUpdate } from '../../../lib/revenueMission';
 
 const MAX_BODY_BYTES = 220_000;
 const SCENE_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
@@ -41,7 +42,9 @@ export const POST = async ({ request, locals }: APIContext) => {
 
   let body: Record<string, unknown>;
   try {
-    body = await request.json();
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).length > MAX_BODY_BYTES) return json({ ok: false, error: 'payload_too_large' }, 413);
+    body = JSON.parse(rawBody);
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid_body');
   } catch {
     return json({ ok: false, error: 'invalid_json' }, 400);
@@ -63,14 +66,35 @@ export const POST = async ({ request, locals }: APIContext) => {
     return json({ ok: false, error: 'snapshot_too_large' }, 413);
   }
 
-  const expectedRevision = typeof body.expectedRevision === 'number' && Number.isFinite(body.expectedRevision)
-    ? Math.max(0, Math.trunc(body.expectedRevision))
+  const expectedRevision = typeof body.expectedRevision === 'number' && Number.isSafeInteger(body.expectedRevision) && body.expectedRevision >= 0
+    ? body.expectedRevision
     : null;
+  if (sceneKey === 'main' && expectedRevision === null) return json({ ok: false, error: 'expected_revision_required' }, 400);
+  if (body.actor !== undefined && (typeof body.actor !== 'string' || !['human', 'ai', 'system'].includes(body.actor))) {
+    return json({ ok: false, error: 'invalid_actor' }, 400);
+  }
   const actor = body.actor === 'ai' || body.actor === 'system' ? body.actor : 'human';
 
   try {
     const env = getSiteStorageEnv(locals);
     const ownerKey = await getDashboardOwnerKey(env);
+    // Read before validating, including removal attempts. The save RPC's revision
+    // check below still protects against another writer between this read and save.
+    const current = sceneKey === 'main'
+      ? await supabaseRpc<{ snapshot: unknown; revision: number }>(env, 'masa_flow_canvas_get_v1', {
+        p_owner_key: ownerKey, p_scene_key: sceneKey,
+      })
+      : { snapshot: { nodes: [], edges: [] }, revision: 0 };
+    if (sceneKey === 'main' && (!current || !Number.isSafeInteger(current.revision) || current.revision < 0)) {
+      throw new Error('invalid_board_read');
+    }
+    if (sceneKey === 'main') {
+      const stored = current.snapshot as Record<string, unknown> | null;
+      if (!stored || !Array.isArray(stored.nodes) || !Array.isArray(stored.edges)) throw new Error('invalid_board_read');
+      try { getRevenueMission(stored); } catch { throw new Error('invalid_stored_mission'); }
+    }
+    if (sceneKey === 'main' && current.revision !== expectedRevision) return json({ ok: false, error: 'revision_conflict' }, 409);
+    validateRevenueBoardUpdate(current.snapshot, snapshot, { sceneKey, actor: body.actor });
     const data = await supabaseRpc(env, 'masa_flow_canvas_save_v1', {
       p_owner_key: ownerKey,
       p_scene_key: sceneKey,
@@ -80,6 +104,7 @@ export const POST = async ({ request, locals }: APIContext) => {
     });
     return json({ ok: true, data });
   } catch (error) {
+    if (error instanceof RevenueMissionError) return json({ ok: false, error: error.message }, 400);
     const message = String(error);
     if (message.includes('revision_conflict')) {
       return json({ ok: false, error: 'revision_conflict' }, 409);
