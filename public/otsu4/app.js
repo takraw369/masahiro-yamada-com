@@ -11,6 +11,17 @@
     practical: { label: "鑑別・記述", subject: "practical" }
   };
   const SUBJECTS = { law: "法令", electric: "電気基礎", structure: "構造・機能等", practical: "鑑別等" };
+  const RELATED_CONCEPT_GROUPS = [
+    ["甲種と乙種","第4類の対象","講習の趣旨"],
+    ["型式検定","法令改正と既設","維持責任","点検と報告"],
+    ["複合用途","警戒区域面積","警戒区域の辺","警戒区域の例外","区域の二条件"],
+    ["オームの法則","直列抵抗","並列抵抗","並列回路の電圧","並列と電流","電力計算"],
+    ["差動式熱感知","定温式熱感知","リーク孔","バイメタル","空気室とダイヤフラム","作動原理の比較","差動式の記述","定温式の記述","リーク孔の名称"],
+    ["光電式スポット型","光電式分離型","煙と熱の比較","光電式の記述"],
+    ["P型受信機","R型受信機","G型受信機","受信機の記述"],
+    ["発信機","手動発報の名称","終端抵抗","終端の名称","断線判定","点検の初動"],
+    ["連動の流れ","地区音響装置","非常電源"]
+  ];
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
@@ -171,7 +182,7 @@
     $("#feedback-verdict").textContent = row.correct ? "○ 正解" : `× 正解：${q.category === "practical" ? q.expected : q.choices[q.answer]}`;
     $("#feedback-verdict").className = `feedback-verdict ${row.correct ? "ok" : "ng"}`;
     $("#feedback-explanation").textContent = q.explanation;
-    $("#choice-explanations").innerHTML = choiceExplanations(q, row);
+    $("#choice-explanations").innerHTML = choiceExplanations(q, row) + relatedConcepts(q);
     $("#feedback-source").href = q.source.url;
     $("#feedback-source").textContent = q.source.label;
   }
@@ -181,6 +192,26 @@
       const result = index === q.answer ? "正解" : "違う理由";
       const selected = row?.choice === index ? "・自分の回答" : "";
       return `<li class="${index === q.answer ? "right" : ""}"><strong>${"ABCD"[index]}｜${escapeHtml(label)} <small>（${result}${selected}）</small></strong><p>${escapeHtml(q.choiceNotes[index])}</p></li>`;
+    }).join("")}</ol>`;
+  }
+  function relatedConcepts(q) {
+    const group = RELATED_CONCEPT_GROUPS.find((concepts) => concepts.includes(q.concept)) || [];
+    const candidates = OTSU4_QUESTIONS.filter((item) => item.id !== q.id && subject(item) === subject(q));
+    const ranked = [
+      ...candidates.filter((item) => group.includes(item.concept)),
+      ...candidates.filter((item) => !group.includes(item.concept))
+    ].sort((a,b) => Number(weak(b)) - Number(weak(a)) || Number(attempts(a) === 0) - Number(attempts(b) === 0) || score(b) - score(a));
+    const seen = new Set();
+    const related = ranked.filter((item) => {
+      if (seen.has(item.concept)) return false;
+      seen.add(item.concept);
+      return true;
+    }).slice(0,3);
+    if (!related.length) return "";
+    return `<h3>次につなぐ関連論点</h3><ol class="choice-reasons related-concepts">${related.map((item) => {
+      const stateLabel = weak(item) ? "弱点・優先" : attempts(item) === 0 ? "未出" : mastered(item) ? "定着確認" : "再確認";
+      const relation = group.includes(item.concept) ? "対になる論点" : "同じ科目の次候補";
+      return `<li><strong>${escapeHtml(item.concept)} <small>（${stateLabel}）</small></strong><p>${relation}。次の自動出題でも弱点・未出を優先します。</p></li>`;
     }).join("")}</ol>`;
   }
   function answer(choice, written = "") {
