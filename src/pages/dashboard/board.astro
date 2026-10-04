@@ -15,6 +15,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       <div class="actions">
         <button id="add-node" type="button">＋ ノード</button>
         <button id="connect" type="button">↗ つなぐ</button>
+        <button id="edit-selected" type="button" disabled>編集</button>
         <button id="delete-selected" type="button" disabled>削除</button>
         <button id="zoom-out" type="button" aria-label="縮小">−</button>
         <button id="zoom-in" type="button" aria-label="拡大">＋</button>
@@ -24,9 +25,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     </header>
 
     <div class="hint-bar">
-      <span>ノードをドラッグ</span>
-      <span>空白をドラッグで移動</span>
-      <span>ノードをダブルタップ/ダブルクリックで編集</span>
+      <span>ノードをタップして選択</span>
+      <span>ドラッグで移動</span>
+      <span>空白をドラッグで盤面移動</span>
+      <span>「編集」でタイトル・メモ変更</span>
       <span id="mode-hint">通常モード</span>
     </div>
 
@@ -100,6 +102,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const edgesEl = document.querySelector<SVGSVGElement>('#edges')!;
     const statusEl = document.querySelector<HTMLElement>('#sync-status')!;
     const modeHint = document.querySelector<HTMLElement>('#mode-hint')!;
+    const editBtn = document.querySelector<HTMLButtonElement>('#edit-selected')!;
     const deleteBtn = document.querySelector<HTMLButtonElement>('#delete-selected')!;
     const connectBtn = document.querySelector<HTMLButtonElement>('#connect')!;
 
@@ -177,6 +180,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         bindNodeEvents(el, node);
         nodesEl.appendChild(el);
       }
+      editBtn.disabled = !selectedId;
       deleteBtn.disabled = !selectedId;
       renderEdges();
     }
@@ -330,6 +334,11 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const active = connectBtn.classList.toggle('active');
       modeHint.textContent = active ? '接続元ノードを選択' : '通常モード';
       renderNodes();
+    });
+    editBtn.addEventListener('click', () => {
+      if (!selectedId) return;
+      const node = snapshot.nodes.find(n => n.id === selectedId);
+      if (node) editNode(node);
     });
     deleteBtn.addEventListener('click', () => {
       if (!selectedId) return;
