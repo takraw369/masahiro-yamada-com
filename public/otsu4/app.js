@@ -200,7 +200,10 @@
     const ranked = [
       ...candidates.filter((item) => group.includes(item.concept)),
       ...candidates.filter((item) => !group.includes(item.concept))
-    ].sort((a,b) => Number(weak(b)) - Number(weak(a)) || Number(attempts(a) === 0) - Number(attempts(b) === 0) || score(b) - score(a));
+    ].sort((a,b) => Number(group.includes(b.concept)) - Number(group.includes(a.concept))
+      || Number(weak(b)) - Number(weak(a))
+      || Number(attempts(b) === 0) - Number(attempts(a) === 0)
+      || score(b) - score(a));
     const seen = new Set();
     const related = ranked.filter((item) => {
       if (seen.has(item.concept)) return false;
