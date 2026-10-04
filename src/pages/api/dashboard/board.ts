@@ -1,6 +1,7 @@
 import type { APIContext } from 'astro';
 import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../../lib/siteStorage';
 import { getRevenueMission, RevenueMissionError, validateRevenueBoardUpdate } from '../../../lib/revenueMission';
+import { CRM_SCENE_KEY, createCrmSnapshot, validateCrmBoardSnapshot } from '../../../lib/crm';
 
 const MAX_BODY_BYTES = 220_000;
 const SCENE_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
@@ -18,6 +19,10 @@ function sceneKeyFrom(request: Request) {
   return (url.searchParams.get('scene') || 'main').trim().toLowerCase();
 }
 
+function revisionGuarded(sceneKey: string) {
+  return sceneKey === 'main' || sceneKey === CRM_SCENE_KEY;
+}
+
 export const GET = async ({ request, locals }: APIContext) => {
   const sceneKey = sceneKeyFrom(request);
   if (!SCENE_RE.test(sceneKey)) return json({ ok: false, error: 'invalid_scene_key' }, 400);
@@ -25,10 +30,15 @@ export const GET = async ({ request, locals }: APIContext) => {
   try {
     const env = getSiteStorageEnv(locals);
     const ownerKey = await getDashboardOwnerKey(env);
-    const data = await supabaseRpc(env, 'masa_flow_canvas_get_v1', {
+    const data = await supabaseRpc<{ snapshot: unknown; revision: number }>(env, 'masa_flow_canvas_get_v1', {
       p_owner_key: ownerKey,
       p_scene_key: sceneKey,
     });
+    if (sceneKey === CRM_SCENE_KEY) {
+      if (!data || !Number.isSafeInteger(data.revision) || data.revision < 0) throw new Error('invalid_crm_board_read');
+      if (data.revision === 0 && (!data.snapshot || typeof data.snapshot !== 'object')) data.snapshot = createCrmSnapshot();
+      try { validateCrmBoardSnapshot(data.snapshot); } catch { throw new Error('invalid_crm_board_read'); }
+    }
     return json({ ok: true, data });
   } catch (error) {
     console.error('flow_canvas_get_failed', error);
@@ -69,7 +79,7 @@ export const POST = async ({ request, locals }: APIContext) => {
   const expectedRevision = typeof body.expectedRevision === 'number' && Number.isSafeInteger(body.expectedRevision) && body.expectedRevision >= 0
     ? body.expectedRevision
     : null;
-  if (sceneKey === 'main' && expectedRevision === null) return json({ ok: false, error: 'expected_revision_required' }, 400);
+  if (revisionGuarded(sceneKey) && expectedRevision === null) return json({ ok: false, error: 'expected_revision_required' }, 400);
   if (body.actor !== undefined && (typeof body.actor !== 'string' || !['human', 'ai', 'system'].includes(body.actor))) {
     return json({ ok: false, error: 'invalid_actor' }, 400);
   }
@@ -78,14 +88,14 @@ export const POST = async ({ request, locals }: APIContext) => {
   try {
     const env = getSiteStorageEnv(locals);
     const ownerKey = await getDashboardOwnerKey(env);
-    // Read before validating, including removal attempts. The save RPC's revision
-    // check below still protects against another writer between this read and save.
-    const current = sceneKey === 'main'
+    // Guarded scenes read before validating. The save RPC's revision check below
+    // still protects against another writer between this read and save.
+    const current = revisionGuarded(sceneKey)
       ? await supabaseRpc<{ snapshot: unknown; revision: number }>(env, 'masa_flow_canvas_get_v1', {
         p_owner_key: ownerKey, p_scene_key: sceneKey,
       })
       : { snapshot: { nodes: [], edges: [] }, revision: 0 };
-    if (sceneKey === 'main' && (!current || !Number.isSafeInteger(current.revision) || current.revision < 0)) {
+    if (revisionGuarded(sceneKey) && (!current || !Number.isSafeInteger(current.revision) || current.revision < 0)) {
       throw new Error('invalid_board_read');
     }
     if (sceneKey === 'main') {
@@ -93,8 +103,12 @@ export const POST = async ({ request, locals }: APIContext) => {
       if (!stored || !Array.isArray(stored.nodes) || !Array.isArray(stored.edges)) throw new Error('invalid_board_read');
       try { getRevenueMission(stored); } catch { throw new Error('invalid_stored_mission'); }
     }
-    if (sceneKey === 'main' && current.revision !== expectedRevision) return json({ ok: false, error: 'revision_conflict' }, 409);
+    if (sceneKey === CRM_SCENE_KEY) {
+      try { validateCrmBoardSnapshot(current.snapshot); } catch { throw new Error('invalid_stored_crm'); }
+    }
+    if (revisionGuarded(sceneKey) && current.revision !== expectedRevision) return json({ ok: false, error: 'revision_conflict' }, 409);
     validateRevenueBoardUpdate(current.snapshot, snapshot, { sceneKey, actor: body.actor });
+    if (sceneKey === CRM_SCENE_KEY) validateCrmBoardSnapshot(snapshot);
     const data = await supabaseRpc(env, 'masa_flow_canvas_save_v1', {
       p_owner_key: ownerKey,
       p_scene_key: sceneKey,
@@ -105,7 +119,8 @@ export const POST = async ({ request, locals }: APIContext) => {
     return json({ ok: true, data });
   } catch (error) {
     if (error instanceof RevenueMissionError) return json({ ok: false, error: error.message }, 400);
-    const message = String(error);
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.startsWith('crm_')) return json({ ok: false, error: message }, 400);
     if (message.includes('revision_conflict')) {
       return json({ ok: false, error: 'revision_conflict' }, 409);
     }
