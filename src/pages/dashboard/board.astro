@@ -5,445 +5,339 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 <DashboardLayout title="FLOW Board" fullHeight={true}>
   <div class="board-app">
     <header class="board-bar">
-      <div>
-        <p class="eyebrow">FLOW VISUAL BRAIN · SHARED CANVAS</p>
+      <div class="board-heading">
+        <p class="eyebrow">FLOW VISUAL BRAIN · FREEFORM × MIND MAP × AI</p>
         <div class="title-row">
-          <h1>触って考える。AIとも同じ盤面を見る。</h1>
+          <h1>考える前に置く。必要になったら構造化する。</h1>
           <span id="sync-status" class="status">読み込み中…</span>
+          <span id="selection-label" class="selection-label">未選択</span>
         </div>
       </div>
-      <div class="actions">
-        <a href="/dashboard#revenue-mission">商品準備 / Revenue</a>
-        <button id="add-node" type="button">＋ ノード</button>
-        <button id="connect" type="button">↗ つなぐ</button>
-        <button id="edit-selected" type="button" disabled>編集</button>
-        <button id="delete-selected" type="button" disabled>削除</button>
-        <button id="zoom-out" type="button" aria-label="縮小">−</button>
-        <button id="zoom-in" type="button" aria-label="拡大">＋</button>
-        <button id="reset-view" type="button">全体</button>
-        <button id="save" type="button" class="primary" disabled>保存</button>
+
+      <div class="toolbar" aria-label="Board tools">
+        <div class="tool-group tool-create">
+          <button id="add-node" type="button">＋ 付箋</button>
+          <button id="add-text" type="button">T テキスト</button>
+          <button id="add-frame" type="button">□ Frame</button>
+        </div>
+        <div class="tool-group">
+          <button id="visual-connect" type="button" title="意味を持たない自由な線">／ 線</button>
+          <button id="semantic-connect" type="button" title="AIも意味として読む関係線">↗ 意味線</button>
+          <button id="mindmap-layout" type="button" disabled>枝を整列</button>
+        </div>
+        <div class="tool-group">
+          <button id="edit-selected" type="button" disabled>編集</button>
+          <button id="duplicate-selected" type="button" disabled>複製</button>
+          <button id="delete-selected" type="button" disabled>削除</button>
+        </div>
+        <div class="tool-group">
+          <button id="undo" type="button" disabled aria-label="元に戻す">↶</button>
+          <button id="redo" type="button" disabled aria-label="やり直す">↷</button>
+          <button id="zoom-out" type="button" aria-label="縮小">−</button>
+          <button id="zoom-in" type="button" aria-label="拡大">＋</button>
+          <button id="reset-view" type="button">全体</button>
+        </div>
+        <div class="tool-group">
+          <a href="/dashboard#revenue-mission">商品準備</a>
+          <button id="save" type="button" class="primary" disabled>保存</button>
+        </div>
       </div>
     </header>
 
     <div class="hint-bar">
-      <span>ノードをタップして選択</span>
-      <span>ドラッグで移動</span>
-      <span>空白をドラッグで盤面移動</span>
-      <span>「編集」でタイトル・メモ変更</span>
+      <span><b>ダブルクリック</b> 空白→自由テキスト</span>
+      <span><b>Tab</b> 子ノード</span>
+      <span><b>Enter</b> 兄弟ノード</span>
+      <span><b>Shift+クリック</b> 複数選択</span>
+      <span><b>Shift+空白ドラッグ</b> 範囲選択</span>
+      <span><b>⌘/Ctrl+D</b> 複製</span>
+      <span><b>⌘/Ctrl+Z</b> Undo</span>
       <span id="mode-hint">通常モード</span>
     </div>
 
-    <main id="canvas" class="canvas" aria-label="FLOW editable canvas">
+    <main id="canvas" class="canvas" aria-label="FLOW freeform editable canvas">
       <div id="world" class="world">
-        <svg id="edges" class="edges" width="4000" height="2600" viewBox="0 0 4000 2600" aria-hidden="true"></svg>
+        <svg id="edges" class="edges" aria-hidden="true"></svg>
         <div id="nodes" class="nodes"></div>
       </div>
-      <div class="corner-help">保存先: Supabase / scene: main</div>
+      <div id="marquee" class="marquee" hidden></div>
+      <div class="corner-help">
+        <span>空白ドラッグ＝移動</span>
+        <span>ホイール＝ズーム</span>
+        <span>右下ハンドル＝リサイズ</span>
+        <strong>Supabase · scene: main</strong>
+      </div>
     </main>
   </div>
 
   <script>
-    import { createFlowBoardSnapshot, type BoardNode, type BoardSnapshot } from '../../lib/flowBoard';
-    import { getRevenueMission, getRevenueReadiness, REVENUE_NODE_ID } from '../../lib/revenueMission';
-
-    let snapshot: BoardSnapshot = createFlowBoardSnapshot();
-    let revision = 0;
-    let selectedId: string | null = null;
-    let connectSource: string | null = null;
-    let dirty = false;
-    let saveTimer: number | null = null;
-    let loaded = false;
-    let saving = false;
-
-    const canvas = document.querySelector<HTMLElement>('#canvas')!;
-    const world = document.querySelector<HTMLElement>('#world')!;
-    const nodesEl = document.querySelector<HTMLElement>('#nodes')!;
-    const edgesEl = document.querySelector<SVGSVGElement>('#edges')!;
-    const statusEl = document.querySelector<HTMLElement>('#sync-status')!;
-    const modeHint = document.querySelector<HTMLElement>('#mode-hint')!;
-    const editBtn = document.querySelector<HTMLButtonElement>('#edit-selected')!;
-    const deleteBtn = document.querySelector<HTMLButtonElement>('#delete-selected')!;
-    const connectBtn = document.querySelector<HTMLButtonElement>('#connect')!;
-    const saveBtn = document.querySelector<HTMLButtonElement>('#save')!;
-
-    const kindColor: Record<string,string> = {
-      CONTROL:'#59636e', KNOWLEDGE:'#7c5ce1', HUMAN:'#157a70', OUTPUT:'#2f6fb7',
-      BUSINESS:'#a85b19', ACTION:'#b64444', LIFE:'#a64378', PRINCIPLE:'#7352a8', NOTE:'#6c7480'
-    };
-
-    function uid(prefix: string) {
-      return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;
-    }
-
-    function setStatus(text: string, state = '') {
-      statusEl.textContent = text;
-      statusEl.dataset.state = state;
-    }
-
-    function applyViewport() {
-      const v = snapshot.viewport;
-      world.style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.zoom})`;
-    }
-
-    function markDirty() {
-      if (!loaded) return;
-      dirty = true;
-      setStatus('未保存', 'dirty');
-      if (saveTimer) window.clearTimeout(saveTimer);
-      saveTimer = window.setTimeout(() => saveBoard(), 900);
-    }
-
-    function nodeCenter(node: BoardNode) {
-      return { x: node.x + (node.w || 210)/2, y: node.y + (node.h || 100)/2 };
-    }
-
-    function renderEdges() {
-      edgesEl.innerHTML = `
-        <defs>
-          <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
-            <path d="M0,0 L7,3.5 L0,7 Z" fill="#8b929a"></path>
-          </marker>
-        </defs>`;
-      for (const edge of snapshot.edges) {
-        const a = snapshot.nodes.find(n => n.id === edge.source);
-        const b = snapshot.nodes.find(n => n.id === edge.target);
-        if (!a || !b) continue;
-        const p1 = nodeCenter(a), p2 = nodeCenter(b);
-        const midX = (p1.x + p2.x)/2;
-        const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-        path.setAttribute('d', `M ${p1.x} ${p1.y} C ${midX} ${p1.y}, ${midX} ${p2.y}, ${p2.x} ${p2.y}`);
-        path.setAttribute('class','edge-path');
-        path.setAttribute('marker-end','url(#arrow)');
-        edgesEl.appendChild(path);
-
-        const label = document.createElementNS('http://www.w3.org/2000/svg','text');
-        label.setAttribute('x', String(midX));
-        label.setAttribute('y', String((p1.y+p2.y)/2 - 8));
-        label.setAttribute('class','edge-label');
-        label.textContent = edge.relation;
-        edgesEl.appendChild(label);
-      }
-    }
-
-    function renderNodes() {
-      nodesEl.innerHTML = '';
-      for (const node of snapshot.nodes) {
-        const el = document.createElement('button');
-        el.type = 'button';
-        el.className = `node-card${selectedId === node.id ? ' selected' : ''}${connectSource === node.id ? ' connect-source' : ''}`;
-        el.dataset.id = node.id;
-        el.style.left = `${node.x}px`;
-        el.style.top = `${node.y}px`;
-        el.style.width = `${node.w || 210}px`;
-        el.style.minHeight = `${node.h || 100}px`;
-        el.style.setProperty('--node-color', kindColor[node.kind || 'NOTE'] || kindColor.NOTE);
-        let label = node.label, note = node.note || '';
-        if (node.id === REVENUE_NODE_ID) {
-          const mission = getRevenueMission(snapshot);
-          if (mission) {
-            const ready = getRevenueReadiness(mission);
-            label = `REVENUE MISSION · ${mission.state}`;
-            note = `${mission.title} · READY ${ready.complete}/${ready.total} · 次: ${ready.nextAction}`;
-          }
-        }
-        el.innerHTML = `<span class="node-kind">${escapeHtml(node.kind || 'NOTE')}</span><strong>${escapeHtml(label)}</strong><small>${escapeHtml(note)}</small>`;
-        bindNodeEvents(el, node);
-        nodesEl.appendChild(el);
-      }
-      editBtn.disabled = !selectedId;
-      deleteBtn.disabled = !selectedId || selectedId === REVENUE_NODE_ID;
-      renderEdges();
-    }
-
-    function escapeHtml(value: string) {
-      return value.replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char] || char));
-    }
-
-    function selectNode(id: string | null) {
-      selectedId = id;
-      renderNodes();
-    }
-
-    function bindNodeEvents(el: HTMLButtonElement, node: BoardNode) {
-      let dragging = false;
-      let startX = 0, startY = 0, originX = 0, originY = 0;
-
-      el.addEventListener('pointerdown', (event) => {
-        event.stopPropagation();
-        if (connectSource) return;
-        selectNode(node.id);
-        dragging = true;
-        startX = event.clientX;
-        startY = event.clientY;
-        originX = node.x;
-        originY = node.y;
-        el.setPointerCapture(event.pointerId);
-      });
-      el.addEventListener('pointermove', (event) => {
-        if (!dragging) return;
-        node.x = Math.round(originX + (event.clientX - startX)/snapshot.viewport.zoom);
-        node.y = Math.round(originY + (event.clientY - startY)/snapshot.viewport.zoom);
-        el.style.left = `${node.x}px`;
-        el.style.top = `${node.y}px`;
-        renderEdges();
-      });
-      el.addEventListener('pointerup', () => {
-        if (!dragging) return;
-        dragging = false;
-        markDirty();
-      });
-      el.addEventListener('click', (event) => {
-        event.stopPropagation();
-        if (!connectBtn.classList.contains('active')) return;
-        if (!connectSource) {
-          connectSource = node.id;
-          modeHint.textContent = `${node.label} → 接続先を選択`;
-          renderNodes();
-          return;
-        }
-        if (connectSource === node.id) return;
-        const source = connectSource;
-        const relation = window.prompt('関係名（例: supports / feeds / monetizes / next_step_of）', 'supports')?.trim();
-        if (relation) {
-          snapshot.edges.push({ id: uid('E'), source, target: node.id, relation, state:'HUMAN_CONFIRMED' });
-          markDirty();
-        }
-        connectSource = null;
-        connectBtn.classList.remove('active');
-        modeHint.textContent = '通常モード';
-        renderNodes();
-      });
-      el.addEventListener('dblclick', (event) => {
-        event.stopPropagation();
-        editNode(node);
-      });
-    }
-
-    function editNode(node: BoardNode) {
-      if (node.id === REVENUE_NODE_ID) {
-        window.location.href = '/dashboard#revenue-mission';
-        return;
-      }
-      const label = window.prompt('タイトル', node.label);
-      if (label === null) return;
-      const note = window.prompt('メモ', node.note || '');
-      if (note === null) return;
-      const kind = window.prompt('種類', node.kind || 'NOTE');
-      if (kind === null) return;
-      node.label = label.trim() || node.label;
-      node.note = note.trim();
-      node.kind = kind.trim().toUpperCase() || 'NOTE';
-      renderNodes();
-      markDirty();
-    }
-
-    async function loadBoard() {
-      setStatus('読み込み中…');
-      loaded = false;
-      saveBtn.disabled = true;
-      try {
-        const res = await fetch('/api/dashboard/board?scene=main', { headers: { Accept:'application/json' } });
-        const payload = await res.json();
-        if (!res.ok || !payload.ok) throw new Error(payload.error || 'read_failed');
-        const data = payload.data || {};
-        if (!Number.isSafeInteger(data.revision) || data.revision < 0 || !Array.isArray(data.snapshot?.nodes) || !Array.isArray(data.snapshot?.edges)) throw new Error('invalid_board_read');
-        revision = data.revision;
-        if (revision > 0 && data.snapshot?.nodes && data.snapshot?.edges) {
-          snapshot = data.snapshot;
-          snapshot.viewport ||= { x:80, y:60, zoom:.78 };
-        } else {
-          snapshot = createFlowBoardSnapshot();
-        }
-        dirty = false;
-        selectedId = null;
-        getRevenueMission(snapshot);
-        if (new URLSearchParams(window.location.search).get('mission') === 'revenue') {
-          const node = snapshot.nodes.find(item => item.id === REVENUE_NODE_ID);
-          if (node) {
-            selectedId = node.id;
-            const zoom = Math.min(1, canvas.clientWidth / 420);
-            snapshot.viewport = { x: canvas.clientWidth / 2 - (node.x + (node.w || 270) / 2) * zoom, y: 90 - node.y * zoom, zoom };
-            modeHint.textContent = 'Revenue の準備・証跡は「商品準備」で編集';
-          } else modeHint.textContent = 'Revenue は未保存です。「商品準備」から最初の素材を登録';
-        }
-        applyViewport();
-        renderNodes();
-        loaded = true;
-        saveBtn.disabled = false;
-        setStatus(revision ? `同期済 · r${revision}` : '初期ボード · 未保存', revision ? 'ok' : 'dirty');
-      } catch (error) {
-        console.error(error);
-        snapshot = createFlowBoardSnapshot();
-        applyViewport();
-        renderNodes();
-        setStatus('読み込み失敗', 'error');
-      }
-    }
-
-    async function saveBoard() {
-      if (!loaded || saving) return;
-      if (!dirty && revision > 0) return;
-      if (saveTimer) { window.clearTimeout(saveTimer); saveTimer = null; }
-      setStatus('保存中…');
-      saving = true;
-      saveBtn.disabled = true;
-      const sentSnapshot = JSON.stringify(snapshot);
-      try {
-        const res = await fetch('/api/dashboard/board', {
-          method:'POST',
-          headers:{ 'Content-Type':'application/json', Accept:'application/json' },
-          body: JSON.stringify({ sceneKey:'main', snapshot, expectedRevision: revision, actor:'human' }),
-        });
-        const payload = await res.json();
-        if (res.status === 409) {
-          loaded = false;
-          setStatus('競合あり · 再読込', 'error');
-          return;
-        }
-        if (!res.ok || !payload.ok) throw new Error(payload.error || 'save_failed');
-        if (!Number.isSafeInteger(payload.data?.revision) || payload.data.revision <= revision) throw new Error('invalid_save_receipt');
-        revision = payload.data.revision;
-        dirty = JSON.stringify(snapshot) !== sentSnapshot;
-        if (dirty) markDirty();
-        else setStatus(`同期済 · r${revision}`, 'ok');
-      } catch (error) {
-        console.error(error);
-        setStatus('保存失敗', 'error');
-      } finally {
-        saving = false;
-        saveBtn.disabled = !loaded;
-      }
-    }
-
-    document.querySelector('#save')?.addEventListener('click', () => saveBoard());
-    document.querySelector('#add-node')?.addEventListener('click', () => {
-      const label = window.prompt('新しいノード名');
-      if (!label?.trim()) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = (rect.width/2 - snapshot.viewport.x)/snapshot.viewport.zoom - 105;
-      const y = (rect.height/2 - snapshot.viewport.y)/snapshot.viewport.zoom - 50;
-      const node: BoardNode = { id:uid('N'), label:label.trim(), note:'', kind:'NOTE', x:Math.round(x), y:Math.round(y), provenance:'human' };
-      snapshot.nodes.push(node);
-      selectedId = node.id;
-      renderNodes();
-      markDirty();
-    });
-    connectBtn.addEventListener('click', () => {
-      connectSource = null;
-      const active = connectBtn.classList.toggle('active');
-      modeHint.textContent = active ? '接続元ノードを選択' : '通常モード';
-      renderNodes();
-    });
-    editBtn.addEventListener('click', () => {
-      if (!selectedId) return;
-      const node = snapshot.nodes.find(n => n.id === selectedId);
-      if (node) editNode(node);
-    });
-    deleteBtn.addEventListener('click', () => {
-      if (!selectedId || selectedId === REVENUE_NODE_ID) return;
-      const node = snapshot.nodes.find(n => n.id === selectedId);
-      if (!node || !window.confirm(`「${node.label}」を削除しますか？`)) return;
-      snapshot.nodes = snapshot.nodes.filter(n => n.id !== selectedId);
-      snapshot.edges = snapshot.edges.filter(e => e.source !== selectedId && e.target !== selectedId);
-      selectedId = null;
-      renderNodes();
-      markDirty();
-    });
-
-    function zoomBy(multiplier: number) {
-      snapshot.viewport.zoom = Math.max(.25, Math.min(2.2, snapshot.viewport.zoom * multiplier));
-      applyViewport();
-      markDirty();
-    }
-    document.querySelector('#zoom-in')?.addEventListener('click', () => zoomBy(1.15));
-    document.querySelector('#zoom-out')?.addEventListener('click', () => zoomBy(1/1.15));
-    document.querySelector('#reset-view')?.addEventListener('click', () => {
-      snapshot.viewport = { x:80, y:60, zoom:.78 };
-      applyViewport();
-      markDirty();
-    });
-
-    let panning = false, panX = 0, panY = 0, baseX = 0, baseY = 0;
-    canvas.addEventListener('pointerdown', (event) => {
-      if ((event.target as HTMLElement).closest('.node-card')) return;
-      panning = true;
-      panX = event.clientX; panY = event.clientY;
-      baseX = snapshot.viewport.x; baseY = snapshot.viewport.y;
-      canvas.setPointerCapture(event.pointerId);
-      selectNode(null);
-    });
-    canvas.addEventListener('pointermove', (event) => {
-      if (!panning) return;
-      snapshot.viewport.x = baseX + event.clientX - panX;
-      snapshot.viewport.y = baseY + event.clientY - panY;
-      applyViewport();
-    });
-    canvas.addEventListener('pointerup', () => {
-      if (!panning) return;
-      panning = false;
-      markDirty();
-    });
-    canvas.addEventListener('wheel', (event) => {
-      event.preventDefault();
-      zoomBy(event.deltaY < 0 ? 1.08 : 1/1.08);
-    }, { passive:false });
-
-    window.addEventListener('beforeunload', (event) => {
-      if (!dirty) return;
-      event.preventDefault();
-    });
-
-    loadBoard();
+    import { initFlowBoardEditor } from '../../lib/flowBoardEditor';
+    initFlowBoardEditor();
   </script>
 
   <style>
-    .board-app { height: calc(100vh - 66px); min-height: 680px; display:grid; grid-template-rows:auto auto minmax(0,1fr); background:#f3f1ed; }
-    .board-bar { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:16px 20px; border-bottom:1px solid #d9d4cc; background:#fbfaf8; }
-    .eyebrow { color:#8b5b2c; font-size:.66rem; font-weight:700; letter-spacing:.13em; }
-    .title-row { margin-top:3px; display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
-    h1 { font-size:1.08rem; line-height:1.3; }
-    .status { padding:4px 8px; border:1px solid #d2ccc3; background:#fff; color:#707782; font-size:.65rem; }
+    .board-app {
+      height: calc(100vh - 66px);
+      min-height: 680px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      background: #f3f1ed;
+    }
+    .board-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 13px 16px;
+      border-bottom: 1px solid #d9d4cc;
+      background: #fbfaf8;
+    }
+    .board-heading { min-width: 250px; padding-top: 2px; }
+    .eyebrow { color:#8b5b2c; font-size:.62rem; font-weight:700; letter-spacing:.12em; }
+    .title-row { margin-top:3px; display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+    h1 { font-size:1rem; line-height:1.3; }
+    .status,.selection-label {
+      padding:4px 8px;
+      border:1px solid #d2ccc3;
+      border-radius:999px;
+      background:#fff;
+      color:#707782;
+      font-size:.61rem;
+      white-space:nowrap;
+    }
+    .selection-label { color:#66584a; background:#f8f5ef; }
     .status[data-state="ok"] { color:#147450; border-color:#b7d8ca; background:#f0faf5; }
     .status[data-state="dirty"] { color:#9a6115; border-color:#e0c79f; background:#fff8eb; }
     .status[data-state="error"] { color:#9f3434; border-color:#e0b9b9; background:#fff2f2; }
-    .actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
-    .actions button,.actions a { min-height:38px; padding:0 10px; border:1px solid #cbc5bc; background:#fff; color:#515b65; cursor:pointer; font-size:.7rem; border-radius:8px; }
-    .actions a { display:inline-flex; align-items:center; text-decoration:none; }
-    .actions button:hover, .actions button.active { border-color:#a56c22; color:#754a16; background:#faf2e6; }
-    .actions button.primary { background:#81551f; color:#fff; border-color:#81551f; font-weight:700; }
-    .actions button:disabled { opacity:.42; cursor:default; }
-    .hint-bar { min-height:36px; display:flex; align-items:center; gap:14px; padding:5px 20px; overflow-x:auto; border-bottom:1px solid #ddd8d0; color:#7a818a; background:#fff; font-size:.64rem; white-space:nowrap; }
+
+    .toolbar {
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      gap:7px;
+      max-width: 940px;
+    }
+    .tool-group {
+      display:flex;
+      align-items:center;
+      gap:4px;
+      padding-right:7px;
+      border-right:1px solid #e1ddd6;
+    }
+    .tool-group:last-child { border-right:0; padding-right:0; }
+    .toolbar button,.toolbar a {
+      min-height:34px;
+      padding:0 9px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #cbc5bc;
+      border-radius:8px;
+      background:#fff;
+      color:#515b65;
+      cursor:pointer;
+      font-size:.66rem;
+      text-decoration:none;
+      white-space:nowrap;
+    }
+    .toolbar button:hover,.toolbar button.active,.toolbar a:hover {
+      border-color:#a56c22;
+      color:#754a16;
+      background:#faf2e6;
+    }
+    .toolbar button.primary { background:#81551f; color:#fff; border-color:#81551f; font-weight:700; }
+    .toolbar button:disabled { opacity:.38; cursor:default; }
+
+    .hint-bar {
+      min-height:34px;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:5px 16px;
+      overflow-x:auto;
+      border-bottom:1px solid #ddd8d0;
+      color:#7a818a;
+      background:#fff;
+      font-size:.61rem;
+      white-space:nowrap;
+      scrollbar-width:thin;
+    }
+    .hint-bar b { color:#5b626a; }
     #mode-hint { color:#81551f; font-weight:700; }
-    .canvas { position:relative; overflow:hidden; min-height:0; touch-action:none; background-color:#f7f5f1; background-image:radial-gradient(#cfc9c0 1px, transparent 1px); background-size:24px 24px; cursor:grab; }
+
+    .canvas {
+      position:relative;
+      overflow:hidden;
+      min-height:0;
+      touch-action:none;
+      background-color:#f7f5f1;
+      background-image:radial-gradient(#cec8bf 1px, transparent 1px);
+      background-size:24px 24px;
+      cursor:grab;
+    }
     .canvas:active { cursor:grabbing; }
-    .world { position:absolute; inset:0 auto auto 0; width:4000px; height:2600px; transform-origin:0 0; will-change:transform; }
-    .edges, .nodes { position:absolute; inset:0; width:4000px; height:2600px; }
-    .edges { overflow:visible; pointer-events:none; }
-    :global(.edge-path) { fill:none; stroke:#9ca2a8; stroke-width:2; opacity:.75; }
-    :global(.edge-label) { fill:#777e86; font-size:12px; text-anchor:middle; paint-order:stroke; stroke:#f7f5f1; stroke-width:5px; stroke-linejoin:round; }
-    .node-card { position:absolute; z-index:2; display:flex; flex-direction:column; align-items:flex-start; gap:7px; padding:14px 15px; border:1px solid #d7d1c8; border-left:5px solid var(--node-color); border-radius:14px; background:rgba(255,255,255,.96); color:#22272d; text-align:left; box-shadow:0 7px 20px rgba(46,39,31,.08); cursor:grab; touch-action:none; user-select:none; }
+    .world {
+      position:absolute;
+      inset:0 auto auto 0;
+      transform-origin:0 0;
+      will-change:transform;
+    }
+    .edges,.nodes { position:absolute; inset:0; }
+    .edges { z-index:1; overflow:visible; pointer-events:none; }
+    .nodes { z-index:2; }
+
+    :global(.edge-path) { fill:none; stroke-width:2; opacity:.78; }
+    :global(.edge-semantic) { stroke:#9299a0; }
+    :global(.edge-mindmap) { stroke:#a56c22; stroke-width:2.2; }
+    :global(.edge-visual) { stroke:#a8adb2; stroke-width:2; stroke-dasharray:0; opacity:.62; }
+    :global(.edge-label) {
+      fill:#777e86;
+      font-size:12px;
+      text-anchor:middle;
+      paint-order:stroke;
+      stroke:#f7f5f1;
+      stroke-width:5px;
+      stroke-linejoin:round;
+    }
+    :global(.edge-label-mindmap) { fill:#8b5b2c; }
+
+    .node-card {
+      --node-font-size: .82rem;
+      position:absolute;
+      z-index:2;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:7px;
+      padding:14px 15px;
+      overflow:hidden;
+      border:1px solid #d7d1c8;
+      border-left:5px solid var(--node-color);
+      border-radius:14px;
+      background:rgba(255,255,255,.96);
+      color:#22272d;
+      text-align:left;
+      box-shadow:0 7px 20px rgba(46,39,31,.08);
+      cursor:grab;
+      touch-action:none;
+      user-select:none;
+    }
     .node-card:active { cursor:grabbing; }
     .node-card:hover { border-color:#bfb6aa; box-shadow:0 10px 28px rgba(46,39,31,.13); }
-    .node-card.selected { outline:3px solid rgba(165,108,34,.25); border-color:#a56c22; }
+    .node-card.selected { outline:3px solid rgba(165,108,34,.28); border-color:#a56c22; }
     .node-card.connect-source { outline:3px solid rgba(47,111,183,.25); border-color:#2f6fb7; }
-    .node-kind { color:var(--node-color); font-size:.57rem; font-weight:700; letter-spacing:.1em; }
-    .node-card strong { font-size:.82rem; line-height:1.3; }
-    .node-card small { color:#6d747c; font-size:.65rem; line-height:1.5; white-space:normal; }
-    .corner-help { position:absolute; right:12px; bottom:12px; padding:7px 9px; border:1px solid #d8d2ca; border-radius:8px; background:rgba(255,255,255,.88); color:#81878e; font-size:.58rem; pointer-events:none; }
+    .node-kind { color:var(--node-color); font-size:.55rem; font-weight:700; letter-spacing:.1em; }
+    .node-card strong { font-size:var(--node-font-size); line-height:1.32; overflow-wrap:anywhere; }
+    .node-card small { color:#6d747c; font-size:.63rem; line-height:1.45; white-space:normal; overflow-wrap:anywhere; }
+
+    .node-card.shape-text {
+      z-index:3;
+      justify-content:center;
+      padding:8px 10px;
+      border:1px solid transparent;
+      border-left:0;
+      border-radius:8px;
+      background:transparent;
+      box-shadow:none;
+      color:#2d3136;
+    }
+    .node-card.shape-text:hover,.node-card.shape-text.selected {
+      border-color:#c9c1b7;
+      background:rgba(255,255,255,.72);
+      box-shadow:none;
+    }
+    .free-text { font-size:clamp(.82rem,var(--node-font-size),1.35rem) !important; font-weight:600; white-space:pre-wrap; }
+
+    .node-card.shape-frame {
+      z-index:0;
+      padding:16px;
+      border:2px solid #cfc6b9;
+      border-left:2px solid #cfc6b9;
+      border-radius:18px;
+      background:rgba(245,240,232,.38);
+      box-shadow:none;
+      color:#655d54;
+    }
+    .node-card.shape-frame::after {
+      content:'';
+      position:absolute;
+      inset:34px 0 0;
+      border-top:1px dashed rgba(154,141,124,.42);
+      pointer-events:none;
+    }
+    .node-card.shape-frame strong { font-size:.72rem; letter-spacing:.03em; }
+    .node-card.shape-frame .node-kind { font-size:.5rem; }
+
+    .resize-handle {
+      position:absolute;
+      right:3px;
+      bottom:3px;
+      width:18px;
+      height:18px;
+      cursor:nwse-resize;
+      opacity:0;
+      transition:opacity .12s ease;
+    }
+    .resize-handle::after {
+      content:'';
+      position:absolute;
+      right:3px;
+      bottom:3px;
+      width:8px;
+      height:8px;
+      border-right:2px solid #9d9286;
+      border-bottom:2px solid #9d9286;
+    }
+    .node-card:hover .resize-handle,.node-card.selected .resize-handle { opacity:1; }
+
+    .marquee {
+      position:absolute;
+      z-index:20;
+      border:1px solid rgba(68,107,149,.75);
+      background:rgba(86,134,185,.12);
+      pointer-events:none;
+    }
+    .corner-help {
+      position:absolute;
+      z-index:25;
+      right:12px;
+      bottom:12px;
+      display:flex;
+      align-items:center;
+      gap:9px;
+      padding:7px 9px;
+      border:1px solid #d8d2ca;
+      border-radius:9px;
+      background:rgba(255,255,255,.9);
+      color:#81878e;
+      font-size:.56rem;
+      pointer-events:none;
+      box-shadow:0 4px 18px rgba(40,34,28,.05);
+    }
+    .corner-help strong { color:#6d5a42; font-weight:700; }
+
+    @media (max-width: 1100px) {
+      .board-bar { display:block; }
+      .toolbar { margin-top:9px; justify-content:flex-start; max-width:none; }
+    }
     @media (max-width: 860px) {
       .board-app { height:calc(100dvh - 66px); min-height:0; }
-      .board-bar { align-items:flex-start; padding:10px 12px; }
-      .board-bar h1 { font-size:.86rem; }
-      .actions { max-width:55%; }
-      .actions button { min-height:34px; padding:0 8px; font-size:.64rem; }
-      .hint-bar { padding-inline:12px; }
+      .board-bar { padding:9px 10px; }
+      .board-bar h1 { font-size:.84rem; }
+      .toolbar { flex-wrap:nowrap; overflow-x:auto; padding-bottom:3px; scrollbar-width:thin; }
+      .tool-group { flex:0 0 auto; }
+      .toolbar button,.toolbar a { min-height:33px; padding:0 8px; font-size:.62rem; }
+      .hint-bar { padding-inline:10px; }
+      .corner-help span { display:none; }
     }
     @media (max-width: 620px) {
-      .board-bar { display:block; }
-      .actions { max-width:none; margin-top:9px; justify-content:flex-start; }
-      .actions button { flex:0 0 auto; }
-      .title-row { gap:6px; }
+      .eyebrow { font-size:.55rem; }
+      .title-row { gap:5px; }
+      .status,.selection-label { font-size:.56rem; }
       .node-card { border-radius:12px; }
+      .resize-handle { width:24px; height:24px; opacity:.78; }
+      .corner-help { right:8px; bottom:8px; }
     }
   </style>
 </DashboardLayout>
