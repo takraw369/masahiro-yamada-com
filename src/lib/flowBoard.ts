@@ -5,6 +5,9 @@ export type BoardNode = {
   label: string;
   note?: string;
   kind?: string;
+  objectType?: 'node' | 'text' | 'frame';
+  parentId?: string | null;
+  frameId?: string | null;
   x: number;
   y: number;
   w?: number;
@@ -12,8 +15,21 @@ export type BoardNode = {
   knowledgeId?: string | null;
   provenance?: string;
 };
-export type BoardEdge = { [key: string]: unknown; id: string; source: string; target: string; relation: string; state?: string };
-export type BoardSnapshot = { [key: string]: unknown; nodes: BoardNode[]; edges: BoardEdge[]; viewport: { x: number; y: number; zoom: number } };
+export type BoardEdge = {
+  [key: string]: unknown;
+  id: string;
+  source: string;
+  target: string;
+  relation: string;
+  state?: string;
+  visualOnly?: boolean;
+};
+export type BoardSnapshot = {
+  [key: string]: unknown;
+  nodes: BoardNode[];
+  edges: BoardEdge[];
+  viewport: { x: number; y: number; zoom: number };
+};
 
 const seed: BoardSnapshot = {
   viewport: { x: 80, y: 60, zoom: .78 },
@@ -46,7 +62,6 @@ const seed: BoardSnapshot = {
     { id:'E10', source:'N028', target:'N018', relation:'informs', state:'CONFIRMED' },
   ],
 };
-
 
 export function createFlowBoardSnapshot(): BoardSnapshot {
   return structuredClone(seed);
