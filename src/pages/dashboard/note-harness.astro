@@ -1,0 +1,172 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
+
+type LinkRow = {
+  id: string; slug: string; publication_id: string | null; asset_id: string | null;
+  source_channel: string; source_url: string | null; placement: string | null; cta_stage: string | null;
+  destination_type: string | null; destination_url: string; campaign_ref: string | null;
+  status: 'active' | 'paused' | 'archived'; human_clicks: number; bot_clicks: number;
+  last_clicked_at: string | null; created_at: string; updated_at: string;
+};
+type PublicationRow = {
+  id: string; asset_id: string; title: string; status: string; draft_ref: string | null;
+  published_url: string | null; published_at: string | null; impressions: number | null;
+  engagements: number | null; clicks: number | null; line_registrations: number | null;
+  purchases: number | null; revenue_yen: number | null; views: number | null; likes: number | null;
+  comments: number | null; last_metric_at: string | null; observed_at: string | null;
+};
+type AttributionRow = {
+  link_id: string; slug: string; publication_id: string | null; asset_id: string | null;
+  title: string | null; placement: string | null; cta_stage: string | null; destination_type: string | null;
+  campaign_ref: string | null; human_clicks: number; consented_contacts: number;
+  line_engaged_contacts: number; first_touch_paid_customers: number; first_touch_paid_purchases: number;
+  first_touch_revenue_yen: number; last_clicked_at: string | null; published_url: string | null; published_at: string | null;
+};
+
+let links: LinkRow[] = [];
+let publications: PublicationRow[] = [];
+let attribution: AttributionRow[] = [];
+let loadError: string | null = null;
+try {
+  const env = getSiteStorageEnv(Astro.locals);
+  const ownerKey = await getDashboardOwnerKey(env);
+  [links, publications, attribution] = await Promise.all([
+    supabaseRpc<LinkRow[]>(env, 'masa_tracked_link_list_v1', { p_owner_key: ownerKey, p_limit: 200 }),
+    supabaseRpc<PublicationRow[]>(env, 'masa_note_publication_list_v1', { p_owner_key: ownerKey, p_limit: 200 }),
+    supabaseRpc<AttributionRow[]>(env, 'masa_note_attribution_summary_v1', { p_owner_key: ownerKey, p_limit: 200 }),
+  ]);
+} catch (error) {
+  loadError = error instanceof Error ? error.message : 'note_harness_unavailable';
+}
+
+const sum = (key: keyof AttributionRow) => attribution.reduce((total, row) => total + Number(row[key] || 0), 0);
+const totalClicks = sum('human_clicks');
+const totalLeads = sum('consented_contacts');
+const totalLine = sum('line_engaged_contacts');
+const totalPaid = sum('first_touch_paid_customers');
+const totalRevenue = sum('first_touch_revenue_yen');
+const money = (value: number) => new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }).format(value || 0);
+const fmt = (value: string | null) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }).format(date);
+};
+---
+<DashboardLayout title="Note Harness" eyebrow="PUBLISH / LEARN">
+  <main class="note-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">NOTE HARNESS / OWNED ATTRIBUTION</p>
+        <h1>noteを、書き捨てずに“売れる本棚”へつなぐ。</h1>
+        <p>下書き → 公開URL → 記事内CTA → Library / LINE / Quest → 学習・購入までを同じContent / Publication / Linkで追います。</p>
+      </div>
+      <a href="/library" target="_blank" rel="noopener noreferrer">Libraryを見る ↗</a>
+    </header>
+
+    {loadError ? (
+      <section class="panel error">
+        <strong>Runtime migration待ち</strong>
+        <p>PRのmigrationが本番Supabaseへ適用されるまで、この画面はfail-closedです。コードは準備済みで、本番データはまだ変更していません。</p>
+        <small>{loadError}</small>
+      </section>
+    ) : (
+      <>
+        <section class="score-grid" aria-label="Note Harness summary">
+          <article><span>NOTE</span><strong>{publications.length}</strong><small>登録済み公開記事</small></article>
+          <article><span>CLICK</span><strong>{totalClicks}</strong><small>bot除外</small></article>
+          <article><span>CONSENT</span><strong>{totalLeads}</strong><small>同意登録</small></article>
+          <article><span>LINE ENGAGED</span><strong>{totalLine}</strong><small>後続LINE行動</small></article>
+          <article><span>PAID</span><strong>{totalPaid}</strong><small>first-touch顧客</small></article>
+          <article><span>ASSISTED ¥</span><strong class="money">{money(totalRevenue)}</strong><small>直接CVとは別</small></article>
+        </section>
+
+        <section class="two-col">
+          <article class="panel">
+            <div class="panel-head"><div><span>LINK CONTROL</span><h2>追跡URLを作る / 止める</h2></div><small>/go/&lt;slug&gt;</small></div>
+            <form id="link-form" class="form-grid">
+              <label>Slug<input name="slug" required pattern="[a-z0-9][a-z0-9-]{1,79}" placeholder="note-focus-end" /></label>
+              <label>行き先URL<input name="destinationUrl" required type="url" placeholder="https://masahiroyamada.com/library/..." /></label>
+              <label>Publication ID<select name="publicationId"><option value="">未接続</option>{publications.map((p) => <option value={p.id}>{p.title || p.asset_id}</option>)}</select></label>
+              <label>Placement<input name="placement" placeholder="article_end" /></label>
+              <label>CTA Stage<input name="ctaStage" placeholder="entry / quest / offer" /></label>
+              <label>Status<select name="status"><option value="active">ACTIVE</option><option value="paused">PAUSED</option><option value="archived">ARCHIVED</option></select></label>
+              <button type="submit">保存</button><output id="link-result" aria-live="polite"></output>
+            </form>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span>PUBLICATION</span><h2>公開noteを正本へ戻す</h2></div><small>Human publish後</small></div>
+            <form id="publication-form" class="form-grid">
+              <label>Asset ID<input name="assetId" required placeholder="Cxxx / asset id" /></label>
+              <label>note公開URL<input name="publishedUrl" required type="url" placeholder="https://note.com/..." /></label>
+              <label>Draft URL<input name="draftRef" type="url" placeholder="下書きreceipt URL（任意）" /></label>
+              <label>CTA<input name="cta" placeholder="この記事の主CTA" /></label>
+              <button type="submit">公開URLを登録</button><output id="publication-result" aria-live="polite"></output>
+            </form>
+          </article>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head"><div><span>ATTRIBUTION</span><h2>どのnote・どのCTAが、人を次へ動かしたか</h2></div><small>direct + first-touch assisted</small></div>
+          <div class="table-wrap"><table><thead><tr><th>記事 / Link</th><th>Placement</th><th>Click</th><th>同意</th><th>LINE後続</th><th>Paid顧客</th><th>Paid件数</th><th>Assisted売上</th><th>最終Click</th></tr></thead>
+          <tbody>{attribution.map((row) => <tr>
+            <td><strong>{row.title || row.asset_id || row.slug}</strong><small>{row.slug} · {row.campaign_ref || '—'}</small></td>
+            <td>{row.placement || '—'}<small>{row.cta_stage || row.destination_type || ''}</small></td>
+            <td>{row.human_clicks}</td><td>{row.consented_contacts}</td><td>{row.line_engaged_contacts}</td>
+            <td>{row.first_touch_paid_customers}</td><td>{row.first_touch_paid_purchases}</td><td>{money(row.first_touch_revenue_yen)}</td><td>{fmt(row.last_clicked_at)}</td>
+          </tr>)}</tbody></table></div>
+          {!attribution.length && <p class="empty">実記事を1本つなぐと、ここに導線別の結果が出ます。</p>}
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head"><div><span>NOTE SIGNAL</span><h2>note内の反応 × Owned側の行動</h2></div><small>native metrics</small></div>
+          <div class="table-wrap"><table><thead><tr><th>記事</th><th>Impression</th><th>PV</th><th>スキ</th><th>Comment</th><th>Owned Click</th><th>更新</th></tr></thead>
+          <tbody>{publications.map((row) => <tr>
+            <td><strong>{row.title || row.asset_id}</strong>{row.published_url ? <a href={row.published_url} target="_blank" rel="noopener noreferrer">note ↗</a> : null}</td>
+            <td>{row.impressions ?? '—'}</td><td>{row.views ?? '—'}</td><td>{row.likes ?? '—'}</td><td>{row.comments ?? '—'}</td><td>{row.clicks ?? 0}</td><td>{fmt(row.observed_at)}</td>
+          </tr>)}</tbody></table></div>
+        </section>
+
+        <section class="panel rule">
+          <span>READING RULE</span>
+          <p><strong>CLICK</strong> は直接計測。<strong>CONSENT</strong> はKnowledge Journeyから本人同意でContactへ接続した登録。<strong>LINE ENGAGED</strong> はそのContactが後にLINE上で行動した人数で、友だち追加完了そのものではありません。<strong>ASSISTED売上</strong> はこのcampaignがsource_campaignになったContactのpaid購入で、first-touch寄与として扱い、直接CVとは断定しません。</p>
+        </section>
+      </>
+    )}
+  </main>
+
+  <script>
+    const post = async (url, body) => {
+      const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+      return data;
+    };
+    const wireForm = (formId, outputId, endpoint, map) => {
+      const form = document.getElementById(formId);
+      const output = document.getElementById(outputId);
+      if (!(form instanceof HTMLFormElement) || !(output instanceof HTMLOutputElement)) return;
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault(); output.value = '保存中…';
+        const fd = new FormData(form);
+        try {
+          const result = await post(endpoint, map(fd));
+          output.value = result.trackUrl ? `保存 ✓ ${result.trackUrl}` : '保存 ✓';
+          if (result.trackUrl && navigator.clipboard) void navigator.clipboard.writeText(result.trackUrl).catch(() => {});
+        } catch (error) { output.value = `失敗: ${error instanceof Error ? error.message : 'unknown'}`; }
+      });
+    };
+    wireForm('link-form', 'link-result', '/api/dashboard/note-harness-links', (fd) => ({
+      slug: fd.get('slug'), destinationUrl: fd.get('destinationUrl'), publicationId: fd.get('publicationId') || null,
+      placement: fd.get('placement') || null, ctaStage: fd.get('ctaStage') || null, status: fd.get('status') || 'active', sourceChannel: 'note',
+    }));
+    wireForm('publication-form', 'publication-result', '/api/dashboard/note-publications', (fd) => ({
+      action: 'register', assetId: fd.get('assetId'), publishedUrl: fd.get('publishedUrl'), draftRef: fd.get('draftRef') || null, cta: fd.get('cta') || null,
+    }));
+  </script>
+</DashboardLayout>
+
+<style>
+  .note-shell{display:grid;gap:14px}.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.hero h1{font-size:clamp(1.55rem,3vw,2.25rem);line-height:1.25;margin:.2rem 0 .5rem}.hero p{max-width:850px;color:#626b75;font-size:.86rem}.hero>a{white-space:nowrap;color:#8b5b2c;text-decoration:none;border:1px solid #d8d4cd;padding:10px 13px;background:#fff}.eyebrow,.panel-head span,.rule>span{color:#8b5b2c;font-size:.66rem;letter-spacing:.16em;font-weight:700}.panel,.score-grid article{background:#fff;border:1px solid #d8d4cd}.score-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.score-grid article{padding:15px}.score-grid span{display:block;color:#8b929a;font-size:.61rem;letter-spacing:.1em}.score-grid strong{display:block;font:600 1.8rem/1.15 'Cormorant Garamond',serif;color:#754a16;margin:4px 0}.score-grid strong.money{font-size:1.35rem}.score-grid small{color:#8b929a;font-size:.62rem}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.panel-head h2{font-size:1rem;margin-top:3px}.panel-head small{color:#8b929a;font-size:.65rem}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-grid label{display:grid;gap:4px;color:#626b75;font-size:.68rem}.form-grid input,.form-grid select{width:100%;min-height:42px;border:1px solid #d8d4cd;background:#fbfaf8;padding:8px 10px;color:#17191c}.form-grid button{min-height:42px;border:1px solid #a56c22;background:#a56c22;color:#fff;cursor:pointer}.form-grid output{display:flex;align-items:center;color:#138a55;font-size:.67rem;overflow-wrap:anywhere}.table-panel{overflow:hidden}.table-wrap{overflow:auto}table{width:100%;min-width:900px;border-collapse:collapse;font-size:.69rem}th{text-align:left;color:#8b929a;font-weight:500;padding:8px;border-bottom:1px solid #d8d4cd}td{padding:10px 8px;border-bottom:1px solid #ece8e1;vertical-align:top;color:#505964}td strong{display:block;color:#24282d}td small{display:block;color:#8b929a;margin-top:2px;font-size:.59rem}td a{display:inline-block;margin-top:3px;color:#8b5b2c;font-size:.61rem}.rule{color:#626b75;font-size:.72rem;line-height:1.75}.rule p{margin-top:6px}.rule strong{color:#754a16}.empty{color:#8b929a;font-size:.72rem}.error{border-color:#d8a79b;color:#7c4032}.error p{margin:6px 0}.error small{color:#8b929a}@media(max-width:1050px){.score-grid{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}}@media(max-width:620px){.hero{flex-direction:column}.score-grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}}
+</style>
