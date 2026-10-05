@@ -158,7 +158,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     function render() {
       renderFrames(); renderNodes(); renderEdges();
-      const count=selected.size; editBtn.disabled=count!==1; deleteBtn.disabled=!count||selected.has(REVENUE_NODE_ID);
+      const count=selected.size;
+      const selectedId=count===1?(primary()?.id||null):null;
+      editBtn.disabled=count!==1;
+      deleteBtn.disabled=!count||selectedId === REVENUE_NODE_ID||selected.has(REVENUE_NODE_ID);
       document.querySelector<HTMLButtonElement>('#make-frame')!.disabled=count<1;
       updateHistoryButtons();
     }
