@@ -6,9 +6,17 @@ const migration = readFileSync(
   new URL('../migrations/20261005_note_harness_tracked_links.sql', import.meta.url),
   'utf8',
 );
+const learningMigration = readFileSync(
+  new URL('../migrations/20261005_zz_note_harness_learning_bridge.sql', import.meta.url),
+  'utf8',
+);
 const route = readFileSync(new URL('../src/pages/go/[slug].ts', import.meta.url), 'utf8');
 const adminApi = readFileSync(
   new URL('../src/pages/api/dashboard/note-harness-links.ts', import.meta.url),
+  'utf8',
+);
+const publicationApi = readFileSync(
+  new URL('../src/pages/api/dashboard/note-publications.ts', import.meta.url),
   'utf8',
 );
 
@@ -49,6 +57,9 @@ test('human tracked clicks join the existing funnel learning spine while bot hit
   assert.match(migration, /v_inserted > 0 and v_ua_class <> 'bot'/i);
   assert.match(migration, /'publication_id', v_link\.publication_id/i);
   assert.match(migration, /'asset_id', v_link\.asset_id/i);
+  assert.match(learningMigration, /tracked_link_click_sync_publication_v1/i);
+  assert.match(learningMigration, /clicks = coalesce\(clicks, 0\) \+ 1/i);
+  assert.match(learningMigration, /coalesce\(new\.user_agent_class, 'unknown'\) <> 'bot'/i);
 });
 
 test('public redirect is fail-closed and non-cacheable', () => {
@@ -74,4 +85,33 @@ test('owner API can pause or archive links without exposing arbitrary database a
   assert.match(adminApi, /p_status: status/);
   assert.match(adminApi, /trackUrl: `https:\/\/masahiroyamada\.com\/go\//);
   assert.doesNotMatch(adminApi, /execute_sql|service_role|SUPABASE_SERVICE/);
+});
+
+test('published note URL registration is owner-gated and note-domain-bound', () => {
+  assert.match(learningMigration, /create or replace function public\.masa_note_publication_register_v1/i);
+  assert.match(learningMigration, /v_url !~ '\^https:\/\/note\[\.\]com\/'/i);
+  assert.match(learningMigration, /from private\.masa_dashboard_owner_keys/i);
+  assert.match(publicationApi, /action === 'register'/);
+  assert.match(publicationApi, /\^https:\\/\\/note\\\.com\\\//i);
+  assert.match(publicationApi, /masa_note_publication_register_v1/);
+});
+
+test('note metrics are snapshotted and rolled into content_publications learning fields', () => {
+  assert.match(learningMigration, /create or replace function public\.masa_note_metrics_record_v1/i);
+  assert.match(learningMigration, /insert into public\.content_metric_snapshots/i);
+  assert.match(learningMigration, /update public\.content_publications/i);
+  assert.match(learningMigration, /impressions = coalesce\(p_impressions::integer, impressions\)/i);
+  assert.match(learningMigration, /engagements = coalesce\(v_engagements::integer, engagements\)/i);
+  assert.match(publicationApi, /action === 'metrics'/);
+  assert.match(publicationApi, /masa_note_metrics_record_v1/);
+  assert.match(publicationApi, /raw_metrics_too_large/);
+});
+
+test('note publication list exposes meaningful funnel outcomes without direct table access', () => {
+  assert.match(learningMigration, /create or replace function public\.masa_note_publication_list_v1/i);
+  assert.match(learningMigration, /p\.line_registrations/i);
+  assert.match(learningMigration, /p\.purchases/i);
+  assert.match(learningMigration, /p\.revenue_yen/i);
+  assert.match(publicationApi, /masa_note_publication_list_v1/);
+  assert.doesNotMatch(publicationApi, /execute_sql|service_role|SUPABASE_SERVICE/);
 });
