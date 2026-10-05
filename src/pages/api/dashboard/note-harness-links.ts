@@ -81,13 +81,14 @@ export const POST = async ({ request, locals }: APIContext) => {
   const placement = text(body.placement, 120);
   const ctaStage = text(body.ctaStage, 80);
   const destinationType = text(body.destinationType, 80);
-  const campaignRef = text(body.campaignRef, 160);
   const status = (text(body.status, 20)?.toLowerCase() || 'active') as 'active' | 'paused' | 'archived';
 
   if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(slug)) return json({ ok: false, error: 'invalid_slug' }, 400);
   if (!/^https:\/\//i.test(destinationUrl)) return json({ ok: false, error: 'invalid_destination_url' }, 400);
   if (!isUuid(publicationId)) return json({ ok: false, error: 'invalid_publication_id' }, 400);
   if (!['active', 'paused', 'archived'].includes(status)) return json({ ok: false, error: 'invalid_status' }, 400);
+
+  const campaignRef = text(body.campaignRef, 160) || `nh-${slug}`;
 
   try {
     const ownerKey = await getDashboardOwnerKey(env);
@@ -110,6 +111,7 @@ export const POST = async ({ request, locals }: APIContext) => {
       ok: true,
       id,
       slug,
+      campaignRef,
       trackUrl: `https://masahiroyamada.com/go/${encodeURIComponent(slug)}`,
       storage: 'supabase',
       savedAt: new Date().toISOString(),
