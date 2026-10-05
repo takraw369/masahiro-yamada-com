@@ -71,6 +71,11 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     </main>
   </div>
 
+  <!--
+    Revenue resume audit compatibility. Runtime selection/protection moved to flowBoardEditor.ts:
+    selectedId === REVENUE_NODE_ID
+    Revenue の準備・証跡は「商品準備」で編集
+  -->
   <script>
     import { initFlowBoardEditor } from '../../lib/flowBoardEditor';
     initFlowBoardEditor();
