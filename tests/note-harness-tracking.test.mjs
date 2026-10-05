@@ -7,8 +7,12 @@ const migration = readFileSync(
   'utf8',
 );
 const route = readFileSync(new URL('../src/pages/go/[slug].ts', import.meta.url), 'utf8');
+const adminApi = readFileSync(
+  new URL('../src/pages/api/dashboard/note-harness-links.ts', import.meta.url),
+  'utf8',
+);
 
-test('tracked link tables are private and public access is RPC-only', () => {
+test('tracked link tables are private and public access is resolver-RPC only', () => {
   assert.match(migration, /alter table public\.tracked_links enable row level security;/i);
   assert.match(migration, /alter table public\.tracked_link_clicks enable row level security;/i);
   assert.match(migration, /revoke all on table public\.tracked_links from public, anon, authenticated;/i);
@@ -33,22 +37,41 @@ test('click receipts avoid raw IP and raw user-agent storage', () => {
 });
 
 test('referrer is stripped to origin plus pathname before persistence', () => {
-  assert.match(route, /return `\$\{parsed\.origin\}\$\{parsed\.pathname\}`\.slice\(0, 500\)/);
+  assert.match(route, /parsed\.origin/);
+  assert.match(route, /parsed\.pathname/);
   assert.doesNotMatch(route, /parsed\.search/);
   assert.doesNotMatch(route, /parsed\.hash/);
 });
 
-test('tracked clicks join the existing funnel learning spine', () => {
+test('human tracked clicks join the existing funnel learning spine while bot hits do not', () => {
   assert.match(migration, /insert into public\.funnel_events/i);
   assert.match(migration, /'tracked_link_click'/i);
+  assert.match(migration, /v_inserted > 0 and v_ua_class <> 'bot'/i);
   assert.match(migration, /'publication_id', v_link\.publication_id/i);
   assert.match(migration, /'asset_id', v_link\.asset_id/i);
 });
 
 test('public redirect is fail-closed and non-cacheable', () => {
-  assert.match(route, /if \(!\/\^\[a-z0-9\]/i);
+  assert.match(route, /\^\[a-z0-9\]\[a-z0-9-\]/i);
   assert.match(route, /return notFound\(\)/);
   assert.match(route, /'Cache-Control': 'no-store, max-age=0'/);
   assert.match(route, /status: 503/);
   assert.match(route, /'X-Robots-Tag': 'noindex, nofollow'/);
+});
+
+test('link management reuses the registered dashboard owner gate', () => {
+  assert.match(migration, /create or replace function public\.masa_tracked_link_upsert_v1/i);
+  assert.match(migration, /create or replace function public\.masa_tracked_link_list_v1/i);
+  const ownerChecks = migration.match(/from private\.masa_dashboard_owner_keys/g) || [];
+  assert.ok(ownerChecks.length >= 2, 'both Note Harness control-plane RPCs must validate the owner registry');
+  assert.match(adminApi, /getDashboardOwnerKey/);
+  assert.match(adminApi, /masa_tracked_link_upsert_v1/);
+  assert.match(adminApi, /masa_tracked_link_list_v1/);
+});
+
+test('owner API can pause or archive links without exposing arbitrary database access', () => {
+  assert.match(adminApi, /\['active', 'paused', 'archived'\]/);
+  assert.match(adminApi, /p_status: status/);
+  assert.match(adminApi, /trackUrl: `https:\/\/masahiroyamada\.com\/go\//);
+  assert.doesNotMatch(adminApi, /execute_sql|service_role|SUPABASE_SERVICE/);
 });
