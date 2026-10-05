@@ -14,6 +14,8 @@ type LinkResolution = {
   cta_stage: string | null;
 };
 
+const OWNED_HOSTS = new Set(['masahiroyamada.com', 'www.masahiroyamada.com']);
+
 const notFound = () =>
   new Response('Not found', {
     status: 404,
@@ -49,6 +51,22 @@ const requestId = (request: Request) => {
   return crypto.randomUUID();
 };
 
+const withOwnedAttribution = (destination: URL, resolved: LinkResolution, slug: string) => {
+  if (!OWNED_HOSTS.has(destination.hostname.toLowerCase())) return destination;
+
+  const source = (resolved.source_channel || 'note').trim().slice(0, 80) || 'note';
+  const campaign = (resolved.campaign_ref || `nh-${slug}`).trim().slice(0, 120);
+
+  if (!destination.searchParams.has('utm_source')) destination.searchParams.set('utm_source', source);
+  if (!destination.searchParams.has('utm_medium')) destination.searchParams.set('utm_medium', 'tracked_link');
+  if (!destination.searchParams.has('utm_campaign')) destination.searchParams.set('utm_campaign', campaign);
+  if (resolved.placement && !destination.searchParams.has('utm_content')) {
+    destination.searchParams.set('utm_content', resolved.placement.slice(0, 120));
+  }
+
+  return destination;
+};
+
 export const GET: APIRoute = async ({ params, request, locals }) => {
   const slug = String(params.slug || '').trim().toLowerCase();
   if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(slug)) return notFound();
@@ -78,6 +96,8 @@ export const GET: APIRoute = async ({ params, request, locals }) => {
       console.error('tracked_link_non_https_destination', resolved.link_id || slug);
       return notFound();
     }
+
+    destination = withOwnedAttribution(destination, resolved, slug);
 
     return new Response(null, {
       status: 302,
