@@ -1,4 +1,7 @@
 // Shared initial canvas; product canonical content remains in Drive / MASA_OS.
+export type BoardNodeShape = 'card' | 'text' | 'frame';
+export type BoardEdgeType = 'semantic' | 'visual' | 'mindmap';
+
 export type BoardNode = {
   [key: string]: unknown;
   id: string;
@@ -11,9 +14,26 @@ export type BoardNode = {
   h?: number;
   knowledgeId?: string | null;
   provenance?: string;
+  shape?: BoardNodeShape;
+  parentId?: string | null;
+  frameId?: string | null;
+  fontSize?: number;
 };
-export type BoardEdge = { [key: string]: unknown; id: string; source: string; target: string; relation: string; state?: string };
-export type BoardSnapshot = { [key: string]: unknown; nodes: BoardNode[]; edges: BoardEdge[]; viewport: { x: number; y: number; zoom: number } };
+export type BoardEdge = {
+  [key: string]: unknown;
+  id: string;
+  source: string;
+  target: string;
+  relation: string;
+  state?: string;
+  edgeType?: BoardEdgeType;
+};
+export type BoardSnapshot = {
+  [key: string]: unknown;
+  nodes: BoardNode[];
+  edges: BoardEdge[];
+  viewport: { x: number; y: number; zoom: number };
+};
 
 const seed: BoardSnapshot = {
   viewport: { x: 80, y: 60, zoom: .78 },
@@ -34,19 +54,18 @@ const seed: BoardSnapshot = {
     { id:'N030', label:'REVENUE IDEAS', kind:'BUSINESS', note:'収益候補を資産性・反復性・波及で比較する。', x:1600, y:1380 },
   ],
   edges: [
-    { id:'E1', source:'N026', target:'N017', relation:'feeds', state:'CONFIRMED' },
-    { id:'E2', source:'N017', target:'N020', relation:'produces', state:'CONFIRMED' },
-    { id:'E3', source:'N017', target:'N018', relation:'feeds', state:'CONFIRMED' },
-    { id:'E4', source:'N018', target:'N022', relation:'routes_to', state:'CONFIRMED' },
-    { id:'E5', source:'N020', target:'N021', relation:'feeds', state:'CONFIRMED' },
-    { id:'E6', source:'N020', target:'N023', relation:'distributed_by', state:'CONFIRMED' },
-    { id:'E7', source:'N024', target:'N021', relation:'informs', state:'CONFIRMED' },
-    { id:'E8', source:'N021', target:'N029', relation:'feeds', state:'CONFIRMED' },
-    { id:'E9', source:'N030', target:'N021', relation:'informs', state:'CONFIRMED' },
-    { id:'E10', source:'N028', target:'N018', relation:'informs', state:'CONFIRMED' },
+    { id:'E1', source:'N026', target:'N017', relation:'feeds', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E2', source:'N017', target:'N020', relation:'produces', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E3', source:'N017', target:'N018', relation:'feeds', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E4', source:'N018', target:'N022', relation:'routes_to', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E5', source:'N020', target:'N021', relation:'feeds', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E6', source:'N020', target:'N023', relation:'distributed_by', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E7', source:'N024', target:'N021', relation:'informs', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E8', source:'N021', target:'N029', relation:'feeds', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E9', source:'N030', target:'N021', relation:'informs', state:'CONFIRMED', edgeType:'semantic' },
+    { id:'E10', source:'N028', target:'N018', relation:'informs', state:'CONFIRMED', edgeType:'semantic' },
   ],
 };
-
 
 export function createFlowBoardSnapshot(): BoardSnapshot {
   return structuredClone(seed);
