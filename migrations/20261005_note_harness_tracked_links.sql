@@ -55,6 +55,8 @@ create index if not exists tracked_link_clicks_asset_time_idx
 alter table public.tracked_link_clicks enable row level security;
 revoke all on table public.tracked_link_clicks from public, anon, authenticated;
 
+-- Public/runtime resolver. The caller can only resolve a stored ACTIVE slug;
+-- it cannot supply a destination, so this is not an arbitrary open redirect.
 create or replace function public.resolve_tracked_link_v1(
   p_slug text,
   p_request_id text default null,
@@ -79,9 +81,14 @@ declare
   v_link public.tracked_links%rowtype;
   v_inserted integer := 0;
   v_slug text := lower(trim(coalesce(p_slug, '')));
+  v_ua_class text := lower(trim(coalesce(p_user_agent_class, 'unknown')));
 begin
   if v_slug !~ '^[a-z0-9][a-z0-9-]{1,79}$' then
     return;
+  end if;
+
+  if v_ua_class not in ('bot', 'mobile', 'desktop', 'unknown') then
+    v_ua_class := 'unknown';
   end if;
 
   select *
@@ -110,7 +117,7 @@ begin
     v_link.asset_id,
     nullif(left(trim(coalesce(p_request_id, '')), 160), ''),
     nullif(left(trim(coalesce(p_referrer_path, '')), 500), ''),
-    nullif(left(trim(coalesce(p_user_agent_class, '')), 40), ''),
+    v_ua_class,
     jsonb_build_object(
       'source_channel', v_link.source_channel,
       'placement', v_link.placement,
@@ -123,7 +130,9 @@ begin
 
   get diagnostics v_inserted = row_count;
 
-  if v_inserted > 0 then
+  -- Keep bot/preview hits in the raw click receipt for diagnostics, but do not
+  -- let them contaminate the human funnel-learning spine.
+  if v_inserted > 0 and v_ua_class <> 'bot' then
     insert into public.funnel_events(
       contact_id,
       event_type,
@@ -148,7 +157,7 @@ begin
         'cta_stage', v_link.cta_stage,
         'destination_type', v_link.destination_type,
         'referrer_path', nullif(left(trim(coalesce(p_referrer_path, '')), 500), ''),
-        'user_agent_class', nullif(left(trim(coalesce(p_user_agent_class, '')), 40), '')
+        'user_agent_class', v_ua_class
       ),
       now()
     );
@@ -169,3 +178,162 @@ $$;
 
 revoke all on function public.resolve_tracked_link_v1(text,text,text,text) from public, anon, authenticated, service_role;
 grant execute on function public.resolve_tracked_link_v1(text,text,text,text) to anon, authenticated;
+
+-- Owner-gated control plane used by the private dashboard / Note Harness.
+create or replace function public.masa_tracked_link_upsert_v1(
+  p_owner_key text,
+  p_slug text,
+  p_destination_url text,
+  p_publication_id uuid default null,
+  p_asset_id text default null,
+  p_source_channel text default 'note',
+  p_source_url text default null,
+  p_placement text default null,
+  p_cta_stage text default null,
+  p_destination_type text default null,
+  p_campaign_ref text default null,
+  p_status text default 'active'
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = 'public', 'private'
+as $$
+declare
+  v_id uuid;
+  v_slug text := lower(trim(coalesce(p_slug, '')));
+  v_destination text := trim(coalesce(p_destination_url, ''));
+  v_status text := lower(trim(coalesce(p_status, 'active')));
+begin
+  if p_owner_key is null or p_owner_key !~ '^[0-9a-f]{64}$' then
+    raise exception 'invalid_owner_key';
+  end if;
+  if not exists (select 1 from private.masa_dashboard_owner_keys k where k.owner_key = p_owner_key) then
+    raise exception 'dashboard_owner_required';
+  end if;
+  if v_slug !~ '^[a-z0-9][a-z0-9-]{1,79}$' then
+    raise exception 'invalid_slug';
+  end if;
+  if v_destination !~ '^https://' or length(v_destination) > 2000 then
+    raise exception 'invalid_destination_url';
+  end if;
+  if v_status not in ('active','paused','archived') then
+    raise exception 'invalid_status';
+  end if;
+  if p_publication_id is not null and not exists (
+    select 1 from public.content_publications cp where cp.id = p_publication_id
+  ) then
+    raise exception 'publication_not_found';
+  end if;
+
+  insert into public.tracked_links(
+    slug,
+    publication_id,
+    asset_id,
+    source_channel,
+    source_url,
+    placement,
+    cta_stage,
+    destination_type,
+    destination_url,
+    campaign_ref,
+    status
+  ) values (
+    v_slug,
+    p_publication_id,
+    nullif(left(trim(coalesce(p_asset_id, '')), 180), ''),
+    coalesce(nullif(left(trim(coalesce(p_source_channel, '')), 60), ''), 'note'),
+    nullif(left(trim(coalesce(p_source_url, '')), 2000), ''),
+    nullif(left(trim(coalesce(p_placement, '')), 120), ''),
+    nullif(left(trim(coalesce(p_cta_stage, '')), 80), ''),
+    nullif(left(trim(coalesce(p_destination_type, '')), 80), ''),
+    v_destination,
+    nullif(left(trim(coalesce(p_campaign_ref, '')), 160), ''),
+    v_status
+  )
+  on conflict (slug) do update set
+    publication_id = excluded.publication_id,
+    asset_id = excluded.asset_id,
+    source_channel = excluded.source_channel,
+    source_url = excluded.source_url,
+    placement = excluded.placement,
+    cta_stage = excluded.cta_stage,
+    destination_type = excluded.destination_type,
+    destination_url = excluded.destination_url,
+    campaign_ref = excluded.campaign_ref,
+    status = excluded.status,
+    updated_at = now()
+  returning id into v_id;
+
+  return v_id;
+end;
+$$;
+
+create or replace function public.masa_tracked_link_list_v1(
+  p_owner_key text,
+  p_limit integer default 100
+)
+returns table (
+  id uuid,
+  slug text,
+  publication_id uuid,
+  asset_id text,
+  source_channel text,
+  source_url text,
+  placement text,
+  cta_stage text,
+  destination_type text,
+  destination_url text,
+  campaign_ref text,
+  status text,
+  human_clicks bigint,
+  bot_clicks bigint,
+  last_clicked_at timestamptz,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = 'public', 'private'
+as $$
+begin
+  if p_owner_key is null or p_owner_key !~ '^[0-9a-f]{64}$' then
+    raise exception 'invalid_owner_key';
+  end if;
+  if not exists (select 1 from private.masa_dashboard_owner_keys k where k.owner_key = p_owner_key) then
+    raise exception 'dashboard_owner_required';
+  end if;
+
+  return query
+  select
+    l.id,
+    l.slug,
+    l.publication_id,
+    l.asset_id,
+    l.source_channel,
+    l.source_url,
+    l.placement,
+    l.cta_stage,
+    l.destination_type,
+    l.destination_url,
+    l.campaign_ref,
+    l.status,
+    count(c.id) filter (where coalesce(c.user_agent_class, 'unknown') <> 'bot') as human_clicks,
+    count(c.id) filter (where c.user_agent_class = 'bot') as bot_clicks,
+    max(c.occurred_at) as last_clicked_at,
+    l.created_at,
+    l.updated_at
+  from public.tracked_links l
+  left join public.tracked_link_clicks c on c.tracked_link_id = l.id
+  group by l.id
+  order by l.updated_at desc, l.created_at desc
+  limit greatest(1, least(coalesce(p_limit, 100), 500));
+end;
+$$;
+
+revoke all on function public.masa_tracked_link_upsert_v1(text,text,text,uuid,text,text,text,text,text,text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.masa_tracked_link_upsert_v1(text,text,text,uuid,text,text,text,text,text,text,text,text) to anon, authenticated, service_role;
+
+revoke all on function public.masa_tracked_link_list_v1(text,integer) from public, anon, authenticated, service_role;
+grant execute on function public.masa_tracked_link_list_v1(text,integer) to anon, authenticated, service_role;
