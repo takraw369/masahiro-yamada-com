@@ -92,7 +92,7 @@ test('published note URL registration is owner-gated and note-domain-bound', () 
   assert.match(learningMigration, /v_url !~ '\^https:\/\/note\[\.\]com\/'/i);
   assert.match(learningMigration, /from private\.masa_dashboard_owner_keys/i);
   assert.match(publicationApi, /action === 'register'/);
-  assert.match(publicationApi, /\^https:\\/\\/note\\\.com\\\//i);
+  assert.ok(publicationApi.includes("/^https:\\/\\/note\\.com\\//i.test(publishedUrl)"));
   assert.match(publicationApi, /masa_note_publication_register_v1/);
 });
 
