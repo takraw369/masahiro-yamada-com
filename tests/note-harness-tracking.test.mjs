@@ -10,6 +10,10 @@ const learningMigration = readFileSync(
   new URL('../migrations/20261005_zz_note_harness_learning_bridge.sql', import.meta.url),
   'utf8',
 );
+const attributionMigration = readFileSync(
+  new URL('../migrations/20261005_zzz_note_harness_attribution_summary.sql', import.meta.url),
+  'utf8',
+);
 const route = readFileSync(new URL('../src/pages/go/[slug].ts', import.meta.url), 'utf8');
 const adminApi = readFileSync(
   new URL('../src/pages/api/dashboard/note-harness-links.ts', import.meta.url),
@@ -17,6 +21,10 @@ const adminApi = readFileSync(
 );
 const publicationApi = readFileSync(
   new URL('../src/pages/api/dashboard/note-publications.ts', import.meta.url),
+  'utf8',
+);
+const attributionApi = readFileSync(
+  new URL('../src/pages/api/dashboard/note-attribution.ts', import.meta.url),
   'utf8',
 );
 
@@ -125,4 +133,17 @@ test('note publication list exposes meaningful funnel outcomes without direct ta
   assert.match(learningMigration, /p\.revenue_yen/i);
   assert.match(publicationApi, /masa_note_publication_list_v1/);
   assert.doesNotMatch(publicationApi, /execute_sql|service_role|SUPABASE_SERVICE/);
+});
+
+test('aggregate attribution keeps direct clicks separate from first-touch assisted outcomes', () => {
+  assert.match(attributionMigration, /create or replace function public\.masa_note_attribution_summary_v1/i);
+  assert.match(attributionMigration, /c\.source_campaign = l\.campaign_ref/i);
+  assert.match(attributionMigration, /e\.channel = 'line'/i);
+  assert.match(attributionMigration, /pu\.status = 'paid'/i);
+  assert.match(attributionMigration, /first_touch_paid_customers/i);
+  assert.match(attributionMigration, /first_touch_revenue_yen/i);
+  assert.match(attributionApi, /direct-click \+ consented-first-touch-assisted/);
+  assert.match(attributionApi, /not the same as confirmed friend-add attribution/);
+  assert.match(attributionApi, /not proof of a direct conversion/);
+  assert.doesNotMatch(attributionApi, /email|line_user_id|external_user_id/i);
 });
