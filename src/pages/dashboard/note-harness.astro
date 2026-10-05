@@ -3,31 +3,72 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
 
 type LinkRow = {
-  id: string; slug: string; publication_id: string | null; asset_id: string | null;
-  source_channel: string; source_url: string | null; placement: string | null; cta_stage: string | null;
-  destination_type: string | null; destination_url: string; campaign_ref: string | null;
-  status: 'active' | 'paused' | 'archived'; human_clicks: number; bot_clicks: number;
-  last_clicked_at: string | null; created_at: string; updated_at: string;
+  id: string;
+  slug: string;
+  publication_id: string | null;
+  asset_id: string | null;
+  source_channel: string;
+  source_url: string | null;
+  placement: string | null;
+  cta_stage: string | null;
+  destination_type: string | null;
+  destination_url: string;
+  campaign_ref: string | null;
+  status: 'active' | 'paused' | 'archived';
+  human_clicks: number;
+  bot_clicks: number;
+  last_clicked_at: string | null;
+  created_at: string;
+  updated_at: string;
 };
+
 type PublicationRow = {
-  id: string; asset_id: string; title: string; status: string; draft_ref: string | null;
-  published_url: string | null; published_at: string | null; impressions: number | null;
-  engagements: number | null; clicks: number | null; line_registrations: number | null;
-  purchases: number | null; revenue_yen: number | null; views: number | null; likes: number | null;
-  comments: number | null; last_metric_at: string | null; observed_at: string | null;
+  id: string;
+  asset_id: string;
+  title: string;
+  status: string;
+  draft_ref: string | null;
+  published_url: string | null;
+  published_at: string | null;
+  impressions: number | null;
+  engagements: number | null;
+  clicks: number | null;
+  line_registrations: number | null;
+  purchases: number | null;
+  revenue_yen: number | null;
+  views: number | null;
+  likes: number | null;
+  comments: number | null;
+  last_metric_at: string | null;
+  observed_at: string | null;
 };
+
 type AttributionRow = {
-  link_id: string; slug: string; publication_id: string | null; asset_id: string | null;
-  title: string | null; placement: string | null; cta_stage: string | null; destination_type: string | null;
-  campaign_ref: string | null; human_clicks: number; consented_contacts: number;
-  line_engaged_contacts: number; first_touch_paid_customers: number; first_touch_paid_purchases: number;
-  first_touch_revenue_yen: number; last_clicked_at: string | null; published_url: string | null; published_at: string | null;
+  link_id: string;
+  slug: string;
+  publication_id: string | null;
+  asset_id: string | null;
+  title: string | null;
+  placement: string | null;
+  cta_stage: string | null;
+  destination_type: string | null;
+  campaign_ref: string | null;
+  human_clicks: number;
+  consented_contacts: number;
+  line_engaged_contacts: number;
+  first_touch_paid_customers: number;
+  first_touch_paid_purchases: number;
+  first_touch_revenue_yen: number;
+  last_clicked_at: string | null;
+  published_url: string | null;
+  published_at: string | null;
 };
 
 let links: LinkRow[] = [];
 let publications: PublicationRow[] = [];
 let attribution: AttributionRow[] = [];
 let loadError: string | null = null;
+
 try {
   const env = getSiteStorageEnv(Astro.locals);
   const ownerKey = await getDashboardOwnerKey(env);
@@ -40,19 +81,30 @@ try {
   loadError = error instanceof Error ? error.message : 'note_harness_unavailable';
 }
 
-const sum = (key: keyof AttributionRow) => attribution.reduce((total, row) => total + Number(row[key] || 0), 0);
+const sum = (key: keyof AttributionRow) =>
+  attribution.reduce((total, row) => total + Number(row[key] || 0), 0);
 const totalClicks = sum('human_clicks');
 const totalLeads = sum('consented_contacts');
 const totalLine = sum('line_engaged_contacts');
 const totalPaid = sum('first_touch_paid_customers');
 const totalRevenue = sum('first_touch_revenue_yen');
-const money = (value: number) => new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }).format(value || 0);
+const money = (value: number) =>
+  new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }).format(value || 0);
 const fmt = (value: string | null) => {
   if (!value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' }).format(date);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat('ja-JP', {
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Tokyo',
+      }).format(date);
 };
 ---
+
 <DashboardLayout title="Note Harness" eyebrow="PUBLISH / LEARN">
   <main class="note-shell">
     <header class="hero">
@@ -107,25 +159,48 @@ const fmt = (value: string | null) => {
           </article>
         </section>
 
+        <section class="panel">
+          <div class="panel-head"><div><span>NOTE SIGNAL INPUT</span><h2>note内の反応を学習へ戻す</h2></div><small>公式Dashboard値を手動入力可能</small></div>
+          <form id="metrics-form" class="metrics-grid">
+            <label>記事<select name="publicationId" required><option value="">選択</option>{publications.map((p) => <option value={p.id}>{p.title || p.asset_id}</option>)}</select></label>
+            <label>Impression<input name="impressions" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>PV<input name="views" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>スキ<input name="likes" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>Comment<input name="comments" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>Share<input name="shares" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>Save<input name="saves" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label class="wide">流入元メモ / JSON<textarea name="rawMetrics" rows="3" placeholder='{"referrers":{"note内":120,"X":30,"Google":15}}'></textarea></label>
+            <button type="submit">Signalを保存</button><output id="metrics-result" aria-live="polite"></output>
+          </form>
+        </section>
+
         <section class="panel table-panel">
           <div class="panel-head"><div><span>ATTRIBUTION</span><h2>どのnote・どのCTAが、人を次へ動かしたか</h2></div><small>direct + first-touch assisted</small></div>
-          <div class="table-wrap"><table><thead><tr><th>記事 / Link</th><th>Placement</th><th>Click</th><th>同意</th><th>LINE後続</th><th>Paid顧客</th><th>Paid件数</th><th>Assisted売上</th><th>最終Click</th></tr></thead>
-          <tbody>{attribution.map((row) => <tr>
-            <td><strong>{row.title || row.asset_id || row.slug}</strong><small>{row.slug} · {row.campaign_ref || '—'}</small></td>
-            <td>{row.placement || '—'}<small>{row.cta_stage || row.destination_type || ''}</small></td>
-            <td>{row.human_clicks}</td><td>{row.consented_contacts}</td><td>{row.line_engaged_contacts}</td>
-            <td>{row.first_touch_paid_customers}</td><td>{row.first_touch_paid_purchases}</td><td>{money(row.first_touch_revenue_yen)}</td><td>{fmt(row.last_clicked_at)}</td>
-          </tr>)}</tbody></table></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>記事 / Link</th><th>Placement</th><th>Click</th><th>同意</th><th>LINE後続</th><th>Paid顧客</th><th>Paid件数</th><th>Assisted売上</th><th>最終Click</th></tr></thead>
+              <tbody>{attribution.map((row) => <tr>
+                <td><strong>{row.title || row.asset_id || row.slug}</strong><small>{row.slug} · {row.campaign_ref || '—'}</small></td>
+                <td>{row.placement || '—'}<small>{row.cta_stage || row.destination_type || ''}</small></td>
+                <td>{row.human_clicks}</td><td>{row.consented_contacts}</td><td>{row.line_engaged_contacts}</td>
+                <td>{row.first_touch_paid_customers}</td><td>{row.first_touch_paid_purchases}</td><td>{money(row.first_touch_revenue_yen)}</td><td>{fmt(row.last_clicked_at)}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>
           {!attribution.length && <p class="empty">実記事を1本つなぐと、ここに導線別の結果が出ます。</p>}
         </section>
 
         <section class="panel table-panel">
           <div class="panel-head"><div><span>NOTE SIGNAL</span><h2>note内の反応 × Owned側の行動</h2></div><small>native metrics</small></div>
-          <div class="table-wrap"><table><thead><tr><th>記事</th><th>Impression</th><th>PV</th><th>スキ</th><th>Comment</th><th>Owned Click</th><th>更新</th></tr></thead>
-          <tbody>{publications.map((row) => <tr>
-            <td><strong>{row.title || row.asset_id}</strong>{row.published_url ? <a href={row.published_url} target="_blank" rel="noopener noreferrer">note ↗</a> : null}</td>
-            <td>{row.impressions ?? '—'}</td><td>{row.views ?? '—'}</td><td>{row.likes ?? '—'}</td><td>{row.comments ?? '—'}</td><td>{row.clicks ?? 0}</td><td>{fmt(row.observed_at)}</td>
-          </tr>)}</tbody></table></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>記事</th><th>Impression</th><th>PV</th><th>スキ</th><th>Comment</th><th>Owned Click</th><th>更新</th></tr></thead>
+              <tbody>{publications.map((row) => <tr>
+                <td><strong>{row.title || row.asset_id}</strong>{row.published_url ? <a href={row.published_url} target="_blank" rel="noopener noreferrer">note ↗</a> : null}</td>
+                <td>{row.impressions ?? '—'}</td><td>{row.views ?? '—'}</td><td>{row.likes ?? '—'}</td><td>{row.comments ?? '—'}</td><td>{row.clicks ?? 0}</td><td>{fmt(row.observed_at)}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>
         </section>
 
         <section class="panel rule">
@@ -137,36 +212,98 @@ const fmt = (value: string | null) => {
   </main>
 
   <script>
-    const post = async (url, body) => {
-      const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await response.json().catch(() => ({}));
+    type PostResult = {
+      ok?: boolean;
+      error?: string;
+      trackUrl?: string;
+      [key: string]: unknown;
+    };
+
+    const post = async (url: string, body: Record<string, unknown>): Promise<PostResult> => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json().catch(() => ({})) as PostResult;
       if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
       return data;
     };
-    const wireForm = (formId, outputId, endpoint, map) => {
+
+    const wireForm = (
+      formId: string,
+      outputId: string,
+      endpoint: string,
+      map: (formData: FormData) => Record<string, unknown>,
+    ) => {
       const form = document.getElementById(formId);
       const output = document.getElementById(outputId);
       if (!(form instanceof HTMLFormElement) || !(output instanceof HTMLOutputElement)) return;
+
       form.addEventListener('submit', async (event) => {
-        event.preventDefault(); output.value = '保存中…';
-        const fd = new FormData(form);
+        event.preventDefault();
+        output.value = '保存中…';
+        const formData = new FormData(form);
         try {
-          const result = await post(endpoint, map(fd));
+          const result = await post(endpoint, map(formData));
           output.value = result.trackUrl ? `保存 ✓ ${result.trackUrl}` : '保存 ✓';
-          if (result.trackUrl && navigator.clipboard) void navigator.clipboard.writeText(result.trackUrl).catch(() => {});
-        } catch (error) { output.value = `失敗: ${error instanceof Error ? error.message : 'unknown'}`; }
+          if (result.trackUrl && navigator.clipboard) {
+            void navigator.clipboard.writeText(result.trackUrl).catch(() => {});
+          }
+        } catch (error) {
+          output.value = `失敗: ${error instanceof Error ? error.message : 'unknown'}`;
+        }
       });
     };
-    wireForm('link-form', 'link-result', '/api/dashboard/note-harness-links', (fd) => ({
-      slug: fd.get('slug'), destinationUrl: fd.get('destinationUrl'), publicationId: fd.get('publicationId') || null,
-      placement: fd.get('placement') || null, ctaStage: fd.get('ctaStage') || null, status: fd.get('status') || 'active', sourceChannel: 'note',
+
+    const numberOrNull = (formData: FormData, key: string): number | null => {
+      const raw = String(formData.get(key) ?? '').trim();
+      if (!raw) return null;
+      const parsed = Number(raw);
+      if (!Number.isSafeInteger(parsed) || parsed < 0) throw new Error(`invalid_${key}`);
+      return parsed;
+    };
+
+    const parseRawMetrics = (formData: FormData): Record<string, unknown> => {
+      const raw = String(formData.get('rawMetrics') ?? '').trim();
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as unknown;
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('rawMetricsはJSON objectで入力');
+      return parsed as Record<string, unknown>;
+    };
+
+    wireForm('link-form', 'link-result', '/api/dashboard/note-harness-links', (formData) => ({
+      slug: formData.get('slug'),
+      destinationUrl: formData.get('destinationUrl'),
+      publicationId: formData.get('publicationId') || null,
+      placement: formData.get('placement') || null,
+      ctaStage: formData.get('ctaStage') || null,
+      status: formData.get('status') || 'active',
+      sourceChannel: 'note',
     }));
-    wireForm('publication-form', 'publication-result', '/api/dashboard/note-publications', (fd) => ({
-      action: 'register', assetId: fd.get('assetId'), publishedUrl: fd.get('publishedUrl'), draftRef: fd.get('draftRef') || null, cta: fd.get('cta') || null,
+
+    wireForm('publication-form', 'publication-result', '/api/dashboard/note-publications', (formData) => ({
+      action: 'register',
+      assetId: formData.get('assetId'),
+      publishedUrl: formData.get('publishedUrl'),
+      draftRef: formData.get('draftRef') || null,
+      cta: formData.get('cta') || null,
+    }));
+
+    wireForm('metrics-form', 'metrics-result', '/api/dashboard/note-publications', (formData) => ({
+      action: 'metrics',
+      publicationId: formData.get('publicationId'),
+      impressions: numberOrNull(formData, 'impressions'),
+      views: numberOrNull(formData, 'views'),
+      likes: numberOrNull(formData, 'likes'),
+      comments: numberOrNull(formData, 'comments'),
+      shares: numberOrNull(formData, 'shares'),
+      saves: numberOrNull(formData, 'saves'),
+      rawMetrics: parseRawMetrics(formData),
     }));
   </script>
 </DashboardLayout>
 
 <style>
-  .note-shell{display:grid;gap:14px}.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.hero h1{font-size:clamp(1.55rem,3vw,2.25rem);line-height:1.25;margin:.2rem 0 .5rem}.hero p{max-width:850px;color:#626b75;font-size:.86rem}.hero>a{white-space:nowrap;color:#8b5b2c;text-decoration:none;border:1px solid #d8d4cd;padding:10px 13px;background:#fff}.eyebrow,.panel-head span,.rule>span{color:#8b5b2c;font-size:.66rem;letter-spacing:.16em;font-weight:700}.panel,.score-grid article{background:#fff;border:1px solid #d8d4cd}.score-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.score-grid article{padding:15px}.score-grid span{display:block;color:#8b929a;font-size:.61rem;letter-spacing:.1em}.score-grid strong{display:block;font:600 1.8rem/1.15 'Cormorant Garamond',serif;color:#754a16;margin:4px 0}.score-grid strong.money{font-size:1.35rem}.score-grid small{color:#8b929a;font-size:.62rem}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.panel-head h2{font-size:1rem;margin-top:3px}.panel-head small{color:#8b929a;font-size:.65rem}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-grid label{display:grid;gap:4px;color:#626b75;font-size:.68rem}.form-grid input,.form-grid select{width:100%;min-height:42px;border:1px solid #d8d4cd;background:#fbfaf8;padding:8px 10px;color:#17191c}.form-grid button{min-height:42px;border:1px solid #a56c22;background:#a56c22;color:#fff;cursor:pointer}.form-grid output{display:flex;align-items:center;color:#138a55;font-size:.67rem;overflow-wrap:anywhere}.table-panel{overflow:hidden}.table-wrap{overflow:auto}table{width:100%;min-width:900px;border-collapse:collapse;font-size:.69rem}th{text-align:left;color:#8b929a;font-weight:500;padding:8px;border-bottom:1px solid #d8d4cd}td{padding:10px 8px;border-bottom:1px solid #ece8e1;vertical-align:top;color:#505964}td strong{display:block;color:#24282d}td small{display:block;color:#8b929a;margin-top:2px;font-size:.59rem}td a{display:inline-block;margin-top:3px;color:#8b5b2c;font-size:.61rem}.rule{color:#626b75;font-size:.72rem;line-height:1.75}.rule p{margin-top:6px}.rule strong{color:#754a16}.empty{color:#8b929a;font-size:.72rem}.error{border-color:#d8a79b;color:#7c4032}.error p{margin:6px 0}.error small{color:#8b929a}@media(max-width:1050px){.score-grid{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}}@media(max-width:620px){.hero{flex-direction:column}.score-grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}}
+  .note-shell{display:grid;gap:14px}.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.hero h1{font-size:clamp(1.55rem,3vw,2.25rem);line-height:1.25;margin:.2rem 0 .5rem}.hero p{max-width:850px;color:#626b75;font-size:.86rem}.hero>a{white-space:nowrap;color:#8b5b2c;text-decoration:none;border:1px solid #d8d4cd;padding:10px 13px;background:#fff}.eyebrow,.panel-head span,.rule>span{color:#8b5b2c;font-size:.66rem;letter-spacing:.16em;font-weight:700}.panel,.score-grid article{background:#fff;border:1px solid #d8d4cd}.score-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.score-grid article{padding:15px}.score-grid span{display:block;color:#8b929a;font-size:.61rem;letter-spacing:.1em}.score-grid strong{display:block;font:600 1.8rem/1.15 'Cormorant Garamond',serif;color:#754a16;margin:4px 0}.score-grid strong.money{font-size:1.35rem}.score-grid small{color:#8b929a;font-size:.62rem}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.panel-head h2{font-size:1rem;margin-top:3px}.panel-head small{color:#8b929a;font-size:.65rem}.form-grid,.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.form-grid label,.metrics-grid label{display:grid;gap:4px;color:#626b75;font-size:.68rem}.form-grid input,.form-grid select,.metrics-grid input,.metrics-grid select,.metrics-grid textarea{width:100%;min-height:42px;border:1px solid #d8d4cd;background:#fbfaf8;padding:8px 10px;color:#17191c}.metrics-grid textarea{resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.metrics-grid .wide{grid-column:span 4}.form-grid button,.metrics-grid button{min-height:42px;border:1px solid #a56c22;background:#a56c22;color:#fff;cursor:pointer}.form-grid output,.metrics-grid output{display:flex;align-items:center;color:#138a55;font-size:.67rem;overflow-wrap:anywhere}.table-panel{overflow:hidden}.table-wrap{overflow:auto}table{width:100%;min-width:900px;border-collapse:collapse;font-size:.69rem}th{text-align:left;color:#8b929a;font-weight:500;padding:8px;border-bottom:1px solid #d8d4cd}td{padding:10px 8px;border-bottom:1px solid #ece8e1;vertical-align:top;color:#505964}td strong{display:block;color:#24282d}td small{display:block;color:#8b929a;margin-top:2px;font-size:.59rem}td a{display:inline-block;margin-top:3px;color:#8b5b2c;font-size:.61rem}.rule{color:#626b75;font-size:.72rem;line-height:1.75}.rule p{margin-top:6px}.rule strong{color:#754a16}.empty{color:#8b929a;font-size:.72rem}.error{border-color:#d8a79b;color:#7c4032}.error p{margin:6px 0}.error small{color:#8b929a}@media(max-width:1050px){.score-grid{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}.metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics-grid .wide{grid-column:span 2}}@media(max-width:620px){.hero{flex-direction:column}.score-grid{grid-template-columns:repeat(2,1fr)}.form-grid,.metrics-grid{grid-template-columns:1fr}.metrics-grid .wide{grid-column:span 1}}
 </style>
