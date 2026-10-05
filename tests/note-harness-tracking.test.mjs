@@ -70,6 +70,17 @@ test('public redirect is fail-closed and non-cacheable', () => {
   assert.match(route, /'X-Robots-Tag': 'noindex, nofollow'/);
 });
 
+test('owned redirects hand note attribution into the existing Knowledge Journey UTM contract only', () => {
+  assert.match(route, /OWNED_HOSTS/);
+  assert.match(route, /utm_source/);
+  assert.match(route, /utm_medium/);
+  assert.match(route, /utm_campaign/);
+  assert.match(route, /utm_content/);
+  assert.match(route, /resolved\.campaign_ref \|\| `nh-\$\{slug\}`/);
+  assert.match(adminApi, /campaignRef = text\(body\.campaignRef, 160\) \|\| `nh-\$\{slug\}`/);
+  assert.doesNotMatch(route, /document\.cookie|Set-Cookie/i);
+});
+
 test('link management reuses the registered dashboard owner gate', () => {
   assert.match(migration, /create or replace function public\.masa_tracked_link_upsert_v1/i);
   assert.match(migration, /create or replace function public\.masa_tracked_link_list_v1/i);
