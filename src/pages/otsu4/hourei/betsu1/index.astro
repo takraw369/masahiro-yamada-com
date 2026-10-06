@@ -32,7 +32,7 @@ function buildGrid(){const g=$('grid');g.innerHTML='<div class="head">項</div>'
 let gi=0,glist=[...data].sort(()=>Math.random()-.5),locked=false;
 function showGrid(){locked=false;if(gi>=glist.length){glist=[...data].sort(()=>Math.random()-.5);gi=0}document.querySelectorAll('.cell').forEach(x=>x.classList.remove('correct','wrong'));$('noneBtn').classList.remove('correct','wrong');$('gridFeedback').classList.add('hidden');$('gridNext').classList.add('hidden');const x=glist[gi];$('gridCount').textContent=(gi+1)+' / '+glist.length;$('gridQ').textContent='「'+x[2]+'」はどの枠？'}
 function pick(r,c,el){if(locked)return;locked=true;const x=glist[gi], ok=x[0]===r&&x[1]===c;if(ok)el.classList.add('correct');else el.classList.add('wrong');const target=x[1]?document.querySelector('.cell[data-r="'+x[0]+'"][data-c="'+x[1]+'"]'):$('noneBtn');target.classList.add('correct');$('gridFeedback').innerHTML=(ok?'○ 正解　':'× 正解は ')+'<b>'+x[0]+'項'+(x[1]?' '+x[1]:'（区分なし）')+'</b>'; $('gridFeedback').classList.remove('hidden');$('gridNext').classList.remove('hidden');grade(key(x[0],x[1]),ok?'ok':'miss')}
-$('noneBtn').onclick=()=>{if(locked)return;const x=glist[gi];pick(x[1]?'__':' '+x[0],'', $('noneBtn'))};$('gridNext').onclick=()=>{gi++;showGrid()};
+$('noneBtn').onclick=()=>{if(locked)return;const x=glist[gi];pick(x[1]?'__':x[0],'',$('noneBtn'))};$('gridNext').onclick=()=>{gi++;showGrid()};
 function tab(mode){$('qa').classList.toggle('hidden',mode!=='qa');$('gridMode').classList.toggle('hidden',mode!=='grid');$('qaTab').classList.toggle('on',mode==='qa');$('gridTab').classList.toggle('on',mode==='grid')}
 $('qaTab').onclick=()=>tab('qa');$('gridTab').onclick=()=>tab('grid');buildGrid();showQA();showGrid();weak();
 </script></body></html>
