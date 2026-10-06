@@ -38,7 +38,7 @@ const norm=s=>hiraToKata(String(s||'').normalize('NFKC').toLowerCase()).replace(
 function judgeName(t,value){
   const v=norm(value);
   if(!v)return false;
-  return [t.name,...(t.aliases||[])].map(norm).some(a=>v===a||v.includes(a)||a.includes(v));
+  return [t.name,...(t.aliases||[])].map(norm).some(a=>v===a||(v.length>=2&&a.length>=2&&(v.includes(a)||a.includes(v))));
 }
 function judgeUse(t,value){
   const v=norm(value);
@@ -145,8 +145,7 @@ $('reveal').onclick=()=>{
 document.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>{
   const t=queue[i];
   const confidence=b.dataset.grade;
-  let result=lastResult||{nameOk:false,useOk:false};
-  if(confidence==='miss')result={nameOk:false,useOk:false};
+  const result=lastResult||{nameOk:false,useOk:false};
   saveGrade(t,result,confidence);
   if(result.nameOk&&result.useOk&&confidence==='ok')ok++;
   else if(!review.some(x=>x.name===t.name))review.push(t);
