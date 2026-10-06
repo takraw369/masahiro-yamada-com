@@ -1,8 +1,8 @@
 ---
 ---
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>乙4 鑑別｜12種</title><style>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>乙4 鑑別｜24種</title><style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f4f7fa;color:#15202b}main{max-width:680px;margin:auto;padding:16px 16px 80px}.top{display:flex;justify-content:space-between;align-items:center}.top a{color:#28648b;text-decoration:none}.pill{font-size:12px;background:#dcecf6;color:#174e70;padding:6px 10px;border-radius:99px}.card{background:#fff;border-radius:20px;padding:16px;box-shadow:0 8px 30px #17324d12;margin-top:16px}.progress{height:7px;background:#e7edf2;border-radius:9px;overflow:hidden}.progress i{display:block;height:100%;background:#28648b}.photo{height:300px;display:flex;align-items:center;justify-content:center;margin:14px 0;background:#fff;border-radius:14px;overflow:hidden;position:relative}.photo img{width:100%;height:100%;object-fit:contain}.mask{position:absolute;inset:0;pointer-events:none}.mask i{position:absolute;background:#fff;border-radius:6px}.q{font-weight:800;font-size:20px;margin:10px 0}label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}input{width:100%;font-size:16px;padding:13px;border:1px solid #cbd6df;border-radius:11px}button{border:0;border-radius:12px;padding:14px 16px;font-size:16px;font-weight:800}.primary{width:100%;margin-top:16px;background:#28648b;color:#fff}.secondary{background:#e9f1f6;color:#174e70}.answer{margin-top:14px;padding:14px;background:#eef7f0;border-radius:12px;display:none}.answer b{display:block;font-size:19px;margin-bottom:6px}.judge{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.badge{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border-radius:999px;font-size:13px;font-weight:800}.badge.ok{background:#dff3e5;color:#176b35}.badge.ng{background:#fde7e7;color:#9e2929}.badge.warn{background:#fff0c9;color:#855d00}.actions{display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stats{font-size:13px;color:#607080;margin-top:10px;text-align:center}.weakbox{margin-top:14px;padding:12px;background:#f7f9fb;border-radius:12px}.weakbox b{display:block;margin-bottom:7px}.weakrow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}.weakrow strong{color:#174e70}.done{text-align:center;padding:30px 10px}.done strong{font-size:44px;color:#28648b;display:block}.tiny{font-size:11px;color:#7b8994;line-height:1.5;margin-top:12px}@media(max-width:480px){.photo{height:260px}.actions{grid-template-columns:1fr 1fr 1fr}.actions button{padding:13px 8px;font-size:14px}}
-</style></head><body><main><div class="top"><a href="/otsu4/">← 乙4ホーム</a><span class="pill">鑑別・12種</span></div><section class="card" id="app"><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">名称・用途が画像に写る場合は問題中だけ隠します。×→△→未出→○の順で出やすく、×・△は数問後に再登場します。</p></section></main><script is:inline>
+</style></head><body><main><div class="top"><a href="/otsu4/">← 乙4ホーム</a><span class="pill">鑑別・24種</span></div><section class="card" id="app"><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">名称・用途が画像に写る場合は問題中だけ隠します。計測器・配線材料を追加済み。×→△→未出→○の順で出やすく、×・△は数問後に再登場します。</p></section></main><script is:inline>
 const $=id=>document.getElementById(id);
 const commons=(file)=>`https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=960`;
 const tools=[
@@ -17,7 +17,19 @@ const tools=[
 {name:'リーマ',aliases:['リーマー'],use:'金属管内側のバリ取りに用いる。',useGroups:[['バリ','面取り']],files:['ReamerAdjustableHand.jpg','Taper reamer K-442 removed handle.jpg']},
 {name:'ホルソ',aliases:['ホールソー','ホールソ','ホルソー'],use:'金属板などに穴を開ける。',useGroups:[['穴','穿孔']],files:['Holesaw (PSF).png','Drill arbor holesaw 2.jpg']},
 {name:'モール',aliases:['配線モール','ケーブルモール'],use:'電線を収め、保護・整理するために用いる。',useGroups:[['保護','収納','収め','整理']],files:['Insertion trunking.JPG','Electcablesinconstruction.jpg']},
-{name:'リングスリーブ',aliases:['スリーブ'],use:'電線相互を圧着接続するために用いる。',useGroups:[['接続','圧着']],files:['Wire ferrules with and without insulation.jpg','Close-up of Butt Connectors for ESC and Motor.JPG']}
+{name:'リングスリーブ',aliases:['スリーブ'],use:'電線相互を圧着接続するために用いる。',useGroups:[['接続','圧着']],files:['Wire ferrules with and without insulation.jpg','Close-up of Butt Connectors for ESC and Motor.JPG']},
+{name:'回路計',aliases:['テスター','マルチメーター','マルチテスター'],use:'回路の電流・電圧・抵抗値を測定する。',useGroups:[['電流','電圧','抵抗','測定']],files:['Multimetar.jpg','All multimeters.jpg']},
+{name:'絶縁抵抗計',aliases:['メガー','メガ'],use:'機器の外箱や電路の絶縁抵抗を測定する。',useGroups:[['絶縁'],['抵抗']],files:['Insulation testers by Megger.jpg','InsulationTester.jpg']},
+{name:'騒音計',aliases:['音圧計','サウンドレベルメーター'],use:'音響装置の音圧を測定する。',useGroups:[['音圧','騒音','音']],files:['Sound level meter, DVM85.jpg','Sound level meter in Japan (4464526592).jpg']},
+{name:'接地抵抗計',aliases:['アーステスター','接地抵抗測定器'],use:'接地抵抗を測定する。',useGroups:[['接地'],['抵抗']],files:['Digital Earth resistance tester.jpg']},
+{name:'検電器',aliases:['電圧検出器','検電ドライバー'],use:'電路の充電の有無を調べる。',useGroups:[['充電','電圧','通電','電気']],files:['Chauvin Arnoux C.A 760N voltage tester - front view.jpg']},
+{name:'加熱試験器用の火口',aliases:['加熱試験器用火口','火口','換火口'],use:'加熱試験器に入れる白金カイロの火口。',useGroups:[['加熱試験器','白金カイロ','換火口','火口']],files:['Hakukin Kairo KaeHiguchi.jpg']},
+{name:'ねじなし電線管',aliases:['ねじなし管','E管','電線管'],use:'金属管工事で、配線する電線を収納する金属製の管。',useGroups:[['電線','配線'],['収納','収め','保護']],files:['ねじなし電線管 (E25).JPG','Electrical conduit.JPG']},
+{name:'ノーマルベンド',aliases:['ベンド','ノーマルベンド管'],use:'電線管の屈曲部分に用いる。',useGroups:[['屈曲','曲げ','曲']],files:['Pipe elbow.png','Bending Model 2.jpg']},
+{name:'ボックスコネクタ',aliases:['コネクタ','ボックス用コネクタ'],use:'電線管とアウトレットボックスを接続する。',useGroups:[['電線管'],['ボックス','アウトレット'],['接続']],files:['Conduit Straps, Fittings, and Plug J. Morris CC BY-SA-3.0.jpg','Conduit junction boxes.jpg']},
+{name:'サドル',aliases:['電線管サドル','サドルバンド'],use:'電線管を造営材に固定する。',useGroups:[['電線管','管'],['固定']],files:['Galvanized-Saddle-Clamp 142542-480x360 (5000534934).jpg','Conduit Straps, Fittings, and Plug J. Morris CC BY-SA-3.0.jpg']},
+{name:'絶縁ブッシング',aliases:['ブッシング','絶縁ブッシュ'],use:'電線管から引き出した電線の被覆を保護する。',useGroups:[['被覆','電線'],['保護']],files:['M16 cable gland.jpg','Cable glands06.jpg']},
+{name:'アウトレットボックス',aliases:['アウトレットボックス','ジョイントボックス'],use:'電線相互の接続や、電気機器の取付け箇所に設置する箱。',useGroups:[['接続','取付','取り付け'],['箱','ボックス']],files:['Junction box.jpg','Electrical box01.jpg']}
 ];
 
 function loadPhoto(t){
@@ -110,7 +122,7 @@ function adaptiveWeight(t){
   return Math.max(.5,w);
 }
 function insertRepeat(deck,t,minDelay,maxDelay){
-  if(deck.length>=24)return;
+  if(deck.length>=tools.length+12)return;
   const from=Math.min(deck.length,i+minDelay);
   const to=Math.min(deck.length,i+maxDelay);
   const pos=from+Math.floor(Math.random()*Math.max(1,to-from+1));
@@ -127,7 +139,7 @@ function buildQueue(){
   }
   extras.sort(()=>Math.random()-.5);
   for(const t of extras){
-    if(base.length>=20)break;
+    if(base.length>=tools.length+8)break;
     const pos=2+Math.floor(Math.random()*Math.max(1,base.length-1));
     if(!base.slice(Math.max(0,pos-1),pos+1).some(x=>x.name===t.name))base.splice(pos,0,t);
   }
