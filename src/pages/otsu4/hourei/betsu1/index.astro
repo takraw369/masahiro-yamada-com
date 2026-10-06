@@ -1,8 +1,11 @@
 ---
 ---
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>乙4 別表第1ドリル</title><style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f4f7fa;color:#15202b}main{max-width:760px;margin:auto;padding:14px 12px 80px}a{color:#28648b;text-decoration:none}.card{background:#fff;border-radius:18px;padding:15px;box-shadow:0 8px 30px #17324d12;margin-top:14px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tabs button,button{border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px}.tabs button.on,.primary{background:#28648b;color:#fff}.tabs button:not(.on),.secondary{background:#e9f1f6;color:#174e70}.q{font-size:20px;font-weight:900;line-height:1.5}.answer{background:#eef7f0;border-radius:12px;padding:13px;margin-top:12px}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.gridwrap{overflow-x:auto}.grid{display:grid;grid-template-columns:54px repeat(4,minmax(58px,1fr));gap:4px;min-width:330px}.cell,.head{min-height:43px;border-radius:8px;padding:6px 3px;font-size:12px;font-weight:800;text-align:center}.head{display:flex;align-items:center;justify-content:center;background:#dcecf6;color:#174e70}.cell{border:1px solid #d6e0e7;background:#fff;color:#334}.cell:hover{background:#edf5fa}.cell.correct{background:#dff3e5;border-color:#64a979}.cell.wrong{background:#fde7e7;border-color:#d98383}.cell.invalid{background:#f7f8f9;color:#9aa5ad}.status{font-size:13px;color:#607080;margin:9px 0}.weak{font-size:12px;line-height:1.7;color:#607080}.hidden{display:none}.use{font-size:14px;color:#53636f;line-height:1.6}.badge{display:inline-block;padding:5px 8px;border-radius:99px;background:#fff0c9;color:#795b00;font-size:12px;font-weight:800}@media(max-width:420px){.q{font-size:18px}.cell,.head{font-size:11px}.actions button{padding:12px 5px;font-size:13px}}
-</style></head><body><main><a href="/otsu4/hourei/">← 法令テスト</a><section class="card"><h1>消防法施行令 別表第1</h1><p class="use">縦は1〜20（16は16・16の2・16の3）、横は常にイ・ロ・ハ・ニ。<b>本来区分がない枠もあえて残す。</b></p><div class="tabs"><button id="qaTab" class="on">一問一答</button><button id="gridTab">表で当てる</button></div></section><section id="qa" class="card"><div class="status" id="qaCount"></div><div class="q" id="qaQ"></div><button id="reveal" class="primary" style="width:100%;margin-top:14px">答え合わせ</button><div id="qaA" class="answer hidden"></div><div id="qaActions" class="actions hidden"><button class="secondary" data-g="miss">×</button><button class="secondary" data-g="unsure">△</button><button class="primary" data-g="ok">○</button></div></section><section id="gridMode" class="card hidden"><div class="status" id="gridCount"></div><div class="q" id="gridQ"></div><p class="use">該当する枠をタップ。区分なしの項は「イ」を正解枠として扱わず、専用の「区分なし」を選ぶ。</p><button id="noneBtn" class="secondary" style="width:100%;margin-bottom:8px">区分なし</button><div class="gridwrap"><div id="grid" class="grid"></div></div><div id="gridFeedback" class="answer hidden"></div><button id="gridNext" class="primary hidden" style="width:100%;margin-top:10px">次へ</button></section><section class="card"><b>弱点</b><div id="weak" class="weak"></div></section></main><script is:inline>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f4f7fa;color:#15202b}main{max-width:760px;margin:auto;padding:14px 12px 80px}a{color:#28648b;text-decoration:none}.card{background:#fff;border-radius:18px;padding:15px;box-shadow:0 8px 30px #17324d12;margin-top:14px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tabs button,button{border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px}.tabs button.on,.primary{background:#28648b;color:#fff}.tabs button:not(.on),.secondary{background:#e9f1f6;color:#174e70}.q{font-size:20px;font-weight:900;line-height:1.5}.answer{background:#eef7f0;border-radius:12px;padding:13px;margin-top:12px}.answer.ng{background:#fdeeee}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.choice-title{font-size:12px;font-weight:900;color:#607080;margin:15px 0 7px}.number-picks{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.kana-picks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.pick{padding:11px 4px;background:#eef3f6;color:#24465d;border:1px solid #d6e0e7}.pick.selected{background:#28648b;color:#fff;border-color:#28648b}.pick:disabled{opacity:.75}.submit{width:100%;margin-top:14px}.submit:disabled{opacity:.45}.gridwrap{overflow-x:auto}.grid{display:grid;grid-template-columns:58px repeat(4,minmax(58px,1fr));gap:4px;min-width:340px}.cell,.head,.rowhead{min-height:43px;border-radius:8px;padding:6px 3px;font-size:12px;font-weight:800;text-align:center}.head{display:flex;align-items:center;justify-content:center;background:#dcecf6;color:#174e70}.rowhead,.cell{border:1px solid #d6e0e7;background:#fff;color:#334}.rowhead{background:#f4f8fb}.cell.correct,.rowhead.correct{background:#dff3e5;border-color:#64a979}.cell.wrong,.rowhead.wrong{background:#fde7e7;border-color:#d98383}.status{font-size:13px;color:#607080;margin:9px 0}.weak{font-size:12px;line-height:1.7;color:#607080}.weakrow{padding:7px 0;border-bottom:1px solid #e8edf1}.weakrow:last-child{border:0}.hidden{display:none}.use{font-size:14px;color:#53636f;line-height:1.6}.hint{font-size:12px;color:#6b7882}.rate-note{text-align:center;font-size:12px;color:#6b7882;margin:10px 0 0}@media(max-width:520px){.q{font-size:18px}.number-picks{grid-template-columns:repeat(5,1fr)}.kana-picks{grid-template-columns:repeat(5,1fr)}.pick{font-size:13px;padding:11px 2px}.cell,.head,.rowhead{font-size:11px}.actions button{padding:12px 5px;font-size:13px}}
+</style></head><body><main><a href="/otsu4/hourei/">← 法令テスト</a><section class="card"><h1>消防法施行令 別表第1</h1><p class="use">用途を見て、<b>項番号＋イ・ロ・ハ・ニ（または区分なし）</b>を自分で選ぶ。表モードは外枠から直接当てる。</p><div class="tabs"><button id="qaTab" class="on">番号＋イロハ</button><button id="gridTab">表で当てる</button></div></section>
+<section id="qa" class="card"><div class="status" id="qaCount"></div><div class="q" id="qaQ"></div><div class="choice-title">① 項番号を選ぶ</div><div id="numberPicks" class="number-picks"></div><div class="choice-title">② 区分を選ぶ</div><div id="kanaPicks" class="kana-picks"></div><button id="submitQA" class="primary submit" disabled>回答する</button><div id="qaA" class="answer hidden"></div><div id="qaActions" class="actions hidden"><button class="secondary" data-rate="weak">弱い</button><button class="secondary" data-rate="repeat">もう一度</button><button class="primary" data-rate="mastered">ここは覚えた</button></div><p id="qaRateNote" class="rate-note hidden">評価すると次へ。弱い・もう一度は今後も出やすくなります。</p></section>
+<section id="gridMode" class="card hidden"><div class="status" id="gridCount"></div><div class="q" id="gridQ"></div><p class="use">イロハがある用途は交点をタップ。区分なしの用途は左端の<b>項番号</b>をタップ。存在しない枠も見た目では区別しません。</p><div class="gridwrap"><div id="grid" class="grid"></div></div><div id="gridFeedback" class="answer hidden"></div><div id="gridActions" class="actions hidden"><button class="secondary" data-grid-rate="weak">弱い</button><button class="secondary" data-grid-rate="repeat">もう一度</button><button class="primary" data-grid-rate="mastered">ここは覚えた</button></div></section>
+<section class="card"><b>弱点・再出題</b><div id="weak" class="weak"></div></section></main><script is:inline>
 const data=[
 ['1','イ','劇場・映画館・演芸場・観覧場'],['1','ロ','公会堂・集会場'],
 ['2','イ','キャバレー・カフェー・ナイトクラブ等'],['2','ロ','遊技場・ダンスホール'],['2','ハ','性風俗関連特殊営業店舗等'],['2','ニ','カラオケボックス・個室型店舗等'],
@@ -19,20 +22,93 @@ const data=[
 ['16','イ','特定用途を含む複合用途防火対象物'],['16','ロ','イ以外の複合用途防火対象物'],
 ['16の2','','地下街'],['16の3','','準地下街'],['17','','重要文化財等'],['18','','延長50m以上のアーケード'],['19','','市町村長が指定する山林'],['20','','総務省令で定める舟車']
 ];
-const rows=['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','16の2','16の3','17','18','19','20'], cols=['イ','ロ','ハ','ニ'];
-const key=(r,c)=>r+'-'+(c||'なし'), map=new Map(data.map(x=>[key(x[0],x[1]),x[2]]));
-const $=x=>document.getElementById(x), K='otsu4-betsu1-v1'; let hist={};try{hist=JSON.parse(localStorage.getItem(K))||{}}catch{}
-function grade(k,g){const x=hist[k]||{ok:0,unsure:0,miss:0};x[g]++;hist[k]=x;localStorage.setItem(K,JSON.stringify(hist));weak()}
-function weak(){const a=Object.entries(hist).map(([k,v])=>({k,s:(v.miss||0)*3+(v.unsure||0)*2-(v.ok||0)})).sort((a,b)=>b.s-a.s).slice(0,8);$('weak').innerHTML=a.length?a.map(x=>x.k+'　弱点 '+Math.max(0,x.s)).join('<br>'):'まだ記録なし。△と×がここに溜まります。'}
-let qi=0, qlist=[...data].sort(()=>Math.random()-.5);
-function showQA(){if(qi>=qlist.length){qlist=[...data].sort(()=>Math.random()-.5);qi=0}const x=qlist[qi];$('qaCount').textContent=(qi+1)+' / '+qlist.length;$('qaQ').textContent='「'+x[2]+'」は別表第1の何項？';$('qaA').innerHTML='<b>'+x[0]+'項'+(x[1]?' '+x[1]:'（区分なし）')+'</b>';$('qaA').classList.add('hidden');$('qaActions').classList.add('hidden');$('reveal').classList.remove('hidden')}
-$('reveal').onclick=()=>{$('qaA').classList.remove('hidden');$('qaActions').classList.remove('hidden');$('reveal').classList.add('hidden')};
-document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const x=qlist[qi];grade(key(x[0],x[1]),b.dataset.g);qi++;showQA()});
-function buildGrid(){const g=$('grid');g.innerHTML='<div class="head">項</div>'+cols.map(c=>'<div class="head">'+c+'</div>').join('');rows.forEach(r=>{g.insertAdjacentHTML('beforeend','<div class="head">'+r+'</div>');cols.forEach(c=>{const valid=map.has(key(r,c));g.insertAdjacentHTML('beforeend','<button class="cell '+(valid?'':'invalid')+'" data-r="'+r+'" data-c="'+c+'">'+c+'</button>')})});g.querySelectorAll('.cell').forEach(b=>b.onclick=()=>pick(b.dataset.r,b.dataset.c,b))}
-let gi=0,glist=[...data].sort(()=>Math.random()-.5),locked=false;
-function showGrid(){locked=false;if(gi>=glist.length){glist=[...data].sort(()=>Math.random()-.5);gi=0}document.querySelectorAll('.cell').forEach(x=>x.classList.remove('correct','wrong'));$('noneBtn').classList.remove('correct','wrong');$('gridFeedback').classList.add('hidden');$('gridNext').classList.add('hidden');const x=glist[gi];$('gridCount').textContent=(gi+1)+' / '+glist.length;$('gridQ').textContent='「'+x[2]+'」はどの枠？'}
-function pick(r,c,el){if(locked)return;locked=true;const x=glist[gi], ok=x[0]===r&&x[1]===c;if(ok)el.classList.add('correct');else el.classList.add('wrong');const target=x[1]?document.querySelector('.cell[data-r="'+x[0]+'"][data-c="'+x[1]+'"]'):$('noneBtn');target.classList.add('correct');$('gridFeedback').innerHTML=(ok?'○ 正解　':'× 正解は ')+'<b>'+x[0]+'項'+(x[1]?' '+x[1]:'（区分なし）')+'</b>'; $('gridFeedback').classList.remove('hidden');$('gridNext').classList.remove('hidden');grade(key(x[0],x[1]),ok?'ok':'miss')}
-$('noneBtn').onclick=()=>{if(locked)return;const x=glist[gi];pick(x[1]?'__':x[0],'',$('noneBtn'))};$('gridNext').onclick=()=>{gi++;showGrid()};
+const rows=['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','16の2','16の3','17','18','19','20'], cols=['イ','ロ','ハ','ニ'], kanaChoices=[...cols,'区分なし'];
+const key=(r,c)=>r+'-'+(c||'なし'), byKey=new Map(data.map(x=>[key(x[0],x[1]),x]));
+const $=x=>document.getElementById(x), K='otsu4-betsu1-v1';
+let hist={};try{hist=JSON.parse(localStorage.getItem(K))||{}}catch{}
+function stateFor(k){
+  const x=hist[k]||{};
+  return {
+    attempts:Number(x.attempts)||0,
+    correct:Number(x.correct)||Number(x.ok)||0,
+    wrong:Number(x.wrong)||Number(x.miss)||0,
+    weak:Number(x.weak)||0,
+    repeat:Number(x.repeat)||Number(x.unsure)||0,
+    mastered:Number(x.mastered)||Number(x.ok)||0,
+    lastRating:String(x.lastRating||((x.miss||0)?'weak':(x.unsure||0)?'repeat':(x.ok||0)?'mastered':'')),
+    lastSeen:Number(x.lastSeen)||0
+  };
+}
+function saveResult(item,correct,rating){
+  const k=key(item[0],item[1]),x=stateFor(k);
+  x.attempts++; if(correct)x.correct++; else x.wrong++;
+  x[rating]=(x[rating]||0)+1;x.lastRating=rating;x.lastSeen=Date.now();hist[k]=x;
+  localStorage.setItem(K,JSON.stringify(hist));renderWeak();
+}
+function weight(item){
+  const x=stateFor(key(item[0],item[1])); if(!x.attempts)return 7;
+  let w=1+Math.min(7,x.wrong*1.7)+Math.min(5,x.repeat*1.1)+Math.min(5,x.weak*1.4);
+  if(x.lastRating==='weak')w+=11; else if(x.lastRating==='repeat')w+=7; else if(x.lastRating==='mastered')w*=.4;
+  const accuracy=x.attempts?x.correct/x.attempts:0;if(accuracy<.6)w+=5;if(x.mastered>=2&&accuracy>.8)w*=.55;
+  return Math.max(.4,w);
+}
+function buildQueue(){
+  const base=[...data].sort((a,b)=>(weight(b)+Math.random()*4)-(weight(a)+Math.random()*4)),extra=[];
+  for(const item of data){const x=stateFor(key(item[0],item[1]));let n=x.lastRating==='weak'?2:x.lastRating==='repeat'?1:(!x.attempts?1:0);while(n-->0)extra.push(item)}
+  extra.sort(()=>Math.random()-.5);for(const item of extra){if(base.length>=48)break;const p=2+Math.floor(Math.random()*Math.max(1,base.length-1));if(!base.slice(Math.max(0,p-1),p+2).some(x=>key(x[0],x[1])===key(item[0],item[1])))base.splice(p,0,item)}
+  return base;
+}
+function scheduleAgain(queue,index,item,rating){
+  if(rating==='mastered'||queue.length>=56)return;
+  const min=rating==='weak'?2:3,max=rating==='weak'?4:6,from=Math.min(queue.length,index+min),to=Math.min(queue.length,index+max);
+  let p=from+Math.floor(Math.random()*Math.max(1,to-from+1));
+  while(p<queue.length&&queue.slice(Math.max(index+1,p-1),p+2).some(x=>key(x[0],x[1])===key(item[0],item[1])))p++;
+  queue.splice(Math.min(p,queue.length),0,item);
+}
+function renderWeak(){
+  const list=data.map(item=>{const k=key(item[0],item[1]),x=stateFor(k);return{item,k,x,w:weight(item)}}).filter(x=>x.x.attempts).sort((a,b)=>b.w-a.w).slice(0,8);
+  $('weak').innerHTML=list.length?list.map(({item,x})=>'<div class="weakrow"><b>'+item[0]+'項 '+(item[1]||'区分なし')+'</b>　'+item[2]+'<br><span>誤答 '+x.wrong+' / 弱い '+x.weak+' / もう一度 '+x.repeat+' / 覚えた '+x.mastered+'</span></div>').join(''):'まだ記録なし。回答後の「弱い」「もう一度」がここに溜まります。';
+}
+let queue=buildQueue(),qi=0,selectedRow='',selectedKana='',qaLocked=false,qaCorrect=false;
+function renderChoiceButtons(){
+  $('numberPicks').innerHTML=rows.map(r=>'<button class="pick" data-row="'+r+'">'+r+'</button>').join('');
+  $('kanaPicks').innerHTML=kanaChoices.map(c=>'<button class="pick" data-kana="'+c+'">'+c+'</button>').join('');
+  $('numberPicks').querySelectorAll('[data-row]').forEach(b=>b.onclick=()=>{if(qaLocked)return;selectedRow=b.dataset.row;$('numberPicks').querySelectorAll('.pick').forEach(x=>x.classList.toggle('selected',x===b));syncSubmit()});
+  $('kanaPicks').querySelectorAll('[data-kana]').forEach(b=>b.onclick=()=>{if(qaLocked)return;selectedKana=b.dataset.kana==='区分なし'?'':b.dataset.kana;$('kanaPicks').querySelectorAll('.pick').forEach(x=>x.classList.toggle('selected',x===b));syncSubmit()});
+}
+function syncSubmit(){$('submitQA').disabled=!(selectedRow&&selectedKana!==null&&document.querySelector('#kanaPicks .selected'))}
+function showQA(){
+  if(qi>=queue.length){queue=buildQueue();qi=0}
+  const item=queue[qi];selectedRow='';selectedKana=null;qaLocked=false;qaCorrect=false;
+  $('qaCount').textContent=(qi+1)+' / '+queue.length+'｜弱点優先ランダム';$('qaQ').textContent='「'+item[2]+'」は別表第1の何項・何区分？';
+  $('qaA').classList.add('hidden');$('qaA').classList.remove('ng');$('qaActions').classList.add('hidden');$('qaRateNote').classList.add('hidden');$('submitQA').disabled=true;
+  renderChoiceButtons();
+}
+$('submitQA').onclick=()=>{
+  if(qaLocked)return;const item=queue[qi];qaLocked=true;qaCorrect=selectedRow===item[0]&&selectedKana===item[1];
+  $('numberPicks').querySelectorAll('button').forEach(b=>b.disabled=true);$('kanaPicks').querySelectorAll('button').forEach(b=>b.disabled=true);$('submitQA').disabled=true;
+  const mine=selectedRow+'項 '+(selectedKana||'区分なし'),truth=item[0]+'項 '+(item[1]||'区分なし');
+  $('qaA').innerHTML=(qaCorrect?'○ 正解':'× 不正解')+'<br>あなた：<b>'+mine+'</b><br>正解：<b>'+truth+'</b>';$('qaA').classList.toggle('ng',!qaCorrect);$('qaA').classList.remove('hidden');$('qaActions').classList.remove('hidden');$('qaRateNote').classList.remove('hidden');
+};
+document.querySelectorAll('[data-rate]').forEach(b=>b.onclick=()=>{if(!qaLocked)return;const item=queue[qi],rating=b.dataset.rate;saveResult(item,qaCorrect,rating);scheduleAgain(queue,qi,item,rating);qi++;showQA()});
+
+function buildGrid(){
+  const g=$('grid');g.innerHTML='<div class="head">項</div>'+cols.map(c=>'<div class="head">'+c+'</div>').join('');
+  rows.forEach(r=>{g.insertAdjacentHTML('beforeend','<button class="rowhead" data-rowonly="'+r+'">'+r+'</button>');cols.forEach(c=>g.insertAdjacentHTML('beforeend','<button class="cell" data-r="'+r+'" data-c="'+c+'">'+c+'</button>'))});
+  g.querySelectorAll('.cell').forEach(b=>b.onclick=()=>pickGrid(b.dataset.r,b.dataset.c,b));g.querySelectorAll('.rowhead').forEach(b=>b.onclick=()=>pickGrid(b.dataset.rowonly,'',b));
+}
+let gqueue=buildQueue(),gi=0,gridLocked=false,gridCorrect=false,gridItem=null;
+function showGrid(){
+  if(gi>=gqueue.length){gqueue=buildQueue();gi=0}gridLocked=false;gridCorrect=false;gridItem=gqueue[gi];
+  document.querySelectorAll('.cell,.rowhead').forEach(x=>x.classList.remove('correct','wrong'));$('gridFeedback').classList.add('hidden');$('gridFeedback').classList.remove('ng');$('gridActions').classList.add('hidden');
+  $('gridCount').textContent=(gi+1)+' / '+gqueue.length+'｜弱点優先ランダム';$('gridQ').textContent='「'+gridItem[2]+'」はどの枠？';
+}
+function pickGrid(r,c,el){
+  if(gridLocked)return;gridLocked=true;gridCorrect=gridItem[0]===r&&gridItem[1]===c;if(gridCorrect)el.classList.add('correct');else el.classList.add('wrong');
+  const target=gridItem[1]?document.querySelector('.cell[data-r="'+gridItem[0]+'"][data-c="'+gridItem[1]+'"]'):document.querySelector('.rowhead[data-rowonly="'+gridItem[0]+'"]');target?.classList.add('correct');
+  $('gridFeedback').innerHTML=(gridCorrect?'○ 正解':'× 不正解')+'　正解：<b>'+gridItem[0]+'項 '+(gridItem[1]||'区分なし')+'</b>';$('gridFeedback').classList.toggle('ng',!gridCorrect);$('gridFeedback').classList.remove('hidden');$('gridActions').classList.remove('hidden');
+}
+document.querySelectorAll('[data-grid-rate]').forEach(b=>b.onclick=()=>{if(!gridLocked)return;const rating=b.dataset.gridRate;saveResult(gridItem,gridCorrect,rating);scheduleAgain(gqueue,gi,gridItem,rating);gi++;showGrid()});
 function tab(mode){$('qa').classList.toggle('hidden',mode!=='qa');$('gridMode').classList.toggle('hidden',mode!=='grid');$('qaTab').classList.toggle('on',mode==='qa');$('gridTab').classList.toggle('on',mode==='grid')}
-$('qaTab').onclick=()=>tab('qa');$('gridTab').onclick=()=>tab('grid');buildGrid();showQA();showGrid();weak();
+$('qaTab').onclick=()=>tab('qa');$('gridTab').onclick=()=>tab('grid');buildGrid();showQA();showGrid();renderWeak();
 </script></body></html>
