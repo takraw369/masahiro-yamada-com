@@ -201,8 +201,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       }
     }
 
-    function render() {
-      renderFrames(); renderNodes(); renderEdges();
+    function updateSelectionUi() {
+      document.querySelectorAll<HTMLElement>('.node-card,.frame-card').forEach(el=>el.classList.toggle('selected',Boolean(el.dataset.id&&selected.has(el.dataset.id))));
       const count=selected.size;
       const selectedId=count===1?(primary()?.id||null):null;
       editBtn.disabled=count!==1;
@@ -212,10 +212,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       updateHistoryButtons();
     }
 
+    function render() {
+      renderFrames(); renderNodes(); renderEdges(); updateSelectionUi();
+    }
+
     function setSelection(id:string|null, additive=false) {
       if (!additive) selected.clear();
       if (id) { if (additive&&selected.has(id)) selected.delete(id); else selected.add(id); }
-      render();
+      updateSelectionUi();
     }
 
     function membersOf(frameId:string) { return snapshot.nodes.filter(n=>n.frameId===frameId); }
