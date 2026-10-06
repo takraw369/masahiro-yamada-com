@@ -2,7 +2,7 @@
 ---
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>乙4 鑑別｜12種</title><style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f4f7fa;color:#15202b}main{max-width:680px;margin:auto;padding:16px 16px 80px}.top{display:flex;justify-content:space-between;align-items:center}.top a{color:#28648b;text-decoration:none}.pill{font-size:12px;background:#dcecf6;color:#174e70;padding:6px 10px;border-radius:99px}.card{background:#fff;border-radius:20px;padding:16px;box-shadow:0 8px 30px #17324d12;margin-top:16px}.progress{height:7px;background:#e7edf2;border-radius:9px;overflow:hidden}.progress i{display:block;height:100%;background:#28648b}.photo{height:300px;display:flex;align-items:center;justify-content:center;margin:14px 0;background:#fff;border-radius:14px;overflow:hidden;position:relative}.photo img{width:100%;height:100%;object-fit:contain}.mask{position:absolute;inset:0;pointer-events:none}.mask i{position:absolute;background:#fff;border-radius:6px}.q{font-weight:800;font-size:20px;margin:10px 0}label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}input{width:100%;font-size:16px;padding:13px;border:1px solid #cbd6df;border-radius:11px}button{border:0;border-radius:12px;padding:14px 16px;font-size:16px;font-weight:800}.primary{width:100%;margin-top:16px;background:#28648b;color:#fff}.secondary{background:#e9f1f6;color:#174e70}.answer{margin-top:14px;padding:14px;background:#eef7f0;border-radius:12px;display:none}.answer b{display:block;font-size:19px;margin-bottom:6px}.judge{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.badge{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border-radius:999px;font-size:13px;font-weight:800}.badge.ok{background:#dff3e5;color:#176b35}.badge.ng{background:#fde7e7;color:#9e2929}.badge.warn{background:#fff0c9;color:#855d00}.actions{display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stats{font-size:13px;color:#607080;margin-top:10px;text-align:center}.weakbox{margin-top:14px;padding:12px;background:#f7f9fb;border-radius:12px}.weakbox b{display:block;margin-bottom:7px}.weakrow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}.weakrow strong{color:#174e70}.done{text-align:center;padding:30px 10px}.done strong{font-size:44px;color:#28648b;display:block}.tiny{font-size:11px;color:#7b8994;line-height:1.5;margin-top:12px}@media(max-width:480px){.photo{height:260px}.actions{grid-template-columns:1fr 1fr 1fr}.actions button{padding:13px 8px;font-size:14px}}
-</style></head><body><main><div class="top"><a href="/otsu4/">← 乙4ホーム</a><span class="pill">鑑別・12種</span></div><section class="card" id="app"><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">名称・用途が画像に写る場合は問題中だけ隠します。形状だけで鑑別してください。</p></section></main><script is:inline>
+</style></head><body><main><div class="top"><a href="/otsu4/">← 乙4ホーム</a><span class="pill">鑑別・12種</span></div><section class="card" id="app"><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">名称・用途が画像に写る場合は問題中だけ隠します。×→△→未出→○の順で出やすく、×・△は数問後に再登場します。</p></section></main><script is:inline>
 const $=id=>document.getElementById(id);
 const commons=(file)=>`https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=960`;
 const tools=[
@@ -66,7 +66,7 @@ try{
   }
 }catch{}
 
-let queue=[...tools].sort(()=>Math.random()-.5),i=0,ok=0,review=[];
+let queue=[],i=0,ok=0,review=[];
 let lastResult=null;
 
 function stateFor(t){
@@ -77,7 +77,10 @@ function stateFor(t){
     useOk:Number(x.useOk)||0,
     fullOk:Number(x.fullOk)||0,
     unsure:Number(x.unsure)||0,
-    miss:Number(x.miss)||0
+    miss:Number(x.miss)||0,
+    lastConfidence:String(x.lastConfidence||''),
+    streakOk:Number(x.streakOk)||0,
+    lastSeen:Number(x.lastSeen)||0
   };
 }
 function saveGrade(t,result,confidence){
@@ -87,10 +90,48 @@ function saveGrade(t,result,confidence){
   if(result.useOk)x.useOk++;
   if(result.nameOk&&result.useOk)x.fullOk++;
   if(confidence==='unsure')x.unsure++;
-  if(confidence==='miss'||!result.nameOk||!result.useOk)x.miss++;
+  const autoMiss=!result.nameOk||!result.useOk;
+  if(confidence==='miss'||autoMiss)x.miss++;
+  x.lastConfidence=autoMiss?'miss':confidence;
+  x.streakOk=(result.nameOk&&result.useOk&&confidence==='ok')?(x.streakOk+1):0;
+  x.lastSeen=Date.now();
   hist[t.name]=x;
   localStorage.setItem(K,JSON.stringify(hist));
   renderWeak();
+}
+function adaptiveWeight(t){
+  const x=stateFor(t);
+  if(!x.attempts)return 7;
+  let w=1;
+  if(x.lastConfidence==='miss')w+=12;
+  else if(x.lastConfidence==='unsure')w+=8;
+  w+=Math.min(7,x.miss*1.8)+Math.min(5,x.unsure*1.2);
+  if(x.streakOk>=2&&x.lastConfidence==='ok')w*=0.3;
+  return Math.max(.5,w);
+}
+function insertRepeat(deck,t,minDelay,maxDelay){
+  if(deck.length>=24)return;
+  const from=Math.min(deck.length,i+minDelay);
+  const to=Math.min(deck.length,i+maxDelay);
+  const pos=from+Math.floor(Math.random()*Math.max(1,to-from+1));
+  if(deck.slice(Math.max(i+1,pos-1),pos+2).some(x=>x.name===t.name))return;
+  deck.splice(pos,0,t);
+}
+function buildQueue(){
+  const base=[...tools].sort((a,b)=>(adaptiveWeight(b)+Math.random()*3)-(adaptiveWeight(a)+Math.random()*3));
+  const extras=[];
+  for(const t of tools){
+    const x=stateFor(t);
+    let n=x.lastConfidence==='miss'?2:x.lastConfidence==='unsure'?1:!x.attempts?1:(x.miss||x.unsure)?1:0;
+    while(n-->0)extras.push(t);
+  }
+  extras.sort(()=>Math.random()-.5);
+  for(const t of extras){
+    if(base.length>=20)break;
+    const pos=2+Math.floor(Math.random()*Math.max(1,base.length-1));
+    if(!base.slice(Math.max(0,pos-1),pos+1).some(x=>x.name===t.name))base.splice(pos,0,t);
+  }
+  return base;
 }
 function renderWeak(){
   const rows=tools.map(t=>{
@@ -113,13 +154,13 @@ function setMask(t){
 }
 function show(){
   if(i>=queue.length){
-    $('app').innerHTML=`<div class="done"><p>1周完了</p><strong>${ok}/${queue.length}</strong><p>${review.length?'復習候補 '+review.length+' 個。名称と用途を別々に見直そう。':'全問OK！名称・用途とも安定。'}</p><a href="/otsu4/kambetsu/" style="display:block;margin-top:18px;color:#28648b">もう1周</a><a href="/otsu4/" style="display:block;margin-top:18px;color:#28648b">乙4ホームへ</a></div>`;
+    $('app').innerHTML=`<div class="done"><p>弱点優先セッション完了</p><strong>${ok}/${queue.length}</strong><p>${review.length?'復習候補 '+review.length+' 個。名称と用途を別々に見直そう。':'全問OK！名称・用途とも安定。'}</p><a href="/otsu4/kambetsu/" style="display:block;margin-top:18px;color:#28648b">もう1周</a><a href="/otsu4/" style="display:block;margin-top:18px;color:#28648b">乙4ホームへ</a></div>`;
     return;
   }
   const t=queue[i];
   lastResult=null;
   loadPhoto(t);setMask(t);
-  $('counter').textContent=`${i+1} / ${queue.length}`;
+  $('counter').textContent=`${i+1} / ${queue.length}｜×・△を優先`;
   $('bar').style.width=`${i/queue.length*100}%`;
   $('name').value='';$('use').value='';
   $('answer').style.display='none';
@@ -147,9 +188,12 @@ document.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>{
   const confidence=b.dataset.grade;
   const result=lastResult||{nameOk:false,useOk:false};
   saveGrade(t,result,confidence);
+  const autoMiss=!result.nameOk||!result.useOk;
   if(result.nameOk&&result.useOk&&confidence==='ok')ok++;
   else if(!review.some(x=>x.name===t.name))review.push(t);
+  if(autoMiss||confidence==='miss')insertRepeat(queue,t,2,4);
+  else if(confidence==='unsure')insertRepeat(queue,t,3,6);
   i++;show();
 });
-renderWeak();show();
+queue=buildQueue();renderWeak();show();
 </script></body></html>
