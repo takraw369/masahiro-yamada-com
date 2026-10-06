@@ -327,9 +327,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
           media.getContext('2d')?.drawImage(img,0,0,width,height);
           return {src:media.toDataURL('image/webp',quality),ratio:width/height};
         };
-        let out=render(1280,.76);
-        if(out.src.length>420_000)out=render(900,.62);
-        if(out.src.length>520_000)throw new Error('image_still_too_large');
+        let out=render(840,.58);
+        if(out.src.length>100_000)out=render(640,.45);
+        if(out.src.length>125_000)throw new Error('image_still_too_large');
         return out;
       } finally { URL.revokeObjectURL(objectUrl); }
     }
@@ -437,9 +437,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     }
 
     async function saveBoard(){
-      if(!loaded||saving||(!dirty&&revision>0))return;if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}saving=true;saveBtn.disabled=true;setStatus('保存中…');const sent=JSON.stringify(snapshot);
+      if(!loaded||saving||(!dirty&&revision>0))return;if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
+      const requestBody=JSON.stringify({sceneKey:'main',snapshot,expectedRevision:revision,actor:'human'});
+      if(new TextEncoder().encode(requestBody).length>215_000){setStatus('画像容量が上限です · 不要画像を削除','error');return;}
+      saving=true;saveBtn.disabled=true;setStatus('保存中…');const sent=JSON.stringify(snapshot);
       try{
-        const res=await fetch('/api/dashboard/board',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({sceneKey:'main',snapshot,expectedRevision:revision,actor:'human'})}),payload=await res.json();
+        const res=await fetch('/api/dashboard/board',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:requestBody}),payload=await res.json();
         if(res.status===409){loaded=false;setStatus('競合あり · 再読込','error');return;}if(!res.ok||!payload.ok)throw new Error(payload.error||'save_failed');
         revision=Number(payload.data?.revision||revision+1);dirty=JSON.stringify(snapshot)!==sent;if(dirty)markDirty();else setStatus(`同期済 · r${revision}`,'ok');
       }catch(error){console.error(error);setStatus('保存失敗','error');}finally{saving=false;saveBtn.disabled=!loaded;}
