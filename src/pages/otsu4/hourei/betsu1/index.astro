@@ -1,0 +1,38 @@
+---
+---
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>乙4 別表第1ドリル</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f4f7fa;color:#15202b}main{max-width:760px;margin:auto;padding:14px 12px 80px}a{color:#28648b;text-decoration:none}.card{background:#fff;border-radius:18px;padding:15px;box-shadow:0 8px 30px #17324d12;margin-top:14px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tabs button,button{border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px}.tabs button.on,.primary{background:#28648b;color:#fff}.tabs button:not(.on),.secondary{background:#e9f1f6;color:#174e70}.q{font-size:20px;font-weight:900;line-height:1.5}.answer{background:#eef7f0;border-radius:12px;padding:13px;margin-top:12px}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.gridwrap{overflow-x:auto}.grid{display:grid;grid-template-columns:54px repeat(4,minmax(58px,1fr));gap:4px;min-width:330px}.cell,.head{min-height:43px;border-radius:8px;padding:6px 3px;font-size:12px;font-weight:800;text-align:center}.head{display:flex;align-items:center;justify-content:center;background:#dcecf6;color:#174e70}.cell{border:1px solid #d6e0e7;background:#fff;color:#334}.cell:hover{background:#edf5fa}.cell.correct{background:#dff3e5;border-color:#64a979}.cell.wrong{background:#fde7e7;border-color:#d98383}.cell.invalid{background:#f7f8f9;color:#9aa5ad}.status{font-size:13px;color:#607080;margin:9px 0}.weak{font-size:12px;line-height:1.7;color:#607080}.hidden{display:none}.use{font-size:14px;color:#53636f;line-height:1.6}.badge{display:inline-block;padding:5px 8px;border-radius:99px;background:#fff0c9;color:#795b00;font-size:12px;font-weight:800}@media(max-width:420px){.q{font-size:18px}.cell,.head{font-size:11px}.actions button{padding:12px 5px;font-size:13px}}
+</style></head><body><main><a href="/otsu4/hourei/">← 法令テスト</a><section class="card"><h1>消防法施行令 別表第1</h1><p class="use">縦は1〜20（16は16・16の2・16の3）、横は常にイ・ロ・ハ・ニ。<b>本来区分がない枠もあえて残す。</b></p><div class="tabs"><button id="qaTab" class="on">一問一答</button><button id="gridTab">表で当てる</button></div></section><section id="qa" class="card"><div class="status" id="qaCount"></div><div class="q" id="qaQ"></div><button id="reveal" class="primary" style="width:100%;margin-top:14px">答え合わせ</button><div id="qaA" class="answer hidden"></div><div id="qaActions" class="actions hidden"><button class="secondary" data-g="miss">×</button><button class="secondary" data-g="unsure">△</button><button class="primary" data-g="ok">○</button></div></section><section id="gridMode" class="card hidden"><div class="status" id="gridCount"></div><div class="q" id="gridQ"></div><p class="use">該当する枠をタップ。区分なしの項は「イ」を正解枠として扱わず、専用の「区分なし」を選ぶ。</p><button id="noneBtn" class="secondary" style="width:100%;margin-bottom:8px">区分なし</button><div class="gridwrap"><div id="grid" class="grid"></div></div><div id="gridFeedback" class="answer hidden"></div><button id="gridNext" class="primary hidden" style="width:100%;margin-top:10px">次へ</button></section><section class="card"><b>弱点</b><div id="weak" class="weak"></div></section></main><script is:inline>
+const data=[
+['1','イ','劇場・映画館・演芸場・観覧場'],['1','ロ','公会堂・集会場'],
+['2','イ','キャバレー・カフェー・ナイトクラブ等'],['2','ロ','遊技場・ダンスホール'],['2','ハ','性風俗関連特殊営業店舗等'],['2','ニ','カラオケボックス・個室型店舗等'],
+['3','イ','待合・料理店等'],['3','ロ','飲食店'],
+['4','','百貨店・マーケット・物品販売店舗・展示場'],
+['5','イ','旅館・ホテル・宿泊所等'],['5','ロ','寄宿舎・下宿・共同住宅'],
+['6','イ','病院・診療所・助産所'],['6','ロ','自力避難困難者が入所する社会福祉施設等'],['6','ハ','老人デイサービスセンター等の社会福祉施設等'],['6','ニ','幼稚園・特別支援学校'],
+['7','','小学校・中学校・高等学校・大学・各種学校等'],['8','','図書館・博物館・美術館等'],
+['9','イ','蒸気浴場・熱気浴場等の特殊浴場'],['9','ロ','イ以外の公衆浴場'],
+['10','','車両の停車場・船舶・航空機の発着場'],['11','','神社・寺院・教会等'],
+['12','イ','工場・作業場'],['12','ロ','映画・テレビスタジオ'],
+['13','イ','自動車車庫・駐車場'],['13','ロ','飛行機・回転翼航空機の格納庫'],
+['14','','倉庫'],['15','','前各項に該当しない事業場'],
+['16','イ','特定用途を含む複合用途防火対象物'],['16','ロ','イ以外の複合用途防火対象物'],
+['16の2','','地下街'],['16の3','','準地下街'],['17','','重要文化財等'],['18','','延長50m以上のアーケード'],['19','','市町村長が指定する山林'],['20','','総務省令で定める舟車']
+];
+const rows=['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','16の2','16の3','17','18','19','20'], cols=['イ','ロ','ハ','ニ'];
+const key=(r,c)=>r+'-'+(c||'なし'), map=new Map(data.map(x=>[key(x[0],x[1]),x[2]]));
+const $=x=>document.getElementById(x), K='otsu4-betsu1-v1'; let hist={};try{hist=JSON.parse(localStorage.getItem(K))||{}}catch{}
+function grade(k,g){const x=hist[k]||{ok:0,unsure:0,miss:0};x[g]++;hist[k]=x;localStorage.setItem(K,JSON.stringify(hist));weak()}
+function weak(){const a=Object.entries(hist).map(([k,v])=>({k,s:(v.miss||0)*3+(v.unsure||0)*2-(v.ok||0)})).sort((a,b)=>b.s-a.s).slice(0,8);$('weak').innerHTML=a.length?a.map(x=>x.k+'　弱点 '+Math.max(0,x.s)).join('<br>'):'まだ記録なし。△と×がここに溜まります。'}
+let qi=0, qlist=[...data].sort(()=>Math.random()-.5);
+function showQA(){if(qi>=qlist.length){qlist=[...data].sort(()=>Math.random()-.5);qi=0}const x=qlist[qi];$('qaCount').textContent=(qi+1)+' / '+qlist.length;$('qaQ').textContent='「'+x[2]+'」は別表第1の何項？';$('qaA').innerHTML='<b>'+x[0]+'項'+(x[1]?' '+x[1]:'（区分なし）')+'</b>';$('qaA').classList.add('hidden');$('qaActions').classList.add('hidden');$('reveal').classList.remove('hidden')}
+$('reveal').onclick=()=>{$('qaA').classList.remove('hidden');$('qaActions').classList.remove('hidden');$('reveal').classList.add('hidden')};
+document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const x=qlist[qi];grade(key(x[0],x[1]),b.dataset.g);qi++;showQA()});
+function buildGrid(){const g=$('grid');g.innerHTML='<div class="head">項</div>'+cols.map(c=>'<div class="head">'+c+'</div>').join('');rows.forEach(r=>{g.insertAdjacentHTML('beforeend','<div class="head">'+r+'</div>');cols.forEach(c=>{const valid=map.has(key(r,c));g.insertAdjacentHTML('beforeend','<button class="cell '+(valid?'':'invalid')+'" data-r="'+r+'" data-c="'+c+'">'+c+'</button>')})});g.querySelectorAll('.cell').forEach(b=>b.onclick=()=>pick(b.dataset.r,b.dataset.c,b))}
+let gi=0,glist=[...data].sort(()=>Math.random()-.5),locked=false;
+function showGrid(){locked=false;if(gi>=glist.length){glist=[...data].sort(()=>Math.random()-.5);gi=0}document.querySelectorAll('.cell').forEach(x=>x.classList.remove('correct','wrong'));$('noneBtn').classList.remove('correct','wrong');$('gridFeedback').classList.add('hidden');$('gridNext').classList.add('hidden');const x=glist[gi];$('gridCount').textContent=(gi+1)+' / '+glist.length;$('gridQ').textContent='「'+x[2]+'」はどの枠？'}
+function pick(r,c,el){if(locked)return;locked=true;const x=glist[gi], ok=x[0]===r&&x[1]===c;if(ok)el.classList.add('correct');else el.classList.add('wrong');const target=x[1]?document.querySelector('.cell[data-r="'+x[0]+'"][data-c="'+x[1]+'"]'):$('noneBtn');target.classList.add('correct');$('gridFeedback').innerHTML=(ok?'○ 正解　':'× 正解は ')+'<b>'+x[0]+'項'+(x[1]?' '+x[1]:'（区分なし）')+'</b>'; $('gridFeedback').classList.remove('hidden');$('gridNext').classList.remove('hidden');grade(key(x[0],x[1]),ok?'ok':'miss')}
+$('noneBtn').onclick=()=>{if(locked)return;const x=glist[gi];pick(x[1]?'__':' '+x[0],'', $('noneBtn'))};$('gridNext').onclick=()=>{gi++;showGrid()};
+function tab(mode){$('qa').classList.toggle('hidden',mode!=='qa');$('gridMode').classList.toggle('hidden',mode!=='grid');$('qaTab').classList.toggle('on',mode==='qa');$('gridTab').classList.toggle('on',mode==='grid')}
+$('qaTab').onclick=()=>tab('qa');$('gridTab').onclick=()=>tab('grid');buildGrid();showQA();showGrid();weak();
+</script></body></html>
