@@ -3,7 +3,7 @@ import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../../l
 import { getRevenueMission, RevenueMissionError, validateRevenueBoardUpdate } from '../../../lib/revenueMission';
 import { CRM_SCENE_KEY, createCrmSnapshot, validateCrmBoardSnapshot } from '../../../lib/crm';
 
-const MAX_BODY_BYTES = 220_000;
+const MAX_BODY_BYTES = 2_500_000;
 const SCENE_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
