@@ -6,6 +6,8 @@ export type BoardNode = {
   note?: string;
   kind?: string;
   objectType?: 'node' | 'text' | 'frame' | 'image' | 'link';
+  shape?: 'card' | 'plain' | 'rounded' | 'ellipse' | 'bubble' | 'sticky';
+  tone?: 'sky' | 'mint' | 'rose' | 'amber' | 'violet' | 'coral';
   parentId?: string | null;
   frameId?: string | null;
   x: number;
