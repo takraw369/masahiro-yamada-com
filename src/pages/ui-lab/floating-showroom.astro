@@ -1,466 +1,580 @@
 ---
-const title = "Floating Showroom — UI Lab";
-const description = "ACE METHOD / Sun Loves Flow visual experiment.";
+const title = "ALL ARE ACE — Floating Showroom";
+const description = "A mobile-first editorial showroom experiment for ACE / Sun Loves Flow.";
 ---
 
 <!DOCTYPE html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#f1eee6" />
     <title>{title}</title>
     <meta name="description" content={description} />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
 
     <style>
       :root {
-        --bg-void: #0d0b08;
-        --bg-surface: #1a1612;
-        --bg-elevated: #241f1a;
-        --gold-pure: #c9a96e;
-        --gold-muted: #8b7355;
-        --gold-dim: #5a4d3a;
-        --text-primary: #d4c5a9;
-        --text-muted: #7a6f5f;
-        --text-dim: #4a4030;
-        --border-default: #2e2822;
-        --stage: #17130f;
-        --stage-ink: #e7dcc9;
-        --stage-dim: #ad9d86;
+        --paper: #f1eee6;
+        --ink: #171715;
+        --muted: #706e68;
+        --line: rgba(23, 23, 21, 0.16);
+        --soft-line: rgba(23, 23, 21, 0.08);
+        --accent: #df4d35;
+        --accent-wash: rgba(223, 77, 53, 0.12);
+        --ui: "Instrument Sans", "Helvetica Neue", sans-serif;
+        --display: "Instrument Serif", Georgia, serif;
       }
 
       * {
         box-sizing: border-box;
       }
 
-      html {
+      html,
+      body {
+        margin: 0;
+        width: 100%;
         min-width: 320px;
-        background: var(--bg-void);
+        min-height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      html {
+        overflow: hidden;
       }
 
       body {
-        margin: 0;
-        min-height: 100vh;
-        overflow-x: hidden;
-        background:
-          radial-gradient(circle at 14% 18%, rgba(201, 169, 110, 0.09), transparent 28%),
-          radial-gradient(circle at 88% 80%, rgba(90, 77, 58, 0.16), transparent 34%),
-          var(--bg-void);
-        color: var(--text-primary);
-        font-family: "Zen Kaku Gothic New", sans-serif;
-        font-weight: 300;
+        height: 100svh;
+        overflow: hidden;
+        font-family: var(--ui);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
       }
 
       a {
         color: inherit;
-      }
-
-      .shell {
-        position: relative;
-        min-height: 100svh;
-        display: grid;
-        grid-template-rows: auto 1fr auto;
-        gap: 24px;
-        padding: 22px clamp(18px, 3vw, 46px) 18px;
-        isolation: isolate;
-      }
-
-      .shell::before,
-      .shell::after {
-        content: "";
-        position: fixed;
-        z-index: -1;
-        width: min(42vw, 560px);
-        aspect-ratio: 1;
-        border: 1px solid rgba(201, 169, 110, 0.11);
-        border-radius: 50%;
-        pointer-events: none;
-      }
-
-      .shell::before {
-        top: -18vw;
-        left: -8vw;
-      }
-
-      .shell::after {
-        right: -14vw;
-        bottom: -24vw;
-      }
-
-      .masthead,
-      .footer {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        gap: 16px;
-        color: var(--text-dim);
-        font-family: "Cormorant Garamond", serif;
-        font-size: 10px;
-        letter-spacing: 0.26em;
-        text-transform: uppercase;
-      }
-
-      .masthead__brand {
-        color: var(--gold-muted);
         text-decoration: none;
       }
 
-      .masthead__mode {
-        justify-self: center;
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
       }
 
-      .masthead__index,
-      .footer__hint {
-        justify-self: end;
-      }
-
-      .showroom {
-        align-self: center;
-        width: min(100%, 1480px);
-        margin-inline: auto;
-        min-height: min(74svh, 820px);
-        display: grid;
-        grid-template-rows: auto 1fr auto;
+      .page {
+        position: relative;
+        height: 100svh;
         overflow: hidden;
-        border: 1px solid rgba(201, 169, 110, 0.18);
+        isolation: isolate;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 18%),
-          var(--stage);
-        box-shadow:
-          0 44px 120px rgba(0, 0, 0, 0.46),
-          inset 0 1px rgba(255, 255, 255, 0.025);
+          radial-gradient(circle at 50% 45%, var(--accent-wash), transparent 42%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.32), transparent 28%),
+          var(--paper);
+        transition: background 520ms ease;
       }
 
-      .showroom__topline,
-      .showroom__bottomline {
-        display: flex;
-        justify-content: space-between;
+      .page::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 20;
+        opacity: 0.18;
+        background-image:
+          repeating-radial-gradient(circle at 17% 11%, rgba(23, 23, 21, 0.045) 0 0.55px, transparent 0.7px 3px);
+        mix-blend-mode: multiply;
+      }
+
+      .nav {
+        position: absolute;
+        z-index: 30;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
-        gap: 18px;
-        padding: 18px clamp(18px, 2.5vw, 34px);
-        color: var(--stage-dim);
-        font-family: "Cormorant Garamond", serif;
+        gap: 20px;
+        padding:
+          calc(15px + env(safe-area-inset-top))
+          max(18px, env(safe-area-inset-right))
+          15px
+          max(18px, env(safe-area-inset-left));
+        border-bottom: 1px solid var(--soft-line);
         font-size: 10px;
-        letter-spacing: 0.22em;
+        font-weight: 600;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
       }
 
-      .showroom__topline {
-        border-bottom: 1px solid rgba(201, 169, 110, 0.1);
+      .brand {
+        width: max-content;
       }
 
-      .showroom__bottomline {
-        border-top: 1px solid rgba(201, 169, 110, 0.1);
-      }
-
-      .showroom__title {
-        color: var(--stage-ink);
-        font-size: 11px;
+      .edition {
+        justify-self: center;
         font-weight: 400;
+        color: var(--muted);
       }
 
-      .rail-wrap {
-        position: relative;
-        min-height: 0;
-        display: grid;
-        align-items: center;
+      .counter {
+        justify-self: end;
+        display: flex;
+        gap: 6px;
+        min-width: 50px;
+        font-variant-numeric: tabular-nums;
       }
 
-      .rail-line {
+      .counter__total {
+        color: var(--muted);
+      }
+
+      .hero-word {
         position: absolute;
-        top: 19%;
+        z-index: 0;
+        inset: 50% 0 auto;
+        transform: translateY(-53%);
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .hero-word span {
+        font-family: var(--display);
+        font-size: clamp(138px, 26vw, 520px);
+        line-height: 0.66;
+        letter-spacing: -0.065em;
+        color: rgba(23, 23, 21, 0.045);
+        white-space: nowrap;
+      }
+
+      .rack {
+        position: absolute;
+        z-index: 4;
+        inset:
+          calc(58px + env(safe-area-inset-top))
+          0
+          calc(122px + env(safe-area-inset-bottom));
+        display: grid;
+        align-items: stretch;
+      }
+
+      .rack__bar {
+        position: absolute;
+        z-index: 2;
+        top: 12.5%;
         left: 0;
         right: 0;
         height: 1px;
         background:
           linear-gradient(
             90deg,
-            transparent,
-            rgba(201, 169, 110, 0.22) 9%,
-            rgba(201, 169, 110, 0.22) 91%,
-            transparent
+            transparent 0%,
+            rgba(23, 23, 21, 0.2) 8%,
+            rgba(23, 23, 21, 0.26) 50%,
+            rgba(23, 23, 21, 0.2) 92%,
+            transparent 100%
           );
-        pointer-events: none;
+      }
+
+      .rack__bar::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: -1px;
+        width: 28%;
+        height: 3px;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.42);
+        filter: blur(3px);
       }
 
       .rail {
         position: relative;
+        z-index: 3;
         display: flex;
-        gap: clamp(18px, 3vw, 48px);
+        align-items: stretch;
+        gap: clamp(18px, 3vw, 46px);
+        width: 100%;
+        height: 100%;
         overflow-x: auto;
-        overscroll-behavior-inline: contain;
+        overflow-y: hidden;
+        padding-inline: max(8vw, calc(50vw - 205px));
+        scroll-padding-inline: max(8vw, calc(50vw - 205px));
         scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        overscroll-behavior-inline: contain;
         scrollbar-width: none;
-        padding: clamp(46px, 7vw, 86px) max(8vw, 40px) clamp(42px, 7vw, 72px);
+        touch-action: pan-x;
       }
 
       .rail::-webkit-scrollbar {
         display: none;
       }
 
-      .piece {
-        --piece-color: #d7c9b2;
-        --piece-ink: #1b1712;
-        flex: 0 0 clamp(178px, 21vw, 302px);
-        min-width: 0;
+      .look {
+        --look-accent: #df4d35;
+        position: relative;
+        flex: 0 0 min(410px, 31vw);
+        min-width: 300px;
+        height: 100%;
         display: grid;
-        grid-template-rows: 36px 1fr auto;
-        gap: 0;
+        grid-template-rows: 13% 1fr 76px;
         scroll-snap-align: center;
-        text-decoration: none;
-        color: inherit;
+        scroll-snap-stop: always;
+        opacity: 0.38;
+        transform: scale(0.94);
+        transition:
+          opacity 380ms ease,
+          transform 520ms cubic-bezier(0.2, 0.72, 0.2, 1);
         outline: none;
       }
 
-      .piece__hook {
+      .look.is-active {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .hanger-zone {
         position: relative;
-        width: 1px;
-        height: 36px;
-        margin-inline: auto;
-        background: rgba(201, 169, 110, 0.42);
+        min-height: 0;
       }
 
-      .piece__hook::before {
-        content: "";
+      .hanger {
         position: absolute;
-        width: 24px;
-        height: 12px;
-        top: -2px;
         left: 50%;
-        border-top: 1px solid rgba(201, 169, 110, 0.48);
-        border-left: 1px solid rgba(201, 169, 110, 0.48);
-        transform: translateX(-50%) rotate(25deg) skewX(-12deg);
-        transform-origin: center;
-      }
-
-      .piece__garment {
-        position: relative;
-        width: min(100%, 238px);
-        aspect-ratio: 0.72;
-        margin-inline: auto;
-        background: var(--piece-color);
-        color: var(--piece-ink);
-        clip-path: polygon(
-          25% 6%,
-          39% 0,
-          61% 0,
-          75% 6%,
-          100% 19%,
-          88% 43%,
-          76% 34%,
-          76% 100%,
-          24% 100%,
-          24% 34%,
-          12% 43%,
-          0 19%
-        );
-        box-shadow: inset 0 0 0 1px rgba(13, 11, 8, 0.12);
-        transition:
-          transform 0.34s ease,
-          filter 0.34s ease;
-      }
-
-      .piece__garment::before {
-        content: "";
-        position: absolute;
-        top: 1px;
-        left: 50%;
-        width: 26%;
-        aspect-ratio: 2.2;
+        bottom: -19px;
+        width: 120px;
+        height: 54px;
         transform: translateX(-50%);
-        border: 1px solid rgba(13, 11, 8, 0.27);
-        border-top: 0;
-        border-radius: 0 0 50% 50%;
+        opacity: 0.55;
       }
 
-      .piece__mark {
+      .hanger::before {
+        content: "";
         position: absolute;
-        inset: 0;
+        left: 50%;
+        top: 0;
+        width: 18px;
+        height: 22px;
+        transform: translateX(-50%);
+        border: 1.2px solid var(--ink);
+        border-left-color: transparent;
+        border-bottom-color: transparent;
+        border-radius: 0 12px 0 0;
+      }
+
+      .hanger::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 21px;
+        width: 82px;
+        height: 1px;
+        transform: translateX(-50%);
+        background: var(--ink);
+        box-shadow:
+          -38px 18px 0 -0.2px var(--ink),
+          38px 18px 0 -0.2px var(--ink);
+        rotate: 0deg;
+      }
+
+      .hanger__arm,
+      .hanger__arm::after {
+        position: absolute;
+        content: "";
+        top: 21px;
+        width: 48px;
+        height: 1px;
+        background: var(--ink);
+        transform-origin: 100% 50%;
+      }
+
+      .hanger__arm {
+        left: 12px;
+        transform: rotate(-25deg);
+      }
+
+      .hanger__arm::after {
+        left: 48px;
+        transform-origin: 0 50%;
+        transform: rotate(50deg);
+      }
+
+      .garment-stage {
+        position: relative;
+        min-height: 0;
         display: grid;
         place-items: center;
-        padding: 26%;
-        text-align: center;
-        font-family: "Cormorant Garamond", serif;
-        font-size: clamp(18px, 2vw, 30px);
-        font-weight: 400;
-        letter-spacing: 0.06em;
       }
 
-      .piece__caption {
+      .garment-stage::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 74%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--look-accent) 16%, transparent);
+        filter: blur(42px);
+        opacity: 0.54;
+        transform: translateY(8%);
+      }
+
+      .garment {
+        display: block;
+        width: min(100%, 365px);
+        height: min(100%, 510px);
+        max-height: 100%;
+        overflow: visible;
+        filter: drop-shadow(0 28px 24px rgba(48, 43, 35, 0.13));
+        transform-origin: 50% 8%;
+        transition: transform 520ms cubic-bezier(0.2, 0.72, 0.2, 1);
+      }
+
+      .look.is-active .garment {
+        transform: translateY(-3px) rotate(-0.7deg);
+      }
+
+      .look:nth-child(even).is-active .garment {
+        transform: translateY(-3px) rotate(0.7deg);
+      }
+
+      .label {
+        align-self: end;
         display: grid;
         grid-template-columns: 1fr auto;
-        gap: 14px;
-        align-items: baseline;
-        margin-top: 18px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(201, 169, 110, 0.09);
+        align-items: end;
+        gap: 16px;
+        padding: 14px 4px 0;
+        border-top: 1px solid var(--line);
       }
 
-      .piece__name {
-        color: var(--stage-ink);
-        font-family: "Cormorant Garamond", serif;
-        font-size: 12px;
-        letter-spacing: 0.14em;
+      .label__name {
+        display: block;
+        font-family: var(--display);
+        font-size: 25px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      .label__sub {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
       }
 
-      .piece__code {
-        color: var(--text-dim);
-        font-family: "Cormorant Garamond", serif;
+      .label__number {
+        align-self: center;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+      }
+
+      .bottom {
+        position: absolute;
+        z-index: 30;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-height: calc(106px + env(safe-area-inset-bottom));
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 22px;
+        padding:
+          16px
+          max(18px, env(safe-area-inset-right))
+          calc(16px + env(safe-area-inset-bottom))
+          max(18px, env(safe-area-inset-left));
+        border-top: 1px solid var(--soft-line);
+        background: color-mix(in srgb, var(--paper) 90%, transparent);
+        backdrop-filter: blur(16px);
+      }
+
+      .active-copy {
+        min-width: 0;
+      }
+
+      .active-copy__eyebrow {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--muted);
         font-size: 9px;
-        letter-spacing: 0.16em;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
       }
 
-      .piece:focus-visible .piece__garment,
-      .piece:hover .piece__garment {
-        transform: translateY(-8px);
-        filter: brightness(1.05);
+      .active-copy__title {
+        margin: 0;
+        max-width: 760px;
+        font-family: var(--display);
+        font-size: clamp(25px, 3vw, 43px);
+        font-weight: 400;
+        line-height: 0.98;
+        letter-spacing: -0.035em;
       }
 
-      .piece:focus-visible .piece__caption,
-      .piece:hover .piece__caption {
-        border-top-color: rgba(201, 169, 110, 0.34);
+      .gesture {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        white-space: nowrap;
       }
 
-      .piece--mind {
-        --piece-color: #d8ccb7;
-        --piece-ink: #33281b;
+      .gesture__line {
+        position: relative;
+        width: 58px;
+        height: 1px;
+        background: var(--ink);
       }
 
-      .piece--body {
-        --piece-color: #302921;
-        --piece-ink: #d8c6a9;
-      }
-
-      .piece--flow {
-        --piece-color: #b19468;
-        --piece-ink: #17130f;
-      }
-
-      .piece--quest {
-        --piece-color: #e3d8c3;
-        --piece-ink: #30271d;
-      }
-
-      .piece--ace {
-        --piece-color: #15120e;
-        --piece-ink: #c9a96e;
-      }
-
-      .piece--body .piece__mark {
-        background:
-          linear-gradient(
-            90deg,
-            transparent 47%,
-            rgba(201, 169, 110, 0.46) 47% 53%,
-            transparent 53%
-          );
-      }
-
-      .piece--flow .piece__mark::before {
+      .gesture__line::after {
         content: "";
         position: absolute;
-        width: 78%;
-        height: 31%;
-        border: 1px solid rgba(23, 19, 15, 0.32);
-        border-left-color: transparent;
-        border-right-color: transparent;
-        border-radius: 50%;
-        transform: rotate(-11deg);
-      }
-
-      .piece--quest .piece__mark::before {
-        content: "";
-        position: absolute;
-        width: 28%;
-        aspect-ratio: 1;
-        border: 1px solid rgba(48, 39, 29, 0.42);
+        right: 0;
+        top: -3px;
+        width: 7px;
+        height: 7px;
+        border-top: 1px solid var(--ink);
+        border-right: 1px solid var(--ink);
         transform: rotate(45deg);
       }
 
-      .piece--ace .piece__mark {
-        letter-spacing: 0.22em;
+      .look:focus-visible .label {
+        outline: 2px solid var(--look-accent);
+        outline-offset: 5px;
       }
 
-      .ticker {
-        display: flex;
-        min-width: max-content;
-        gap: 22px;
-        align-items: center;
+      .svg-note {
+        font-family: "Instrument Sans", sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.12em;
       }
 
-      .ticker span + span::before {
-        content: "·";
-        margin-right: 22px;
-        color: var(--gold-dim);
-      }
-
-      .footer {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .footer__statement {
-        max-width: 38ch;
-        color: var(--text-muted);
-        font-family: "Zen Kaku Gothic New", sans-serif;
-        font-size: 10px;
-        line-height: 1.7;
-        letter-spacing: 0.08em;
-        text-transform: none;
-      }
-
-      @media (max-width: 720px) {
-        .shell {
-          gap: 16px;
-          padding: 16px 12px 12px;
-        }
-
-        .masthead {
+      @media (max-width: 760px) {
+        .nav {
           grid-template-columns: 1fr auto;
+          padding-bottom: 12px;
         }
 
-        .masthead__mode {
+        .edition {
           display: none;
         }
 
-        .showroom {
-          min-height: 72svh;
+        .hero-word {
+          inset: 46% 0 auto;
         }
 
-        .showroom__topline {
-          align-items: flex-start;
+        .hero-word span {
+          font-size: clamp(156px, 54vw, 240px);
+          color: rgba(23, 23, 21, 0.052);
         }
 
-        .showroom__topline > span:last-child {
-          display: none;
+        .rack {
+          inset:
+            calc(55px + env(safe-area-inset-top))
+            0
+            calc(112px + env(safe-area-inset-bottom));
         }
 
-        .rail-line {
-          top: 18%;
+        .rack__bar {
+          top: 12%;
         }
 
         .rail {
-          padding-inline: 16vw;
-          gap: 24px;
+          gap: 14px;
+          padding-inline: 8vw;
+          scroll-padding-inline: 8vw;
         }
 
-        .piece {
-          flex-basis: min(67vw, 242px);
+        .look {
+          flex-basis: 82vw;
+          min-width: 82vw;
+          grid-template-rows: 12% 1fr 66px;
         }
 
-        .showroom__bottomline {
+        .garment {
+          width: min(100%, 340px);
+          height: min(100%, 58svh);
+        }
+
+        .label {
+          padding-inline: 2px;
+        }
+
+        .label__name {
+          font-size: 23px;
+        }
+
+        .bottom {
+          min-height: calc(102px + env(safe-area-inset-bottom));
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 14px;
+        }
+
+        .active-copy__title {
+          overflow: hidden;
+          max-width: 20ch;
+          font-size: clamp(22px, 7vw, 30px);
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+
+        .gesture span:first-child {
+          display: none;
+        }
+
+        .gesture__line {
+          width: 42px;
+        }
+      }
+
+      @media (max-width: 390px) {
+        .rail {
+          padding-inline: 7vw;
+          scroll-padding-inline: 7vw;
+        }
+
+        .look {
+          flex-basis: 84vw;
+          min-width: 84vw;
+        }
+
+        .label__sub {
+          max-width: 23ch;
           overflow: hidden;
           white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+      }
+
+      @media (min-width: 1200px) {
+        .look {
+          flex-basis: 390px;
         }
 
-        .footer__statement {
-          max-width: 28ch;
+        .garment {
+          width: min(100%, 385px);
         }
       }
 
@@ -472,101 +586,311 @@ const description = "ACE METHOD / Sun Loves Flow visual experiment.";
           transition-duration: 0.001ms !important;
           animation-duration: 0.001ms !important;
         }
+
+        .look.is-active .garment,
+        .look:nth-child(even).is-active .garment {
+          transform: none;
+        }
       }
     </style>
   </head>
 
   <body>
-    <main class="shell">
-      <header class="masthead" aria-label="UI Lab header">
-        <a class="masthead__brand" href="/">ACE METHOD</a>
-        <span class="masthead__mode">Floating Showroom Study</span>
-        <span class="masthead__index">UI LAB / 01</span>
+    <main class="page" id="page">
+      <header class="nav">
+        <a class="brand" href="/" aria-label="ACE METHOD home">ALL ARE ACE</a>
+        <span class="edition">Collection 001 / Human Performance</span>
+        <span class="counter" aria-live="polite">
+          <span id="currentIndex">01</span>
+          <span class="counter__total">/ 05</span>
+        </span>
       </header>
 
-      <section class="showroom" aria-labelledby="showroom-title">
-        <div class="showroom__topline">
-          <span class="showroom__title" id="showroom-title">ALL ARE ACE — OBJECT RAIL</span>
-          <span>Drag / scroll to explore</span>
-        </div>
+      <div class="hero-word" aria-hidden="true"><span>ACE</span></div>
 
-        <div class="rail-wrap">
-          <div class="rail-line" aria-hidden="true"></div>
-          <div class="rail" aria-label="ACE concept collection">
-            <a class="piece piece--mind" href="#mind">
-              <span class="piece__hook" aria-hidden="true"></span>
-              <span class="piece__garment">
-                <span class="piece__mark">MIND</span>
-              </span>
-              <span class="piece__caption">
-                <span class="piece__name">Mind</span>
-                <span class="piece__code">01</span>
-              </span>
-            </a>
+      <section class="rack" aria-label="ALL ARE ACE concept collection">
+        <div class="rack__bar" aria-hidden="true"></div>
 
-            <a class="piece piece--body" href="#body">
-              <span class="piece__hook" aria-hidden="true"></span>
-              <span class="piece__garment">
-                <span class="piece__mark">BODY</span>
+        <div class="rail" id="collectionRail">
+          <article
+            class="look is-active"
+            tabindex="0"
+            data-index="01"
+            data-kicker="01 / Perception"
+            data-title="MIND — notice before you move."
+            data-accent="#df4d35"
+            data-wash="rgba(223, 77, 53, 0.13)"
+            style="--look-accent:#df4d35"
+          >
+            <div class="hanger-zone" aria-hidden="true">
+              <span class="hanger"><span class="hanger__arm"></span></span>
+            </div>
+            <div class="garment-stage">
+              <svg class="garment" viewBox="0 0 420 520" role="img" aria-label="Ivory MIND T-shirt">
+                <defs>
+                  <linearGradient id="mindCloth" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#fffdf6"/>
+                    <stop offset="0.48" stop-color="#e9e0d1"/>
+                    <stop offset="1" stop-color="#cfc3b0"/>
+                  </linearGradient>
+                  <linearGradient id="mindShade" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#8a8176" stop-opacity=".18"/>
+                    <stop offset="1" stop-color="#8a8176" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M120 66 177 43c9 20 57 20 66 0l57 23 79 66-43 76-38-26-2 285c-58 18-114 18-172 0l-2-285-38 26-43-76z" fill="url(#mindCloth)"/>
+                <path d="M179 43c6 24 56 24 62 0 4 17-4 42-31 43-27-1-35-26-31-43z" fill="#d7ccbb"/>
+                <path d="M122 183c30-8 55-24 74-48M298 183c-30-8-55-24-74-48M126 337c26 9 53 13 84 13s58-4 84-13" fill="none" stroke="#9f9484" stroke-opacity=".28" stroke-width="3"/>
+                <ellipse cx="210" cy="242" rx="72" ry="39" fill="none" stroke="#1a1916" stroke-width="3.5"/>
+                <ellipse cx="210" cy="242" rx="50" ry="68" fill="none" stroke="#1a1916" stroke-width="3.5" transform="rotate(32 210 242)"/>
+                <ellipse cx="210" cy="242" rx="26" ry="93" fill="none" stroke="#df4d35" stroke-width="4" transform="rotate(-34 210 242)"/>
+                <circle cx="210" cy="242" r="8" fill="#171715"/>
+                <text x="210" y="405" text-anchor="middle" class="svg-note" font-size="15" fill="#171715">NOTICE / CHOOSE</text>
+                <path d="M96 111c13 12 22 29 27 54M324 111c-13 12-22 29-27 54" fill="none" stroke="url(#mindShade)" stroke-width="18" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="label">
+              <span>
+                <span class="label__name">Mind</span>
+                <span class="label__sub">Perception / Attention / Choice</span>
               </span>
-              <span class="piece__caption">
-                <span class="piece__name">Body</span>
-                <span class="piece__code">02</span>
-              </span>
-            </a>
+              <span class="label__number">01</span>
+            </div>
+          </article>
 
-            <a class="piece piece--flow" href="#flow">
-              <span class="piece__hook" aria-hidden="true"></span>
-              <span class="piece__garment">
-                <span class="piece__mark">FLOW</span>
+          <article
+            class="look"
+            tabindex="0"
+            data-index="02"
+            data-kicker="02 / Embodiment"
+            data-title="BODY — intelligence has weight."
+            data-accent="#2858d7"
+            data-wash="rgba(40, 88, 215, 0.12)"
+            style="--look-accent:#2858d7"
+          >
+            <div class="hanger-zone" aria-hidden="true">
+              <span class="hanger"><span class="hanger__arm"></span></span>
+            </div>
+            <div class="garment-stage">
+              <svg class="garment" viewBox="0 0 420 520" role="img" aria-label="Cobalt BODY performance jersey">
+                <defs>
+                  <linearGradient id="bodyCloth" x1=".1" y1="0" x2=".9" y2="1">
+                    <stop offset="0" stop-color="#355fe1"/>
+                    <stop offset=".5" stop-color="#16399d"/>
+                    <stop offset="1" stop-color="#0c235f"/>
+                  </linearGradient>
+                </defs>
+                <path d="M116 72 177 45c12 18 54 18 66 0l61 27 76 61-38 74-42-24-4 282c-57 17-115 17-172 0l-4-282-42 24-38-74z" fill="url(#bodyCloth)"/>
+                <path d="M177 45c10 28 56 28 66 0l-2 34c-16 15-46 15-62 0z" fill="#10276a"/>
+                <path d="M120 186 72 157M300 186l48-29" stroke="#071b51" stroke-width="4" opacity=".48"/>
+                <path d="M151 134 270 355" stroke="#f25b3f" stroke-width="19" opacity=".92"/>
+                <path d="M167 134 285 354" stroke="#ffb59f" stroke-width="3" opacity=".68"/>
+                <path d="M138 372h144M145 391h130" stroke="#d9e2ff" stroke-width="2" opacity=".48"/>
+                <text x="159" y="302" class="svg-note" font-size="34" fill="#f6f2e9" transform="rotate(-62 159 302)">BODY</text>
+                <text x="210" y="432" text-anchor="middle" class="svg-note" font-size="12" fill="#d9e2ff">FEEL / LOAD / ADAPT</text>
+              </svg>
+            </div>
+            <div class="label">
+              <span>
+                <span class="label__name">Body</span>
+                <span class="label__sub">Sensation / Load / Adaptation</span>
               </span>
-              <span class="piece__caption">
-                <span class="piece__name">Flow</span>
-                <span class="piece__code">03</span>
-              </span>
-            </a>
+              <span class="label__number">02</span>
+            </div>
+          </article>
 
-            <a class="piece piece--quest" href="#quest">
-              <span class="piece__hook" aria-hidden="true"></span>
-              <span class="piece__garment">
-                <span class="piece__mark">QUEST</span>
+          <article
+            class="look"
+            tabindex="0"
+            data-index="03"
+            data-kicker="03 / Rhythm"
+            data-title="FLOW — move with what is here."
+            data-accent="#6f8f59"
+            data-wash="rgba(111, 143, 89, 0.14)"
+            style="--look-accent:#6f8f59"
+          >
+            <div class="hanger-zone" aria-hidden="true">
+              <span class="hanger"><span class="hanger__arm"></span></span>
+            </div>
+            <div class="garment-stage">
+              <svg class="garment" viewBox="0 0 420 520" role="img" aria-label="Sage FLOW hoodie">
+                <defs>
+                  <linearGradient id="flowCloth" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#8fa879"/>
+                    <stop offset=".5" stop-color="#667d55"/>
+                    <stop offset="1" stop-color="#3e5035"/>
+                  </linearGradient>
+                </defs>
+                <path d="M151 79c3-43 25-65 59-65s56 22 59 65l35 13 70 67-45 69-30-21-2 259c-58 18-116 18-174 0l-2-259-30 21-45-69 70-67z" fill="url(#flowCloth)"/>
+                <path d="M151 79c16 20 102 20 118 0-6-31-26-47-59-47s-53 16-59 47z" fill="#526943"/>
+                <path d="M167 82c9 34 77 34 86 0" fill="none" stroke="#27351f" stroke-width="4" opacity=".42"/>
+                <path d="M185 82 173 178M235 82l12 96" stroke="#d8dfcb" stroke-width="2.3" opacity=".72"/>
+                <circle cx="173" cy="179" r="5" fill="#d8dfcb"/><circle cx="247" cy="179" r="5" fill="#d8dfcb"/>
+                <path d="M127 294c44-42 72-41 112-4 33 31 58 30 86-8M122 329c47-43 79-43 121-5 31 27 55 27 80-5" fill="none" stroke="#ece9dd" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+                <path d="M132 392h156c-5 31-19 48-78 48s-73-17-78-48z" fill="#526943" opacity=".55"/>
+                <text x="210" y="255" text-anchor="middle" class="svg-note" font-size="23" fill="#f3f1e9">FLOW</text>
+              </svg>
+            </div>
+            <div class="label">
+              <span>
+                <span class="label__name">Flow</span>
+                <span class="label__sub">Rhythm / Environment / Ease</span>
               </span>
-              <span class="piece__caption">
-                <span class="piece__name">Quest</span>
-                <span class="piece__code">04</span>
-              </span>
-            </a>
+              <span class="label__number">03</span>
+            </div>
+          </article>
 
-            <a class="piece piece--ace" href="#ace">
-              <span class="piece__hook" aria-hidden="true"></span>
-              <span class="piece__garment">
-                <span class="piece__mark">ACE</span>
+          <article
+            class="look"
+            tabindex="0"
+            data-index="04"
+            data-kicker="04 / Action"
+            data-title="QUEST — choose the next real move."
+            data-accent="#ef7a2f"
+            data-wash="rgba(239, 122, 47, 0.13)"
+            style="--look-accent:#ef7a2f"
+          >
+            <div class="hanger-zone" aria-hidden="true">
+              <span class="hanger"><span class="hanger__arm"></span></span>
+            </div>
+            <div class="garment-stage">
+              <svg class="garment" viewBox="0 0 420 520" role="img" aria-label="Orange QUEST windbreaker">
+                <defs>
+                  <linearGradient id="questCloth" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#ff974e"/>
+                    <stop offset=".52" stop-color="#e66425"/>
+                    <stop offset="1" stop-color="#b94216"/>
+                  </linearGradient>
+                </defs>
+                <path d="M148 69 184 45h52l36 24 38 18 68 71-49 68-31-23-2 262c-57 17-115 17-172 0l-2-262-31 23-49-68 68-71z" fill="url(#questCloth)"/>
+                <path d="M184 45 210 84l26-39" fill="#c84e1c"/>
+                <path d="M210 84v365" stroke="#6e2913" stroke-width="4" opacity=".7"/>
+                <path d="M121 203 65 164M299 203l56-39" stroke="#8e3216" stroke-width="3" opacity=".55"/>
+                <path d="M145 157h51v61h-51z" fill="#f1eee6" opacity=".94"/>
+                <text x="170.5" y="181" text-anchor="middle" class="svg-note" font-size="9" fill="#171715">NEXT</text>
+                <path d="M159 195h22l-11 11z" fill="#171715"/>
+                <path d="M250 315h67M283 282v67" stroke="#f1eee6" stroke-width="5" stroke-linecap="round"/>
+                <text x="145" y="404" class="svg-note" font-size="28" fill="#171715">QUEST 04</text>
+                <text x="146" y="427" class="svg-note" font-size="10" fill="#4f1c0d">DO → TRACE → NEXT</text>
+              </svg>
+            </div>
+            <div class="label">
+              <span>
+                <span class="label__name">Quest</span>
+                <span class="label__sub">Decision / Action / Evidence</span>
               </span>
-              <span class="piece__caption">
-                <span class="piece__name">All Are Ace</span>
-                <span class="piece__code">05</span>
-              </span>
-            </a>
-          </div>
-        </div>
+              <span class="label__number">04</span>
+            </div>
+          </article>
 
-        <div class="showroom__bottomline" aria-label="Brand ticker">
-          <div class="ticker">
-            <span>ACE METHOD</span>
-            <span>SUN LOVES FLOW</span>
-            <span>ALL ARE ACE</span>
-            <span>惹き出す、押し込まない</span>
-          </div>
+          <article
+            class="look"
+            tabindex="0"
+            data-index="05"
+            data-kicker="05 / Identity"
+            data-title="ALL ARE ACE — become through practice."
+            data-accent="#171715"
+            data-wash="rgba(23, 23, 21, 0.11)"
+            style="--look-accent:#171715"
+          >
+            <div class="hanger-zone" aria-hidden="true">
+              <span class="hanger"><span class="hanger__arm"></span></span>
+            </div>
+            <div class="garment-stage">
+              <svg class="garment" viewBox="0 0 420 520" role="img" aria-label="Black ALL ARE ACE oversized T-shirt">
+                <defs>
+                  <linearGradient id="aceCloth" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#30302e"/>
+                    <stop offset=".48" stop-color="#171715"/>
+                    <stop offset="1" stop-color="#060606"/>
+                  </linearGradient>
+                </defs>
+                <path d="M110 66 176 40c10 22 58 22 68 0l66 26 82 67-44 82-44-27-1 281c-61 18-125 18-186 0l-1-281-44 27-44-82z" fill="url(#aceCloth)"/>
+                <path d="M176 40c8 29 60 29 68 0l-3 34c-18 15-44 15-62 0z" fill="#0c0c0b"/>
+                <path d="M118 188c31-10 58-28 78-54M302 188c-31-10-58-28-78-54" fill="none" stroke="#4b4a46" stroke-width="3"/>
+                <text x="145" y="184" class="svg-note" font-size="10" fill="#f1eee6">ALL ARE</text>
+                <text x="145" y="203" class="svg-note" font-size="18" fill="#f1eee6">ACE</text>
+                <text x="210" y="347" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="78" fill="#f1eee6">ace</text>
+                <path d="M145 380h130" stroke="#f1eee6" stroke-width="1.5" opacity=".7"/>
+                <text x="210" y="408" text-anchor="middle" class="svg-note" font-size="10" fill="#bcbab2">MIND / BODY / FLOW / QUEST</text>
+              </svg>
+            </div>
+            <div class="label">
+              <span>
+                <span class="label__name">All Are Ace</span>
+                <span class="label__sub">Identity / Practice / Contribution</span>
+              </span>
+              <span class="label__number">05</span>
+            </div>
+          </article>
         </div>
       </section>
 
-      <footer class="footer">
-        <p class="footer__statement">
-          商品一覧ではなく、世界観の中に「触りたくなる対象」を置く。
-          CardではなくObject、DashboardではなくShowroom。
-        </p>
-        <span class="footer__hint">Swipe →</span>
+      <footer class="bottom">
+        <div class="active-copy">
+          <span class="active-copy__eyebrow" id="activeKicker">01 / Perception</span>
+          <h1 class="active-copy__title" id="activeTitle">MIND — notice before you move.</h1>
+        </div>
+        <div class="gesture" aria-hidden="true">
+          <span>Swipe to explore</span>
+          <span class="gesture__line"></span>
+        </div>
       </footer>
     </main>
+
+    <script>
+      const page = document.getElementById("page");
+      const rail = document.getElementById("collectionRail");
+      const looks = Array.from(rail.querySelectorAll(".look"));
+      const currentIndex = document.getElementById("currentIndex");
+      const activeKicker = document.getElementById("activeKicker");
+      const activeTitle = document.getElementById("activeTitle");
+      let frame = 0;
+      let active = 0;
+
+      function syncActive() {
+        frame = 0;
+        const railBox = rail.getBoundingClientRect();
+        const center = railBox.left + railBox.width / 2;
+        let best = active;
+        let bestDistance = Infinity;
+
+        looks.forEach((look, index) => {
+          const box = look.getBoundingClientRect();
+          const distance = Math.abs(box.left + box.width / 2 - center);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            best = index;
+          }
+        });
+
+        if (best === active && looks[best].classList.contains("is-active")) return;
+        active = best;
+
+        looks.forEach((look, index) => look.classList.toggle("is-active", index === active));
+        const look = looks[active];
+
+        currentIndex.textContent = look.dataset.index;
+        activeKicker.textContent = look.dataset.kicker;
+        activeTitle.textContent = look.dataset.title;
+        page.style.setProperty("--accent", look.dataset.accent);
+        page.style.setProperty("--accent-wash", look.dataset.wash);
+      }
+
+      rail.addEventListener("scroll", () => {
+        if (frame) return;
+        frame = requestAnimationFrame(syncActive);
+      }, { passive: true });
+
+      window.addEventListener("resize", syncActive, { passive: true });
+
+      looks.forEach((look) => {
+        look.addEventListener("focus", () => {
+          look.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        });
+      });
+
+      syncActive();
+    </script>
   </body>
 </html>
