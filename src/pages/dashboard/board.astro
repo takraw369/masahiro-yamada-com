@@ -31,6 +31,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       <span>普通に掴む＝1個だけ移動 / Shift・⌘＝複数選択</span>
       <span>置いた位置・距離をそのまま保存</span>
       <span>画像貼付け / URL貼付け対応</span>
+      <span class="touch-hint">iPhone: カードを指で移動 · 空白を移動 · 2本指で拡大縮小</span>
       <span id="mode-hint">選択</span>
     </div>
 
@@ -323,7 +324,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         el.setPointerCapture(event.pointerId);
       });
       el.addEventListener('pointermove',event=>{
-        if(!dragging)return;
+        if(!dragging||activeTouches.size>1)return;
         const dx=(event.clientX-sx)/snapshot.viewport.zoom,dy=(event.clientY-sy)/snapshot.viewport.zoom;
         if(Math.abs(dx)+Math.abs(dy)<1)return;
         if(!checkpointed){checkpoint();checkpointed=true;}
@@ -331,10 +332,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         for(const [id,o] of origins){const n=snapshot.nodes.find(x=>x.id===id);if(n){n.x=Math.round(o.x+dx);n.y=Math.round(o.y+dy);syncObjectElement(n);}}
         scheduleEdges();
       });
-      el.addEventListener('pointerup',()=>{
+      const finishDrag=()=>{
         if(!dragging)return;dragging=false;
         if(moved){updateFrameMembership(origins.keys());render();markDirty();}
-      });
+      };
+      el.addEventListener('pointerup',finishDrag);
+      el.addEventListener('pointercancel',finishDrag);
       el.addEventListener('click',event=>{
         event.stopPropagation();
         if((event.target as HTMLElement).closest('a,[contenteditable="true"]'))return;
@@ -515,8 +518,35 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     document.querySelector('#zoom-in')?.addEventListener('click',()=>zoomAt(1.15));document.querySelector('#zoom-out')?.addEventListener('click',()=>zoomAt(1/1.15));
     document.querySelector('#reset-view')?.addEventListener('click',()=>{snapshot.viewport={x:80,y:60,zoom:.78};applyViewport();markDirty();});
 
-    let panning=false,px=0,py=0,bx=0,by=0;
+    const activeTouches=new Map<number,{x:number,y:number}>();
+    let panning=false,panPointerId:number|null=null,px=0,py=0,bx=0,by=0;
+    let pinching=false,pinchDistance=0,pinchZoom=1,pinchBoardX=0,pinchBoardY=0;
+
+    function touchPair(){
+      const points=[...activeTouches.values()];
+      if(points.length<2)return null;
+      const a=points[0],b=points[1];
+      return {distance:Math.hypot(b.x-a.x,b.y-a.y),cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};
+    }
+    function beginPinch(){
+      const pair=touchPair();if(!pair)return;
+      const point=boardPoint(pair.cx,pair.cy);
+      pinching=true;panning=false;panPointerId=null;pinchDistance=Math.max(1,pair.distance);pinchZoom=snapshot.viewport.zoom;pinchBoardX=point.x;pinchBoardY=point.y;
+    }
+    function updatePinch(){
+      const pair=touchPair();if(!pair||!pinching)return;
+      const rect=canvas.getBoundingClientRect();
+      const zoom=Math.max(.2,Math.min(2.5,pinchZoom*(pair.distance/pinchDistance)));
+      snapshot.viewport.zoom=zoom;
+      snapshot.viewport.x=pair.cx-rect.left-pinchBoardX*zoom;
+      snapshot.viewport.y=pair.cy-rect.top-pinchBoardY*zoom;
+      applyViewport();
+    }
     canvas.addEventListener('pointerdown',event=>{
+      if(event.pointerType==='touch'){
+        activeTouches.set(event.pointerId,{x:event.clientX,y:event.clientY});
+        if(activeTouches.size===2){event.preventDefault();beginPinch();return;}
+      }
       if((event.target as HTMLElement).closest('.node-card,.frame-card,.tool-dock'))return;
       if(currentTool!=='select'&&currentTool!=='connect'){
         event.preventDefault();const p=boardPoint(event.clientX,event.clientY);
@@ -525,11 +555,26 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         setTool('select');return;
       }
       if(currentTool==='connect'){setTool('select');return;}
-      panning=true;px=event.clientX;py=event.clientY;bx=snapshot.viewport.x;by=snapshot.viewport.y;canvas.setPointerCapture(event.pointerId);
+      panning=true;panPointerId=event.pointerId;px=event.clientX;py=event.clientY;bx=snapshot.viewport.x;by=snapshot.viewport.y;
+      canvas.setPointerCapture(event.pointerId);
       if(!event.shiftKey&&!event.metaKey&&!event.ctrlKey)setSelection(null);
     });
-    canvas.addEventListener('pointermove',event=>{if(!panning)return;snapshot.viewport.x=bx+event.clientX-px;snapshot.viewport.y=by+event.clientY-py;applyViewport();});
-    canvas.addEventListener('pointerup',()=>{if(!panning)return;panning=false;markDirty();});
+    canvas.addEventListener('pointermove',event=>{
+      if(event.pointerType==='touch'&&activeTouches.has(event.pointerId)){
+        activeTouches.set(event.pointerId,{x:event.clientX,y:event.clientY});
+        if(activeTouches.size>=2){event.preventDefault();if(!pinching)beginPinch();updatePinch();return;}
+      }
+      if(!panning||pinching||panPointerId!==event.pointerId)return;
+      snapshot.viewport.x=bx+event.clientX-px;snapshot.viewport.y=by+event.clientY-py;applyViewport();
+    });
+    const finishCanvasPointer=(event:PointerEvent)=>{
+      const wasPinching=pinching;
+      activeTouches.delete(event.pointerId);
+      if(activeTouches.size<2&&pinching){pinching=false;markDirty();}
+      if(panning&&panPointerId===event.pointerId){panning=false;panPointerId=null;if(!wasPinching)markDirty();}
+    };
+    canvas.addEventListener('pointerup',finishCanvasPointer);
+    canvas.addEventListener('pointercancel',finishCanvasPointer);
     canvas.addEventListener('dblclick',event=>{if((event.target as HTMLElement).closest('.node-card,.frame-card,.tool-dock'))return;const p=boardPoint(event.clientX,event.clientY);addObject('text',p.x,p.y);setTool('select');});
     canvas.addEventListener('wheel',event=>{event.preventDefault();zoomAt(event.deltaY<0?1.08:1/1.08,event.clientX,event.clientY);},{passive:false});
 
@@ -570,6 +615,16 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 .tool{width:48px;min-height:48px;border:1px solid transparent;border-radius:11px;background:transparent;color:#59616a;display:grid;place-items:center;gap:0;cursor:pointer}
 .tool b{font-size:1.05rem;line-height:1}.tool span{font-size:.48rem;line-height:1.1}.tool:hover,.tool.active{background:#f3eee6;border-color:#d7c3a8;color:#76501f}
 .canvas[data-tool="rounded"],.canvas[data-tool="ellipse"],.canvas[data-tool="bubble"],.canvas[data-tool="sticky"],.canvas[data-tool="text"]{cursor:crosshair}.canvas[data-tool="connect"]{cursor:cell}
-.corner-help{position:absolute;right:12px;bottom:12px;padding:7px 9px;border:1px solid #d8d2ca;border-radius:8px;background:rgba(255,255,255,.9);color:#81878e;font-size:.56rem;pointer-events:none;z-index:10}@media(max-width:860px){.board-app{height:calc(100dvh - 66px);min-height:0}.board-bar{align-items:flex-start;padding:9px 10px}.board-bar h1{font-size:.82rem}.actions{max-width:62%}.actions button,.actions a{min-height:32px;padding:0 7px;font-size:.61rem}.hint-bar{padding-inline:10px}}@media(max-width:620px){.board-bar{display:block}.actions{max-width:none;margin-top:8px;justify-content:flex-start}.title-row{gap:6px}.node-card.shape-card{border-radius:12px}.tool-dock{left:8px;right:8px;top:auto;bottom:8px;flex-direction:row;overflow-x:auto;border-radius:14px;padding:5px}.tool{min-width:45px;width:45px;min-height:44px}.corner-help{display:none}}
+.corner-help{position:absolute;right:12px;bottom:12px;padding:7px 9px;border:1px solid #d8d2ca;border-radius:8px;background:rgba(255,255,255,.9);color:#81878e;font-size:.56rem;pointer-events:none;z-index:10}@media(max-width:860px){.board-app{height:calc(100dvh - 66px);min-height:0}.board-bar{align-items:flex-start;padding:9px 10px}.board-bar h1{font-size:.82rem}.actions{max-width:62%}.actions button,.actions a{min-height:32px;padding:0 7px;font-size:.61rem}.hint-bar{padding-inline:10px}}@media(max-width:620px){
+.board-app{height:calc(100dvh - 52px);grid-template-rows:auto auto minmax(0,1fr)}
+.board-bar{display:block;padding:7px 8px}.eyebrow{display:none}.board-bar h1{font-size:.76rem}.status{font-size:.56rem;padding:3px 6px}
+.actions{max-width:none;margin-top:6px;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.actions::-webkit-scrollbar{display:none}.actions button,.actions a{flex:0 0 auto;min-height:42px;padding:0 11px;font-size:.65rem}
+.hint-bar{min-height:28px;padding:3px 8px;font-size:.57rem}.hint-bar>span:not(.touch-hint):not(#mode-hint){display:none}.touch-hint{display:inline}
+.node-card,.frame-card{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.node-card.shape-card{border-radius:12px}
+.resize-handle{right:-10px;bottom:-10px;width:24px;height:24px;border-width:4px}.selected .resize-handle{opacity:1}
+.tool-dock{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));top:auto;bottom:max(8px,env(safe-area-inset-bottom));flex-direction:row;overflow-x:auto;border-radius:16px;padding:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.tool-dock::-webkit-scrollbar{display:none}.tool{flex:0 0 52px;min-width:52px;width:52px;min-height:50px}.tool span{font-size:.52rem}
+.canvas{overscroll-behavior:none}.corner-help{display:none}
+}
+@media(pointer:coarse){.node-card,.frame-card{cursor:default}.tool,.actions button,.actions a{touch-action:manipulation}}
   </style>
 </DashboardLayout>
