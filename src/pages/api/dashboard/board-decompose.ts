@@ -16,9 +16,9 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 function cleanItem(value: unknown) {
   if (typeof value !== 'string') return '';
   return value
-    .replace(/^[-*・●○□■▶▷→⇒\\d.)\\s]+/, '')
+    .replace(/^[-*・●○□■▶▷→⇒\d.)\s]+/, '')
     .replace(/[。．.!！?？]+$/g, '')
-    .replace(/\\s+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 36);
 }
@@ -42,7 +42,7 @@ function fallbackItems(label: string, note: string) {
   const source = note || label;
   const rough = source
     .replace(/(?:→|⇒|->)/g, '・')
-    .split(/[。！？\\n]+/)
+    .split(/[。！？\n]+/)
     .flatMap(sentence => sentence.split(/[・、,，／/]+/))
     .map(value => value
       .replace(/^(?:そして|また|さらに|つまり|主に|全体の)/, '')
@@ -103,7 +103,7 @@ function parseItemsFromText(text: string) {
   }
 
   const lines = trimmed
-    .split(/\\r?\\n/)
+    .split(/\r?\n/)
     .map(line => line.trim())
     .filter(Boolean);
   const bullets = uniqueItems(lines);
@@ -140,12 +140,12 @@ async function askExistingAi(env: ReturnType<typeof getSiteStorageEnv>, ownerKey
     '',
     'タイトル: ' + label,
     '説明: ' + (note || '(説明なし)'),
-  ].join('\\n');
+  ].join('\n');
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30_000);
   try {
-    const response = await fetch(env.SUPABASE_URL.replace(/\\/$/, '') + '/functions/v1/knowledge-ask-v2', {
+    const response = await fetch(env.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1/knowledge-ask-v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
