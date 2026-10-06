@@ -1,0 +1,572 @@
+---
+const title = "Floating Showroom — UI Lab";
+const description = "ACE METHOD / Sun Loves Flow visual experiment.";
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg-void: #0d0b08;
+        --bg-surface: #1a1612;
+        --bg-elevated: #241f1a;
+        --gold-pure: #c9a96e;
+        --gold-muted: #8b7355;
+        --gold-dim: #5a4d3a;
+        --text-primary: #d4c5a9;
+        --text-muted: #7a6f5f;
+        --text-dim: #4a4030;
+        --border-default: #2e2822;
+        --stage: #17130f;
+        --stage-ink: #e7dcc9;
+        --stage-dim: #ad9d86;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: var(--bg-void);
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 14% 18%, rgba(201, 169, 110, 0.09), transparent 28%),
+          radial-gradient(circle at 88% 80%, rgba(90, 77, 58, 0.16), transparent 34%),
+          var(--bg-void);
+        color: var(--text-primary);
+        font-family: "Zen Kaku Gothic New", sans-serif;
+        font-weight: 300;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        position: relative;
+        min-height: 100svh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 24px;
+        padding: 22px clamp(18px, 3vw, 46px) 18px;
+        isolation: isolate;
+      }
+
+      .shell::before,
+      .shell::after {
+        content: "";
+        position: fixed;
+        z-index: -1;
+        width: min(42vw, 560px);
+        aspect-ratio: 1;
+        border: 1px solid rgba(201, 169, 110, 0.11);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      .shell::before {
+        top: -18vw;
+        left: -8vw;
+      }
+
+      .shell::after {
+        right: -14vw;
+        bottom: -24vw;
+      }
+
+      .masthead,
+      .footer {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 16px;
+        color: var(--text-dim);
+        font-family: "Cormorant Garamond", serif;
+        font-size: 10px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+      }
+
+      .masthead__brand {
+        color: var(--gold-muted);
+        text-decoration: none;
+      }
+
+      .masthead__mode {
+        justify-self: center;
+      }
+
+      .masthead__index,
+      .footer__hint {
+        justify-self: end;
+      }
+
+      .showroom {
+        align-self: center;
+        width: min(100%, 1480px);
+        margin-inline: auto;
+        min-height: min(74svh, 820px);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        overflow: hidden;
+        border: 1px solid rgba(201, 169, 110, 0.18);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 18%),
+          var(--stage);
+        box-shadow:
+          0 44px 120px rgba(0, 0, 0, 0.46),
+          inset 0 1px rgba(255, 255, 255, 0.025);
+      }
+
+      .showroom__topline,
+      .showroom__bottomline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 18px clamp(18px, 2.5vw, 34px);
+        color: var(--stage-dim);
+        font-family: "Cormorant Garamond", serif;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      .showroom__topline {
+        border-bottom: 1px solid rgba(201, 169, 110, 0.1);
+      }
+
+      .showroom__bottomline {
+        border-top: 1px solid rgba(201, 169, 110, 0.1);
+      }
+
+      .showroom__title {
+        color: var(--stage-ink);
+        font-size: 11px;
+        font-weight: 400;
+      }
+
+      .rail-wrap {
+        position: relative;
+        min-height: 0;
+        display: grid;
+        align-items: center;
+      }
+
+      .rail-line {
+        position: absolute;
+        top: 19%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background:
+          linear-gradient(
+            90deg,
+            transparent,
+            rgba(201, 169, 110, 0.22) 9%,
+            rgba(201, 169, 110, 0.22) 91%,
+            transparent
+          );
+        pointer-events: none;
+      }
+
+      .rail {
+        position: relative;
+        display: flex;
+        gap: clamp(18px, 3vw, 48px);
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        padding: clamp(46px, 7vw, 86px) max(8vw, 40px) clamp(42px, 7vw, 72px);
+      }
+
+      .rail::-webkit-scrollbar {
+        display: none;
+      }
+
+      .piece {
+        --piece-color: #d7c9b2;
+        --piece-ink: #1b1712;
+        flex: 0 0 clamp(178px, 21vw, 302px);
+        min-width: 0;
+        display: grid;
+        grid-template-rows: 36px 1fr auto;
+        gap: 0;
+        scroll-snap-align: center;
+        text-decoration: none;
+        color: inherit;
+        outline: none;
+      }
+
+      .piece__hook {
+        position: relative;
+        width: 1px;
+        height: 36px;
+        margin-inline: auto;
+        background: rgba(201, 169, 110, 0.42);
+      }
+
+      .piece__hook::before {
+        content: "";
+        position: absolute;
+        width: 24px;
+        height: 12px;
+        top: -2px;
+        left: 50%;
+        border-top: 1px solid rgba(201, 169, 110, 0.48);
+        border-left: 1px solid rgba(201, 169, 110, 0.48);
+        transform: translateX(-50%) rotate(25deg) skewX(-12deg);
+        transform-origin: center;
+      }
+
+      .piece__garment {
+        position: relative;
+        width: min(100%, 238px);
+        aspect-ratio: 0.72;
+        margin-inline: auto;
+        background: var(--piece-color);
+        color: var(--piece-ink);
+        clip-path: polygon(
+          25% 6%,
+          39% 0,
+          61% 0,
+          75% 6%,
+          100% 19%,
+          88% 43%,
+          76% 34%,
+          76% 100%,
+          24% 100%,
+          24% 34%,
+          12% 43%,
+          0 19%
+        );
+        box-shadow: inset 0 0 0 1px rgba(13, 11, 8, 0.12);
+        transition:
+          transform 0.34s ease,
+          filter 0.34s ease;
+      }
+
+      .piece__garment::before {
+        content: "";
+        position: absolute;
+        top: 1px;
+        left: 50%;
+        width: 26%;
+        aspect-ratio: 2.2;
+        transform: translateX(-50%);
+        border: 1px solid rgba(13, 11, 8, 0.27);
+        border-top: 0;
+        border-radius: 0 0 50% 50%;
+      }
+
+      .piece__mark {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 26%;
+        text-align: center;
+        font-family: "Cormorant Garamond", serif;
+        font-size: clamp(18px, 2vw, 30px);
+        font-weight: 400;
+        letter-spacing: 0.06em;
+      }
+
+      .piece__caption {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 14px;
+        align-items: baseline;
+        margin-top: 18px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(201, 169, 110, 0.09);
+      }
+
+      .piece__name {
+        color: var(--stage-ink);
+        font-family: "Cormorant Garamond", serif;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .piece__code {
+        color: var(--text-dim);
+        font-family: "Cormorant Garamond", serif;
+        font-size: 9px;
+        letter-spacing: 0.16em;
+      }
+
+      .piece:focus-visible .piece__garment,
+      .piece:hover .piece__garment {
+        transform: translateY(-8px);
+        filter: brightness(1.05);
+      }
+
+      .piece:focus-visible .piece__caption,
+      .piece:hover .piece__caption {
+        border-top-color: rgba(201, 169, 110, 0.34);
+      }
+
+      .piece--mind {
+        --piece-color: #d8ccb7;
+        --piece-ink: #33281b;
+      }
+
+      .piece--body {
+        --piece-color: #302921;
+        --piece-ink: #d8c6a9;
+      }
+
+      .piece--flow {
+        --piece-color: #b19468;
+        --piece-ink: #17130f;
+      }
+
+      .piece--quest {
+        --piece-color: #e3d8c3;
+        --piece-ink: #30271d;
+      }
+
+      .piece--ace {
+        --piece-color: #15120e;
+        --piece-ink: #c9a96e;
+      }
+
+      .piece--body .piece__mark {
+        background:
+          linear-gradient(
+            90deg,
+            transparent 47%,
+            rgba(201, 169, 110, 0.46) 47% 53%,
+            transparent 53%
+          );
+      }
+
+      .piece--flow .piece__mark::before {
+        content: "";
+        position: absolute;
+        width: 78%;
+        height: 31%;
+        border: 1px solid rgba(23, 19, 15, 0.32);
+        border-left-color: transparent;
+        border-right-color: transparent;
+        border-radius: 50%;
+        transform: rotate(-11deg);
+      }
+
+      .piece--quest .piece__mark::before {
+        content: "";
+        position: absolute;
+        width: 28%;
+        aspect-ratio: 1;
+        border: 1px solid rgba(48, 39, 29, 0.42);
+        transform: rotate(45deg);
+      }
+
+      .piece--ace .piece__mark {
+        letter-spacing: 0.22em;
+      }
+
+      .ticker {
+        display: flex;
+        min-width: max-content;
+        gap: 22px;
+        align-items: center;
+      }
+
+      .ticker span + span::before {
+        content: "·";
+        margin-right: 22px;
+        color: var(--gold-dim);
+      }
+
+      .footer {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .footer__statement {
+        max-width: 38ch;
+        color: var(--text-muted);
+        font-family: "Zen Kaku Gothic New", sans-serif;
+        font-size: 10px;
+        line-height: 1.7;
+        letter-spacing: 0.08em;
+        text-transform: none;
+      }
+
+      @media (max-width: 720px) {
+        .shell {
+          gap: 16px;
+          padding: 16px 12px 12px;
+        }
+
+        .masthead {
+          grid-template-columns: 1fr auto;
+        }
+
+        .masthead__mode {
+          display: none;
+        }
+
+        .showroom {
+          min-height: 72svh;
+        }
+
+        .showroom__topline {
+          align-items: flex-start;
+        }
+
+        .showroom__topline > span:last-child {
+          display: none;
+        }
+
+        .rail-line {
+          top: 18%;
+        }
+
+        .rail {
+          padding-inline: 16vw;
+          gap: 24px;
+        }
+
+        .piece {
+          flex-basis: min(67vw, 242px);
+        }
+
+        .showroom__bottomline {
+          overflow: hidden;
+          white-space: nowrap;
+        }
+
+        .footer__statement {
+          max-width: 28ch;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.001ms !important;
+          animation-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="shell">
+      <header class="masthead" aria-label="UI Lab header">
+        <a class="masthead__brand" href="/">ACE METHOD</a>
+        <span class="masthead__mode">Floating Showroom Study</span>
+        <span class="masthead__index">UI LAB / 01</span>
+      </header>
+
+      <section class="showroom" aria-labelledby="showroom-title">
+        <div class="showroom__topline">
+          <span class="showroom__title" id="showroom-title">ALL ARE ACE — OBJECT RAIL</span>
+          <span>Drag / scroll to explore</span>
+        </div>
+
+        <div class="rail-wrap">
+          <div class="rail-line" aria-hidden="true"></div>
+          <div class="rail" aria-label="ACE concept collection">
+            <a class="piece piece--mind" href="#mind">
+              <span class="piece__hook" aria-hidden="true"></span>
+              <span class="piece__garment">
+                <span class="piece__mark">MIND</span>
+              </span>
+              <span class="piece__caption">
+                <span class="piece__name">Mind</span>
+                <span class="piece__code">01</span>
+              </span>
+            </a>
+
+            <a class="piece piece--body" href="#body">
+              <span class="piece__hook" aria-hidden="true"></span>
+              <span class="piece__garment">
+                <span class="piece__mark">BODY</span>
+              </span>
+              <span class="piece__caption">
+                <span class="piece__name">Body</span>
+                <span class="piece__code">02</span>
+              </span>
+            </a>
+
+            <a class="piece piece--flow" href="#flow">
+              <span class="piece__hook" aria-hidden="true"></span>
+              <span class="piece__garment">
+                <span class="piece__mark">FLOW</span>
+              </span>
+              <span class="piece__caption">
+                <span class="piece__name">Flow</span>
+                <span class="piece__code">03</span>
+              </span>
+            </a>
+
+            <a class="piece piece--quest" href="#quest">
+              <span class="piece__hook" aria-hidden="true"></span>
+              <span class="piece__garment">
+                <span class="piece__mark">QUEST</span>
+              </span>
+              <span class="piece__caption">
+                <span class="piece__name">Quest</span>
+                <span class="piece__code">04</span>
+              </span>
+            </a>
+
+            <a class="piece piece--ace" href="#ace">
+              <span class="piece__hook" aria-hidden="true"></span>
+              <span class="piece__garment">
+                <span class="piece__mark">ACE</span>
+              </span>
+              <span class="piece__caption">
+                <span class="piece__name">All Are Ace</span>
+                <span class="piece__code">05</span>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <div class="showroom__bottomline" aria-label="Brand ticker">
+          <div class="ticker">
+            <span>ACE METHOD</span>
+            <span>SUN LOVES FLOW</span>
+            <span>ALL ARE ACE</span>
+            <span>惹き出す、押し込まない</span>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p class="footer__statement">
+          商品一覧ではなく、世界観の中に「触りたくなる対象」を置く。
+          CardではなくObject、DashboardではなくShowroom。
+        </p>
+        <span class="footer__hint">Swipe →</span>
+      </footer>
+    </main>
+  </body>
+</html>
