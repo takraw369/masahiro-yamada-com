@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const pageUrl = new URL('../src/pages/dashboard/architecture.astro', import.meta.url);
 const dataUrl = new URL('../src/data/architectureExplorer.ts', import.meta.url);
 const middlewareUrl = new URL('../src/middleware.ts', import.meta.url);
+const layoutUrl = new URL('../src/layouts/DashboardLayout.astro', import.meta.url);
 
 test('architecture explorer stays read-only and explicit about evidence boundaries', async () => {
   const [page, data] = await Promise.all([
@@ -40,4 +41,11 @@ test('graph references resolve and canonical system roles remain distinct from t
   assert.match(data, /Convex: User/);
   assert.match(data, /Cloudflare R2/);
   assert.match(data, /Modal/);
+});
+
+
+test('architecture explorer is discoverable from shared dashboard navigation', async () => {
+  const layout = await readFile(layoutUrl, 'utf8');
+  assert.match(layout, /href: '\/dashboard\/graph', label: 'Graph'/);
+  assert.match(layout, /href: '\/dashboard\/architecture', label: 'Architecture'/);
 });
