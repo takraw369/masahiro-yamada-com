@@ -98,7 +98,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const toneFill: Record<string,string> = {
       sky:'#d9efff', mint:'#dff3e8', rose:'#ffe1ea', amber:'#fff0bf', violet:'#e8e2ff', coral:'#ffe2d2'
     };
-    const tones = Object.keys(toneFill);
+    const tones: NonNullable<BoardNode['tone']>[] = ['sky','mint','rose','amber','violet','coral'];
 
     const clone = <T,>(value:T):T => structuredClone(value);
     const uid = (prefix:string) => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;
@@ -431,8 +431,6 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const edges=snapshot.edges.filter(e=>sourceIds.has(e.source)&&sourceIds.has(e.target)).map(edge=>({...clone(edge),id:uid('E'),source:idMap.get(edge.source)!,target:idMap.get(edge.target)!}));
       snapshot.nodes.push(...copies);snapshot.edges.push(...edges);selected=new Set(copies.map(n=>n.id));render();markDirty();
     }
-
-    function editNode(node:BoardNode){ startInlineEdit(node,'label'); }
 
     function makeFrame(){
       const items=selectedNodes().filter(n=>n.objectType!=='frame');if(!items.length)return;
