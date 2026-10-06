@@ -19,6 +19,8 @@ export type BoardNode = {
   url?: string;
   imageSrc?: string;
   imageAlt?: string;
+  decomposedFrom?: string | null;
+  decompositionSource?: 'ai' | 'fallback' | 'human';
 };
 export type BoardEdge = {
   [key: string]: unknown;
