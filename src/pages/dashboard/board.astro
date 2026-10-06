@@ -16,6 +16,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         <a href="/dashboard#revenue-mission">商品準備</a>
         <button id="add-node" type="button">＋ ノード</button>
         <button id="add-text" type="button">＋ テキスト</button>
+        <button id="add-image" type="button">＋ 画像</button>
+        <button id="add-link" type="button">＋ URL</button>
+        <button id="duplicate-selected" type="button" disabled>複製</button>
         <button id="make-frame" type="button">▣ Frame</button>
         <button id="connect" type="button">↗ 線</button>
         <button id="mindmap" type="button">⌘ Mind Map</button>
@@ -33,12 +36,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     <div class="hint-bar">
       <span>ダブルクリック/タップで自由テキスト</span>
       <span>Shift/⌘で複数選択</span>
+      <span>画像は選択/貼付け · URLはカード化</span>
       <span>右下ハンドルでリサイズ</span>
       <span>Tab=子 / Enter=兄弟</span>
       <span>⌘Z=Undo</span>
       <span id="mode-hint">Free Board</span>
     </div>
 
+    <input id="image-input" type="file" accept="image/*" hidden />
     <main id="canvas" class="canvas" aria-label="FLOW editable freeform canvas">
       <div id="world" class="world">
         <div id="frames" class="frames"></div>
@@ -78,10 +83,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const saveBtn = document.querySelector<HTMLButtonElement>('#save')!;
     const undoBtn = document.querySelector<HTMLButtonElement>('#undo')!;
     const redoBtn = document.querySelector<HTMLButtonElement>('#redo')!;
+    const duplicateBtn = document.querySelector<HTMLButtonElement>('#duplicate-selected')!;
+    const imageInput = document.querySelector<HTMLInputElement>('#image-input')!;
 
     const kindColor: Record<string,string> = {
       CONTROL:'#59636e', KNOWLEDGE:'#7c5ce1', HUMAN:'#157a70', OUTPUT:'#2f6fb7',
-      BUSINESS:'#a85b19', ACTION:'#b64444', LIFE:'#a64378', PRINCIPLE:'#7352a8', NOTE:'#6c7480', TEXT:'#7d7468'
+      BUSINESS:'#a85b19', ACTION:'#b64444', LIFE:'#a64378', PRINCIPLE:'#7352a8',
+      NOTE:'#6c7480', TEXT:'#7d7468', IMAGE:'#4a748d', LINK:'#356fa7'
     };
 
     const clone = <T,>(value:T):T => structuredClone(value);
@@ -89,6 +97,25 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const esc = (value:string) => value.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c] || c));
     const selectedNodes = () => snapshot.nodes.filter(n => selected.has(n.id));
     const primary = () => selectedNodes()[0] || null;
+    const safeHttpUrl = (raw:string) => {
+      const value=raw.trim();
+      if(!value)return null;
+      try {
+        const parsed=new URL(/^https?:\/\//i.test(value)?value:`https://${value}`);
+        return parsed.protocol==='http:'||parsed.protocol==='https:'?parsed.toString():null;
+      } catch { return null; }
+    };
+    const hostLabel = (url:string) => { try { return new URL(url).hostname.replace(/^www\./,''); } catch { return 'LINK'; } };
+    let edgeFrame=0;
+    function scheduleEdges(){if(edgeFrame)return;edgeFrame=requestAnimationFrame(()=>{edgeFrame=0;renderEdges();});}
+    function objectElement(id:string){return document.querySelector<HTMLElement>(`[data-id="${CSS.escape(id)}"]`);}
+    function syncObjectElement(node:BoardNode){
+      const el=objectElement(node.id); if(!el)return;
+      const size=nodeSize(node);
+      el.style.left=`${node.x}px`; el.style.top=`${node.y}px`; el.style.width=`${size.w}px`;
+      if(node.objectType==='frame'||node.objectType==='image') el.style.height=`${size.h}px`;
+      else { el.style.height=''; el.style.minHeight=`${size.h}px`; }
+    }
 
     function setStatus(text:string, state='') { statusEl.textContent = text; statusEl.dataset.state = state; }
     function applyViewport() { const v=snapshot.viewport; world.style.transform=`translate(${v.x}px,${v.y}px) scale(${v.zoom})`; }
@@ -102,7 +129,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     }
     function mutate(fn:()=>void) { checkpoint(); fn(); render(); markDirty(); }
 
-    function nodeSize(n:BoardNode) { return { w:Number(n.w)||210, h:Number(n.h)||100 }; }
+    function nodeSize(n:BoardNode) {
+      const defaults=n.objectType==='frame'?{w:520,h:320}
+        :n.objectType==='image'?{w:300,h:220}
+        :n.objectType==='link'?{w:300,h:110}
+        :n.objectType==='text'?{w:220,h:60}
+        :{w:210,h:100};
+      return { w:Number(n.w)||defaults.w, h:Number(n.h)||defaults.h };
+    }
     function center(n:BoardNode) { const s=nodeSize(n); return {x:n.x+s.w/2,y:n.y+s.h/2}; }
 
     function renderEdges() {
@@ -147,66 +181,111 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         const size=nodeSize(node); const el=document.createElement('div');
         const type=node.objectType||'node'; el.className=`node-card ${type}${selected.has(node.id)?' selected':''}${connectSource===node.id?' connect-source':''}`;
         el.dataset.id=node.id; Object.assign(el.style,{left:`${node.x}px`,top:`${node.y}px`,width:`${size.w}px`,minHeight:`${size.h}px`});
+        if(type==='image') el.style.height=`${size.h}px`;
         el.style.setProperty('--node-color',kindColor[node.kind||'NOTE']||kindColor.NOTE);
         const value=revenueLabel(node);
-        el.innerHTML=type==='text'
-          ? `<strong class="free-text">${esc(value.label)}</strong><i class="resize-handle" data-resize></i>`
-          : `<span class="node-kind">${esc(node.kind||'NOTE')}</span><strong>${esc(value.label)}</strong><small>${esc(value.note)}</small><i class="resize-handle" data-resize></i>`;
+        if(type==='text') {
+          el.innerHTML=`<strong class="free-text">${esc(value.label)}</strong><i class="resize-handle" data-resize></i>`;
+        } else if(type==='image') {
+          const src=typeof node.imageSrc==='string'?node.imageSrc:'';
+          el.innerHTML=`<img class="image-preview" src="${esc(src)}" alt="${esc(node.imageAlt||value.label||'Board image')}" draggable="false"/><strong class="media-caption">${esc(value.label||'IMAGE')}</strong><i class="resize-handle" data-resize></i>`;
+        } else if(type==='link') {
+          const url=typeof node.url==='string'?safeHttpUrl(node.url):null;
+          const href=url||'#';
+          el.innerHTML=`<span class="node-kind">LINK</span><strong>${esc(value.label||hostLabel(href))}</strong><a class="link-url" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(url?hostLabel(url):'リンクを編集')}</a><small>${esc(value.note||url||'')}</small><i class="resize-handle" data-resize></i>`;
+          const anchor=el.querySelector<HTMLAnchorElement>('a'); anchor?.addEventListener('pointerdown',e=>e.stopPropagation()); anchor?.addEventListener('click',e=>e.stopPropagation());
+        } else {
+          el.innerHTML=`<span class="node-kind">${esc(node.kind||'NOTE')}</span><strong>${esc(value.label)}</strong><small>${esc(value.note)}</small><i class="resize-handle" data-resize></i>`;
+        }
         bindObjectEvents(el,node); nodesEl.appendChild(el);
       }
     }
 
-    function render() {
-      renderFrames(); renderNodes(); renderEdges();
+    function updateSelectionUi() {
+      document.querySelectorAll<HTMLElement>('.node-card,.frame-card').forEach(el=>el.classList.toggle('selected',Boolean(el.dataset.id&&selected.has(el.dataset.id))));
       const count=selected.size;
       const selectedId=count===1?(primary()?.id||null):null;
       editBtn.disabled=count!==1;
       deleteBtn.disabled=!count||selectedId === REVENUE_NODE_ID||selected.has(REVENUE_NODE_ID);
+      duplicateBtn.disabled=!count||selected.has(REVENUE_NODE_ID);
       document.querySelector<HTMLButtonElement>('#make-frame')!.disabled=count<1;
       updateHistoryButtons();
+    }
+
+    function render() {
+      renderFrames(); renderNodes(); renderEdges(); updateSelectionUi();
     }
 
     function setSelection(id:string|null, additive=false) {
       if (!additive) selected.clear();
       if (id) { if (additive&&selected.has(id)) selected.delete(id); else selected.add(id); }
-      render();
+      updateSelectionUi();
     }
 
     function membersOf(frameId:string) { return snapshot.nodes.filter(n=>n.frameId===frameId); }
+    function updateFrameMembership(ids:Iterable<string>) {
+      const frames=snapshot.nodes.filter(n=>n.objectType==='frame');
+      for(const id of ids){
+        const node=snapshot.nodes.find(n=>n.id===id); if(!node||node.objectType==='frame')continue;
+        const p=center(node);
+        const containing=frames
+          .filter(frame=>{const s=nodeSize(frame);return p.x>=frame.x&&p.x<=frame.x+s.w&&p.y>=frame.y&&p.y<=frame.y+s.h;})
+          .sort((a,b)=>nodeSize(a).w*nodeSize(a).h-nodeSize(b).w*nodeSize(b).h)[0];
+        node.frameId=containing?.id||null;
+      }
+    }
 
     function bindObjectEvents(el:HTMLElement,node:BoardNode) {
       const handle=el.querySelector<HTMLElement>('[data-resize]');
       handle?.addEventListener('pointerdown',event=>{
-        event.stopPropagation(); event.preventDefault(); checkpoint();
+        event.stopPropagation(); event.preventDefault();
         const size=nodeSize(node), sx=event.clientX, sy=event.clientY;
+        let changed=false, checkpointed=false;
         handle.setPointerCapture(event.pointerId);
-        const move=(e:PointerEvent)=>{ node.w=Math.max(node.objectType==='frame'?220:120,Math.round(size.w+(e.clientX-sx)/snapshot.viewport.zoom)); node.h=Math.max(node.objectType==='frame'?140:56,Math.round(size.h+(e.clientY-sy)/snapshot.viewport.zoom)); render(); };
-        const up=()=>{ handle.removeEventListener('pointermove',move); markDirty(); };
+        const move=(e:PointerEvent)=>{
+          if(!checkpointed){checkpoint();checkpointed=true;}
+          changed=true;
+          node.w=Math.max(node.objectType==='frame'?220:node.objectType==='image'?140:120,Math.round(size.w+(e.clientX-sx)/snapshot.viewport.zoom));
+          node.h=Math.max(node.objectType==='frame'?140:node.objectType==='image'?100:56,Math.round(size.h+(e.clientY-sy)/snapshot.viewport.zoom));
+          syncObjectElement(node); scheduleEdges();
+        };
+        const up=()=>{handle.removeEventListener('pointermove',move);if(changed)markDirty();};
         handle.addEventListener('pointermove',move); handle.addEventListener('pointerup',up,{once:true});
       });
 
-      let dragging=false,sx=0,sy=0,origins=new Map<string,{x:number,y:number}>();
+      let dragging=false,moved=false,checkpointed=false,sx=0,sy=0,origins=new Map<string,{x:number,y:number}>();
       el.addEventListener('pointerdown',event=>{
-        if ((event.target as HTMLElement).closest('[data-resize]')) return;
+        if ((event.target as HTMLElement).closest('[data-resize],a')) return;
         event.stopPropagation();
         if (connectBtn.classList.contains('active')) return;
         const additive=event.shiftKey||event.metaKey||event.ctrlKey;
         if (!selected.has(node.id)) setSelection(node.id,additive);
         else if (additive) { setSelection(node.id,true); return; }
-        checkpoint(); dragging=true; sx=event.clientX; sy=event.clientY; origins.clear();
+        dragging=true;moved=false;checkpointed=false;sx=event.clientX;sy=event.clientY;origins.clear();
         const moving=new Set(selected);
         if (node.objectType==='frame') membersOf(node.id).forEach(n=>moving.add(n.id));
         for (const id of moving) { const n=snapshot.nodes.find(x=>x.id===id); if(n) origins.set(id,{x:n.x,y:n.y}); }
         el.setPointerCapture(event.pointerId);
       });
       el.addEventListener('pointermove',event=>{
-        if(!dragging)return; const dx=(event.clientX-sx)/snapshot.viewport.zoom,dy=(event.clientY-sy)/snapshot.viewport.zoom;
-        for(const [id,o] of origins){const n=snapshot.nodes.find(x=>x.id===id);if(n){n.x=Math.round(o.x+dx);n.y=Math.round(o.y+dy);}}
-        render();
+        if(!dragging)return;
+        const dx=(event.clientX-sx)/snapshot.viewport.zoom,dy=(event.clientY-sy)/snapshot.viewport.zoom;
+        if(Math.abs(dx)+Math.abs(dy)<1)return;
+        if(!checkpointed){checkpoint();checkpointed=true;}
+        moved=true;
+        for(const [id,o] of origins){
+          const n=snapshot.nodes.find(x=>x.id===id);
+          if(n){n.x=Math.round(o.x+dx);n.y=Math.round(o.y+dy);syncObjectElement(n);}
+        }
+        scheduleEdges();
       });
-      el.addEventListener('pointerup',()=>{if(!dragging)return;dragging=false;markDirty();});
+      el.addEventListener('pointerup',()=>{
+        if(!dragging)return;dragging=false;
+        if(moved){updateFrameMembership(origins.keys());render();markDirty();}
+      });
       el.addEventListener('click',event=>{
         event.stopPropagation();
+        if((event.target as HTMLElement).closest('a'))return;
         if(!connectBtn.classList.contains('active')||node.objectType==='frame')return;
         if(!connectSource){connectSource=node.id;modeHint.textContent=`${node.label} → 接続先を選択`;render();return;}
         if(connectSource===node.id)return;
@@ -214,7 +293,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         if(relation!==null){ checkpoint(); snapshot.edges.push({id:uid('E'),source:connectSource,target:node.id,relation:relation.trim()||'link',state:'HUMAN_CONFIRMED',visualOnly:!relation.trim()}); markDirty(); }
         connectSource=null;connectBtn.classList.remove('active');modeHint.textContent='Free Board';render();
       });
-      el.addEventListener('dblclick',event=>{event.stopPropagation();editNode(node);});
+      el.addEventListener('dblclick',event=>{event.stopPropagation();if(!(event.target as HTMLElement).closest('a'))editNode(node);});
     }
 
     function boardPoint(clientX:number,clientY:number){const r=canvas.getBoundingClientRect();return{x:Math.round((clientX-r.left-snapshot.viewport.x)/snapshot.viewport.zoom),y:Math.round((clientY-r.top-snapshot.viewport.y)/snapshot.viewport.zoom)};}
@@ -225,8 +304,84 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       checkpoint();snapshot.nodes.push(node); if(parentId)snapshot.edges.push({id:uid('E'),source:parentId,target:node.id,relation:'child',state:'HUMAN_CONFIRMED'}); selected=new Set([node.id]);render();markDirty();return node;
     }
 
+    function addLink(raw?:string){
+      const entered=raw??window.prompt('URLを貼り付け');
+      if(!entered)return null;
+      const url=safeHttpUrl(entered);
+      if(!url){window.alert('http / https のURLを入力してください');return null;}
+      const r=canvas.getBoundingClientRect(),p=boardPoint(r.left+r.width/2,r.top+r.height/2);
+      const node:BoardNode={id:uid('L'),label:hostLabel(url),note:url,kind:'LINK',objectType:'link',url,x:p.x-140,y:p.y-55,w:300,h:110,provenance:'human'};
+      checkpoint();snapshot.nodes.push(node);selected=new Set([node.id]);render();markDirty();return node;
+    }
+
+    async function compressImage(file:File){
+      if(!file.type.startsWith('image/'))throw new Error('not_image');
+      if(file.size>15_000_000)throw new Error('image_too_large');
+      const objectUrl=URL.createObjectURL(file);
+      try{
+        const img=await new Promise<HTMLImageElement>((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('image_read_failed'));image.src=objectUrl;});
+        const render=(max:number,quality:number)=>{
+          const scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+          const width=Math.max(1,Math.round(img.naturalWidth*scale)),height=Math.max(1,Math.round(img.naturalHeight*scale));
+          const media=document.createElement('canvas');media.width=width;media.height=height;
+          media.getContext('2d')?.drawImage(img,0,0,width,height);
+          return {src:media.toDataURL('image/webp',quality),ratio:width/height};
+        };
+        let out=render(840,.58);
+        if(out.src.length>100_000)out=render(640,.45);
+        if(out.src.length>125_000)throw new Error('image_still_too_large');
+        return out;
+      } finally { URL.revokeObjectURL(objectUrl); }
+    }
+
+    async function addImageFile(file:File){
+      setStatus('画像を圧縮中…');
+      try{
+        const media=await compressImage(file);
+        const r=canvas.getBoundingClientRect(),p=boardPoint(r.left+r.width/2,r.top+r.height/2);
+        const w=320,h=Math.max(140,Math.min(320,Math.round(w/media.ratio)));
+        const cleanName=file.name.replace(/\.[^.]+$/,'')||'IMAGE';
+        const node:BoardNode={id:uid('I'),label:cleanName,note:'',kind:'IMAGE',objectType:'image',imageSrc:media.src,imageAlt:cleanName,x:p.x-w/2,y:p.y-h/2,w,h,provenance:'human'};
+        checkpoint();snapshot.nodes.push(node);selected=new Set([node.id]);render();markDirty();return node;
+      } catch(error){
+        console.error(error);window.alert('画像を追加できませんでした。別の画像か小さい画像を試してください。');
+        setStatus(dirty?'未保存':`同期済 · r${revision}`,dirty?'dirty':'ok');return null;
+      }
+    }
+
+    function duplicateSelected(){
+      const sourceIds=new Set([...selected].filter(id=>id!==REVENUE_NODE_ID));
+      for(const id of [...sourceIds]){const frame=snapshot.nodes.find(n=>n.id===id&&n.objectType==='frame');if(frame)membersOf(frame.id).forEach(n=>sourceIds.add(n.id));}
+      if(!sourceIds.size)return;
+      const originals=snapshot.nodes.filter(n=>sourceIds.has(n.id));
+      const idMap=new Map<string,string>();
+      for(const node of originals){
+        const prefix=node.objectType==='frame'?'F':node.objectType==='image'?'I':node.objectType==='link'?'L':node.objectType==='text'?'T':'N';
+        idMap.set(node.id,uid(prefix));
+      }
+      checkpoint();
+      const copies=originals.map(node=>{
+        const copy=clone(node);copy.id=idMap.get(node.id)!;copy.x=node.x+44;copy.y=node.y+44;copy.provenance='human';
+        if(copy.parentId&&idMap.has(copy.parentId))copy.parentId=idMap.get(copy.parentId)!;
+        if(copy.frameId&&idMap.has(copy.frameId))copy.frameId=idMap.get(copy.frameId)!;
+        return copy;
+      });
+      const edges=snapshot.edges.filter(e=>sourceIds.has(e.source)&&sourceIds.has(e.target)).map(edge=>({...clone(edge),id:uid('E'),source:idMap.get(edge.source)!,target:idMap.get(edge.target)!}));
+      snapshot.nodes.push(...copies);snapshot.edges.push(...edges);selected=new Set(copies.map(n=>n.id));render();markDirty();
+    }
+
     function editNode(node:BoardNode){
       if(node.id===REVENUE_NODE_ID){window.location.href='/dashboard#revenue-mission';return;}
+      if(node.objectType==='image'){
+        const label=window.prompt('画像のキャプション',node.label);if(label===null)return;
+        checkpoint();node.label=label.trim()||node.label;node.imageAlt=node.label;render();markDirty();return;
+      }
+      if(node.objectType==='link'){
+        const label=window.prompt('リンク名',node.label);if(label===null)return;
+        const raw=window.prompt('URL',typeof node.url==='string'?node.url:node.note||'');if(raw===null)return;
+        const url=safeHttpUrl(raw);if(!url){window.alert('http / https のURLを入力してください');return;}
+        checkpoint();node.label=label.trim()||hostLabel(url);node.url=url;node.note=url;render();markDirty();return;
+      }
       const label=window.prompt(node.objectType==='frame'?'Frame名':'タイトル',node.label);if(label===null)return;
       const note=node.objectType==='text'?'':window.prompt('メモ',node.note||'');if(note===null)return;
       checkpoint();node.label=label.trim()||node.label;if(node.objectType!=='text')node.note=(note||'').trim();render();markDirty();
@@ -282,9 +437,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     }
 
     async function saveBoard(){
-      if(!loaded||saving||(!dirty&&revision>0))return;if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}saving=true;saveBtn.disabled=true;setStatus('保存中…');const sent=JSON.stringify(snapshot);
+      if(!loaded||saving||(!dirty&&revision>0))return;if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
+      const requestBody=JSON.stringify({sceneKey:'main',snapshot,expectedRevision:revision,actor:'human'});
+      if(new TextEncoder().encode(requestBody).length>215_000){setStatus('画像容量が上限です · 不要画像を削除','error');return;}
+      saving=true;saveBtn.disabled=true;setStatus('保存中…');const sent=JSON.stringify(snapshot);
       try{
-        const res=await fetch('/api/dashboard/board',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({sceneKey:'main',snapshot,expectedRevision:revision,actor:'human'})}),payload=await res.json();
+        const res=await fetch('/api/dashboard/board',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:requestBody}),payload=await res.json();
         if(res.status===409){loaded=false;setStatus('競合あり · 再読込','error');return;}if(!res.ok||!payload.ok)throw new Error(payload.error||'save_failed');
         revision=Number(payload.data?.revision||revision+1);dirty=JSON.stringify(snapshot)!==sent;if(dirty)markDirty();else setStatus(`同期済 · r${revision}`,'ok');
       }catch(error){console.error(error);setStatus('保存失敗','error');}finally{saving=false;saveBtn.disabled=!loaded;}
@@ -293,6 +451,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     document.querySelector('#save')?.addEventListener('click',()=>saveBoard());
     document.querySelector('#add-node')?.addEventListener('click',()=>addObject('node'));
     document.querySelector('#add-text')?.addEventListener('click',()=>addObject('text'));
+    document.querySelector('#add-image')?.addEventListener('click',()=>imageInput.click());
+    document.querySelector('#add-link')?.addEventListener('click',()=>addLink());
+    duplicateBtn.addEventListener('click',duplicateSelected);
+    imageInput.addEventListener('change',async()=>{const file=imageInput.files?.[0];imageInput.value='';if(file)await addImageFile(file);});
     document.querySelector('#make-frame')?.addEventListener('click',makeFrame);
     document.querySelector('#mindmap')?.addEventListener('click',mindMapLayout);
     undoBtn.addEventListener('click',undo);redoBtn.addEventListener('click',redo);
@@ -302,16 +464,28 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const ids=[...selected].filter(id=>id!==REVENUE_NODE_ID);if(!ids.length||!confirm(`${ids.length}件を削除しますか？`))return;
       mutate(()=>{const set=new Set(ids);snapshot.nodes=snapshot.nodes.filter(n=>!set.has(n.id));snapshot.edges=snapshot.edges.filter(e=>!set.has(e.source)&&!set.has(e.target));snapshot.nodes.forEach(n=>{if(n.frameId&&set.has(n.frameId))n.frameId=null;});selected.clear();});
     });
-    function zoomBy(m:number){checkpoint();snapshot.viewport.zoom=Math.max(.2,Math.min(2.5,snapshot.viewport.zoom*m));applyViewport();markDirty();}
-    document.querySelector('#zoom-in')?.addEventListener('click',()=>zoomBy(1.15));document.querySelector('#zoom-out')?.addEventListener('click',()=>zoomBy(1/1.15));
-    document.querySelector('#reset-view')?.addEventListener('click',()=>{checkpoint();snapshot.viewport={x:80,y:60,zoom:.78};applyViewport();markDirty();});
+    function zoomAt(m:number,clientX?:number,clientY?:number){
+      const rect=canvas.getBoundingClientRect(),cx=clientX??rect.left+rect.width/2,cy=clientY??rect.top+rect.height/2;
+      const before=boardPoint(cx,cy),next=Math.max(.2,Math.min(2.5,snapshot.viewport.zoom*m));
+      snapshot.viewport.zoom=next;snapshot.viewport.x=cx-rect.left-before.x*next;snapshot.viewport.y=cy-rect.top-before.y*next;applyViewport();markDirty();
+    }
+    document.querySelector('#zoom-in')?.addEventListener('click',()=>zoomAt(1.15));document.querySelector('#zoom-out')?.addEventListener('click',()=>zoomAt(1/1.15));
+    document.querySelector('#reset-view')?.addEventListener('click',()=>{snapshot.viewport={x:80,y:60,zoom:.78};applyViewport();markDirty();});
 
     let panning=false,px=0,py=0,bx=0,by=0;
     canvas.addEventListener('pointerdown',event=>{if((event.target as HTMLElement).closest('.node-card,.frame-card'))return;panning=true;px=event.clientX;py=event.clientY;bx=snapshot.viewport.x;by=snapshot.viewport.y;canvas.setPointerCapture(event.pointerId);if(!event.shiftKey&&!event.metaKey&&!event.ctrlKey)setSelection(null);});
     canvas.addEventListener('pointermove',event=>{if(!panning)return;snapshot.viewport.x=bx+event.clientX-px;snapshot.viewport.y=by+event.clientY-py;applyViewport();});
     canvas.addEventListener('pointerup',()=>{if(!panning)return;panning=false;markDirty();});
     canvas.addEventListener('dblclick',event=>{if((event.target as HTMLElement).closest('.node-card,.frame-card'))return;const p=boardPoint(event.clientX,event.clientY);addObject('text',p.x,p.y);});
-    canvas.addEventListener('wheel',event=>{event.preventDefault();zoomBy(event.deltaY<0?1.08:1/1.08);},{passive:false});
+    canvas.addEventListener('wheel',event=>{event.preventDefault();zoomAt(event.deltaY<0?1.08:1/1.08,event.clientX,event.clientY);},{passive:false});
+
+    window.addEventListener('paste',async event=>{
+      const target=event.target as HTMLElement;if(target.closest('input,textarea,[contenteditable="true"]'))return;
+      const imageItem=[...(event.clipboardData?.items||[])].find(item=>item.type.startsWith('image/'));
+      if(imageItem){const file=imageItem.getAsFile();if(file){event.preventDefault();await addImageFile(file);}return;}
+      const text=event.clipboardData?.getData('text/plain')?.trim()||'';
+      if(text&&safeHttpUrl(text)){event.preventDefault();addLink(text);}
+    });
 
     window.addEventListener('keydown',event=>{
       const target=event.target as HTMLElement;if(['INPUT','TEXTAREA'].includes(target.tagName))return;
@@ -326,6 +500,6 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   </script>
 
   <style>
-    .board-app{height:calc(100vh - 66px);min-height:680px;display:grid;grid-template-rows:auto auto minmax(0,1fr);background:#f3f1ed}.board-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid #d9d4cc;background:#fbfaf8}.eyebrow{color:#8b5b2c;font-size:.62rem;font-weight:800;letter-spacing:.13em}.title-row{margin-top:2px;display:flex;align-items:center;flex-wrap:wrap;gap:9px}h1{font-size:1rem;line-height:1.3}.status{padding:4px 8px;border:1px solid #d2ccc3;background:#fff;color:#707782;font-size:.62rem;border-radius:999px}.status[data-state="ok"]{color:#147450;border-color:#b7d8ca;background:#f0faf5}.status[data-state="dirty"]{color:#9a6115;border-color:#e0c79f;background:#fff8eb}.status[data-state="error"]{color:#9f3434;border-color:#e0b9b9;background:#fff2f2}.actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}.actions button,.actions a{min-height:34px;padding:0 9px;border:1px solid #cbc5bc;background:#fff;color:#515b65;cursor:pointer;font-size:.66rem;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center}.actions button:hover,.actions button.active{border-color:#a56c22;color:#754a16;background:#faf2e6}.actions button.primary{background:#81551f;color:#fff;border-color:#81551f;font-weight:700}.actions button:disabled{opacity:.38;cursor:default}.hint-bar{min-height:34px;display:flex;align-items:center;gap:13px;padding:4px 16px;overflow-x:auto;border-bottom:1px solid #ddd8d0;color:#7a818a;background:#fff;font-size:.61rem;white-space:nowrap}#mode-hint{color:#81551f;font-weight:800}.canvas{position:relative;overflow:hidden;min-height:0;touch-action:none;background-color:#f7f5f1;background-image:radial-gradient(#cfc9c0 1px,transparent 1px);background-size:24px 24px;cursor:grab}.canvas:active{cursor:grabbing}.world{position:absolute;left:0;top:0;width:5000px;height:3400px;transform-origin:0 0;will-change:transform}.frames,.edges,.nodes{position:absolute;inset:0;width:5000px;height:3400px}.frames{z-index:0}.edges{z-index:1;overflow:visible;pointer-events:none}.nodes{z-index:2;pointer-events:none}:global(.edge-path){fill:none;stroke:#9198a0;stroke-width:2;opacity:.72}:global(.edge-path.visual){stroke-dasharray:7 6;opacity:.55}:global(.edge-label){fill:#747b83;font-size:11px;text-anchor:middle;paint-order:stroke;stroke:#f7f5f1;stroke-width:5px}.node-card,.frame-card{position:absolute;box-sizing:border-box;pointer-events:auto;touch-action:none;user-select:none}.node-card{display:flex;flex-direction:column;align-items:flex-start;gap:7px;padding:13px 14px;border:1px solid #d7d1c8;border-left:5px solid var(--node-color);border-radius:14px;background:rgba(255,255,255,.96);color:#22272d;box-shadow:0 7px 20px rgba(46,39,31,.08);cursor:grab}.node-card.text{border:0;border-left:0;background:transparent;box-shadow:none;padding:8px 10px}.node-card:hover{box-shadow:0 10px 28px rgba(46,39,31,.13)}.node-card.selected,.frame-card.selected{outline:3px solid rgba(165,108,34,.3);outline-offset:2px}.node-card.connect-source{outline:3px solid rgba(47,111,183,.3)}.node-kind{color:var(--node-color);font-size:.55rem;font-weight:800;letter-spacing:.1em}.node-card strong{font-size:.82rem;line-height:1.3}.node-card small{color:#6d747c;font-size:.64rem;line-height:1.5;white-space:normal}.free-text{font-size:1rem!important;font-weight:600!important;white-space:pre-wrap}.frame-card{z-index:0;border:2px dashed #c9bda9;border-radius:20px;background:rgba(239,230,214,.18);color:#8a6a3e;padding:14px;cursor:grab}.frame-card strong{font-size:.72rem;letter-spacing:.06em}.frame-card span{display:block;margin-top:5px;font-size:.6rem;color:#8b8379}.resize-handle{position:absolute;right:-5px;bottom:-5px;width:15px;height:15px;border:2px solid #fff;border-radius:50%;background:#a56c22;cursor:nwse-resize;opacity:0}.selected .resize-handle{opacity:1}.corner-help{position:absolute;right:12px;bottom:12px;padding:7px 9px;border:1px solid #d8d2ca;border-radius:8px;background:rgba(255,255,255,.9);color:#81878e;font-size:.56rem;pointer-events:none;z-index:10}@media(max-width:860px){.board-app{height:calc(100dvh - 66px);min-height:0}.board-bar{align-items:flex-start;padding:9px 10px}.board-bar h1{font-size:.82rem}.actions{max-width:62%}.actions button,.actions a{min-height:32px;padding:0 7px;font-size:.61rem}.hint-bar{padding-inline:10px}}@media(max-width:620px){.board-bar{display:block}.actions{max-width:none;margin-top:8px;justify-content:flex-start}.title-row{gap:6px}.node-card{border-radius:12px}}
+    .board-app{height:calc(100vh - 66px);min-height:680px;display:grid;grid-template-rows:auto auto minmax(0,1fr);background:#f3f1ed}.board-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid #d9d4cc;background:#fbfaf8}.eyebrow{color:#8b5b2c;font-size:.62rem;font-weight:800;letter-spacing:.13em}.title-row{margin-top:2px;display:flex;align-items:center;flex-wrap:wrap;gap:9px}h1{font-size:1rem;line-height:1.3}.status{padding:4px 8px;border:1px solid #d2ccc3;background:#fff;color:#707782;font-size:.62rem;border-radius:999px}.status[data-state="ok"]{color:#147450;border-color:#b7d8ca;background:#f0faf5}.status[data-state="dirty"]{color:#9a6115;border-color:#e0c79f;background:#fff8eb}.status[data-state="error"]{color:#9f3434;border-color:#e0b9b9;background:#fff2f2}.actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}.actions button,.actions a{min-height:34px;padding:0 9px;border:1px solid #cbc5bc;background:#fff;color:#515b65;cursor:pointer;font-size:.66rem;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center}.actions button:hover,.actions button.active{border-color:#a56c22;color:#754a16;background:#faf2e6}.actions button.primary{background:#81551f;color:#fff;border-color:#81551f;font-weight:700}.actions button:disabled{opacity:.38;cursor:default}.hint-bar{min-height:34px;display:flex;align-items:center;gap:13px;padding:4px 16px;overflow-x:auto;border-bottom:1px solid #ddd8d0;color:#7a818a;background:#fff;font-size:.61rem;white-space:nowrap}#mode-hint{color:#81551f;font-weight:800}.canvas{position:relative;overflow:hidden;min-height:0;touch-action:none;background-color:#f7f5f1;background-image:radial-gradient(#cfc9c0 1px,transparent 1px);background-size:24px 24px;cursor:grab}.canvas:active{cursor:grabbing}.world{position:absolute;left:0;top:0;width:5000px;height:3400px;transform-origin:0 0;will-change:transform}.frames,.edges,.nodes{position:absolute;inset:0;width:5000px;height:3400px}.frames{z-index:0}.edges{z-index:1;overflow:visible;pointer-events:none}.nodes{z-index:2;pointer-events:none}:global(.edge-path){fill:none;stroke:#9198a0;stroke-width:2;opacity:.72}:global(.edge-path.visual){stroke-dasharray:7 6;opacity:.55}:global(.edge-label){fill:#747b83;font-size:11px;text-anchor:middle;paint-order:stroke;stroke:#f7f5f1;stroke-width:5px}.node-card,.frame-card{position:absolute;box-sizing:border-box;pointer-events:auto;touch-action:none;user-select:none}.node-card{display:flex;flex-direction:column;align-items:flex-start;gap:7px;padding:13px 14px;border:1px solid #d7d1c8;border-left:5px solid var(--node-color);border-radius:14px;background:rgba(255,255,255,.96);color:#22272d;box-shadow:0 7px 20px rgba(46,39,31,.08);cursor:grab}.node-card.text{border:0;border-left:0;background:transparent;box-shadow:none;padding:8px 10px}.node-card.image{padding:8px;border-left:1px solid #d7d1c8;overflow:hidden;gap:6px}.image-preview{width:100%;height:calc(100% - 24px);object-fit:contain;border-radius:10px;background:#ece9e3;pointer-events:none}.media-caption{font-size:.68rem!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.node-card.link{gap:5px}.link-url{font-size:.72rem;font-weight:700;color:#2f6fb7;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.link-url:hover{text-decoration:underline}.node-card:hover{box-shadow:0 10px 28px rgba(46,39,31,.13)}.node-card.selected,.frame-card.selected{outline:3px solid rgba(165,108,34,.3);outline-offset:2px}.node-card.connect-source{outline:3px solid rgba(47,111,183,.3)}.node-kind{color:var(--node-color);font-size:.55rem;font-weight:800;letter-spacing:.1em}.node-card strong{font-size:.82rem;line-height:1.3}.node-card small{color:#6d747c;font-size:.64rem;line-height:1.5;white-space:normal}.free-text{font-size:1rem!important;font-weight:600!important;white-space:pre-wrap}.frame-card{z-index:0;border:2px dashed #c9bda9;border-radius:20px;background:rgba(239,230,214,.18);color:#8a6a3e;padding:14px;cursor:grab}.frame-card strong{font-size:.72rem;letter-spacing:.06em}.frame-card span{display:block;margin-top:5px;font-size:.6rem;color:#8b8379}.resize-handle{position:absolute;right:-5px;bottom:-5px;width:15px;height:15px;border:2px solid #fff;border-radius:50%;background:#a56c22;cursor:nwse-resize;opacity:0}.selected .resize-handle{opacity:1}.corner-help{position:absolute;right:12px;bottom:12px;padding:7px 9px;border:1px solid #d8d2ca;border-radius:8px;background:rgba(255,255,255,.9);color:#81878e;font-size:.56rem;pointer-events:none;z-index:10}@media(max-width:860px){.board-app{height:calc(100dvh - 66px);min-height:0}.board-bar{align-items:flex-start;padding:9px 10px}.board-bar h1{font-size:.82rem}.actions{max-width:62%}.actions button,.actions a{min-height:32px;padding:0 7px;font-size:.61rem}.hint-bar{padding-inline:10px}}@media(max-width:620px){.board-bar{display:block}.actions{max-width:none;margin-top:8px;justify-content:flex-start}.title-row{gap:6px}.node-card{border-radius:12px}}
   </style>
 </DashboardLayout>
