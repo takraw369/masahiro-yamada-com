@@ -29,3 +29,13 @@ entry point only. Public access is enforced by `src/content/config.ts`.
 See [the release evidence and dependency report](docs/release-conductor-2026-09-07.md)
 for known blockers and PR disposition. This report describes repository evidence;
 it does not replace the operational documents in MASA_OS.
+
+## Otsu4 learning apps
+
+Before adding an Otsu4 test or route, consult
+[the app inventory and ownership map](docs/otsu4-test-catalog-20261006.md)
+and its [Drive operating record](https://drive.google.com/file/d/1NWE8onjxHlcS8veuo64GICbx6NXCllZe/view).
+Check the latest production pages and active PRs as well: the inventory is a dated snapshot.
+Topic tests live at `/otsu4/tests/`, reuse `public/otsu4/questions.js`, and
+write the existing study state. Dedicated law/Appendix 1 work lives at `/otsu4/hourei/`.
+Do not duplicate those tracks.
