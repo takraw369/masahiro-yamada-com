@@ -109,7 +109,10 @@
     $("#resume-copy").textContent = session ? `${session.index + 1}/${session.ids.length}問目から再開` : "";
     $("#risk-bars").innerHTML = Object.entries(SUBJECTS).map(([name,label]) => {
       const rate = recentRate(name), r = risk(name);
-      return `<div class="risk-row"><span>${label}</span><div class="risk-track"><i style="width:${rate === null ? 0 : Math.round(rate*100)}%"></i></div><strong>${rate === null ? "未測定" : Math.round(rate*100)+"%"}</strong><em class="risk ${r >= 65 ? "high" : r >= 40 ? "mid" : "low"}">${r >= 65 ? "要補強" : r >= 40 ? "注意" : "安定"}</em></div>`;
+      const relevant = OTSU4_QUESTIONS.filter((q) => subject(q) === name);
+      const seen = relevant.filter((q) => attempts(q)).length;
+      const mastery = rate === null ? null : Math.round(rate * 100);
+      return `<div class="risk-row"><span>${label}<small style="display:block;font-weight:400">経験 ${seen}/${relevant.length}問</small></span><div class="risk-track"><i style="width:${mastery ?? 0}%"></i></div><strong>${mastery === null ? "未測定" : "習熟 "+mastery+"%"}</strong><em class="risk ${r >= 65 ? "high" : r >= 40 ? "mid" : "low"}">弱点 ${r}%</em></div>`;
     }).join("");
   }
   function renderMap() {
