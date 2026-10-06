@@ -89,7 +89,7 @@ export const POST = async ({ request, locals }: APIContext) => {
       const providerPostId = clean(body.providerPostId, 500);
       const draftRef = clean(body.draftRef, 2000);
       const cta = clean(body.cta, 2000);
-      const campaignRef = clean(body.campaignRef, 160);
+      const campaignRef = clean(body.campaignRef, 120);
       const publishedAt = clean(body.publishedAt, 80);
 
       if (!assetId) return json({ ok: false, error: 'asset_id_required' }, 400);
@@ -127,6 +127,9 @@ export const POST = async ({ request, locals }: APIContext) => {
         metrics[field] = finiteNonNegativeInteger(body[field]);
         if (metrics[field] === undefined) return json({ ok: false, error: `invalid_${field}` }, 400);
       }
+      if (Number(metrics.impressions || 0) > 2147483647) return json({ ok: false, error: 'invalid_impressions' }, 400);
+      const engagements = ['likes', 'comments', 'shares', 'saves'].reduce((total, field) => total + Number(metrics[field as keyof typeof metrics] || 0), 0);
+      if (engagements > 2147483647) return json({ ok: false, error: 'invalid_engagements' }, 400);
 
       const rawMetrics = body.rawMetrics && typeof body.rawMetrics === 'object' && !Array.isArray(body.rawMetrics)
         ? body.rawMetrics as Record<string, unknown>

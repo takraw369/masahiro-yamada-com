@@ -73,7 +73,7 @@ export const POST = async ({ request, locals }: APIContext) => {
   }
 
   const slug = text(body.slug, 80)?.toLowerCase() || '';
-  const destinationUrl = text(body.destinationUrl, 2000) || '';
+  let destinationUrl = text(body.destinationUrl, 2000) || '';
   const publicationId = text(body.publicationId, 80);
   const assetId = text(body.assetId, 180);
   const sourceChannel = text(body.sourceChannel, 60) || 'note';
@@ -85,10 +85,17 @@ export const POST = async ({ request, locals }: APIContext) => {
 
   if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(slug)) return json({ ok: false, error: 'invalid_slug' }, 400);
   if (!/^https:\/\//i.test(destinationUrl)) return json({ ok: false, error: 'invalid_destination_url' }, 400);
+  try {
+    const destination = new URL(destinationUrl);
+    if (destination.protocol !== 'https:' || destination.username || destination.password) throw new Error('invalid_destination');
+    destinationUrl = destination.toString();
+  } catch {
+    return json({ ok: false, error: 'invalid_destination_url' }, 400);
+  }
   if (!isUuid(publicationId)) return json({ ok: false, error: 'invalid_publication_id' }, 400);
   if (!['active', 'paused', 'archived'].includes(status)) return json({ ok: false, error: 'invalid_status' }, 400);
 
-  const campaignRef = text(body.campaignRef, 160) || `nh-${slug}`;
+  const campaignRef = text(body.campaignRef, 120) || `nh-${slug}`;
 
   try {
     const ownerKey = await getDashboardOwnerKey(env);

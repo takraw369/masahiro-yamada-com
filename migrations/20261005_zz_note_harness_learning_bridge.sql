@@ -8,10 +8,10 @@ security definer
 set search_path = public
 as $$
 begin
-  if new.publication_id is not null and coalesce(new.user_agent_class, 'unknown') <> 'bot' then
+  if new.publication_id is not null and new.user_agent_class in ('mobile', 'desktop') then
     update public.content_publications
     set
-      clicks = coalesce(clicks, 0) + 1,
+      clicks = least(coalesce(clicks, 0)::bigint + 1, 2147483647)::integer,
       observed_at = greatest(coalesce(observed_at, new.occurred_at), new.occurred_at),
       updated_at = now()
     where id = new.publication_id;
@@ -69,9 +69,12 @@ begin
     v_url
   );
 
+  -- Serialize retries without introducing a second publication authority.
+  perform pg_advisory_xact_lock(hashtextextended('note_publication:' || v_url, 0));
+
   select p.id into v_id
   from public.content_publications p
-  where p.published_url = v_url
+  where p.published_url = v_url and p.channel = 'note'
   limit 1;
 
   if v_id is null and v_draft_ref is not null then
@@ -107,7 +110,7 @@ begin
       jsonb_strip_nulls(jsonb_build_object(
         'provider', 'note',
         'provider_post_id', v_provider_post_id,
-        'campaign_ref', nullif(left(trim(coalesce(p_campaign_ref, '')), 160), '')
+        'campaign_ref', nullif(left(trim(coalesce(p_campaign_ref, '')), 120), '')
       ))
     ) returning id into v_id;
   else
@@ -124,7 +127,7 @@ begin
       raw_metrics = coalesce(raw_metrics, '{}'::jsonb) || jsonb_strip_nulls(jsonb_build_object(
         'provider', 'note',
         'provider_post_id', v_provider_post_id,
-        'campaign_ref', nullif(left(trim(coalesce(p_campaign_ref, '')), 160), '')
+        'campaign_ref', nullif(left(trim(coalesce(p_campaign_ref, '')), 120), '')
       )),
       updated_at = now()
     where id = v_id;
@@ -156,7 +159,7 @@ declare
   v_publication public.content_publications%rowtype;
   v_provider_post_id text;
   v_snapshot_id uuid;
-  v_engagements bigint;
+  v_engagements numeric;
   v_clicks bigint;
   v_raw jsonb := coalesce(p_raw_metrics, '{}'::jsonb);
 begin
@@ -181,7 +184,7 @@ begin
     raise exception 'note_publication_not_found';
   end if;
 
-  if p_impressions is not null and p_impressions < 0 then raise exception 'invalid_impressions'; end if;
+  if p_impressions is not null and (p_impressions < 0 or p_impressions > 2147483647) then raise exception 'invalid_impressions'; end if;
   if p_views is not null and p_views < 0 then raise exception 'invalid_views'; end if;
   if p_likes is not null and p_likes < 0 then raise exception 'invalid_likes'; end if;
   if p_comments is not null and p_comments < 0 then raise exception 'invalid_comments'; end if;
@@ -200,8 +203,9 @@ begin
   if p_likes is null and p_comments is null and p_shares is null and p_saves is null then
     v_engagements := v_publication.engagements;
   else
-    v_engagements := coalesce(p_likes, 0) + coalesce(p_comments, 0) + coalesce(p_shares, 0) + coalesce(p_saves, 0);
+    v_engagements := coalesce(p_likes, 0)::numeric + coalesce(p_comments, 0)::numeric + coalesce(p_shares, 0)::numeric + coalesce(p_saves, 0)::numeric;
   end if;
+  if v_engagements > 2147483647 then raise exception 'invalid_engagements'; end if;
   v_clicks := coalesce(v_publication.clicks, 0);
 
   insert into public.content_metric_snapshots(

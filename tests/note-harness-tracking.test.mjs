@@ -28,14 +28,14 @@ const attributionApi = readFileSync(
   'utf8',
 );
 
-test('tracked link tables are private and public access is resolver-RPC only', () => {
+test('tracked link tables are private and public access is Worker capability resolver-RPC only', () => {
   assert.match(migration, /alter table public\.tracked_links enable row level security;/i);
   assert.match(migration, /alter table public\.tracked_link_clicks enable row level security;/i);
   assert.match(migration, /revoke all on table public\.tracked_links from public, anon, authenticated;/i);
   assert.match(migration, /revoke all on table public\.tracked_link_clicks from public, anon, authenticated;/i);
   assert.match(migration, /create or replace function public\.resolve_tracked_link_v1/i);
   assert.match(migration, /security definer[\s\S]*?set search_path = public/i);
-  assert.match(migration, /grant execute on function public\.resolve_tracked_link_v1\(text,text,text,text\) to anon, authenticated;/i);
+  assert.match(migration, /grant execute on function public\.resolve_tracked_link_v1\(text,text,text,text,text\) to anon, authenticated;/i);
 });
 
 test('redirect cannot become an arbitrary open redirect', () => {
@@ -62,12 +62,12 @@ test('referrer is stripped to origin plus pathname before persistence', () => {
 test('human tracked clicks join the existing funnel learning spine while bot hits do not', () => {
   assert.match(migration, /insert into public\.funnel_events/i);
   assert.match(migration, /'tracked_link_click'/i);
-  assert.match(migration, /v_inserted > 0 and v_ua_class <> 'bot'/i);
+  assert.match(migration, /v_inserted > 0 and v_ua_class in \('mobile', 'desktop'\)/i);
   assert.match(migration, /'publication_id', v_link\.publication_id/i);
   assert.match(migration, /'asset_id', v_link\.asset_id/i);
   assert.match(learningMigration, /tracked_link_click_sync_publication_v1/i);
-  assert.match(learningMigration, /clicks = coalesce\(clicks, 0\) \+ 1/i);
-  assert.match(learningMigration, /coalesce\(new\.user_agent_class, 'unknown'\) <> 'bot'/i);
+  assert.match(learningMigration, /clicks = least\(coalesce\(clicks, 0\)::bigint \+ 1, 2147483647\)::integer/i);
+  assert.match(learningMigration, /new\.user_agent_class in \('mobile', 'desktop'\)/i);
 });
 
 test('public redirect is fail-closed and non-cacheable', () => {
@@ -85,7 +85,7 @@ test('owned redirects hand note attribution into the existing Knowledge Journey 
   assert.match(route, /utm_campaign/);
   assert.match(route, /utm_content/);
   assert.match(route, /resolved\.campaign_ref \|\| `nh-\$\{slug\}`/);
-  assert.match(adminApi, /campaignRef = text\(body\.campaignRef, 160\) \|\| `nh-\$\{slug\}`/);
+  assert.match(adminApi, /campaignRef = text\(body\.campaignRef, 120\) \|\| `nh-\$\{slug\}`/);
   assert.doesNotMatch(route, /document\.cookie|Set-Cookie/i);
 });
 
@@ -146,4 +146,119 @@ test('aggregate attribution keeps direct clicks separate from first-touch assist
   assert.match(attributionApi, /not the same as confirmed friend-add attribution/);
   assert.match(attributionApi, /not proof of a direct conversion/);
   assert.doesNotMatch(attributionApi, /email|line_user_id|external_user_id/i);
+});
+
+// Execute real routes against synthetic Worker bindings; no network/credentials.
+const { env } = await import('./helpers/worker-runtime.mjs');
+const { GET: redirect, HEAD: head } = await import('../src/pages/go/[slug].ts');
+const { POST: saveLink } = await import('../src/pages/api/dashboard/note-harness-links.ts');
+const { POST: savePublication } = await import('../src/pages/api/dashboard/note-publications.ts');
+const fakeEnv = { DASHBOARD_PASSWORD: 'note-harness-test-only', SUPABASE_URL: 'https://db.example.test', SUPABASE_PUBLISHABLE_KEY: 'fixture-only' };
+const resolved = { destination_url: 'https://masahiroyamada.com/library?utm_campaign=stale', link_id: 'fixture-link', campaign_ref: 'nh-test', source_channel: 'note', placement: 'article_end' };
+function context(body, requestOptions = {}) {
+  Object.assign(env, fakeEnv);
+  return { locals: {}, params: { slug: 'test-link' }, request: new Request('https://masahiroyamada.com/go/test-link?url=https://evil.example&to=https://evil.example&redirect=https://evil.example&utm_campaign=evil', {
+    method: body ? 'POST' : 'GET', headers: { 'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}), ...requestOptions,
+  }) };
+}
+function mockRpc(t, result = [resolved], status = 200) {
+  const calls = [];
+  t.mock.method(globalThis, 'fetch', async (url, init) => {
+    calls.push({ url, args: JSON.parse(init.body) });
+    return new Response(JSON.stringify(result), { status });
+  });
+  t.mock.method(console, 'error', () => {});
+  return calls;
+}
+
+test('runtime ignores query redirect/UTM and uses only saved owned campaign', async (t) => {
+  const calls = mockRpc(t);
+  const response = await redirect(context());
+  assert.equal(response.status, 302);
+  const url = new URL(response.headers.get('location'));
+  assert.equal(url.origin, 'https://masahiroyamada.com');
+  assert.equal(url.searchParams.get('utm_campaign'), 'nh-test');
+  assert.equal(url.searchParams.get('utm_medium'), 'tracked_link');
+  assert.equal(calls[0].args.p_slug, 'test-link');
+  assert.match(calls[0].args.p_owner_key, /^[a-f0-9]{64}$/);
+  assert.deepEqual(Object.keys(calls[0].args).sort(), ['p_owner_key', 'p_referrer_path', 'p_request_id', 'p_slug', 'p_user_agent_class']);
+});
+
+test('external and alternate-port destinations receive no additional attribution', async (t) => {
+  for (const destination of ['https://line.me/example?utm_campaign=stored', 'https://masahiroyamada.com:8443/library?x=1']) {
+    mockRpc(t, [{ ...resolved, destination_url: destination }]);
+    const response = await redirect(context());
+    assert.equal(response.headers.get('location'), destination);
+  }
+});
+
+test('runtime rejects invalid/unsafe destinations and unavailable/paused resolution', async (t) => {
+  for (const destination of ['http://evil.example', 'javascript:alert(1)', 'https://user:pass@evil.example', 'https://']) {
+    mockRpc(t, [{ ...resolved, destination_url: destination }]);
+    assert.equal((await redirect(context())).status, 404);
+  }
+  mockRpc(t, []);assert.equal((await redirect(context())).status, 404);
+  mockRpc(t, { message: 'missing migration' }, 404);
+  const failed = await redirect(context());assert.equal(failed.status, 503);
+  assert.equal(failed.headers.get('location'), null);
+});
+
+test('preview, prefetch, HEAD and bot clients cannot be classified as human', async (t) => {
+  for (const options of [
+    { headers: { 'User-Agent': 'Mozilla/5.0', 'Sec-Purpose': 'prefetch;prerender' } },
+    { headers: { 'User-Agent': 'Mozilla/5.0', Purpose: 'preview' } },
+    { headers: { 'User-Agent': 'Twitterbot' } },
+    { headers: { 'User-Agent': 'curl/8.0' } },
+    { method: 'HEAD' },
+  ]) {
+    const calls = mockRpc(t);
+    assert.equal((await (options.method === 'HEAD' ? head : redirect)(context(null, options))).status, 302);
+    assert.equal(calls[0].args.p_user_agent_class, 'bot');
+  }
+});
+
+test('receipt strips referrer secrets and ignores client identity headers', async (t) => {
+  const calls = mockRpc(t);
+  await redirect(context(null, { headers: { 'User-Agent': 'Mozilla/5.0 (iPhone)', Referer: 'https://note.com/a/n_b?email=secret#token', 'CF-Ray': '203.0.113.1', 'X-Forwarded-For': '203.0.113.2' } }));
+  assert.equal(calls[0].args.p_referrer_path, 'https://note.com/a/n_b');
+  assert.equal(calls[0].args.p_user_agent_class, 'mobile');
+  assert.match(calls[0].args.p_request_id, /^[0-9a-f-]{36}$/);
+  assert.doesNotMatch(JSON.stringify(calls[0].args), /203\.0\.113|Mozilla|email=secret|#token/);
+});
+
+test('link API validates complete HTTPS URLs and preserves lifecycle/metadata', async (t) => {
+  const calls = mockRpc(t, 'fixture-id');
+  for (const url of ['https://', 'http://example.test', 'https://u:p@example.test']) {
+    assert.equal((await saveLink(context({ slug: 'test-link', destinationUrl: url }))).status, 400);
+  }
+  assert.equal(calls.length, 0);
+  for (const status of ['active', 'paused', 'archived']) {
+    const r = await saveLink(context({ slug: 'test-link', destinationUrl: 'https://example.test', status, campaignRef: 'a'.repeat(160), placement: 'article_end' }));
+    assert.equal(r.status, 200);
+    assert.equal(calls.at(-1).args.p_status, status);
+    assert.equal(calls.at(-1).args.p_campaign_ref.length, 120);
+    assert.equal(calls.at(-1).args.p_placement, 'article_end');
+  }
+});
+
+test('note metrics API rejects integer overflow before the RPC', async (t) => {
+  const calls = mockRpc(t, 'fixture-id');
+  for (const metrics of [{ impressions: 2147483648 }, { likes: 2147483647, comments: 1 }]) {
+    const r = await savePublication(context({ action: 'metrics', publicationId: '00000000-0000-4000-8000-000000000001', ...metrics }));
+    assert.equal(r.status, 400);
+  }
+  assert.equal(calls.length, 0);
+  const r = await savePublication(context({ action: 'metrics', publicationId: '00000000-0000-4000-8000-000000000001', impressions: 2147483647, views: 3000000000 }));
+  assert.equal(r.status, 200);assert.equal(calls[0].args.p_views, 3000000000);
+});
+
+test('dashboard offers preserved-link editing and counts shared campaigns once', () => {
+  const dashboard = readFileSync(new URL('../src/pages/dashboard/note-harness.astro', import.meta.url), 'utf8');
+  const layout = readFileSync(new URL('../src/layouts/DashboardLayout.astro', import.meta.url), 'utf8');
+  assert.match(dashboard, /links\.map/);
+  assert.match(dashboard, /data-edit-link/);
+  assert.match(dashboard, /campaignRows = \[\.\.\.new Map/);
+  assert.match(dashboard, /totalRevenue = campaignSum/);
+  assert.doesNotMatch(dashboard, /<small>\{loadError\}<\/small>/);
+  assert.match(layout, /href: '\/dashboard\/note-harness'/);
 });

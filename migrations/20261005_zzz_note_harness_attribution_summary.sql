@@ -64,8 +64,8 @@ begin
   left join public.os_content_items ci on ci.asset_id = coalesce(l.asset_id, p.asset_id)
   left join lateral (
     select
-      count(*) filter (where coalesce(c.user_agent_class, 'unknown') <> 'bot')::bigint as human_clicks,
-      max(c.occurred_at) filter (where coalesce(c.user_agent_class, 'unknown') <> 'bot') as last_clicked_at
+      count(*) filter (where c.user_agent_class in ('mobile', 'desktop'))::bigint as human_clicks,
+      max(c.occurred_at) filter (where c.user_agent_class in ('mobile', 'desktop')) as last_clicked_at
     from public.tracked_link_clicks c
     where c.tracked_link_id = l.id
   ) clicks on true
@@ -95,6 +95,7 @@ begin
     join public.contacts c on c.id = pu.contact_id
     where l.campaign_ref is not null
       and c.source_campaign = l.campaign_ref
+      and c.consent_at is not null
       and pu.status = 'paid'
       and coalesce(pu.purchased_at, pu.created_at) >= coalesce(c.consent_at, c.created_at)
   ) paid on true

@@ -35,6 +35,7 @@
     "undici": "7.30.0",
     "miniflare": {
       "sharp": "0.35.4"
-    }
+    },
+    "source-map-js": "1.2.2"
   }
 }

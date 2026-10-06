@@ -49,6 +49,7 @@ export const GET = async ({ locals, url }: APIContext) => {
       ok: true,
       attributionModel: 'direct-click + consented-first-touch-assisted',
       caveats: {
+        campaignOutcomes: 'Non-click outcomes are campaign-level; links sharing a campaign repeat the same outcomes and must not be summed across those links.',
         lineEngagedContacts: 'Contacts first attributed to this campaign who later produced LINE-channel events; this is not the same as confirmed friend-add attribution.',
         firstTouchRevenue: 'Paid purchases from contacts whose persisted source_campaign is this Note Harness campaign. Treat as first-touch assisted revenue, not proof of a direct conversion.',
       },

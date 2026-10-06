@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
+import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
 
 export const prerender = false;
 
@@ -38,29 +38,25 @@ const sanitizeReferrer = (request: Request) => {
 };
 
 const classifyUserAgent = (request: Request) => {
+  const purpose = ['purpose', 'sec-purpose', 'x-purpose', 'x-moz'].map((name) => request.headers.get(name) || '').join(' ');
+  if (request.method === 'HEAD' || /prefetch|prerender|preview/i.test(purpose)) return 'bot';
   const ua = (request.headers.get('user-agent') || '').toLowerCase();
   if (!ua) return 'unknown';
-  if (/bot|crawler|spider|slurp|preview|facebookexternalhit|twitterbot|linkedinbot/.test(ua)) return 'bot';
+  if (/bot|crawler|spider|slurp|preview|facebookexternalhit|twitterbot|linkedinbot|curl|wget|python|httpclient|headless/.test(ua)) return 'bot';
   if (/mobile|iphone|ipad|android/.test(ua)) return 'mobile';
   return 'desktop';
 };
 
-const requestId = (request: Request) => {
-  const cfRay = request.headers.get('cf-ray')?.trim();
-  if (cfRay) return cfRay.slice(0, 160);
-  return crypto.randomUUID();
-};
-
 const withOwnedAttribution = (destination: URL, resolved: LinkResolution, slug: string) => {
-  if (!OWNED_HOSTS.has(destination.hostname.toLowerCase())) return destination;
+  if (!OWNED_HOSTS.has(destination.hostname.toLowerCase()) || destination.port) return destination;
 
   const source = (resolved.source_channel || 'note').trim().slice(0, 80) || 'note';
   const campaign = (resolved.campaign_ref || `nh-${slug}`).trim().slice(0, 120);
 
-  if (!destination.searchParams.has('utm_source')) destination.searchParams.set('utm_source', source);
-  if (!destination.searchParams.has('utm_medium')) destination.searchParams.set('utm_medium', 'tracked_link');
-  if (!destination.searchParams.has('utm_campaign')) destination.searchParams.set('utm_campaign', campaign);
-  if (resolved.placement && !destination.searchParams.has('utm_content')) {
+  destination.searchParams.set('utm_source', source);
+  destination.searchParams.set('utm_medium', 'tracked_link');
+  destination.searchParams.set('utm_campaign', campaign);
+  if (resolved.placement) {
     destination.searchParams.set('utm_content', resolved.placement.slice(0, 120));
   }
 
@@ -74,9 +70,11 @@ export const GET: APIRoute = async ({ params, request, locals }) => {
   const env = getSiteStorageEnv(locals);
 
   try {
+    const ownerKey = await getDashboardOwnerKey(env);
     const rows = await supabaseRpc<LinkResolution[]>(env, 'resolve_tracked_link_v1', {
+      p_owner_key: ownerKey,
       p_slug: slug,
-      p_request_id: requestId(request),
+      p_request_id: crypto.randomUUID(),
       p_referrer_path: sanitizeReferrer(request),
       p_user_agent_class: classifyUserAgent(request),
     });
@@ -92,7 +90,7 @@ export const GET: APIRoute = async ({ params, request, locals }) => {
       return notFound();
     }
 
-    if (destination.protocol !== 'https:') {
+    if (destination.protocol !== 'https:' || destination.username || destination.password) {
       console.error('tracked_link_non_https_destination', resolved.link_id || slug);
       return notFound();
     }
@@ -124,3 +122,6 @@ export const GET: APIRoute = async ({ params, request, locals }) => {
     });
   }
 };
+
+// Astro otherwise invokes GET for HEAD; receipt is diagnostic-only.
+export const HEAD = GET;

@@ -55,13 +55,15 @@ create index if not exists tracked_link_clicks_asset_time_idx
 alter table public.tracked_link_clicks enable row level security;
 revoke all on table public.tracked_link_clicks from public, anon, authenticated;
 
--- Public/runtime resolver. The caller can only resolve a stored ACTIVE slug;
--- it cannot supply a destination, so this is not an arbitrary open redirect.
+-- Worker resolver: owner capability stays server-side. Anonymous direct RPC
+-- calls cannot inject click receipts or arbitrary referrer/identifier data.
+drop function if exists public.resolve_tracked_link_v1(text,text,text,text);
 create or replace function public.resolve_tracked_link_v1(
   p_slug text,
   p_request_id text default null,
   p_referrer_path text default null,
-  p_user_agent_class text default null
+  p_user_agent_class text default null,
+  p_owner_key text default null
 )
 returns table (
   destination_url text,
@@ -83,6 +85,12 @@ declare
   v_slug text := lower(trim(coalesce(p_slug, '')));
   v_ua_class text := lower(trim(coalesce(p_user_agent_class, 'unknown')));
 begin
+  if p_owner_key is null or p_owner_key !~ '^[0-9a-f]{64}$' then
+    raise exception 'invalid_owner_key';
+  end if;
+  if not exists (select 1 from private.masa_dashboard_owner_keys k where k.owner_key = p_owner_key) then
+    raise exception 'dashboard_owner_required';
+  end if;
   if v_slug !~ '^[a-z0-9][a-z0-9-]{1,79}$' then
     return;
   end if;
@@ -132,7 +140,7 @@ begin
 
   -- Keep bot/preview hits in the raw click receipt for diagnostics, but do not
   -- let them contaminate the human funnel-learning spine.
-  if v_inserted > 0 and v_ua_class <> 'bot' then
+  if v_inserted > 0 and v_ua_class in ('mobile', 'desktop') then
     insert into public.funnel_events(
       contact_id,
       event_type,
@@ -176,8 +184,8 @@ begin
 end;
 $$;
 
-revoke all on function public.resolve_tracked_link_v1(text,text,text,text) from public, anon, authenticated, service_role;
-grant execute on function public.resolve_tracked_link_v1(text,text,text,text) to anon, authenticated;
+revoke all on function public.resolve_tracked_link_v1(text,text,text,text,text) from public, anon, authenticated, service_role;
+grant execute on function public.resolve_tracked_link_v1(text,text,text,text,text) to anon, authenticated;
 
 -- Owner-gated control plane used by the private dashboard / Note Harness.
 create or replace function public.masa_tracked_link_upsert_v1(
@@ -248,7 +256,7 @@ begin
     nullif(left(trim(coalesce(p_cta_stage, '')), 80), ''),
     nullif(left(trim(coalesce(p_destination_type, '')), 80), ''),
     v_destination,
-    nullif(left(trim(coalesce(p_campaign_ref, '')), 160), ''),
+    coalesce(nullif(left(trim(coalesce(p_campaign_ref, '')), 120), ''), 'nh-' || v_slug),
     v_status
   )
   on conflict (slug) do update set
@@ -319,7 +327,7 @@ begin
     l.destination_url,
     l.campaign_ref,
     l.status,
-    count(c.id) filter (where coalesce(c.user_agent_class, 'unknown') <> 'bot') as human_clicks,
+    count(c.id) filter (where c.user_agent_class in ('mobile', 'desktop')) as human_clicks,
     count(c.id) filter (where c.user_agent_class = 'bot') as bot_clicks,
     max(c.occurred_at) as last_clicked_at,
     l.created_at,

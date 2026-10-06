@@ -78,16 +78,20 @@ try {
     supabaseRpc<AttributionRow[]>(env, 'masa_note_attribution_summary_v1', { p_owner_key: ownerKey, p_limit: 200 }),
   ]);
 } catch (error) {
-  loadError = error instanceof Error ? error.message : 'note_harness_unavailable';
+  console.error('note_harness_unavailable', error instanceof Error ? error.message.slice(0, 240) : 'unknown');
+  loadError = 'note_harness_unavailable';
 }
 
 const sum = (key: keyof AttributionRow) =>
   attribution.reduce((total, row) => total + Number(row[key] || 0), 0);
+const campaignRows = [...new Map(attribution.filter((row) => row.campaign_ref).map((row) => [row.campaign_ref, row])).values()];
+const campaignSum = (key: keyof AttributionRow) =>
+  campaignRows.reduce((total, row) => total + Number(row[key] || 0), 0);
 const totalClicks = sum('human_clicks');
-const totalLeads = sum('consented_contacts');
-const totalLine = sum('line_engaged_contacts');
-const totalPaid = sum('first_touch_paid_customers');
-const totalRevenue = sum('first_touch_revenue_yen');
+const totalLeads = campaignSum('consented_contacts');
+const totalLine = campaignSum('line_engaged_contacts');
+const totalPaid = campaignSum('first_touch_paid_customers');
+const totalRevenue = campaignSum('first_touch_revenue_yen');
 const money = (value: number) =>
   new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }).format(value || 0);
 const fmt = (value: string | null) => {
@@ -118,15 +122,14 @@ const fmt = (value: string | null) => {
 
     {loadError ? (
       <section class="panel error">
-        <strong>Runtime migration待ち</strong>
-        <p>PRのmigrationが本番Supabaseへ適用されるまで、この画面はfail-closedです。コードは準備済みで、本番データはまだ変更していません。</p>
-        <small>{loadError}</small>
+        <strong>Note Harnessを利用できません</strong>
+        <p>接続・権限・migrationを確認してください。データ取得に失敗したため、計測値と保存フォームを表示していません。</p>
       </section>
     ) : (
       <>
         <section class="score-grid" aria-label="Note Harness summary">
           <article><span>NOTE</span><strong>{publications.length}</strong><small>登録済み公開記事</small></article>
-          <article><span>CLICK</span><strong>{totalClicks}</strong><small>bot除外</small></article>
+          <article><span>CLICK</span><strong>{totalClicks}</strong><small>bot / preview / 不明を除外</small></article>
           <article><span>CONSENT</span><strong>{totalLeads}</strong><small>同意登録</small></article>
           <article><span>LINE ENGAGED</span><strong>{totalLine}</strong><small>後続LINE行動</small></article>
           <article><span>PAID</span><strong>{totalPaid}</strong><small>first-touch顧客</small></article>
@@ -137,6 +140,11 @@ const fmt = (value: string | null) => {
           <article class="panel">
             <div class="panel-head"><div><span>LINK CONTROL</span><h2>追跡URLを作る / 止める</h2></div><small>/go/&lt;slug&gt;</small></div>
             <form id="link-form" class="form-grid">
+              <input type="hidden" name="assetId" />
+              <input type="hidden" name="sourceChannel" value="note" />
+              <input type="hidden" name="sourceUrl" />
+              <input type="hidden" name="destinationType" />
+              <input type="hidden" name="campaignRef" />
               <label>Slug<input name="slug" required pattern="[a-z0-9][a-z0-9-]{1,79}" placeholder="note-focus-end" /></label>
               <label>行き先URL<input name="destinationUrl" required type="url" placeholder="https://masahiroyamada.com/library/..." /></label>
               <label>Publication ID<select name="publicationId"><option value="">未接続</option>{publications.map((p) => <option value={p.id}>{p.title || p.asset_id}</option>)}</select></label>
@@ -157,6 +165,19 @@ const fmt = (value: string | null) => {
               <button type="submit">公開URLを登録</button><output id="publication-result" aria-live="polite"></output>
             </form>
           </article>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head"><div><span>STORED LINKS</span><h2>保存済みリンク</h2></div><small>編集後にPAUSED / ARCHIVEDを保存</small></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>追跡URL</th><th>行き先</th><th>Status</th><th>Click</th><th>操作</th></tr></thead>
+            <tbody>{links.map((link) => <tr>
+              <td><code>https://masahiroyamada.com/go/{link.slug}</code><small>{link.placement || '—'} · {link.campaign_ref || '—'}</small></td>
+              <td>{link.destination_url}</td><td>{link.status.toUpperCase()}</td><td>{link.human_clicks}</td>
+              <td><button type="button" data-edit-link={JSON.stringify({ slug: link.slug, destinationUrl: link.destination_url, publicationId: link.publication_id, assetId: link.asset_id, sourceChannel: link.source_channel, sourceUrl: link.source_url, placement: link.placement, ctaStage: link.cta_stage, destinationType: link.destination_type, campaignRef: link.campaign_ref, status: link.status })}>編集</button></td>
+            </tr>)}</tbody>
+          </table></div>
+          {!links.length && <p class="empty">保存済みリンクはありません。</p>}
         </section>
 
         <section class="panel">
@@ -205,7 +226,7 @@ const fmt = (value: string | null) => {
 
         <section class="panel rule">
           <span>READING RULE</span>
-          <p><strong>CLICK</strong> は直接計測。<strong>CONSENT</strong> はKnowledge Journeyから本人同意でContactへ接続した登録。<strong>LINE ENGAGED</strong> はそのContactが後にLINE上で行動した人数で、友だち追加完了そのものではありません。<strong>ASSISTED売上</strong> はこのcampaignがsource_campaignになったContactのpaid購入で、first-touch寄与として扱い、直接CVとは断定しません。</p>
+          <p><strong>CLICK</strong> はbot・preview・不明なアクセスを除いた直接計測クリックです。User-Agent等による分類で、本人の厳密な証明ではありません。<strong>CONSENT</strong> はKnowledge Journeyから本人同意でContactへ接続した登録。<strong>LINE ENGAGED</strong> はそのContactの同意後のLINE channel eventが記録された人数で、友だち追加完了そのものではありません。<strong>FIRST-TOUCH ASSISTED売上</strong> はこのcampaignがsource_campaignになった同意済みContactのpaid購入で、first-touch寄与として扱い、直接CVとは断定しません。Click以外はcampaign単位で、同一campaignのリンク行には同じ結果が表示されます。上部合計ではcampaignの重複を除きます。集計対象は取得した最大200リンクです。</p>
         </section>
       </>
     )}
@@ -248,13 +269,28 @@ const fmt = (value: string | null) => {
           const result = await post(endpoint, map(formData));
           output.value = result.trackUrl ? `保存 ✓ ${result.trackUrl}` : '保存 ✓';
           if (result.trackUrl && navigator.clipboard) {
-            void navigator.clipboard.writeText(result.trackUrl).catch(() => {});
+            await navigator.clipboard.writeText(result.trackUrl).catch(() => {});
           }
+          window.location.reload();
         } catch (error) {
           output.value = `失敗: ${error instanceof Error ? error.message : 'unknown'}`;
         }
       });
     };
+
+    document.querySelectorAll<HTMLButtonElement>('[data-edit-link]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const form = document.getElementById('link-form');
+        if (!(form instanceof HTMLFormElement)) return;
+        const values = JSON.parse(button.dataset.editLink || '{}') as Record<string, string | null>;
+        for (const [name, value] of Object.entries(values)) {
+          const input = form.elements.namedItem(name);
+          if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) input.value = value || '';
+        }
+        form.scrollIntoView({ block: 'center' });
+        (form.elements.namedItem('status') as HTMLSelectElement).focus();
+      });
+    });
 
     const numberOrNull = (formData: FormData, key: string): number | null => {
       const raw = String(formData.get(key) ?? '').trim();
@@ -276,10 +312,14 @@ const fmt = (value: string | null) => {
       slug: formData.get('slug'),
       destinationUrl: formData.get('destinationUrl'),
       publicationId: formData.get('publicationId') || null,
+      assetId: formData.get('assetId') || null,
+      sourceUrl: formData.get('sourceUrl') || null,
+      destinationType: formData.get('destinationType') || null,
+      campaignRef: formData.get('campaignRef') || null,
       placement: formData.get('placement') || null,
       ctaStage: formData.get('ctaStage') || null,
       status: formData.get('status') || 'active',
-      sourceChannel: 'note',
+      sourceChannel: formData.get('sourceChannel') || 'note',
     }));
 
     wireForm('publication-form', 'publication-result', '/api/dashboard/note-publications', (formData) => ({
