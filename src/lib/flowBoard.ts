@@ -5,7 +5,7 @@ export type BoardNode = {
   label: string;
   note?: string;
   kind?: string;
-  objectType?: 'node' | 'text' | 'frame';
+  objectType?: 'node' | 'text' | 'frame' | 'image' | 'link';
   parentId?: string | null;
   frameId?: string | null;
   x: number;
@@ -14,6 +14,9 @@ export type BoardNode = {
   h?: number;
   knowledgeId?: string | null;
   provenance?: string;
+  url?: string;
+  imageSrc?: string;
+  imageAlt?: string;
 };
 export type BoardEdge = {
   [key: string]: unknown;
