@@ -841,10 +841,21 @@ const description = "A mobile-first editorial showroom experiment for ACE / Sun 
     <script>
       const page = document.getElementById("page");
       const rail = document.getElementById("collectionRail");
-      const looks = Array.from(rail.querySelectorAll(".look"));
       const currentIndex = document.getElementById("currentIndex");
       const activeKicker = document.getElementById("activeKicker");
       const activeTitle = document.getElementById("activeTitle");
+
+      if (
+        !(page instanceof HTMLElement) ||
+        !(rail instanceof HTMLElement) ||
+        !(currentIndex instanceof HTMLElement) ||
+        !(activeKicker instanceof HTMLElement) ||
+        !(activeTitle instanceof HTMLElement)
+      ) {
+        throw new Error("Floating Showroom UI failed to initialize.");
+      }
+
+      const looks = Array.from(rail.querySelectorAll<HTMLElement>(".look"));
       let frame = 0;
       let active = 0;
 
@@ -864,23 +875,30 @@ const description = "A mobile-first editorial showroom experiment for ACE / Sun 
           }
         });
 
-        if (best === active && looks[best].classList.contains("is-active")) return;
+        const candidate = looks[best];
+        if (!candidate) return;
+        if (best === active && candidate.classList.contains("is-active")) return;
         active = best;
 
         looks.forEach((look, index) => look.classList.toggle("is-active", index === active));
         const look = looks[active];
+        if (!look) return;
 
-        currentIndex.textContent = look.dataset.index;
-        activeKicker.textContent = look.dataset.kicker;
-        activeTitle.textContent = look.dataset.title;
-        page.style.setProperty("--accent", look.dataset.accent);
-        page.style.setProperty("--accent-wash", look.dataset.wash);
+        currentIndex.textContent = look.dataset.index ?? "01";
+        activeKicker.textContent = look.dataset.kicker ?? "";
+        activeTitle.textContent = look.dataset.title ?? "";
+        page.style.setProperty("--accent", look.dataset.accent ?? "#171715");
+        page.style.setProperty("--accent-wash", look.dataset.wash ?? "rgba(23, 23, 21, 0.11)");
       }
 
-      rail.addEventListener("scroll", () => {
-        if (frame) return;
-        frame = requestAnimationFrame(syncActive);
-      }, { passive: true });
+      rail.addEventListener(
+        "scroll",
+        () => {
+          if (frame) return;
+          frame = requestAnimationFrame(syncActive);
+        },
+        { passive: true }
+      );
 
       window.addEventListener("resize", syncActive, { passive: true });
 
