@@ -182,6 +182,7 @@ const commandItems = [
       .capture-link, .command-button, .menu-button, .close-button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cfc8bd; background: #fff; color: #56606a; cursor: pointer; font-size: .73rem; text-decoration: none; }
       .capture-link { padding: 0 12px; color: #754a16; font-weight: 700; }
       .command-button { padding: 0 12px; gap: 8px; }
+      .quick-mobile { display: none; }
       .command-shortcut { color: #8b929a; }
       .capture-link:hover, .command-button:hover, .menu-button:hover, .close-button:hover { border-color: #b58a53; color: var(--text-primary); }
       .menu-button { display: none; min-width: 42px; font-size: 1.2rem; }
@@ -229,13 +230,18 @@ const commandItems = [
         .command-shortcut { display: none; }
       }
       @media (max-width: 560px) {
-        .topbar { flex-wrap: wrap; }
-        .page-meta { width: 100%; }
-        .top-actions { width: 100%; }
-        .capture-link, .command-button { flex: 1; }
+        .topbar { min-height: 62px; flex-wrap: nowrap; align-items: center; padding: calc(7px + env(safe-area-inset-top)) 12px 7px; gap: 8px; }
+        .page-meta { width: auto; min-width: 0; }
+        .eyebrow { font-size: .6rem; letter-spacing: .09em; }
+        .page-title { display: none; }
+        .cockpit-flow { margin-top: 1px; font-size: .61rem; }
+        .top-actions { width: auto; gap: 6px; }
+        .capture-link, .command-button { flex: 0 0 auto; min-width: 44px; padding: 0 10px; }
+        .capture-label, .quick-label, .command-shortcut { display: none; }
+        .quick-mobile { display: inline; }
         .cockpit-see, .cockpit-decide, .cockpit-arrow { display: none; }
         .cockpit-act { max-width: 100%; }
-        .content { scroll-margin-top: 138px; }
+        .content { padding-top: 12px; scroll-margin-top: 82px; }
         .command-links { grid-template-columns: 1fr; }
       }
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
@@ -284,8 +290,8 @@ const commandItems = [
             </p>
           </div>
           <div class="top-actions">
-            <a class="capture-link" href="/mind?action=capture">＋ Capture</a>
-            <button class="command-button" type="button" data-command-trigger aria-haspopup="dialog">Quick Jump <kbd class="command-shortcut">⌘ K</kbd></button>
+            <a class="capture-link" href="/mind?action=capture" aria-label="Capture"><span aria-hidden="true">＋</span><span class="capture-label">Capture</span></a>
+            <button class="command-button" type="button" data-command-trigger aria-haspopup="dialog" aria-label="Quick Jump"><span class="quick-label">Quick Jump</span><span class="quick-mobile">Jump</span><kbd class="command-shortcut">⌘ K</kbd></button>
             <button class="menu-button" id="dashboard-menu" type="button" aria-label="ナビゲーションを開く" aria-haspopup="dialog" aria-controls="dashboard-mobile-nav" aria-expanded="false">≡</button>
           </div>
         </header>
