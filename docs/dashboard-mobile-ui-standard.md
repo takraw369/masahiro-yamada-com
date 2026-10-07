@@ -44,3 +44,16 @@ Before merging a Dashboard UI change, verify at least one real or emulated iPhon
 - sticky top controls still fit without collision;
 - the primary action/task appears before duplicated explanation or orientation content;
 - the first practical viewport answers “what do I do now?” without requiring a long scroll.
+
+
+## iPhone incident — CTA horizontal overflow (2026-10-08)
+
+A real iPhone screenshot showed the `TODAY'S QUEST` CTA protruding from its card and clipping its arrow. CSS `width:100%` plus horizontal padding/border is **not** safe without `box-sizing:border-box`: Astro's scoped universal selector did not reliably cover React island descendants.
+
+Required protections:
+
+- React island boundary enforces `box-sizing:border-box` on itself, descendants and pseudo-elements.
+- Full-width CTA uses `min-width:0;max-width:100%;box-sizing:border-box`; trailing icon must remain inside.
+- Long task names, paths and URLs wrap **inside** their card.
+- Check widths **320 / 375 / 390 / 430 CSS px**, including Safari UI and high text size.
+- Regression test covers the actual React island, not only parent Astro layout.
