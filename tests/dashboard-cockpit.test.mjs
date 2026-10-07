@@ -26,3 +26,19 @@ test('cockpit keeps NOW 5 as optional decision exception rather than default sur
   assert.match(component, /ProjectやTaskを見れば済むことは質問にしない/);
   assert.match(component, /NOW 5 \/ 判断待ちを見る/);
 });
+
+
+test('dashboard mobile baseline prevents viewport text overflow and iOS input zoom', async () => {
+  const component = await readFile(new URL('../src/components/dashboard/DashboardCockpit.tsx', import.meta.url), 'utf8');
+  const layout = await readFile(new URL('../src/layouts/DashboardLayout.astro', import.meta.url), 'utf8');
+
+  assert.match(layout, /-webkit-text-size-adjust:\s*100%/);
+  assert.match(layout, /\.content-inner > \* \{ min-width: 0; max-width: 100%; \}/);
+  assert.match(layout, /overflow-wrap:\s*anywhere/);
+  assert.match(layout, /min-height:\s*44px; touch-action:\s*manipulation/);
+
+  assert.match(component, /\.evidence-list article>div\{min-width:0;max-width:100%;overflow:hidden\}/);
+  assert.match(component, /\.evidence-list strong\{overflow:hidden;text-overflow:ellipsis;white-space:nowrap/);
+  assert.match(component, /\.cockpit-grid\{grid-template-columns:minmax\(0,1fr\);max-width:100%\}/);
+  assert.match(component, /\.cockpit textarea\{max-width:100%;font-size:16px\}/);
+});
