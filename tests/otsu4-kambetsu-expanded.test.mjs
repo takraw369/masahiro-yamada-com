@@ -30,7 +30,7 @@ test('new items carry name aliases, use grading and reference images',()=>{
 
 test('adaptive repeat limits scale with expanded tool count',()=>{
   assert.match(source,/if\(deck\.length>=tools\.length\+12\)return/);
-  assert.match(source,/if\(base\.length>=tools\.length\+8\)break/);
+  assert.match(source,/if\(base\.length>=active\.length\+8\)break/);
 });
 
 
