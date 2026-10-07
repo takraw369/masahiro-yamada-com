@@ -20,6 +20,25 @@ test('every Otsu4 multiple-choice answer has a distinct explanation for all four
   }
 });
 
+
+test('lecture marks remain connected to the shared Otsu4 bank and original records', async () => {
+  const source = await readFile(new URL('../public/otsu4/questions.js', import.meta.url), 'utf8');
+  const questions = vm.runInNewContext(`${source}\nOTSU4_QUESTIONS`);
+  const marked = questions.filter(q => q.lectureMarked);
+  assert.ok(marked.length >= 40);
+  assert.ok(marked.every(q => q.lecturePage && q.choices.length === 4));
+  assert.ok(marked.some(q => q.concept.includes('ガス漏れ')));
+  assert.ok(marked.some(q => q.concept.includes('自火報')));
+  assert.ok(marked.some(q => q.concept.includes('機器点検')));
+  assert.ok(questions.some(q => q.id === 'c01'));
+  assert.ok(questions.some(q => q.id === 's01'));
+  assert.ok(questions.some(q => q.id === 'p07'));
+  const html = await readFile(new URL('../src/pages/otsu4/index.astro', import.meta.url), 'utf8');
+  assert.match(html, /data-start="lecture"/);
+  const app = await readFile(new URL('../public/otsu4/app.js', import.meta.url), 'utf8');
+  assert.match(app, /mode === "lecture"/);
+});
+
 test('inline Otsu4 feedback reaches the reusable Supabase feedback pipeline', async (t) => {
   const { POST } = await import('../src/pages/api/app-feedback.ts');
   Object.assign(env, {
