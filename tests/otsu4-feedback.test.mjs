@@ -8,8 +8,11 @@ test('every Otsu4 multiple-choice answer has a distinct explanation for all four
   const source = await readFile(new URL('../public/otsu4/questions.js', import.meta.url), 'utf8');
   const questions = vm.runInNewContext(`${source}\nOTSU4_QUESTIONS`);
   const multipleChoice = questions.filter((question) => question.choices);
-  assert.equal(questions.length, 48);
-  assert.equal(multipleChoice.length, 41);
+  // Keep this test valid when the shared question bank grows with lecture material.
+  assert.ok(questions.length >= 79, 'lecture question bank must remain available');
+  assert.ok(multipleChoice.length >= 72, 'multiple-choice review questions must remain available');
+  assert.equal(new Set(questions.map((question) => question.id)).size, questions.length);
+  for (const id of ['c09', 'c39']) assert.ok(questions.some((question) => question.id === id), id);
   for (const question of multipleChoice) {
     assert.equal(question.choiceNotes?.length, question.choices.length, question.id);
     assert.equal(new Set(question.choiceNotes).size, question.choices.length, question.id);
