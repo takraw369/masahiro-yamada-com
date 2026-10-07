@@ -211,7 +211,7 @@ import TrinityPrologue from '../components/TrinityPrologue.astro';
     const RESULT_CODE_RE = /([A-Z]{4}-\d+-\d+-\d+-\d+)/;
     const params = new URLSearchParams(window.location.search);
 
-    function lineMessageUrl(message) {
+    function lineMessageUrl(message: string) {
       return `https://line.me/R/oaMessage/${LINE_ID}/?${encodeURIComponent(message)}`;
     }
 
@@ -242,7 +242,7 @@ import TrinityPrologue from '../components/TrinityPrologue.astro';
       path: window.location.pathname,
     };
 
-    function track(eventName, extra = {}) {
+    function track(eventName: string, extra: Record<string, unknown> = {}) {
       fetch(FUNNEL_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
