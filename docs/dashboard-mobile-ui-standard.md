@@ -18,6 +18,9 @@ Acceptance widths: **320 / 375 / 390 / 430 CSS px**.
 6. **Safe areas are part of layout.** Sticky/mobile chrome keeps `env(safe-area-inset-*)` handling.
 7. **Horizontal scrolling must be local and deliberate.** Graphs, tables or timelines may scroll/pan inside their own bounded component; they must not make the whole page wider.
 8. **Regression protection is required.** A mobile contract test should cover overflow-critical CSS whenever shared Dashboard layout or dense flex/grid cards change.
+9. **Action before explanation.** On phone, the primary next action should appear within the first practical viewport whenever possible. Repeated page titles, duplicated explanations, large date cards and secondary orientation copy are reduced or removed on mobile.
+10. **One-screen density is part of quality.** A layout is not finished merely because it no longer overflows. The first screen must answer “what do I do now?” before decorative or explanatory content.
+11. **Mobile chrome stays compact.** Persistent header actions keep 44px tap targets but use shorter labels/icons on narrow screens so content starts earlier.
 
 ## Current implementation
 
@@ -36,4 +39,6 @@ Before merging a Dashboard UI change, verify at least one real or emulated iPhon
 - long Evidence/Task strings remain readable or cleanly ellipsized;
 - input focus does not zoom the page;
 - tap targets remain easy to hit;
-- sticky top controls still fit without collision.
+- sticky top controls still fit without collision;
+- the primary action/task appears before duplicated explanation or orientation content;
+- the first practical viewport answers “what do I do now?” without requiring a long scroll.
