@@ -169,8 +169,56 @@
     updateQuestProgress();
   }
   function figure(motion){
-    const weights=['lateral','curl','row'].includes(motion)?'<span class="weight wl"></span><span class="weight wr"></span>':'';
-    return `<div class="motion-figure motion-${motion}" aria-hidden="true"><span class="head"></span><span class="torso"></span><span class="arm l"></span><span class="arm r"></span><span class="leg l"></span><span class="leg r"></span>${weights}</div>`;
+    const svg=(a,b,extra='')=>`<svg class="motion-svg motion-svg-${motion}" viewBox="0 0 160 110" aria-hidden="true" focusable="false">
+      <g class="pose pose-a">${a}</g>
+      <g class="pose pose-b">${b}</g>
+      ${extra}
+    </svg>`;
+    const dot=(x,y)=>`<circle class="skin-fill" cx="${x}" cy="${y}" r="9"/>`;
+    const line=(x1,y1,x2,y2,cls='body-line')=>`<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    const ground='<line class="ground-line" x1="18" y1="96" x2="142" y2="96"/>';
+    if(motion==='push'){
+      const a=dot(126,43)+line(116,49,72,57)+line(72,57,33,78)+line(104,51,108,91)+line(89,54,92,91);
+      const b=dot(126,67)+line(116,69,73,72)+line(73,72,34,84)+line(104,69,113,91)+line(90,71,96,91);
+      return svg(a,b,ground);
+    }
+    if(motion==='row'){
+      const a=dot(101,25)+line(96,34,72,65)+line(72,65,54,94)+line(72,65,83,94)+line(89,42,112,72)+line(83,47,104,77)+line(105,77,121,77,'load-line');
+      const b=dot(101,25)+line(96,34,72,65)+line(72,65,54,94)+line(72,65,83,94)+line(89,42,82,59)+line(83,47,77,62)+line(76,62,92,62,'load-line');
+      return svg(a,b,ground);
+    }
+    if(motion==='lateral'){
+      const a=dot(80,20)+line(80,31,80,66)+line(80,66,64,95)+line(80,66,96,95)+line(78,39,57,72)+line(82,39,103,72)+line(51,76,63,76,'load-line')+line(97,76,109,76,'load-line');
+      const b=dot(80,20)+line(80,31,80,66)+line(80,66,64,95)+line(80,66,96,95)+line(78,39,34,42)+line(82,39,126,42)+line(27,42,39,42,'load-line')+line(121,42,133,42,'load-line');
+      return svg(a,b,ground);
+    }
+    if(motion==='curl'){
+      const a=dot(80,20)+line(80,31,80,66)+line(80,66,64,95)+line(80,66,96,95)+line(76,40,60,73)+line(84,40,100,73)+line(54,77,66,77,'load-line')+line(94,77,106,77,'load-line');
+      const b=dot(80,20)+line(80,31,80,66)+line(80,66,64,95)+line(80,66,96,95)+line(76,40,62,55)+line(62,55,72,39)+line(84,40,98,55)+line(98,55,88,39)+line(67,36,77,36,'load-line')+line(83,36,93,36,'load-line');
+      return svg(a,b,ground);
+    }
+    if(motion==='squat'){
+      const a=dot(80,19)+line(80,30,80,62)+line(80,62,61,94)+line(80,62,99,94)+line(78,40,58,60)+line(82,40,102,60);
+      const b=dot(80,37)+line(80,47,80,68)+line(80,68,55,76)+line(55,76,42,95)+line(80,68,105,76)+line(105,76,118,95)+line(78,50,58,66)+line(82,50,102,66);
+      return svg(a,b,ground);
+    }
+    if(motion==='plank'){
+      const a=dot(126,58)+line(116,61,75,64)+line(75,64,34,78)+line(104,62,109,91)+line(75,64,80,91);
+      const b=dot(126,61)+line(116,64,75,66)+line(75,66,34,80)+line(104,64,109,91)+line(75,66,80,91);
+      return svg(a,b,ground);
+    }
+    if(motion==='dip'){
+      const bench='<line class="bench-line" x1="35" y1="54" x2="78" y2="54"/><line class="bench-line" x1="42" y1="54" x2="42" y2="92"/>';
+      const a=dot(92,28)+line(88,38,86,66)+line(86,66,112,91)+line(86,66,67,91)+line(84,43,69,55)+line(69,55,60,75);
+      const b=dot(92,45)+line(88,54,86,76)+line(86,76,112,91)+line(86,76,67,91)+line(84,57,70,62)+line(70,62,60,75);
+      return svg(a,b,bench+ground);
+    }
+    if(motion==='core'){
+      const a=dot(120,65)+line(110,69,72,74)+line(72,74,35,85)+line(82,72,99,48)+line(72,74,55,48);
+      const b=dot(111,53)+line(102,59,78,70)+line(78,70,55,88)+line(86,66,104,70)+line(78,70,63,58);
+      return svg(a,b,ground);
+    }
+    return svg(dot(80,20)+line(80,31,80,66)+line(80,66,64,95)+line(80,66,96,95),dot(80,20)+line(80,31,80,66)+line(80,66,64,95)+line(80,66,96,95),ground);
   }
   function renderExercises(){
     const list=byId('exercise-list');
