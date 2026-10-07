@@ -1,6 +1,6 @@
 # MASA Design Language v0.1
 
-Status: **working design grammar**. Not ACE brand lock.
+Status: **working design grammar**. Not ACE brand lock. **Contrast-first correction adopted in v0.2**.
 
 ## Why
 
@@ -57,14 +57,18 @@ Use `/dashboard/design-lab` to collect repeated taste signals. A single preferen
 
 ## v0.1 adopted pattern
 
-The PRIMARY `/dashboard` home is the first controlled adoption:
+The first attempt darkened the entire PRIMARY `/dashboard`. User feedback: **“色変えただけやん！ちと見ずらい”**. That approach failed.
 
-- deep world container;
-- glass cockpit cards;
-- limited luminous signals;
-- stronger interactive feedback;
-- action-first mobile behavior preserved;
-- existing API, auth and data pathways unchanged.
+Corrected v0.2 adoption:
+
+- **light, high-contrast reading canvas** for widgets, lists, controls and long text;
+- **one dark, immersive feature surface**, the real TODAY'S QUEST from canonical tasks;
+- NOW / NEXT / WAIT real counts before the task, not invented XP;
+- one clear next-action CTA linking to existing Task Flow;
+- distinct visual hierarchy through layout/spacing, not color alone;
+- existing API, auth and data paths unchanged.
+
+Rule: *MANIMANI feel is an interaction principle, not permission to darken everything.*
 
 ## Do not
 
