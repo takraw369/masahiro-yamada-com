@@ -267,7 +267,7 @@ function buildQueue(){
   return base;
 }
 function renderWeak(){
-  const rows=tools.map(t=>{
+  const rows=activeTools().map(t=>{
     const x=stateFor(t);
     const nameMastery=x.attempts?Math.round(x.nameOk/x.attempts*100):0;
     const useMastery=x.attempts?Math.round(x.useOk/x.attempts*100):0;
