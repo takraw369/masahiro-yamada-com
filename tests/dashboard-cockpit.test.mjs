@@ -39,7 +39,7 @@ test('dashboard mobile baseline prevents viewport text overflow and iOS input zo
 
   assert.match(component, /\.evidence-list article>div\{min-width:0;max-width:100%;overflow:hidden\}/);
   assert.match(component, /\.evidence-list strong\{overflow:hidden;text-overflow:ellipsis;white-space:nowrap/);
-  assert.match(component, /\.cockpit-grid\{grid-template-columns:minmax\(0,1fr\);max-width:100%\}/);
+  assert.match(component, /\.cockpit-grid\{[^}]*grid-template-columns:minmax\(0,1fr\);[^}]*max-width:100%/);
   assert.match(component, /\.cockpit textarea\{max-width:100%;font-size:16px\}/);
 });
 
