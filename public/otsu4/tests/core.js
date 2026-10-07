@@ -4,6 +4,7 @@
   const STATE_KEY = 'otsu4-study-state-v1';
   const SESSION_KEY = 'otsu4-topic-test-session-v1';
   const topics = [
+    {id:'lecture-marks', label:'★ 講習で線を引いた箇所', marked:true, note:'赤線・丸・星印を優先。写真のページを確認し、誤答・△を繰り返す。'},
     { id:'law-common', label:'共通法令', category:'law-common', note:'業務範囲・維持責任・点検と報告・複合用途' },
     { id:'law-class', label:'乙4法令・警戒区域', category:'law-class', note:'面積・一辺・見通し例外・第4類の対象' },
     { id:'electric', label:'電気基礎', category:'electric', note:'オームの法則・合成抵抗・電力・交流' },
@@ -31,9 +32,9 @@
   const subject = q => q.category.startsWith('law-') ? 'law' : q.category;
   const normalize = v => String(v||'').normalize('NFKC').replace(/[\s・。、,，.]/g,'').toLowerCase();
   const grade = (q,value) => q.category==='practical' ? q.accepted.some(v=>normalize(v)===normalize(value)) : Number(value)===q.answer;
-  function matches(q,topic) { return topic.category ? q.category===topic.category : topic.ids ? topic.ids.includes(q.id) : Boolean(topic.quota?.[q.category]); }
+  function matches(q,topic) { return topic.marked ? Boolean(q.lectureMarked) : topic.category ? q.category===topic.category : topic.ids ? topic.ids.includes(q.id) : Boolean(topic.quota?.[q.category]); }
   function priority(q,s,now) {
-    let n=(weak(q,s)?120:0)+((s.attempts[q.id]||0)===0?100:0)+(q.officialSignal?25:0);
+    let n=(weak(q,s)?120:0)+((s.attempts[q.id]||0)===0?100:0)+(q.officialSignal?25:0)+(q.lectureMarked?35:0);
     if ((s.streak[q.id]||0)>=2 && !weak(q,s)) n-=90;
     const last=[...s.history].reverse().find(r=>r.id===q.id);
     if(last && now-last.at<2*60*60*1000) n-=100;

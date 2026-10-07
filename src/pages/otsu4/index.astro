@@ -16,10 +16,11 @@
       <section id="view-home" class="view active">
         <div class="hero"><div><p class="eyebrow">OTSU 4 / 2026.11.01</p><h1><span id="days-left">試験まで</span>。穴から学ぶ。</h1><p>講習日程を背骨に、弱点・当日範囲・鑑別・未出をつなげて復習。</p></div><div class="readiness"><strong id="readiness-value">--</strong></div></div>
         <section id="resume-card" class="panel resume" hidden><b>途中のセッション</b><p id="resume-copy"></p><div class="resume-actions"><button id="resume-quiz">続きから</button><button id="discard-session">破棄</button></div></section>
+        <section class="panel mission lecture-entry"><p class="eyebrow">★ LECTURE MARKS / 赤線・丸・星印</p><h2>講習の重要ポイント10問</h2><p>講習写真で印を付けた設置基準・人数・面積・周期から、まだ覚えていないところを優先。間違えた問題は次回また出る。</p><div class="actions"><button class="primary wide" data-start="lecture">★ マークした箇所を解く</button><a class="secondary" style="text-decoration:none;text-align:center;grid-column:1/-1" href="/otsu4/tests/?topic=lecture-marks">印の付いた論点を項目別に学ぶ →</a></div></section>
         <section class="panel foundation-entry"><p class="eyebrow">STEP 1 / 基本から</p><h2>まず説明を読んで、すぐ確認</h2><p>法令・電気・感知器・受信機・鑑別を10の短いレッスンで学べます。各レッスンは2問で理解を確認。進み具合はこの端末に保存します。</p><a class="primary foundation-link" href="/otsu4/learn/">基礎レッスンを始める →</a></section>
         <section class="panel mission"><div class="mission-head"><p class="eyebrow">STEP 2 / 講習同期復習</p><span id="phase-label" class="phase">講習同期</span></div><h2>今日の10問</h2><p id="mission-copy"></p><div class="actions"><button class="primary wide" data-start="adaptive">最適な10問</button><button class="secondary" data-start="weak">弱点だけ</button><button class="secondary" data-start="unseen">未出だけ</button></div></section>
         <section class="section"><h2>科目別の現在地</h2><div id="risk-bars"></div></section>
-        <section class="panel foundation-entry"><p class="eyebrow">TESTS / 項目別</p><h2>苦手な項目だけ短く回す</h2><p>共通法令・乙4法令・電気・構造機能・記述鑑別と細分テスト。既存の48問と学習記録を共有します。</p><a class="primary foundation-link" href="/otsu4/tests/">項目別テスト一覧へ →</a></section>
+        <section class="panel foundation-entry"><p class="eyebrow">TESTS / 項目別</p><h2>苦手な項目だけ短く回す</h2><p>共通法令・乙4法令・電気・構造機能・記述鑑別と細分テスト。講習の重要問題を含む同じ問題DBと学習記録を共有します。</p><a class="primary foundation-link" href="/otsu4/tests/">項目別テスト一覧へ →</a></section>
         <section class="panel foundation-entry"><p class="eyebrow">LAW / 法令集中</p><h2>別表第1を表ごと覚える</h2><p>1〜20項・イロハニ・特定/非特定・自火報へつなぐ専用ドリル。</p><a class="primary foundation-link" href="/otsu4/hourei/">法令テストへ →</a></section><section class="section"><h2>仕上げの模試と範囲</h2><div class="mode-grid"><button class="mode-card hot" data-start="mock"><b>35問 本番モード</b><small>法令10・電気5・構造15・記述式鑑別5</small></button><button class="mode-card" data-view="map"><b>全範囲マップ</b><small>未出・弱点を確認</small></button></div></section>
         <p class="source-note">講習当日夜は当日範囲、次回前は前回誤答＋次回予習。鑑別は毎日。10/22中間総復習、10/26以降は電気、10/29・30は本番形式を優先。</p>
       </section>
@@ -28,9 +29,9 @@
       <section id="view-map" class="view"><p class="eyebrow">COVERAGE</p><h1>全範囲の穴</h1><div id="coverage-list"></div><div class="result-actions"><button class="primary" data-start="unseen">未出10問</button><button class="secondary" data-view="home">ホーム</button></div></section>
     </main>
     <nav class="bottom-nav"><button data-view="home">ホーム</button><button data-start="adaptive">10問</button><button data-view="map">範囲</button></nav>
-    <script is:inline src="/otsu4/questions.js?v=2"></script>
+    <script is:inline src="/otsu4/questions.js?v=3"></script>
     <script is:inline src="/otsu4/training-schedule.js?v=1"></script>
-    <script is:inline src="/otsu4/app.js?v=2"></script>
+    <script is:inline src="/otsu4/app.js?v=3"></script>
     <script is:inline src="/otsu4/training-sync.js?v=1"></script>
   </body>
 </html>
