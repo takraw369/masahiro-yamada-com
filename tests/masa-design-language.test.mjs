@@ -23,7 +23,8 @@ test('depth treatment keeps mobile action-first guardrails', async () => {
 
   assert.match(page, /@media\(max-width:620px\)\{\.dash-head\{display:none\}/);
   assert.match(page, /\.dash-head\{display:none\}/);
-  assert.match(page, /safe-area-inset-bottom/);
+  const layout = await readFile(new URL('../src/layouts/DashboardLayout.astro', import.meta.url), 'utf8');
+  assert.match(layout, /safe-area-inset-bottom/);
   assert.match(standard, /Design depth never outranks action/);
   assert.match(standard, /Reusable style becomes grammar/);
 });
