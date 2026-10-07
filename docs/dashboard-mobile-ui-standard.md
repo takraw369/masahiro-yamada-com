@@ -21,6 +21,8 @@ Acceptance widths: **320 / 375 / 390 / 430 CSS px**.
 9. **Action before explanation.** On phone, the primary next action should appear within the first practical viewport whenever possible. Repeated page titles, duplicated explanations, large date cards and secondary orientation copy are reduced or removed on mobile.
 10. **One-screen density is part of quality.** A layout is not finished merely because it no longer overflows. The first screen must answer “what do I do now?” before decorative or explanatory content.
 11. **Mobile chrome stays compact.** Persistent header actions keep 44px tap targets but use shorter labels/icons on narrow screens so content starts earlier.
+12. **Design depth never outranks action.** Glow, glass, world-building backgrounds and motion must not move the primary action lower, reduce contrast, or create page-level overflow.
+13. **Reusable style becomes grammar.** Repeated visual patterns graduate into `masa-design-language.css` tokens/components instead of being copied as one-off CSS.
 
 ## Current implementation
 
