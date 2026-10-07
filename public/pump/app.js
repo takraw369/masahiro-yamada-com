@@ -1,6 +1,15 @@
 (() => {
   const STORE_KEY = 'masa-pump-quest-v1';
   const TARGET = '2026-10-09';
+  const VOICE_CLIPS = {
+    intro:'https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/3ab75f63-4d25-4aea-8920-0b591db0844a.mp3',
+    set1:'https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/20041ee2-9278-4d25-b469-641102ce5824.mp3',
+    set2:'https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/9eb7fa92-993e-4e8f-b02e-6d02dfca3722.mp3',
+    set3:'https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/44536d17-ddbf-45e6-8dc8-b32aafeace7e.mp3',
+    rest:'https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/42b17de3-ece6-4821-af2e-ce196e3a364f.mp3',
+    level:'https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/0541f1b9-a05b-40fd-9f69-dda470e858d3.mp3',
+    finish:'https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/5064385e-8c99-4226-8d6b-8620e901ceb0.mp3'
+  };
 
   const days = [
     {
@@ -107,14 +116,15 @@
   const byId = (id) => document.getElementById(id);
   const state = loadState();
   let selectedDay = resolveInitialDay();
+  let activeExerciseIndex = 0;
   let combo = 1;
   let timerId = null;
   let timerLeft = 0;
 
   function loadState(){
     try{
-      return Object.assign({xp:0,sets:{},days:{},sound:true},JSON.parse(localStorage.getItem(STORE_KEY)||'{}'));
-    }catch(_){return {xp:0,sets:{},days:{},sound:true};}
+      return Object.assign({xp:0,sets:{},days:{},sound:true,voice:true},JSON.parse(localStorage.getItem(STORE_KEY)||'{}'));
+    }catch(_){return {xp:0,sets:{},days:{},sound:true,voice:true};}
   }
   function save(){ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }
   function localDateKey(){
@@ -138,6 +148,7 @@
   function renderAll(){
     renderCountdown(); renderHud(); renderSelectedDay(); renderCalendar();
     byId('sound-toggle').textContent=state.sound?'🔊':'🔇';
+    renderVoiceToggle();
   }
   function renderCountdown(){
     const now=new Date(); now.setHours(12,0,0,0);
@@ -166,6 +177,8 @@
     byId('workout-title').textContent=`${selectedDay.label}  ${selectedDay.title}`;
     byId('total-count').textContent=String(totalSets(selectedDay));
     renderExercises();
+    activeExerciseIndex = Math.max(0, selectedDay.exercises.findIndex(ex=>doneFor(selectedDay,ex)<ex.sets));
+    renderTrainer(selectedDay.exercises[activeExerciseIndex] || selectedDay.exercises[0]);
     updateQuestProgress();
   }
   function figure(motion){
@@ -220,6 +233,102 @@
     }
     return svg(dot(80,20)+line(80,31,80,66)+line(80,66,64,95)+line(80,66,96,95),dot(80,20)+line(80,31,80,66)+line(80,66,64,95)+line(80,66,96,95),ground);
   }
+
+  function trainerFigure(motion){
+    const front=(arms='down',squat=false)=>`
+      <svg class="trainer-svg" viewBox="0 0 220 320" role="img" aria-label="AIトレーナーMIAのトレーニングデモ">
+        <defs>
+          <linearGradient id="miaTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e15b78"/><stop offset="1" stop-color="#7a2c55"/></linearGradient>
+          <linearGradient id="miaLeg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3c2438"/><stop offset="1" stop-color="#140f17"/></linearGradient>
+        </defs>
+        <g class="trainer-pose pose-a">
+          <path class="trainer-hair" d="M72 66Q78 18 111 18Q151 18 153 70L145 110Q132 94 109 93Q88 94 76 112Z"/>
+          <ellipse class="trainer-skin" cx="111" cy="63" rx="24" ry="28"/>
+          <path class="trainer-neck" d="M101 86L99 101Q111 108 123 101L121 86Z"/>
+          <path class="trainer-top" d="M88 103Q111 92 134 103L143 151Q111 164 79 151Z"/>
+          <path class="trainer-waist" d="M90 149Q111 160 132 149L139 193Q111 207 83 193Z"/>
+          ${arms==='lateral'?'<line class="trainer-arm" x1="88" y1="112" x2="39" y2="112"/><line class="trainer-arm" x1="134" y1="112" x2="183" y2="112"/><line class="trainer-weight" x1="28" y1="112" x2="46" y2="112"/><line class="trainer-weight" x1="176" y1="112" x2="194" y2="112"/>':arms==='curl'?'<polyline class="trainer-arm" points="88,112 69,142 84,116"/><polyline class="trainer-arm" points="134,112 153,142 138,116"/><line class="trainer-weight" x1="77" y1="112" x2="91" y2="112"/><line class="trainer-weight" x1="131" y1="112" x2="145" y2="112"/>':'<line class="trainer-arm" x1="88" y1="112" x2="69" y2="174"/><line class="trainer-arm" x1="134" y1="112" x2="153" y2="174"/>'}
+          ${squat?'<line class="trainer-leg" x1="96" y1="190" x2="63" y2="225"/><line class="trainer-leg" x1="126" y1="190" x2="159" y2="225"/><line class="trainer-leg" x1="63" y1="225" x2="48" y2="288"/><line class="trainer-leg" x1="159" y1="225" x2="174" y2="288"/>':'<line class="trainer-leg" x1="96" y1="190" x2="88" y2="292"/><line class="trainer-leg" x1="126" y1="190" x2="134" y2="292"/>'}
+          <line class="trainer-ground" x1="34" y1="298" x2="188" y2="298"/>
+        </g>
+        <g class="trainer-pose pose-b">
+          <path class="trainer-hair" d="M72 66Q78 18 111 18Q151 18 153 70L145 110Q132 94 109 93Q88 94 76 112Z"/>
+          <ellipse class="trainer-skin" cx="111" cy="${squat?92:63}" rx="24" ry="28"/>
+          <path class="trainer-neck" d="${squat?'M101 115L99 130Q111 137 123 130L121 115Z':'M101 86L99 101Q111 108 123 101L121 86Z'}"/>
+          <path class="trainer-top" d="${squat?'M88 132Q111 121 134 132L143 180Q111 193 79 180Z':'M88 103Q111 92 134 103L143 151Q111 164 79 151Z'}"/>
+          <path class="trainer-waist" d="${squat?'M90 178Q111 189 132 178L139 215Q111 228 83 215Z':'M90 149Q111 160 132 149L139 193Q111 207 83 193Z'}"/>
+          ${arms==='lateral'?'<line class="trainer-arm" x1="88" y1="112" x2="69" y2="174"/><line class="trainer-arm" x1="134" y1="112" x2="153" y2="174"/><line class="trainer-weight" x1="62" y1="177" x2="76" y2="177"/><line class="trainer-weight" x1="146" y1="177" x2="160" y2="177"/>':arms==='curl'?'<line class="trainer-arm" x1="88" y1="112" x2="69" y2="174"/><line class="trainer-arm" x1="134" y1="112" x2="153" y2="174"/><line class="trainer-weight" x1="62" y1="177" x2="76" y2="177"/><line class="trainer-weight" x1="146" y1="177" x2="160" y2="177"/>':'<line class="trainer-arm" x1="88" y1="${squat?142:112}" x2="69" y2="${squat?191:174}"/><line class="trainer-arm" x1="134" y1="${squat?142:112}" x2="153" y2="${squat?191:174}"/>'}
+          ${squat?'<line class="trainer-leg" x1="96" y1="212" x2="58" y2="228"/><line class="trainer-leg" x1="126" y1="212" x2="164" y2="228"/><line class="trainer-leg" x1="58" y1="228" x2="43" y2="288"/><line class="trainer-leg" x1="164" y1="228" x2="179" y2="288"/>':'<line class="trainer-leg" x1="96" y1="190" x2="88" y2="292"/><line class="trainer-leg" x1="126" y1="190" x2="134" y2="292"/>'}
+          <line class="trainer-ground" x1="34" y1="298" x2="188" y2="298"/>
+        </g>
+      </svg>`;
+
+    const floor=()=>`
+      <svg class="trainer-svg trainer-svg-floor" viewBox="0 0 320 220" role="img" aria-label="AIトレーナーMIAのトレーニングデモ">
+        <g class="trainer-pose pose-a">
+          <path class="trainer-hair" d="M238 64Q259 36 283 54L295 83Q272 78 250 88Z"/>
+          <ellipse class="trainer-skin" cx="265" cy="73" rx="19" ry="22"/>
+          <path class="trainer-top" d="M227 90Q251 82 270 94L247 124L211 119Z"/>
+          <path class="trainer-waist" d="M211 118L247 124L194 143L158 137Z"/>
+          <line class="trainer-arm" x1="226" y1="99" x2="234" y2="178"/><line class="trainer-arm" x1="246" y1="103" x2="253" y2="178"/>
+          <line class="trainer-leg" x1="169" y1="137" x2="92" y2="168"/><line class="trainer-leg" x1="183" y1="144" x2="108" y2="181"/>
+          <line class="trainer-ground" x1="48" y1="184" x2="285" y2="184"/>
+        </g>
+        <g class="trainer-pose pose-b">
+          <path class="trainer-hair" d="M238 89Q259 61 283 79L295 108Q272 103 250 113Z"/>
+          <ellipse class="trainer-skin" cx="265" cy="98" rx="19" ry="22"/>
+          <path class="trainer-top" d="M227 113Q251 105 270 117L247 144L211 142Z"/>
+          <path class="trainer-waist" d="M211 141L247 144L194 154L158 149Z"/>
+          <line class="trainer-arm" x1="226" y1="120" x2="244" y2="178"/><line class="trainer-arm" x1="246" y1="123" x2="263" y2="178"/>
+          <line class="trainer-leg" x1="169" y1="149" x2="92" y2="168"/><line class="trainer-leg" x1="183" y1="154" x2="108" y2="181"/>
+          <line class="trainer-ground" x1="48" y1="184" x2="285" y2="184"/>
+        </g>
+      </svg>`;
+
+    if(motion==='lateral') return front('lateral',false);
+    if(motion==='curl') return front('curl',false);
+    if(motion==='squat') return front('down',true);
+    if(['push','plank','core','dip'].includes(motion)) return floor();
+    return front('down',false);
+  }
+
+  function renderTrainer(ex){
+    const visual=byId('trainer-visual');
+    if(!visual || !ex)return;
+    visual.innerHTML=trainerFigure(ex.motion);
+    byId('trainer-sub').textContent=`${ex.name} // ${ex.reps}。私の動きに合わせて。`;
+  }
+
+  function renderVoiceToggle(){
+    const btn=byId('voice-toggle');
+    if(!btn)return;
+    btn.textContent=state.voice?'💋 艶VOICE ON':'🔇 VOICE OFF';
+    byId('voice-status').textContent=state.voice?'セットごとにMIAが声をかけます':'音声はオフです';
+  }
+
+  function setTrainerLine(text){
+    const el=byId('trainer-line');
+    if(!el)return;
+    el.textContent=text;
+    el.classList.remove('pulse');
+    requestAnimationFrame(()=>el.classList.add('pulse'));
+  }
+
+  function playCoachClip(kind){
+    if(!state.voice)return;
+    const audio=byId('coach-audio');
+    const src=VOICE_CLIPS[kind];
+    if(!audio || !src)return;
+    try{
+      audio.pause();
+      audio.src=src;
+      audio.currentTime=0;
+      audio.volume=.92;
+      const p=audio.play();
+      if(p && typeof p.catch==='function')p.catch(()=>{});
+    }catch(_){}
+  }
+
   function renderExercises(){
     const list=byId('exercise-list');
     list.innerHTML=selectedDay.exercises.map((ex,index)=>{
@@ -243,6 +352,8 @@
     if(complete && !state.days[selectedDay.date]){
       state.days[selectedDay.date]=true; state.xp+=35; save(); renderHud(); renderCalendar();
       byId('finish-copy').textContent='QUEST CLEAR BONUS +35 XP。回復まで含めて今日の勝ち。';
+      setTrainerLine('今日のクエスト、クリア。よく頑張ったね。');
+      playCoachClip('finish');
       buzz([45,40,80]); beep(660,.08); setTimeout(()=>beep(880,.12),110);
     }
   }
@@ -258,8 +369,19 @@
     byId('combo').textContent=`x${combo}`;
     buzz(35); beep(460+combo*55,.055);
     showToast(`+${reward} XP  //  SET CLEAR`);
+    const coachLines=['うん、今のすごくいい。次も見せて。','いいね。そのまま、あと少し。ちゃんと見てるよ。','今の好き。次はもう少しだけ、本気見せて。'];
+    const variant=(doneSets(selectedDay)+combo)%3;
+    setTrainerLine(coachLines[variant]);
+    playCoachClip(['set1','set2','set3'][variant]);
     renderHud(); renderExercises(); updateQuestProgress();
     const card=document.querySelector(`[data-index="${index}"]`); if(card)card.classList.add('is-active');
+    if(doneFor(selectedDay,ex)>=ex.sets){
+      const next=selectedDay.exercises.findIndex((item,i)=>i>index && doneFor(selectedDay,item)<item.sets);
+      activeExerciseIndex=next>=0?next:index;
+    }else{
+      activeExerciseIndex=index;
+    }
+    renderTrainer(selectedDay.exercises[activeExerciseIndex] || ex);
     startRest(ex.rest,ex.name);
     const newLevel=Math.floor(state.xp/100)+1;
     if(newLevel>previousLevel) levelUp(newLevel);
@@ -269,7 +391,11 @@
     byId('timer-label').textContent=`REST // ${name}`; byId('timer-seconds').textContent=String(timerLeft); byId('timer-dock').hidden=false;
     timerId=setInterval(()=>{
       timerLeft-=1; byId('timer-seconds').textContent=String(timerLeft);
-      if(timerLeft<=0){clearInterval(timerId); byId('timer-dock').hidden=true; beep(760,.1); buzz([25,40,25]); showToast('REST COMPLETE // NEXT SET');}
+      if(timerLeft<=0){
+        clearInterval(timerId); byId('timer-dock').hidden=true; beep(760,.1); buzz([25,40,25]); showToast('REST COMPLETE // NEXT SET');
+        setTrainerLine('休憩おわり。もう一回、私についてきて。');
+        playCoachClip('rest');
+      }
     },1000);
   }
   function skipTimer(){ clearInterval(timerId); byId('timer-dock').hidden=true; combo=Math.max(1,combo); }
@@ -289,6 +415,8 @@
   function startQuest(){
     byId('workout-shell').hidden=false; combo=1; byId('combo').textContent='x1';
     renderSelectedDay();
+    setTrainerLine('今日も来たね。まずは1セット、一緒にやろ。');
+    playCoachClip('intro');
     requestAnimationFrame(()=>{
       const first=document.querySelector('.exercise-card:not(.is-done)'); if(first)first.classList.add('is-active');
       byId('workout-shell').scrollIntoView({behavior:'smooth',block:'start'});
@@ -300,6 +428,8 @@
   }
   function levelUp(level){
     byId('level-up-number').textContent=String(level); byId('level-overlay').hidden=false; buzz([45,35,90]);
+    setTrainerLine('レベルアップ。今日のあなた、かなりいい感じ。');
+    playCoachClip('level');
     setTimeout(()=>{byId('level-overlay').hidden=true;},1250);
   }
   function buzz(pattern){ if('vibrate' in navigator) navigator.vibrate(pattern); }
@@ -316,6 +446,16 @@
   byId('calendar-jump').addEventListener('click',()=>byId('calendar-section').scrollIntoView({behavior:'smooth'}));
   byId('timer-skip').addEventListener('click',skipTimer);
   byId('sound-toggle').addEventListener('click',()=>{state.sound=!state.sound;save();renderHud();byId('sound-toggle').textContent=state.sound?'🔊':'🔇';showToast(state.sound?'SOUND ON':'SOUND OFF');});
+  byId('voice-toggle').addEventListener('click',()=>{
+    state.voice=!state.voice; save(); renderVoiceToggle();
+    if(state.voice){
+      setTrainerLine('声、戻したよ。私についてきて。');
+      playCoachClip('intro');
+    }else{
+      const audio=byId('coach-audio'); if(audio)audio.pause();
+      setTrainerLine('VOICE OFF。静かに集中しよ。');
+    }
+  });
   byId('finish-close').addEventListener('click',()=>{byId('finish-card').scrollIntoView({behavior:'smooth',block:'center'});showToast('RECOVERY QUEST UNLOCKED');});
   byId('level-overlay').addEventListener('click',()=>{byId('level-overlay').hidden=true;});
 
