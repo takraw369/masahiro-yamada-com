@@ -42,3 +42,14 @@ test('Dashboard stays readable and puts one high-contrast quest in the task widg
   assert.match(cockpit, /\.focus-cta\{min-height:46px/);
   assert.match(cockpit, /\.primary-focus\.masa-world \.focus-next-copy/);
 });
+
+test('iPhone cockpit CTA stays inside the task card at narrow widths', async () => {
+  const cockpit = await readFile(new URL('../src/components/dashboard/DashboardCockpit.tsx', import.meta.url), 'utf8');
+  const page = await readFile(new URL('../src/pages/dashboard/index.astro', import.meta.url), 'utf8');
+  assert.match(cockpit, /\.cockpit,\.cockpit \*,\.cockpit \*::before,\.cockpit \*::after\{box-sizing:border-box\}/);
+  assert.match(cockpit, /\.focus-cta\{[^}]*width:100%;max-width:100%;min-width:0;box-sizing:border-box/);
+  assert.match(cockpit, /\.focus-cta span\{[^}]*flex:0 0 auto/);
+  assert.match(cockpit, /\.primary-focus\.masa-world\{[^}]*max-width:100%;min-width:0;box-sizing:border-box/);
+  assert.match(cockpit, /\.focus-next-copy\{[^}]*overflow-wrap:anywhere/);
+  assert.match(page, /eyebrow="MASA OS · TODAY"/);
+});
