@@ -49,6 +49,7 @@ test('lecture handoff items are included without dumping them all at session sta
 
 test('teacher order begins with the first photographed wiring-material page',()=>{
   assert.match(source,/lectureOrderNames=\[\s*\n'ねじなし電線管','ノーマルベンド','ボックスコネクタ','サドル','絶縁ブッシング','アウトレットボックス'/);
-  assert.ok(source.indexOf("'マノメーター'")>source.indexOf("'加熱試験器用の火口'"));
-  assert.ok(source.indexOf("'P型1級受信機'")>source.indexOf("'紫外線式スポット型感知器'"));
+  const order=source.match(/const lectureOrderNames=\[(.*?)\];/s)?.[1]||'';
+  assert.ok(order.indexOf("'マノメーター'")>order.indexOf("'加熱試験器用の火口'"));
+  assert.ok(order.indexOf("'P型1級受信機'")>order.indexOf("'紫外線式スポット型感知器'"));
 });
