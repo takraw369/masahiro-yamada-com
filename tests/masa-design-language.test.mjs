@@ -20,7 +20,7 @@ test('depth treatment keeps mobile action-first guardrails', async () => {
   const page = await readFile(new URL('../src/pages/dashboard/index.astro', import.meta.url), 'utf8');
   const standard = await readFile(new URL('../docs/dashboard-mobile-ui-standard.md', import.meta.url), 'utf8');
 
-  assert.match(page, /@media\(max-width:620px\)\{\.dash-shell\{/);
+  assert.match(page, /@media\(max-width:620px\)\{\.dash-head\{display:none\}\.dash-shell\{/);
   assert.match(page, /\.dash-head\{display:none\}/);
   assert.match(page, /safe-area-inset-bottom/);
   assert.match(standard, /Design depth never outranks action/);
