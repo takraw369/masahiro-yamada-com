@@ -9,7 +9,7 @@ import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
 >
   <p slot="lead" class="public-lead">筋肉量を急増させるのではなく、肩・胸・背中・腕のシルエットとコンディションを10/9に合わせて仕上げる。</p>
 
-  <link rel="stylesheet" href="/pump/styles.css?v=20261007-2" />
+  <link rel="stylesheet" href="/pump/styles.css?v=20261008-1" />
 
   <section class="pump-hud" aria-label="PUMP QUEST status">
     <div class="hud-level"><span>LV.</span><strong id="level">1</strong></div>
@@ -53,6 +53,23 @@ import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
       <div class="combo-box"><span>COMBO</span><strong id="combo">x1</strong></div>
     </div>
 
+    <section class="ai-trainer-card" aria-label="AIトレーナー MIA">
+      <div class="trainer-visual-wrap">
+        <div class="trainer-glow" aria-hidden="true"></div>
+        <div id="trainer-visual" class="trainer-visual" aria-hidden="true"></div>
+        <div class="trainer-badge"><span>AI TRAINER</span><strong>MIA</strong><small>26 / ADULT</small></div>
+      </div>
+      <div class="trainer-talk">
+        <p class="micro-label">PRIVATE COACH MODE</p>
+        <h3 id="trainer-line">今日は私についてきて。</h3>
+        <p id="trainer-sub">動きを見せる。声で煽る。セットごとに距離が近くなる。</p>
+        <div class="trainer-controls">
+          <button id="voice-toggle" class="voice-btn" type="button">💋 艶VOICE ON</button>
+          <span id="voice-status">タップ後に音声が有効になります</span>
+        </div>
+      </div>
+    </section>
+
     <div class="quest-progress"><i id="quest-progress-fill"></i></div>
     <p class="quest-progress-copy"><span id="done-count">0</span> / <span id="total-count">0</span> SET COMPLETE</p>
 
@@ -93,10 +110,15 @@ import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
     <button id="timer-skip" type="button">SKIP</button>
   </div>
 
+  <audio id="voice-intro" preload="auto" src="https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/3ab75f63-4d25-4aea-8920-0b591db0844a.mp3"></audio>
+  <audio id="voice-set" preload="auto" src="https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/20041ee2-9278-4d25-b469-641102ce5824.mp3"></audio>
+  <audio id="voice-rest" preload="auto" src="https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/42b17de3-ece6-4821-af2e-ce196e3a364f.mp3"></audio>
+  <audio id="voice-level" preload="auto" src="https://storage.googleapis.com/adm--audio-playback--7d--public/mcp-preview/0541f1b9-a05b-40fd-9f69-dda470e858d3.mp3"></audio>
+
   <div id="toast" class="pump-toast" role="status" aria-live="polite"></div>
   <div id="level-overlay" class="level-overlay" hidden aria-live="polite">
     <div class="level-card"><span>LEVEL UP</span><strong id="level-up-number">2</strong><p>次の自分、解放。</p></div>
   </div>
 
-  <script is:inline src="/pump/app.js?v=20261007-2"></script>
+  <script is:inline src="/pump/app.js?v=20261008-1"></script>
 </PublicPageLayout>
