@@ -42,3 +42,20 @@ test('dashboard mobile baseline prevents viewport text overflow and iOS input zo
   assert.match(component, /\.cockpit-grid\{grid-template-columns:minmax\(0,1fr\);max-width:100%\}/);
   assert.match(component, /\.cockpit textarea\{max-width:100%;font-size:16px\}/);
 });
+
+
+test('dashboard mobile prioritizes action before explanation', async () => {
+  const component = await readFile(new URL('../src/components/dashboard/DashboardCockpit.tsx', import.meta.url), 'utf8');
+  const page = await readFile(new URL('../src/pages/dashboard/index.astro', import.meta.url), 'utf8');
+  const layout = await readFile(new URL('../src/layouts/DashboardLayout.astro', import.meta.url), 'utf8');
+  const standard = await readFile(new URL('../docs/dashboard-mobile-ui-standard.md', import.meta.url), 'utf8');
+
+  assert.match(page, /@media\(max-width:620px\)\{\.dash-head\{display:none\}/);
+  assert.match(component, /\.cockpit-title\{display:none\}/);
+  assert.match(component, /\{editing \? '完了' : '配置'\}/);
+  assert.match(layout, /\.page-title \{ display: none; \}/);
+  assert.match(layout, /\.capture-label, \.quick-label, \.command-shortcut \{ display: none; \}/);
+  assert.match(layout, /\.content \{ padding-top: 12px; scroll-margin-top: 82px; \}/);
+  assert.match(standard, /Action before explanation/);
+  assert.match(standard, /One-screen density is part of quality/);
+});
