@@ -53,7 +53,7 @@ test('dynamic dashboard pages scope CSS to the page root but not Astro static no
 
 test('Task Flow styles real innerHTML cards and protects long titles, steps and next actions', async () => {
   const page = await readFile(new URL('tasks.astro', pageDir), 'utf8');
-  assert.match(page, /list\.innerHTML=shown\.map/);
+  assert.match(page, /list\.innerHTML\s*=\s*shown\.map/);
   assert.match(page, /@scope \(\.task-shell\)/);
   assert.match(page, /\.task-card \{ min-width:0; max-width:100%; box-sizing:border-box/);
   assert.match(page, /\.task-card \.next \{ max-width:100%; overflow-wrap:anywhere/);
