@@ -9,7 +9,7 @@ Astro component-scoped CSS attaches per-element scope attributes to static HTML.
 ## Inventory
 Source reviewed: **41 Dashboard Astro routes**, including specialized graph/board canvases and dedicated React islands.
 
-**11 runtime-injection surfaces remediated** using **route-loaded external CSS** in `public/dashboard/runtime-css/`, bounded by `@scope (.page-root)`. This leaves legacy page scripts untouched: Task Flow, Evidence Lab, Choice Lab, FLOW Board, Living Graph, Design Lab, Question Lab, Relationship OS, Voice Inbox, ACE Assets and Content Flow.
+**11 runtime-injection surfaces remediated** using **route-loaded external CSS** in `public/assets/dashboard-runtime/`, bounded by `@scope (.page-root)`. This leaves legacy page scripts untouched: Task Flow, Evidence Lab, Choice Lab, FLOW Board, Living Graph, Design Lab, Question Lab, Relationship OS, Voice Inbox, ACE Assets and Content Flow.
 
 **Delivery:** `DashboardLayout.astro` loads the matching stylesheet only on its route (not all eleven on every visit), and shortens the Task Flow mobile header without modifying its existing JavaScript.
 
