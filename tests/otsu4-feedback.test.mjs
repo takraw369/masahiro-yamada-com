@@ -40,6 +40,53 @@ test('lecture marks remain connected to the shared Otsu4 bank and original recor
 });
 
 
+
+test('Otsu4 p294 marked detector parts, flame types and pliers are immediately testable', async () => {
+ const html=await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro',import.meta.url),'utf8');
+ const script=html.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(script);
+ assert.doesNotThrow(()=>new vm.Script(script));
+ const p294=script.match(/const textbook294AndFlameTools = (\[[^\n]+\]);/);
+ assert.ok(p294);
+ const required=JSON.parse(p294[1]);
+ assert.equal(required.length,7);
+ for(const n of [
+  '差動式分布型感知器（熱電対式）の検出器',
+  '差動式分布型感知器（熱電対式）の熱電対部',
+  '紫外線式スポット型感知器',
+  '赤外線式スポット型感知器',
+  'ウォーターポンププライヤー']) assert.ok(required.includes(n),n);
+ assert.match(html,/id="quiz-scope"/);
+ assert.match(html,/id="flash-reference"/);
+ const dom=new Map();
+ const el=id=>{
+  if(!dom.has(id))dom.set(id,{id,value:id==='flash-scope'||id==='quiz-scope'?'p294':'',hidden:false,style:{},textContent:'',dataset:{},addEventListener(){},appendChild(){},selectedOptions:[{textContent:'p294'}]});
+  return dom.get(id);
+ };
+ class SearchParams{constructor(x){this.x=x}get(key){return key==='cards'||key==='scope'?'p294':null}}
+ const ctx={URLSearchParams:SearchParams,document:{getElementById:el,querySelectorAll:()=>[],createElement:()=>({style:{}})},window:{scrollTo(){}},location:{search:'?cards=p294&scope=p294'},localStorage:{getItem(){return null},setItem(){}}};
+ const app=vm.runInNewContext(script+'\n({all:tools, cards:photoFlashCards(), flash:flashDeck, quiz:buildQueue(), defaultTools:activeTools(), fallbackSvg, foundationFlashCards})',ctx);
+ assert.equal(app.all.length,78);
+ assert.equal(app.cards.length,78);
+ assert.equal(app.foundationFlashCards.length,26);
+ assert.equal(new Set(app.all.map(x=>x.name)).size,78);
+ assert.equal(app.flash.length,7);
+ assert.ok(required.every(name=>app.flash.some(x=>x.title===name)),'all important items must be in p294 cards');
+ assert.ok(required.every(name=>app.quiz.some(x=>x.name===name)),'all important items must be in p294 quiz');
+ assert.equal(new Set(app.quiz.map(x=>x.name)).size,7);
+ for(const name of [
+  '紫外線式スポット型感知器',
+  '赤外線式スポット型感知器',
+  'ウォーターポンププライヤー',
+  '差動式分布型感知器（熱電対式）の検出器',
+  '差動式分布型感知器（熱電対式）の熱電対部'
+ ]) assert.ok(app.defaultTools.some(x=>x.name===name),'unlocked priority: '+name);
+ assert.match(app.fallbackSvg(app.all.find(x=>x.kind==='thermocoupleProbe')),/^data:image\/svg/);
+ const home=await readFile(new URL('../src/pages/otsu4/index.astro',import.meta.url),'utf8');
+ assert.match(home,/cards=p294/);
+ assert.match(home,/scope=p294/);
+});
+
 test('Otsu4 lecture p308 tools drill matches all 12 unique workbook items and keeps records', async () => {
  const html = await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro', import.meta.url), 'utf8');
  const inline = html.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
