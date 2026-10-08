@@ -59,7 +59,7 @@ test('Otsu4 identification flashcards are accessible, typed, and preserve the cu
   assert.match(source, /data-flash-grade="miss"/);
   assert.match(source, /data-flash-grade="unsure"/);
   assert.match(source, /data-flash-grade="ok"/);
-  assert.match(source, /function photoFlashCards\(\)/);
+  assert.match(source, /const photoFlashCards = \(\) =>/);
   assert.match(source, /loadPhoto\(current\.photoTool,'flash-photo'\)/);
   assert.match(source, /id="app" hidden/);
   assert.match(source, /const K='otsu4-kambetsu-state-v2'/);
