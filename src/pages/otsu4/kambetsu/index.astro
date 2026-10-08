@@ -41,7 +41,7 @@ button{touch-action:manipulation}
 <h1 id="flash-heading" style="font-size:25px;line-height:1.4;margin:12px 0 8px">まずカードで覚えよう。</h1>
 <p class="flash-intro">写真を見てすぐ記述テストに入る前に「何を感知する？」「どう見分ける？」を短いカードで理解。<b>裏面を見てから○・△・×</b>を選ぶと、苦手がまた出てくるよ。</p>
 <label class="flash-scope-label" for="flash-scope">学ぶカードの種類</label>
-<select id="flash-scope"><option value="basics">基礎知識・仕組み（26枚から10枚）</option><option value="p294">講習p294｜×印・炎＋プライヤー（7枚）</option><option value="tools308">講習p308｜工具・材料12種を集中</option><option value="photos">写真で名称・用途（10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
+<select id="flash-scope"><option value="basics">基礎知識・仕組み（23枚から10枚）</option><option value="tools308">講習p308｜工具・材料12種を集中</option><option value="photos">写真で名称・用途（10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
 <div class="flash-progress" id="flash-progress" role="status" aria-live="polite"></div>
 <div class="flash-visual" id="flash-visual">
 <div class="flash-group" id="flash-group"></div>
@@ -59,9 +59,10 @@ button{touch-action:manipulation}
 </div>
 </div>
 <label class="flash-scope-label" for="quiz-scope">記述テストの出題範囲</label>
-<select id="quiz-scope"><option value="priority">通常＋炎・×印・プライヤーを優先</option><option value="p294">★ p294・炎・プライヤー（7種全部）</option><option value="all">全範囲（解放制限なし）</option><option value="tools308">工具p308（12種全部）</option></select>
+<select id="quiz-scope"><option value="priority">通常＋ウォーターポンププライヤー優先</option><option value="all">講習対象の全範囲（解放制限なし）</option><option value="tools308">工具p308（12種全部）</option></select>
 <button id="flash-test" class="flash-test" type="button">STEP 2：選んだ範囲の鑑別テストへ →</button>
 <p class="flash-muted">教材p308の名称と用途を照合済み。写真は既存の公開参照画像を表示し、教材の写真そのものは公開サイトへ転載しません。</p>
+<p class="flash-muted">講習で本番範囲外とされた炎感知器・教材の×印は出題から除外済み。ウォーターポンププライヤーは出題します。過去の学習履歴は削除しません。</p>
 <p class="flash-muted">基礎カードは独立した復習履歴。写真カードは既存の鑑別データを共用します。テストの採点記録は書き換えません。</p>
 </section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
 const $=id=>document.getElementById(id);
@@ -171,6 +172,13 @@ const lectureOrderNames=[
 const lectureRank=new Map(lectureOrderNames.map((name,index)=>[name,index]));
 const orderedTools=lectureOrderNames.map(name=>tools.find(t=>t.name===name)).filter(Boolean);
 const extraTools=tools.filter(t=>!lectureRank.has(t.name));
+// 講習で「本番の鑑別範囲外」と指定されたもの。データ・既存履歴は削除せず、出題のみ停止。
+const excludedExamNames = new Set(["紫外線式スポット型感知器","赤外線式スポット型感知器","差動式分布型感知器（熱電対式）の検出器","差動式分布型感知器（熱電対式）の熱電対部"]);
+const excludedFoundationIds = new Set(["base-flame","base-flame-uv-ir-compare","base-p294-thermocouple-difference"]);
+const isExamTool = t => !excludedExamNames.has(t.name);
+const examOrderedTools = orderedTools.filter(isExamTool);
+const examExtraTools = extraTools.filter(isExamTool);
+const examTools = [...examOrderedTools,...examExtraTools];
 
 function fallbackSvg(t){
   const k=t.kind||'tool';
@@ -265,16 +273,17 @@ function isMastered(t){
   return x.streakOk>=1&&x.lastConfidence==='ok';
 }
 function unlockedCount(){
-  const mastered=orderedTools.reduce((n,t)=>n+(isMastered(t)?1:0),0);
-  return Math.min(orderedTools.length,6+Math.floor(mastered/4)*3);
+  const mastered=examOrderedTools.reduce((n,t)=>n+(isMastered(t)?1:0),0);
+  return Math.min(examOrderedTools.length,6+Math.floor(mastered/4)*3);
 }
 function activeTools(){
   const unlocked=unlockedCount();
-  const active=orderedTools.slice(0,unlocked);
-  // Highlighted lecture mistakes and flame detector must not be locked behind early sessions.
-  const immediate=['紫外線式スポット型感知器','差動式分布型感知器（熱電対式）の検出器','差動式分布型感知器（熱電対式）の熱電対部','赤外線式スポット型感知器','ウォーターポンププライヤー'];
-  for(const name of immediate){const t=tools.find(x=>x.name===name);if(t&&!active.some(x=>x.name===name))active.push(t);}
-  if(unlocked>=orderedTools.length) for(const t of extraTools)if(!active.some(x=>x.name===t.name))active.push(t);
+  const active=examOrderedTools.slice(0,unlocked);
+  // This tool was explicitly requested as part of exam prep; keep it accessible immediately.
+  const pliers=examTools.find(t=>t.name==='ウォーターポンププライヤー');
+  if(pliers && !active.some(t=>t.name===pliers.name)) active.push(pliers);
+  if(unlocked>=examOrderedTools.length) for(const t of examExtraTools)
+    if(!active.some(x=>x.name===t.name))active.push(t);
   return active;
 }
 function priority(t){
@@ -321,10 +330,9 @@ function insertRepeat(deck,t,minDelay,maxDelay){
 }
 function buildQueue(){
   const requested=$('quiz-scope')?.value||'priority';
-  const focus=requested==='p294'?textbook294AndFlameTools:requested==='tools308'?textbook308Tools:null;
-  const active=requested==='all'?[...orderedTools,...extraTools]:focus?focus.map(name=>tools.find(t=>t.name===name)).filter(Boolean):activeTools();
-  const mustSee=['紫外線式スポット型感知器','赤外線式スポット型感知器',
-    '差動式分布型感知器（熱電対式）の検出器','差動式分布型感知器（熱電対式）の熱電対部','ウォーターポンププライヤー'];
+  const focus=requested==='tools308'?textbook308Tools:null;
+  const active=requested==='all'?examTools:focus?focus.map(name=>examTools.find(t=>t.name===name)).filter(Boolean):activeTools();
+  const mustSee=['ウォーターポンププライヤー'];
   const base=[...active].sort((a,b)=>{
     if(requested==='priority'){
       const ra=mustSee.indexOf(a.name),rb=mustSee.indexOf(b.name);
@@ -374,8 +382,8 @@ function show(){
   const t=queue[i];
   lastResult=null;
   loadPhoto(t);setMask(t);
-  $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜通常解放 ${unlockedCount()} / ${orderedTools.length}`;
-  if($('poolPill'))$('poolPill').textContent=`鑑別・${orderedTools.length}項目`;
+  $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜通常解放 ${unlockedCount()} / ${examOrderedTools.length}`;
+  if($('poolPill'))$('poolPill').textContent=`鑑別・${examTools.length}項目`;
   $('bar').style.width=`${i/queue.length*100}%`;
   $('name').value='';$('use').value='';
   $('answer').style.display='none';
@@ -417,7 +425,8 @@ document.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>{
   i++;show();
 });
 
-const foundationFlashCards = [{"id":"base-sense","group":"感知器","title":"熱・煙・炎の3系統","question":"感知器は、何を検出して火災を判断する？","answer":"熱感知器は温度変化や温度到達、煙感知器は煙、炎感知器は炎から出る光を捉える。","hint":"見た目より「何の変化を測るか」で分類する。"},{"id":"base-rate","group":"感知器","title":"差動式は「速さ」","question":"差動式感知器は、温度の何を見て作動する？","answer":"一定時間内の温度上昇の大きさ（上昇率）を捉える。急な上昇で作動する。","hint":"定温式の「温度そのもの」と対比する。"},{"id":"base-fixed","group":"感知器","title":"定温式は「到達」","question":"定温式スポット型感知器は何を条件に作動する？","answer":"感熱部が所定の温度に達すると作動する。バイメタル、サーミスタなどの方式がある。","hint":"差動式=上昇率／定温式=設定温度。"},{"id":"base-air","group":"感知器","title":"空気室・ダイヤフラム・リーク孔","question":"空気膨張式の差動式スポット型で、リーク孔は何のためにある？","answer":"緩やかな温度変化による空気の膨張を逃がし、急な温度上昇と区別する。","hint":"空気室→膨張→ダイヤフラム→接点、ゆっくり変化→リーク孔。"},{"id":"base-compound","group":"感知器","title":"補償式の2機能","question":"補償式スポット型は何の組み合わせ？","answer":"差動式（急激な温度上昇）と定温式（一定温度への到達）の両機能を備える。","hint":"『補償』の文字より「差動＋定温」で覚える。"},{"id":"base-distributed","group":"感知器","title":"分布型は広い範囲","question":"差動式「分布型」と「スポット型」の違いは？","answer":"分布型は空気管・熱電対などで複数の位置から変化を捉え、スポット型は点状の感知部で検知する。","hint":"空気管式・熱電対式・熱半導体式の区別も整理する。"},{"id":"base-smoke","group":"感知器","title":"煙感知器の光","question":"光電式スポット型と光電式分離型、光の見方はどう違う？","answer":"スポット型は煙による光の散乱、分離型は送光部と受光部の間を通る光が弱まることを利用する。","hint":"スポット=散乱／分離=減光。"},{"id":"base-ion","group":"感知器","title":"イオン化式と光電式","question":"イオン化式煙感知器が煙で検出する変化は？","answer":"煙の侵入による電離電流（イオン電流）の変化を利用する。","hint":"光電式は光／イオン化式は電流。"},{"id":"base-flame","group":"感知器","title":"炎感知器","question":"炎感知器には、どんな検知方法がある？","answer":"炎から出る紫外線や赤外線などの光を検出する。","hint":"煙ではなく炎の放射光を捉える。"},{"id":"base-tester","group":"試験器","title":"熱と煙の試験器","question":"加熱試験器と加煙試験器は、それぞれ何を調べる？","answer":"加熱試験器は熱感知器、加煙試験器は煙感知器の作動を確かめる。","hint":"『加えるもの』と『対象となる感知器』を対応させる。"},{"id":"base-filter","group":"試験器","title":"減光フィルター","question":"減光フィルターは、どんな感知器の試験に使う？","answer":"光電式分離型感知器の光を減らし、作動を確認する。","hint":"送光部→受光部の光が弱まった状況を再現する。"},{"id":"base-pressure","group":"試験器","title":"空気管の試験","question":"空気管式の分布型感知器の試験で使うマノメーターは何を測る？","answer":"差動式分布型感知器（空気管式）の流通試験や接点水高試験で圧力・水高を確認する。","hint":"テストポンプで空気を送り、マノメーターで圧力を確認する。"},{"id":"base-receivers","group":"受信・警報","title":"P型・R型・G型","question":"P型・R型・G型受信機の見分け方は？","answer":"P型は回線ごとの火災信号、R型は固有信号で発報位置、G型はガス漏れ信号を扱う。","hint":"P=回線／R=固有信号／G=ガス。"},{"id":"base-manual","group":"受信・警報","title":"発信機・表示灯・地区音響","question":"発信機・表示灯・地区音響装置は何をする？","answer":"発信機は人が押して通報、表示灯は発信機の位置を示し、地区音響装置は音で火災を知らせる。","hint":"押す・示す・鳴らす、の動詞で区別する。"},{"id":"base-end","group":"受信・警報","title":"終端抵抗と中継器","question":"終端抵抗と中継器、役割が違うのはどこ？","answer":"終端抵抗は感知器回線の断線監視に使い、中継器は端末から受信機へ信号を中継する。","hint":"終端=断線／中継=信号の橋渡し。"},{"id":"base-tools","group":"工具・計測","title":"工具は作業で分ける","question":"ニッパー・ストリッパー・圧着ペンチ・リーマは何をする？","answer":"ニッパーは切断、ストリッパーは被覆を剥く、圧着ペンチは接続部を圧着、リーマは管端のバリを取る。","hint":"工具の形より切る・剥く・圧着・バリ取りを言葉にする。"},{"id":"base-meters","group":"工具・計測","title":"計器の使い分け","question":"回路計・絶縁抵抗計・接地抵抗計の違いは？","answer":"回路計は電圧・電流・抵抗を測定、絶縁抵抗計は電路と大地等の間の絶縁状態、接地抵抗計は接地抵抗を測る。","hint":"抵抗という名前が同じでも測定対象が異なる。"},{"id":"base-method","group":"解き方","title":"写真鑑別の答え方","question":"写真鑑別では、どんな順番で答えを組み立てる？","answer":"①名称を特定 ②見分ける特徴 ③『何をどうする』という用途まで声に出す。似た器具との差を最後に確認する。","hint":"カードで覚えた知識を、記述式の答案へ変換する。"},{"id":"base-tool-cuts","group":"工具・計測","title":"切断工具3種の違い","question":"ニッパー、ワイヤーカッター、パイプカッター。切る対象はどう違う？","answer":"ニッパー＝電線など、ワイヤーカッター＝電線・ケーブル、パイプカッター＝金属管。管はローラーと丸刃で回しながら切る。","hint":"名前の『カッター』だけでは判定しない。刃と切断対象を見る。"},{"id":"base-tool-strip-crimp","group":"工具・計測","title":"剥く・つなぐの役割","question":"ワイヤーストリッパー、圧着ペンチ、リングスリーブの役割は？","answer":"ストリッパーで電線の被覆を剥き、電線をリングスリーブに挿入し、適切な圧着ペンチで圧着接続する。","hint":"ストリッパーは被覆除去／リングスリーブは接続金具／圧着ペンチは加工工具。"},{"id":"base-tool-pipe-flow","group":"工具・計測","title":"電線管工事の一連の作業","question":"金属管を切ったあと、内側のバリを取るのは？ 曲げるのは？","answer":"管を切る＝パイプカッター。管内のバリを取る＝リーマ。管を曲げる＝パイプベンダー。外周にねじを切る＝ねじ切り器。","hint":"切る→バリ取り→曲げる→ねじ切り、工程と道具を一対一で覚える。"},{"id":"base-tool-holes","group":"工具・計測","title":"穴を開ける工具","question":"ホルソー（ホールソー）は何に使う？ リーマとの違いは？","answer":"ホルソーは金属板やボックスに円形の穴を開ける。リーマは切断済み金属管の内側を面取りする。","hint":"ホルソー＝新しい穴／リーマ＝すでにある管の内面仕上げ。"},{"id":"base-tool-mall","group":"工具・計測","title":"モールとリングスリーブ","question":"モールとリングスリーブは電線に対して何をする材料？","answer":"モールは配線を収容し保護する部材。リングスリーブは複数の電線を圧着接続する接続金具。","hint":"モール＝線を通す・隠す／リングスリーブ＝線同士をつなぐ。"},{"id":"base-flame-uv-ir-compare","group":"感知器","title":"炎感知器｜紫外線と赤外線","question":"紫外線式と赤外線式はそれぞれ何を検知する？","answer":"紫外線式は炎からの紫外線、赤外線式は炎からの赤外線を受光して検知する。外観で区別が困難な場合は型式表示を確認する。","hint":"炎感知器は光、煙感知器は煙、熱感知器は温度変化。"},{"id":"base-p294-thermocouple-difference","group":"感知器","title":"p294｜検出器と熱電対部","question":"熱電対式の『検出器』と『熱電対部』は、どちらが熱起電力を発生させる？","answer":"熱電対部が温度差で熱起電力を発生させ、検出器はそれを受けて火災信号を送る。","hint":"写真⑧は端子のあるケース／⑨は天井に沿って配置する細長い熱電対部。"},{"id":"base-water-pump-vs-pipe","group":"工具・計測","title":"プライヤーとレンチ","question":"ウォーターポンププライヤーの外観と主な用途は？","answer":"支点を切り替えて口幅を調整できるギザギザのある工具で、管・ナット・継手をつかんで回す。","hint":"パイプカッター＝切断／パイプベンダー＝曲げ／ウォーターポンププライヤー＝つかんで回す。"}];
+const foundationFlashCards = [{"id":"base-sense","group":"感知器","title":"熱感知器・煙感知器","question":"熱感知器と煙感知器は、どんな変化を検出する？","answer":"熱感知器は温度変化や所定温度への到達、煙感知器は煙による光や電流の変化を検出する。","hint":"差動式・定温式、光電式・イオン化式を区別する。"},{"id":"base-rate","group":"感知器","title":"差動式は「速さ」","question":"差動式感知器は、温度の何を見て作動する？","answer":"一定時間内の温度上昇の大きさ（上昇率）を捉える。急な上昇で作動する。","hint":"定温式の「温度そのもの」と対比する。"},{"id":"base-fixed","group":"感知器","title":"定温式は「到達」","question":"定温式スポット型感知器は何を条件に作動する？","answer":"感熱部が所定の温度に達すると作動する。バイメタル、サーミスタなどの方式がある。","hint":"差動式=上昇率／定温式=設定温度。"},{"id":"base-air","group":"感知器","title":"空気室・ダイヤフラム・リーク孔","question":"空気膨張式の差動式スポット型で、リーク孔は何のためにある？","answer":"緩やかな温度変化による空気の膨張を逃がし、急な温度上昇と区別する。","hint":"空気室→膨張→ダイヤフラム→接点、ゆっくり変化→リーク孔。"},{"id":"base-compound","group":"感知器","title":"補償式の2機能","question":"補償式スポット型は何の組み合わせ？","answer":"差動式（急激な温度上昇）と定温式（一定温度への到達）の両機能を備える。","hint":"『補償』の文字より「差動＋定温」で覚える。"},{"id":"base-distributed","group":"感知器","title":"分布型は広い範囲","question":"差動式「分布型」と「スポット型」の違いは？","answer":"分布型は空気管・熱電対などで複数の位置から変化を捉え、スポット型は点状の感知部で検知する。","hint":"空気管式・熱電対式・熱半導体式の区別も整理する。"},{"id":"base-smoke","group":"感知器","title":"煙感知器の光","question":"光電式スポット型と光電式分離型、光の見方はどう違う？","answer":"スポット型は煙による光の散乱、分離型は送光部と受光部の間を通る光が弱まることを利用する。","hint":"スポット=散乱／分離=減光。"},{"id":"base-ion","group":"感知器","title":"イオン化式と光電式","question":"イオン化式煙感知器が煙で検出する変化は？","answer":"煙の侵入による電離電流（イオン電流）の変化を利用する。","hint":"光電式は光／イオン化式は電流。"},{"id":"base-flame","group":"感知器","title":"炎感知器","question":"炎感知器には、どんな検知方法がある？","answer":"炎から出る紫外線や赤外線などの光を検出する。","hint":"煙ではなく炎の放射光を捉える。"},{"id":"base-tester","group":"試験器","title":"熱と煙の試験器","question":"加熱試験器と加煙試験器は、それぞれ何を調べる？","answer":"加熱試験器は熱感知器、加煙試験器は煙感知器の作動を確かめる。","hint":"『加えるもの』と『対象となる感知器』を対応させる。"},{"id":"base-filter","group":"試験器","title":"減光フィルター","question":"減光フィルターは、どんな感知器の試験に使う？","answer":"光電式分離型感知器の光を減らし、作動を確認する。","hint":"送光部→受光部の光が弱まった状況を再現する。"},{"id":"base-pressure","group":"試験器","title":"空気管の試験","question":"空気管式の分布型感知器の試験で使うマノメーターは何を測る？","answer":"差動式分布型感知器（空気管式）の流通試験や接点水高試験で圧力・水高を確認する。","hint":"テストポンプで空気を送り、マノメーターで圧力を確認する。"},{"id":"base-receivers","group":"受信・警報","title":"P型・R型・G型","question":"P型・R型・G型受信機の見分け方は？","answer":"P型は回線ごとの火災信号、R型は固有信号で発報位置、G型はガス漏れ信号を扱う。","hint":"P=回線／R=固有信号／G=ガス。"},{"id":"base-manual","group":"受信・警報","title":"発信機・表示灯・地区音響","question":"発信機・表示灯・地区音響装置は何をする？","answer":"発信機は人が押して通報、表示灯は発信機の位置を示し、地区音響装置は音で火災を知らせる。","hint":"押す・示す・鳴らす、の動詞で区別する。"},{"id":"base-end","group":"受信・警報","title":"終端抵抗と中継器","question":"終端抵抗と中継器、役割が違うのはどこ？","answer":"終端抵抗は感知器回線の断線監視に使い、中継器は端末から受信機へ信号を中継する。","hint":"終端=断線／中継=信号の橋渡し。"},{"id":"base-tools","group":"工具・計測","title":"工具は作業で分ける","question":"ニッパー・ストリッパー・圧着ペンチ・リーマは何をする？","answer":"ニッパーは切断、ストリッパーは被覆を剥く、圧着ペンチは接続部を圧着、リーマは管端のバリを取る。","hint":"工具の形より切る・剥く・圧着・バリ取りを言葉にする。"},{"id":"base-meters","group":"工具・計測","title":"計器の使い分け","question":"回路計・絶縁抵抗計・接地抵抗計の違いは？","answer":"回路計は電圧・電流・抵抗を測定、絶縁抵抗計は電路と大地等の間の絶縁状態、接地抵抗計は接地抵抗を測る。","hint":"抵抗という名前が同じでも測定対象が異なる。"},{"id":"base-method","group":"解き方","title":"写真鑑別の答え方","question":"写真鑑別では、どんな順番で答えを組み立てる？","answer":"①名称を特定 ②見分ける特徴 ③『何をどうする』という用途まで声に出す。似た器具との差を最後に確認する。","hint":"カードで覚えた知識を、記述式の答案へ変換する。"},{"id":"base-tool-cuts","group":"工具・計測","title":"切断工具3種の違い","question":"ニッパー、ワイヤーカッター、パイプカッター。切る対象はどう違う？","answer":"ニッパー＝電線など、ワイヤーカッター＝電線・ケーブル、パイプカッター＝金属管。管はローラーと丸刃で回しながら切る。","hint":"名前の『カッター』だけでは判定しない。刃と切断対象を見る。"},{"id":"base-tool-strip-crimp","group":"工具・計測","title":"剥く・つなぐの役割","question":"ワイヤーストリッパー、圧着ペンチ、リングスリーブの役割は？","answer":"ストリッパーで電線の被覆を剥き、電線をリングスリーブに挿入し、適切な圧着ペンチで圧着接続する。","hint":"ストリッパーは被覆除去／リングスリーブは接続金具／圧着ペンチは加工工具。"},{"id":"base-tool-pipe-flow","group":"工具・計測","title":"電線管工事の一連の作業","question":"金属管を切ったあと、内側のバリを取るのは？ 曲げるのは？","answer":"管を切る＝パイプカッター。管内のバリを取る＝リーマ。管を曲げる＝パイプベンダー。外周にねじを切る＝ねじ切り器。","hint":"切る→バリ取り→曲げる→ねじ切り、工程と道具を一対一で覚える。"},{"id":"base-tool-holes","group":"工具・計測","title":"穴を開ける工具","question":"ホルソー（ホールソー）は何に使う？ リーマとの違いは？","answer":"ホルソーは金属板やボックスに円形の穴を開ける。リーマは切断済み金属管の内側を面取りする。","hint":"ホルソー＝新しい穴／リーマ＝すでにある管の内面仕上げ。"},{"id":"base-tool-mall","group":"工具・計測","title":"モールとリングスリーブ","question":"モールとリングスリーブは電線に対して何をする材料？","answer":"モールは配線を収容し保護する部材。リングスリーブは複数の電線を圧着接続する接続金具。","hint":"モール＝線を通す・隠す／リングスリーブ＝線同士をつなぐ。"},{"id":"base-flame-uv-ir-compare","group":"感知器","title":"炎感知器｜紫外線と赤外線","question":"紫外線式と赤外線式はそれぞれ何を検知する？","answer":"紫外線式は炎からの紫外線、赤外線式は炎からの赤外線を受光して検知する。外観で区別が困難な場合は型式表示を確認する。","hint":"炎感知器は光、煙感知器は煙、熱感知器は温度変化。"},{"id":"base-p294-thermocouple-difference","group":"感知器","title":"p294｜検出器と熱電対部","question":"熱電対式の『検出器』と『熱電対部』は、どちらが熱起電力を発生させる？","answer":"熱電対部が温度差で熱起電力を発生させ、検出器はそれを受けて火災信号を送る。","hint":"写真⑧は端子のあるケース／⑨は天井に沿って配置する細長い熱電対部。"},{"id":"base-water-pump-vs-pipe","group":"工具・計測","title":"プライヤーとレンチ","question":"ウォーターポンププライヤーの外観と主な用途は？","answer":"支点を切り替えて口幅を調整できるギザギザのある工具で、管・ナット・継手をつかんで回す。","hint":"パイプカッター＝切断／パイプベンダー＝曲げ／ウォーターポンププライヤー＝つかんで回す。"}];
+const activeFoundationFlashCards = foundationFlashCards.filter(item=>!excludedFoundationIds.has(item.id));
 const FLASH_KEY = 'otsu4-kambetsu-flashcards-v1';
 let flashState = {};
 try {
@@ -429,8 +438,6 @@ const flashItemState = item => {
   const value = flashState[item.id] || {};
   return {attempts:Math.max(0,Number(value.attempts)||0),last:String(value.last||''),streak:Math.max(0,Number(value.streak)||0)};
 };
-const textbook294AndFlameTools = ["差動式分布型感知器（空気管式）の検出器","差動式分布型感知器（熱電対式）の検出器","差動式分布型感知器（熱電対式）の熱電対部","光電式スポット型感知器","紫外線式スポット型感知器","赤外線式スポット型感知器","ウォーターポンププライヤー"];
-const textbook294MarkedWrong = new Set(["差動式分布型感知器（熱電対式）の検出器","差動式分布型感知器（熱電対式）の熱電対部"]);
 const textbook308Tools = ["モール","リングスリーブ","ラジオペンチ","ニッパー","圧着ペンチ","ワイヤーカッター","ワイヤーストリッパー","パイプカッター","パイプベンダー","ねじ切り器","リーマ","ホルソ"];
 const textbook308Hints = {"モール":"細長い樹脂製の配線カバー。電線を壁や床に沿わせて収納・保護する。","リングスリーブ":"筒形の小さな接続金具。電線同士を差し込み、圧着ペンチで圧着接続する。","ラジオペンチ":"細長い先端でつまむ・曲げる。切断が主目的のニッパーとは先端形状が違う。","ニッパー":"刃で細めの電線を切断。線径に応じた工具を使い、被覆剥き専用ではない。","圧着ペンチ":"ダイスの刻印・かしめ部を見る。リングスリーブや端子を圧着する。","ワイヤーカッター":"太めの電線・ケーブルを切断するための刃。ニッパーと用途が近いので刃形状を比較。","ワイヤーストリッパー":"線径に応じた刃やレバー。導体を切らずに被覆だけを剥ぎ取る。","パイプカッター":"管を挟む円形刃とローラー、締め付けノブ。管の周りを回しながら切る。","パイプベンダー":"曲げ溝のあるヘッド＋長い柄。金属管を曲げる。切断用ではない。","ねじ切り器":"ダイス・ねじ切りヘッドが特徴。管の外周にねじ山を作る。","リーマ":"円すい状の刃。金属管を切断した後、内側のバリやかえりを取る。","ホルソ":"円筒状の穴あけ刃（ホールソー）。金属板・ボックス等に穴を開ける。"};
 const photoFlashCards = () => [...orderedTools,...extraTools].map((t,index) => ({
@@ -439,10 +446,10 @@ const photoFlashCards = () => [...orderedTools,...extraTools].map((t,index) => (
   title: t.name,
   question: 'この写真の名称と用途を説明できる？',
   answer: t.use,
-  hint: textbook294MarkedWrong.has(t.name) ? '講習p294の×印。検出器と熱電対部の違いを復習しよう。' : textbook308Hints[t.name] || '名前を見ずに用途の動詞まで説明。似た器具と何が違うかも確認しよう。',
+  hint: textbook308Hints[t.name] || '名前を見ずに用途の動詞まで説明。似た器具と何が違うかも確認しよう。',
   lectureToolPage: textbook308Tools.includes(t.name) ? '308' : null,
   photoTool: t
-}));
+})).filter(item=>isExamTool(item.photoTool));
 function flashRank(item) {
   const own=flashItemState(item);
   // Existing test record influences photo order without mutating its scores.
@@ -453,13 +460,12 @@ function flashRank(item) {
 }
 function beginFlash() {
   const scope=$('flash-scope').value;
-  const both=[...foundationFlashCards,...photoFlashCards()];
-  const selected=scope==='p294' ? both.filter(item=>item.photoTool && textbook294AndFlameTools.includes(item.title)) :
-    scope==='tools308' ? both.filter(item=>item.photoTool && textbook308Tools.includes(item.title)) :
+  const both=[...activeFoundationFlashCards,...photoFlashCards()];
+  const selected=scope==='tools308' ? both.filter(item=>item.photoTool && textbook308Tools.includes(item.title)) :
     scope==='photos' ? both.filter(item=>item.photoTool) :
     scope==='review' ? both.filter(item=>['miss','unsure'].includes(flashItemState(item).last) || (item.photoTool && ['miss','unsure'].includes(stateFor(item.photoTool).lastConfidence))) :
-    foundationFlashCards;
-  flashDeck=scope==='p294' ? [...selected].sort((a,b)=>textbook294AndFlameTools.indexOf(a.title)-textbook294AndFlameTools.indexOf(b.title)) : scope==='tools308' ? [...selected].sort((a,b)=>textbook308Tools.indexOf(a.title)-textbook308Tools.indexOf(b.title)) : [...selected].sort((a,b)=>flashRank(b)-flashRank(a)).slice(0,10);
+    activeFoundationFlashCards;
+  flashDeck=scope==='tools308' ? [...selected].sort((a,b)=>textbook308Tools.indexOf(a.title)-textbook308Tools.indexOf(b.title)) : [...selected].sort((a,b)=>flashRank(b)-flashRank(a)).slice(0,10);
   flashIndex=0;flashRevealed=false;flashRepeated=new Set();
   showFlash();
 }
@@ -477,13 +483,13 @@ function showFlash() {
     return;
   }
   flashRevealed=false;
-  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜基礎 ${foundationFlashCards.length}枚＋写真 ${photoFlashCards().length}枚`;
+  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜基礎 ${activeFoundationFlashCards.length}枚＋写真 ${photoFlashCards().length}枚`;
   $('flash-group').textContent=current.group;
   $('flash-question').textContent=current.question;
   $('flash-back').hidden=true;
   $('flash-answer-title').textContent=current.title;
   $('flash-answer').textContent=current.answer;
-  $('flash-hint').textContent=(textbook294AndFlameTools.includes(current.title) ? '講習p294／炎・重点｜' : current.lectureToolPage ? '講習教材 '+current.lectureToolPage+'頁｜' : '')+current.hint;
+  $('flash-hint').textContent=(current.lectureToolPage ? '講習教材 '+current.lectureToolPage+'頁｜' : '')+current.hint;
   const ref= current.photoTool?.kind==='thermocoupleDetector'||current.photoTool?.kind==='thermocoupleProbe'||current.photoTool?.kind==='airTubeDetector' ?
     'https://www.hosyu-kyokai.or.jp/jikahou.html' :
     current.photoTool?.kind==='flameDetector' ? 'https://www.kaho.or.jp/pages/jikaho/images/device-sensor-05.html' : '';
@@ -534,8 +540,7 @@ $('back-to-flash').addEventListener('click',openFlash);
 
 const entryParams=new URLSearchParams(location.search);
 if(entryParams.get('cards')==='p308') $('flash-scope').value='tools308';
-if(entryParams.get('cards')==='p294') $('flash-scope').value='p294';
-if(['p294','all','tools308','priority'].includes(entryParams.get('scope'))) $('quiz-scope').value=entryParams.get('scope');
+if(['all','tools308','priority'].includes(entryParams.get('scope'))) $('quiz-scope').value=entryParams.get('scope');
 beginFlash();
 if(entryParams.get('mode')==='test') openTest();
 </script></body></html>

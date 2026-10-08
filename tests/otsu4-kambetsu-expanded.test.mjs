@@ -43,7 +43,8 @@ test('lecture handoff items are included without dumping them all at session sta
     '定温式感知線型感知器','差動式分布型感知器（空気管式）','差動式分布型感知器（熱電対式）'
   ];
   for(const name of names) assert.ok(source.includes("name:'"+name+"'"),name);
-  assert.match(source,/const active=orderedTools\.slice\(0,unlocked\)/);
+  assert.match(source,/const active=examOrderedTools\.slice\(0,unlocked\)/);
+  assert.match(source,/const examOrderedTools = orderedTools\.filter\(isExamTool\)/);
   assert.match(source,/if\(after>before\)/);
 });
 

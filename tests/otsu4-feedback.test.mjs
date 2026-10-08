@@ -41,50 +41,67 @@ test('lecture marks remain connected to the shared Otsu4 bank and original recor
 
 
 
-test('Otsu4 p294 marked detector parts, flame types and pliers are immediately testable', async () => {
- const html=await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro',import.meta.url),'utf8');
- const script=html.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
- assert.ok(script);
- assert.doesNotThrow(()=>new vm.Script(script));
- const p294=script.match(/const textbook294AndFlameTools = (\[[^\n]+\]);/);
- assert.ok(p294);
- const required=JSON.parse(p294[1]);
- assert.equal(required.length,7);
- for(const n of [
-  '差動式分布型感知器（熱電対式）の検出器',
-  '差動式分布型感知器（熱電対式）の熱電対部',
-  '紫外線式スポット型感知器',
-  '赤外線式スポット型感知器',
-  'ウォーターポンププライヤー']) assert.ok(required.includes(n),n);
- assert.match(html,/id="quiz-scope"/);
- assert.match(html,/id="flash-reference"/);
- const dom=new Map();
- const el=id=>{
-  if(!dom.has(id))dom.set(id,{id,value:id==='flash-scope'||id==='quiz-scope'?'p294':'',hidden:false,style:{},textContent:'',dataset:{},addEventListener(){},appendChild(){},selectedOptions:[{textContent:'p294'}]});
-  return dom.get(id);
- };
- class SearchParams{constructor(x){this.x=x}get(key){return key==='cards'||key==='scope'?'p294':null}}
- const ctx={URLSearchParams:SearchParams,document:{getElementById:el,querySelectorAll:()=>[],createElement:()=>({style:{}})},window:{scrollTo(){}},location:{search:'?cards=p294&scope=p294'},localStorage:{getItem(){return null},setItem(){}}};
- const app=vm.runInNewContext(script+'\n({all:tools, cards:photoFlashCards(), flash:flashDeck, quiz:buildQueue(), defaultTools:activeTools(), fallbackSvg, foundationFlashCards})',ctx);
- assert.equal(app.all.length,78);
- assert.equal(app.cards.length,78);
- assert.equal(app.foundationFlashCards.length,26);
- assert.equal(new Set(app.all.map(x=>x.name)).size,78);
- assert.equal(app.flash.length,7);
- assert.ok(required.every(name=>app.flash.some(x=>x.title===name)),'all important items must be in p294 cards');
- assert.ok(required.every(name=>app.quiz.some(x=>x.name===name)),'all important items must be in p294 quiz');
- assert.equal(new Set(app.quiz.map(x=>x.name)).size,7);
- for(const name of [
-  '紫外線式スポット型感知器',
-  '赤外線式スポット型感知器',
-  'ウォーターポンププライヤー',
-  '差動式分布型感知器（熱電対式）の検出器',
-  '差動式分布型感知器（熱電対式）の熱電対部'
- ]) assert.ok(app.defaultTools.some(x=>x.name===name),'unlocked priority: '+name);
- assert.match(app.fallbackSvg(app.all.find(x=>x.kind==='thermocoupleProbe')),/^data:image\/svg/);
- const home=await readFile(new URL('../src/pages/otsu4/index.astro',import.meta.url),'utf8');
- assert.match(home,/cards=p294/);
- assert.match(home,/scope=p294/);
+test('Otsu4 lecture exclusions never appear in test, photo flashcards, or reviews; pliers stay active', async () => {
+  const html=await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro',import.meta.url),'utf8');
+  const script=html.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script);
+  assert.doesNotThrow(()=>new vm.Script(script));
+  const excluded=[
+    '紫外線式スポット型感知器',
+    '赤外線式スポット型感知器',
+    '差動式分布型感知器（熱電対式）の検出器',
+    '差動式分布型感知器（熱電対式）の熱電対部'
+  ];
+  const history=Object.fromEntries(excluded.map(name=>[name,{attempts:7,miss:7,lastConfidence:'miss'}]));
+  const oldState={
+    'otsu4-kambetsu-state-v2':JSON.stringify(history),
+    'otsu4-kambetsu-flashcards-v1':JSON.stringify({})
+  };
+  const dom=new Map();
+  const el=id=>{
+    if(!dom.has(id))dom.set(id,{id,value:id==='quiz-scope'?'priority':'basics',hidden:false,style:{},textContent:'',dataset:{},addEventListener(){},appendChild(){},selectedOptions:[{textContent:'通常モード'}]});
+    return dom.get(id);
+  };
+  class SearchParams {get(){return null}}
+  const ctx={
+    URLSearchParams:SearchParams,
+    document:{getElementById:el,querySelectorAll:()=>[],createElement:()=>({style:{}})},
+    window:{scrollTo(){}},
+    location:{search:''},
+    localStorage:{getItem(key){return oldState[key]??null},setItem(key,value){oldState[key]=value}}
+  };
+  const app=vm.runInNewContext(script+'\n({tools,examTools,activeTools,buildQueue,photoFlashCards,foundationFlashCards,activeFoundationFlashCards,beginFlash,getDeck:()=>flashDeck})',ctx);
+  assert.equal(app.tools.length,78,'retain all original data / stable tool names');
+  assert.equal(app.examTools.length,74,'only four lecture-excluded pictures are omitted');
+  assert.equal(app.photoFlashCards().length,74);
+  assert.equal(app.activeFoundationFlashCards.length,23);
+  assert.equal(app.foundationFlashCards.length,26,'keep old learning IDs and history');
+  for(const name of excluded){
+    assert.ok(app.tools.some(t=>t.name===name),'preserve original definition for historical grades');
+    assert.ok(!app.examTools.some(t=>t.name===name),'excluded from exam set: '+name);
+    assert.ok(!app.photoFlashCards().some(t=>t.title===name),'excluded from photo cards: '+name);
+  }
+  for(const scope of ['priority','all','tools308']){
+    el('quiz-scope').value=scope;
+    const queue=app.buildQueue().map(t=>t.name);
+    assert.ok(queue.length>0,scope);
+    assert.ok(queue.every(name=>!excluded.includes(name)),'no excluded items for '+scope);
+    if(scope==='priority')assert.equal(queue[0],'ウォーターポンププライヤー','user explicitly requested pliers');
+    if(scope==='all')assert.equal(new Set(queue).size,74);
+  }
+  for(const scope of ['basics','photos','tools308','review']){
+    el('flash-scope').value=scope;
+    app.beginFlash();
+    const deck=app.getDeck();
+    assert.ok(deck.every(item=>!excluded.includes(item.title)),'no excluded cards for '+scope);
+    assert.ok(deck.every(item=>!['base-flame','base-flame-uv-ir-compare','base-p294-thermocouple-difference'].includes(item.id)),'no excluded foundations for '+scope);
+  }
+  assert.equal(oldState['otsu4-kambetsu-state-v2'],JSON.stringify(history),'past answer records stay unchanged');
+  assert.doesNotMatch(html,/<option value="p294">/);
+  assert.match(html,/講習で本番範囲外/);
+  const home=await readFile(new URL('../src/pages/otsu4/index.astro',import.meta.url),'utf8');
+  assert.doesNotMatch(home,/\?cards=p294|\?mode=test&scope=p294/);
+  assert.match(home,/ウォーターポンププライヤー/);
 });
 
 test('Otsu4 lecture p308 tools drill matches all 12 unique workbook items and keeps records', async () => {
