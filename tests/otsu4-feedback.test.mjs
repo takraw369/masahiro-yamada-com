@@ -323,7 +323,7 @@ test('law test option ○ × ✓ notes do not submit until one answer is chosen 
   node('start').onclick();
   let session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(session.ids.length,20,'selected 20 questions started');
-  const firstId=session.ids[0],first=runtime.OTSU4_QUESTIONS.find(q=>q.id===firstId);
+  const firstId=session.ids[0],first=vm.runInNewContext('OTSU4_QUESTIONS',runtime).find(q=>q.id===firstId);
   assert.ok(first.choices?.length===4);
   assert.equal(node('submit-choice').disabled,true);
   node('mark-0-circle').onclick();
