@@ -49,7 +49,7 @@ test('dynamically populated pages load route-isolated global styles without edit
   for (const [name, pageRoot] of dynamics) {
     const source = await readFile(new URL(name, pageDir), 'utf8');
     const styleName = name.replace(/\.astro$/, '.css');
-    const css = await readFile(new URL('public/dashboard/runtime-css/' + styleName, root), 'utf8');
+    const css = await readFile(new URL('public/assets/dashboard-runtime/' + styleName, root), 'utf8');
     assert.ok(source.includes('<style>'), name + ' page remains unchanged');
     assert.ok(css.includes('@scope (.' + pageRoot + ')'), name + ' runtime style is page-bounded');
     assert.match(css, /:scope\s*\{/, name);
@@ -59,7 +59,7 @@ test('dynamically populated pages load route-isolated global styles without edit
 
 test('Task Flow runtime CSS styles actual innerHTML cards and contains long text', async () => {
   const page = await readFile(new URL('tasks.astro',pageDir), 'utf8');
-  const css = await readFile(new URL('public/dashboard/runtime-css/tasks.css',root), 'utf8');
+  const css = await readFile(new URL('public/assets/dashboard-runtime/tasks.css',root), 'utf8');
   const layout = await readFile(new URL('src/layouts/DashboardLayout.astro',root), 'utf8');
   assert.match(page, /list\.innerHTML\s*=\s*shown\.map/);
   assert.match(css, /@scope \(\.task-shell\)/);
