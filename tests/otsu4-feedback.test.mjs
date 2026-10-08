@@ -61,7 +61,7 @@ test('Otsu4 lecture p308 tools drill matches all 12 unique workbook items and ke
  assert.match(inline,/entryParams.get\('cards'\)==='p308'/);
  assert.match(html,/otsu4-kambetsu-state-v2/);
  const home=await readFile(new URL('../src/pages/otsu4/index.astro',import.meta.url),'utf8');
- assert.match(home,/\\?cards=p308/);
+ assert.match(home,/\?cards=p308/);
 });
 test('Otsu4 identification flashcards are accessible, typed, and preserve the current quiz state', async () => {
   const source = await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro', import.meta.url), 'utf8');
