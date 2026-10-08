@@ -31,10 +31,11 @@
     $('choices-help').hidden=!q.choices;
     $('submit-choice').hidden=!q.choices;
     $('choice-status').hidden=!q.choices;
+    // Marking is a compact elimination memo at the LEFT; tap the full text to choose ONE final answer.
     $('choices').innerHTML=q.choices ? q.choices.map((text,i)=>
       `<div class="choice-row" data-choice-row="${i}">`+
-      `<button type="button" class="choice-pick" data-answer="${i}" aria-pressed="false">${'ABCD'[i]}　${escape(text)}<span class="choose-label">（この答えを選ぶ）</span></button>`+
-      `<div class="choice-mark-actions" role="group" aria-label="選択肢${'ABCD'[i]}のメモ"><span>自分の判定：</span><button type="button" data-mark="circle" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を○と思う">○</button><button type="button" data-mark="cross" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を×と思う">×</button><button type="button" data-mark="check" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を後で確認したい">✓</button></div></div>`).join('') : '';
+      `<div class="choice-mark-actions" role="group" aria-label="選択肢${'ABCD'[i]}に印を付ける"><button type="button" data-mark="circle" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}に○を付ける">○</button><button type="button" data-mark="cross" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を除外する（×）">×</button></div>`+
+      `<button type="button" class="choice-pick" data-answer="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]} ${escape(text)}を回答に選ぶ"><span class="choice-letter">${'ABCD'[i]}</span><span class="choice-copy">${escape(text)}</span><span class="selected-indicator" aria-hidden="true">✓</span></button></div>`).join('') : '';
     $('choices').querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>choose(Number(b.dataset.answer)));
     $('choices').querySelectorAll('[data-mark]').forEach(b=>b.onclick=()=>markChoice(Number(b.dataset.index),b.dataset.mark));
     refreshChoiceUI();
@@ -61,14 +62,16 @@
       const mark=marks[row.dataset.choiceRow];
       row.classList.toggle('has-mark-circle',mark==='circle');
       row.classList.toggle('has-mark-cross',mark==='cross');
-      row.classList.toggle('has-mark-check',mark==='check');
     });
     $('submit-choice').disabled=selected===null||Boolean(pending);
-    $('choice-status').textContent=selected===null?'まだ解答は確定していません。選択肢を1つ選んでください。':`選択肢${'ABCD'[selected]}を解答に選択中。○×✓の印は採点に影響しません。`;
+    $('choice-status').textContent=selected===null?'答えは未選択です。選択肢の文章をタップすると選べます。':`選択肢${'ABCD'[selected]}を選択中。「答え合わせ」で確定できます。`;
   }
   function choose(index){
     if(pending||!session)return;
-    session.selectedChoice=index;saveSession();refreshChoiceUI();
+    session.selectedChoice=index;
+    // An excluded answer can be reconsidered without leaving crossed-out selected text.
+    if(session.choiceMarks?.[index]==='cross')delete session.choiceMarks[index];
+    saveSession();refreshChoiceUI();
   }
   function markChoice(index,kind){
     if(pending||!session)return;

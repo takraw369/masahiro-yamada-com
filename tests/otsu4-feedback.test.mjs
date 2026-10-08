@@ -270,7 +270,7 @@ test('law-only 10 20 and all 70 use unique questions and the original shared his
   assert.match(css,/min-width:0/);
 });
 
-test('law test option ○ × ✓ notes do not submit until one answer is chosen and confirmed', async () => {
+test('law test optional left ○ × elimination marks do not block normal final answer selection', async () => {
   const [coreSource,appSource,bankSource]=await Promise.all([
     readFile(new URL('../public/otsu4/tests/core.js',import.meta.url),'utf8'),
     readFile(new URL('../public/otsu4/tests/app.js',import.meta.url),'utf8'),
@@ -327,23 +327,29 @@ test('law test option ○ × ✓ notes do not submit until one answer is chosen 
   const firstId=session.ids[0],first=vm.runInNewContext('OTSU4_QUESTIONS',runtime).find(q=>q.id===firstId);
   assert.ok(first.choices?.length===4);
   assert.equal(node('submit-choice').disabled,true);
+  // Marks are optional, independently reversible and appear to the LEFT of text.
+  const quizHtml=node('choices').innerHTML;
+  assert.ok(quizHtml.indexOf('data-mark="circle"')<quizHtml.indexOf('data-answer="0"'),'elimination controls go at left');
+  assert.doesNotMatch(quizHtml,/data-mark="check"/,'no bulky three-button row');
   node('mark-0-circle').onclick();
   node('mark-1-cross').onclick();
-  node('mark-2-check').onclick();
   session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(session.choiceMarks[0],'circle');
   assert.equal(session.choiceMarks[1],'cross');
-  assert.equal(session.choiceMarks[2],'check');
   assert.equal(session.pending,undefined,'marking alone must not submit');
+  assert.equal(node('submit-choice').disabled,true);
+  // A previously crossed-out choice can be selected again: the × vanishes automatically.
   node('choice-answer-1').onclick();
   session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(session.selectedChoice,1);
+  assert.equal(session.choiceMarks[1],undefined);
   assert.equal(session.pending,undefined,'choosing alone must not submit');
   assert.equal(node('submit-choice').disabled,false);
+  assert.equal(node('choice-answer-1').getAttribute('aria-pressed'),'true');
   node('submit-choice').onclick();
   session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(session.pending.value,1);
-  assert.equal(session.pending.choiceMarks[2],'check');
+  assert.equal(session.pending.choiceMarks[0],'circle');
   assert.equal(node('feedback').hidden,false);
   node('confidence-unsure').onclick();
   const after=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
@@ -353,4 +359,12 @@ test('law test option ○ × ✓ notes do not submit until one answer is chosen 
   assert.equal(data.attempts[firstId],1);
   assert.equal(after.selectedChoice,undefined);
   assert.equal(after.choiceMarks,undefined);
+  // Most important real-user case: do not mark ANY choices on next question; choose answer directly.
+  assert.equal(node('submit-choice').disabled,true);
+  node('choice-answer-2').onclick();
+  assert.equal(node('submit-choice').disabled,false,'one tap on answer text makes submission possible');
+  node('submit-choice').onclick();
+  const next=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  assert.equal(next.pending.value,2);
+  assert.deepEqual({...next.pending.choiceMarks},{},'marks are never required to answer');
 });
