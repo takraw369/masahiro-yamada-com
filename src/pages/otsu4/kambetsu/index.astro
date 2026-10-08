@@ -49,7 +49,7 @@ button{touch-action:manipulation}
 <img class="flash-photo" id="flash-photo" alt="鑑別する器具の写真。答えは裏面にあります" referrerpolicy="no-referrer" hidden>
 <div id="flash-back" class="flash-back" hidden>
 <h3 id="flash-answer-title"></h3><p id="flash-answer"></p>
-<p class="hint" id="flash-hint"></p><p><a id="flash-reference" href="#" target="_blank" rel="noopener noreferrer" hidden>実物写真と仕組みを確認する（外部公式サイト）→</a></p>
+<p class="hint" id="flash-hint"></p><p><a id="flash-reference" href="#" target="_blank" rel="noopener noreferrer" hidden>実物写真・仕組みの参考資料へ（外部サイト）→</a></p>
 </div>
 </div>
 <div class="flash-buttons">
@@ -479,7 +479,7 @@ function showFlash() {
   $('flash-answer').textContent=current.answer;
   $('flash-hint').textContent=(textbook294AndFlameTools.includes(current.title) ? '講習p294／炎・重点｜' : current.lectureToolPage ? '講習教材 '+current.lectureToolPage+'頁｜' : '')+current.hint;
   const ref= current.photoTool?.kind==='thermocoupleDetector'||current.photoTool?.kind==='thermocoupleProbe'||current.photoTool?.kind==='airTubeDetector' ?
-    'https://www.ndc-group.co.jp/products/fire_information/sadou/' :
+    'https://www.hosyu-kyokai.or.jp/jikahou.html' :
     current.photoTool?.kind==='flameDetector' ? 'https://www.kaho.or.jp/pages/jikaho/images/device-sensor-05.html' : '';
   $('flash-reference').hidden=!ref;
   if(ref) $('flash-reference').href=ref;
