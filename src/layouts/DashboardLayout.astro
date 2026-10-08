@@ -18,7 +18,7 @@ const runtimeStylePages = new Set([
   'question-lab', 'relationships', 'voice', 'ace-assets', 'content-flow',
 ]);
 const runtimePage = pathname.startsWith('/dashboard/') ? pathname.split('/').filter(Boolean).at(-1) || '' : '';
-const runtimeStyleHref = runtimeStylePages.has(runtimePage) ? `/dashboard/runtime-css/${runtimePage}.css` : null;
+const runtimeStyleHref = runtimeStylePages.has(runtimePage) ? `/assets/dashboard-runtime/${runtimePage}.css` : null;
 const visibleEyebrow = pathname === '/dashboard/tasks' ? 'TASK FLOW' : eyebrow;
 const cockpit = getDashboardCockpit(pathname);
 
