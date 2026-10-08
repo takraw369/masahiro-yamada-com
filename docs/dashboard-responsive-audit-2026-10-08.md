@@ -9,7 +9,9 @@ Astro component-scoped CSS attaches per-element scope attributes to static HTML.
 ## Inventory
 Source reviewed: **41 Dashboard Astro routes**, including specialized graph/board canvases and dedicated React islands.
 
-**11 runtime-injection surfaces remediated** using page-bounded global CSS (`<style is:global>` with `@scope (.page-root)`): Task Flow, Evidence Lab, Choice Lab, FLOW Board, Living Graph, Design Lab, Question Lab, Relationship OS, Voice Inbox, ACE Assets and Content Flow.
+**11 runtime-injection surfaces remediated** using **route-loaded external CSS** in `public/dashboard/runtime-css/`, bounded by `@scope (.page-root)`. This leaves legacy page scripts untouched: Task Flow, Evidence Lab, Choice Lab, FLOW Board, Living Graph, Design Lab, Question Lab, Relationship OS, Voice Inbox, ACE Assets and Content Flow.
+
+**Delivery:** `DashboardLayout.astro` loads the matching stylesheet only on its route (not all eleven on every visit), and shortens the Task Flow mobile header without modifying its existing JavaScript.
 
 **Shared policy for all Dashboard routes**: `src/styles/dashboard-mobile-guardrails.css` imported by `DashboardLayout.astro`. Provides consistent box sizing across static HTML, React islands and runtime-generated DOM; protects text, links and form elements against viewport overflow, and preserves internal scroll for code/canvas-type content.
 
@@ -22,7 +24,7 @@ Source reviewed: **41 Dashboard Astro routes**, including specialized graph/boar
 - Shortened mobile header to “TASK FLOW”.
 
 ## Verification and honesty
-- Source-based audit covers all 41 page entries; regression test fails if new runtime-HTML pages use only Astro-scoped CSS.
+- Source-based audit covers all 41 page entries; regression test confirms runtime style assets and route mapping, and flags new runtime-HTML pages lacking a mapped fix.
 - PR CI: regression tests, typecheck, build, isolated Worker smoke, dependency audit, secret scan.
 - Live visual iPhone verification **not established by CI**. Check 320/375/390/430 CSS px on Safari for actual overflow and readability. Preserve true scroll within Graph/Board canvases.
 
@@ -34,4 +36,4 @@ Source reviewed: **41 Dashboard Astro routes**, including specialized graph/boar
 5. Every future new dashboard route inherits shared mobile guardrails, with page-level CSS tested separately.
 
 ## Rollback
-Revert the PR. No API, authentication, database or persistence modifications.
+Revert the PR. No page JavaScript, API, authentication, database or persistence modifications.
