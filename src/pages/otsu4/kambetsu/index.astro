@@ -180,9 +180,13 @@ function fallbackSvg(t){
   else if(k==='beamDetector') body='<rect x="150" y="170" width="180" height="180" rx="28" fill="none" stroke="#6d7f8b" stroke-width="20"/><rect x="570" y="170" width="180" height="180" rx="28" fill="none" stroke="#6d7f8b" stroke-width="20"/><path d="M345 260h210" stroke="#6d7f8b" stroke-width="16" stroke-dasharray="28 20"/>';
   else if(k==='lineDetector') body='<path d="M130 210c90 0 90 80 180 80s90-80 180-80 90 80 180 80 90-80 180-80" fill="none" stroke="#6d7f8b" stroke-width="18"/><path d="M130 300c90 0 90-80 180-80s90 80 180 80 90-80 180-80 90 80 180 80" fill="none" stroke="#6d7f8b" stroke-width="18"/>';
   else if(k==='airTube') body='<path d="M110 280h230c30 0 45-20 45-45v-75h130v75c0 25 15 45 45 45h230" fill="none" stroke="#6d7f8b" stroke-width="18"/><circle cx="450" cy="360" r="55" fill="none" stroke="#6d7f8b" stroke-width="18"/>';
+  else if(k==='airTubeDetector') body='<rect x="290" y="82" width="320" height="365" rx="22" fill="#e0e8ec" stroke="#607786" stroke-width="16"/><circle cx="450" cy="225" r="112" fill="#f8fafb" stroke="#607786" stroke-width="13"/><path d="M385 201h130m-130 42h130M345 345h210" stroke="#607786" stroke-width="14"/><rect x="330" y="383" width="105" height="34" fill="#c5d3dc"/><rect x="472" y="383" width="105" height="34" fill="#c5d3dc"/>';
+  else if(k==='thermocoupleDetector') body='<rect x="215" y="105" width="470" height="340" rx="18" fill="#e6edf0" stroke="#607786" stroke-width="18"/><rect x="248" y="136" width="404" height="115" rx="9" fill="#f8fafb" stroke="#607786" stroke-width="10"/><rect x="255" y="295" width="390" height="125" rx="8" fill="#fff" stroke="#607786" stroke-width="8"/>'+[316,450,584].map(x=>'<circle cx="'+x+'" cy="320" r="17" fill="#7c8a94"/><circle cx="'+x+'" cy="381" r="17" fill="#7c8a94"/>').join('');
+  else if(k==='thermocoupleProbe') body='<g transform="rotate(-24 450 260)">'+[0,1,2].map(i=>'<path d="M130 '+(215+i*42)+'h640" stroke="'+(i===1?'#567b8b':'#a4b4bd')+'" stroke-width="13" stroke-linecap="round"/>').join('')+'<path d="M210 204l25 55M295 204l25 55M380 204l25 55" stroke="#667d8b" stroke-width="7"/></g>';
   else if(k==='thermocouple'||k==='semiconductor') body='<path d="M210 330l120-140 120 140 120-140 120 140" fill="none" stroke="#6d7f8b" stroke-width="20"/><circle cx="330" cy="190" r="18" fill="#6d7f8b"/><circle cx="570" cy="190" r="18" fill="#6d7f8b"/>';
   else if(k==='smokeDetector'||k==='ionDetector'||k==='heatDetector'||k==='airSpot') body='<circle cx="450" cy="250" r="150" fill="none" stroke="#6d7f8b" stroke-width="22"/><path d="M340 220h220M330 265h240M355 310h190" stroke="#6d7f8b" stroke-width="14" stroke-linecap="round"/>';
-  else if(k==='flameDetector') body='<path d="M450 105c45 65 100 105 92 175-7 68-54 120-92 150-38-30-85-82-92-150-8-70 47-110 92-175z" fill="none" stroke="#6d7f8b" stroke-width="20"/>';
+  else if(k==='flameDetector') body='<rect x="255" y="100" width="390" height="335" rx="78" fill="#e3e9ed" stroke="#607786" stroke-width="19"/><circle cx="450" cy="263" r="116" fill="#f8fafb" stroke="#607786" stroke-width="13"/><circle cx="450" cy="263" r="64" fill="#607786"/><path d="M315 411h270" stroke="#8a9fab" stroke-width="18"/>';
+  else if(k==='tool'&&t.name==='ウォーターポンププライヤー') body='<g transform="rotate(-25 450 270)"><path d="M400 235L280 95l-40 35 140 185m120-80L640 100l40 45-140 170" stroke="#647d8f" stroke-width="30" stroke-linecap="round" fill="none"/><path d="M380 315l-45 140m190-140l40 140" stroke="#647d8f" stroke-width="38" stroke-linecap="round"/><circle cx="450" cy="300" r="28" fill="#d5e0e6" stroke="#647d8f" stroke-width="10"/><path d="M350 180l38-24m-29 40l38-24m110-15l42 24m-54-10l40 25" stroke="#647d8f" stroke-width="9"/></g>';
   else if(k==='battery') body='<rect x="230" y="155" width="440" height="210" rx="38" fill="none" stroke="#6d7f8b" stroke-width="22"/><path d="M670 230h55v60h-55M310 215v90M265 260h90" stroke="#6d7f8b" stroke-width="18"/>';
   else if(k==='bell') body='<circle cx="450" cy="255" r="150" fill="none" stroke="#6d7f8b" stroke-width="24"/><circle cx="450" cy="255" r="28" fill="#6d7f8b"/>';
   else if(k==='light') body='<path d="M350 340h200l-30-170c-8-50-132-50-140 0z" fill="none" stroke="#6d7f8b" stroke-width="20"/><path d="M320 370h260" stroke="#6d7f8b" stroke-width="20"/>';
@@ -267,7 +271,10 @@ function unlockedCount(){
 function activeTools(){
   const unlocked=unlockedCount();
   const active=orderedTools.slice(0,unlocked);
-  if(unlocked>=orderedTools.length) active.push(...extraTools);
+  // Highlighted lecture mistakes and flame detector must not be locked behind early sessions.
+  const immediate=['紫外線式スポット型感知器','差動式分布型感知器（熱電対式）の検出器','差動式分布型感知器（熱電対式）の熱電対部','ウォーターポンププライヤー'];
+  for(const name of immediate){const t=tools.find(x=>x.name===name);if(t&&!active.some(x=>x.name===name))active.push(t);}
+  if(unlocked>=orderedTools.length) for(const t of extraTools)if(!active.some(x=>x.name===t.name))active.push(t);
   return active;
 }
 function priority(t){
@@ -313,7 +320,9 @@ function insertRepeat(deck,t,minDelay,maxDelay){
   deck.splice(pos,0,t);
 }
 function buildQueue(){
-  const active=activeTools();
+  const requested=$('quiz-scope')?.value||'priority';
+  const focus=requested==='p294'?textbook294AndFlameTools:requested==='tools308'?textbook308Tools:null;
+  const active=requested==='all'?[...orderedTools,...extraTools]:focus?focus.map(name=>tools.find(t=>t.name===name)).filter(Boolean):activeTools();
   const base=[...active].sort((a,b)=>{
     const p=priority(a)-priority(b);
     if(p)return p;
@@ -359,7 +368,7 @@ function show(){
   const t=queue[i];
   lastResult=null;
   loadPhoto(t);setMask(t);
-  $('counter').textContent=`${i+1} / ${queue.length}｜講習順 ${unlockedCount()} / ${orderedTools.length} 解放`;
+  $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜通常解放 ${unlockedCount()} / ${orderedTools.length}`;
   if($('poolPill'))$('poolPill').textContent=`鑑別・${orderedTools.length}項目`;
   $('bar').style.width=`${i/queue.length*100}%`;
   $('name').value='';$('use').value='';
