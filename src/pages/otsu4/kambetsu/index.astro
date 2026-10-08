@@ -49,7 +49,7 @@ button{touch-action:manipulation}
 <img class="flash-photo" id="flash-photo" alt="鑑別する器具の写真。答えは裏面にあります" referrerpolicy="no-referrer" hidden>
 <div id="flash-back" class="flash-back" hidden>
 <h3 id="flash-answer-title"></h3><p id="flash-answer"></p>
-<p class="hint" id="flash-hint"></p>
+<p class="hint" id="flash-hint"></p><p><a id="flash-reference" href="#" target="_blank" rel="noopener noreferrer" hidden>実物写真と仕組みを確認する（外部公式サイト）→</a></p>
 </div>
 </div>
 <div class="flash-buttons">
@@ -272,7 +272,7 @@ function activeTools(){
   const unlocked=unlockedCount();
   const active=orderedTools.slice(0,unlocked);
   // Highlighted lecture mistakes and flame detector must not be locked behind early sessions.
-  const immediate=['紫外線式スポット型感知器','差動式分布型感知器（熱電対式）の検出器','差動式分布型感知器（熱電対式）の熱電対部','ウォーターポンププライヤー'];
+  const immediate=['紫外線式スポット型感知器','差動式分布型感知器（熱電対式）の検出器','差動式分布型感知器（熱電対式）の熱電対部','赤外線式スポット型感知器','ウォーターポンププライヤー'];
   for(const name of immediate){const t=tools.find(x=>x.name===name);if(t&&!active.some(x=>x.name===name))active.push(t);}
   if(unlocked>=orderedTools.length) for(const t of extraTools)if(!active.some(x=>x.name===t.name))active.push(t);
   return active;
@@ -478,6 +478,11 @@ function showFlash() {
   $('flash-answer-title').textContent=current.title;
   $('flash-answer').textContent=current.answer;
   $('flash-hint').textContent=(textbook294AndFlameTools.includes(current.title) ? '講習p294／炎・重点｜' : current.lectureToolPage ? '講習教材 '+current.lectureToolPage+'頁｜' : '')+current.hint;
+  const ref= current.photoTool?.kind==='thermocoupleDetector'||current.photoTool?.kind==='thermocoupleProbe'||current.photoTool?.kind==='airTubeDetector' ?
+    'https://www.ndc-group.co.jp/products/fire_information/sadou/' :
+    current.photoTool?.kind==='flameDetector' ? 'https://www.kaho.or.jp/pages/jikaho/images/device-sensor-05.html' : '';
+  $('flash-reference').hidden=!ref;
+  if(ref) $('flash-reference').href=ref;
   $('flash-photo').hidden=!current.photoTool;
   if (current.photoTool) { loadPhoto(current.photoTool,'flash-photo'); $('flash-photo').alt='鑑別用参考写真または模式図（教材原版の転載ではありません）'; }
   $('flash-flip').hidden=false;
