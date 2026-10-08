@@ -2,6 +2,7 @@
 import { getDashboardCockpit } from '../lib/dashboardCockpits';
 import '../styles/masa-readable.css';
 import '../styles/masa-design-language.css';
+import '../styles/dashboard-mobile-guardrails.css';
 
 export interface Props {
   title: string;
@@ -12,6 +13,13 @@ export interface Props {
 
 const { title, fullHeight = false, focusMode = false, eyebrow = 'MASA OS' } = Astro.props;
 const pathname = Astro.url.pathname;
+const runtimeStylePages = new Set([
+  'tasks', 'evidence', 'choice-lab', 'board', 'graph', 'design-lab',
+  'question-lab', 'relationships', 'voice', 'ace-assets', 'content-flow',
+]);
+const runtimePage = pathname.startsWith('/dashboard/') ? pathname.split('/').filter(Boolean).at(-1) || '' : '';
+const runtimeStyleHref = runtimeStylePages.has(runtimePage) ? `/assets/dashboard-runtime/${runtimePage}.css` : null;
+const visibleEyebrow = pathname === '/dashboard/tasks' ? 'TASK FLOW' : eyebrow;
 const cockpit = getDashboardCockpit(pathname);
 
 const defaultAppMeta = {
@@ -96,6 +104,7 @@ const commandItems = [
     <meta name="apple-mobile-web-app-title" content={appMeta.appleTitle} />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>{title} — MASA OS</title>
+    {runtimeStyleHref && <link rel="stylesheet" href={runtimeStyleHref} />}
     <link rel="manifest" href={appMeta.manifest} />
     <link rel="apple-touch-icon" href={appMeta.icon} />
     <link rel="icon" href={appMeta.icon} type="image/png" />
@@ -280,7 +289,7 @@ const commandItems = [
       <div class="main">
         <header class="topbar">
           <div class="page-meta">
-            <p class="eyebrow">{eyebrow}</p>
+            <p class="eyebrow">{visibleEyebrow}</p>
             <p class="page-title">{title}</p>
             <p class="cockpit-flow" aria-label={`見る: ${cockpit.see}。決める: ${cockpit.decide}。動く: ${cockpit.act}`}>
               <span class="cockpit-step cockpit-see"><strong>見る</strong>{cockpit.see}</span>
