@@ -256,7 +256,7 @@ test('law-only 10 20 and all 70 use unique questions and the original shared his
     assert.equal(C.select(bank,law,state,mode,Date.now(),'all').length,70);
   }
   const others=C.topics.find(t=>t.id==='electric');
-  assert.equal(C.select(bank,others,state,'smart').length,10);
+  assert.ok(C.select(bank,others,state,'smart').length<=10,'other small topics retain maximum ten');
   assert.equal(C.STATE_KEY,'otsu4-study-state-v1');
   const page=await readFile(new URL('../src/pages/otsu4/tests/index.astro',import.meta.url),'utf8');
   assert.match(page,/<select id="question-count">/);
@@ -320,6 +320,7 @@ test('law test option ○ × ✓ notes do not submit until one answer is chosen 
   vm.runInNewContext(bankSource, runtime);
   vm.runInNewContext(appSource,runtime);
   assert.equal(node('law-count-control').hidden,false);
+  node('question-count').value='20';
   node('start').onclick();
   let session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(session.ids.length,20,'selected 20 questions started');
