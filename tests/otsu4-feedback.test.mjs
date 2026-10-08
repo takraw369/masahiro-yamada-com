@@ -234,3 +234,123 @@ test('Otsu4 law-only 10 question test is separately reachable and preserves shar
   assert.match(landing,/href="\/otsu4\/tests\/\?topic=law-class"/);
   assert.equal(C.STATE_KEY,'otsu4-study-state-v1');
 });
+
+
+test('law-only 10 20 and all 70 use unique questions and the original shared history', async () => {
+  const coreSource=await readFile(new URL('../public/otsu4/tests/core.js',import.meta.url),'utf8');
+  const bankSource=await readFile(new URL('../public/otsu4/questions.js',import.meta.url),'utf8');
+  const ctx={window:{}};vm.runInNewContext(coreSource,ctx);
+  const C=ctx.window.OTSU4_TOPIC_TESTS;
+  const bank=vm.runInNewContext(bankSource+'\nOTSU4_QUESTIONS');
+  const law=C.topics.find(t=>t.id==='law-all');
+  const state=C.load({getItem(){return null}});
+  for(const [size,common,related] of [[10,5,5],[20,10,10],[70,39,31]]) {
+    const chosen=C.select(bank,law,state,'smart',Date.now(),size);
+    assert.equal(chosen.length,size);
+    assert.equal(new Set(chosen.map(q=>q.id)).size,size);
+    assert.equal(chosen.filter(q=>q.category==='law-common').length,common);
+    assert.equal(chosen.filter(q=>q.category==='law-class').length,related);
+  }
+  // Never silently drop questions when the learner selects all 70 in weak/unseen mode.
+  for(const mode of ['smart','weak','unseen']){
+    assert.equal(C.select(bank,law,state,mode,Date.now(),'all').length,70);
+  }
+  const others=C.topics.find(t=>t.id==='electric');
+  assert.ok(C.select(bank,others,state,'smart').length<=10,'other small topics retain maximum ten');
+  assert.equal(C.STATE_KEY,'otsu4-study-state-v1');
+  const page=await readFile(new URL('../src/pages/otsu4/tests/index.astro',import.meta.url),'utf8');
+  assert.match(page,/<select id="question-count">/);
+  assert.match(page,/<option value="20">20問/);
+  assert.match(page,/<option value="all">全70問/);
+  assert.match(page,/id="submit-choice"/);
+  assert.match(page,/id="choice-status"/);
+  assert.match(page,/id="choices-help"/);
+  const css=await readFile(new URL('../public/otsu4/tests/styles.css',import.meta.url),'utf8');
+  assert.match(css,/min-height:44px/);
+  assert.match(css,/min-width:0/);
+});
+
+test('law test option ○ × ✓ notes do not submit until one answer is chosen and confirmed', async () => {
+  const [coreSource,appSource,bankSource]=await Promise.all([
+    readFile(new URL('../public/otsu4/tests/core.js',import.meta.url),'utf8'),
+    readFile(new URL('../public/otsu4/tests/app.js',import.meta.url),'utf8'),
+    readFile(new URL('../public/otsu4/questions.js',import.meta.url),'utf8')
+  ]);
+  assert.doesNotThrow(()=>new vm.Script(appSource));
+  const nodes=new Map(),stored=new Map();
+  function node(id){
+    if(nodes.has(id))return nodes.get(id);
+    const attrs={},flags=new Set();
+    const x={
+      id,value:id==='mode'?'smart':id==='question-count'?'20':'',hidden:false,disabled:false,
+      dataset:{},textContent:'',style:{},className:'',href:'',max:0,
+      classList:{toggle(name,enable){if(enable)flags.add(name);else flags.delete(name);},contains(name){return flags.has(name);}},
+      setAttribute(k,v){attrs[k]=String(v)},getAttribute(k){return attrs[k]},
+      querySelector(selector){return node(id+'-'+selector)},
+      querySelectorAll(selector){return (this.children||[]).filter(child=>{
+        if(selector==='[data-answer]')return child.dataset.answer!==undefined;
+        if(selector==='[data-mark]')return child.dataset.mark!==undefined;
+        if(selector==='[data-choice-row]')return child.dataset.choiceRow!==undefined;
+        return false;
+      })}
+    };
+    Object.defineProperty(x,'innerHTML',{get(){return this._html||''},set(h){
+      this._html=h;
+      if(id==='choices'){
+        this.children=[];
+        for(const m of h.matchAll(/<button\b[^>]*data-answer="(\d+)"/g)){
+          const child=node('choice-answer-'+m[1]);child.dataset.answer=m[1];child.disabled=false;
+          this.children.push(child);
+        }
+        for(const m of h.matchAll(/<button\b[^>]*data-mark="([^"]+)" data-index="(\d+)"/g)){
+          const child=node('mark-'+m[2]+'-'+m[1]);child.dataset.mark=m[1];child.dataset.index=m[2];child.disabled=false;
+          this.children.push(child);
+        }
+        for(const m of h.matchAll(/<div class="choice-row" data-choice-row="(\d+)"/g)){
+          const child=node('row-'+m[1]);child.dataset.choiceRow=m[1];this.children.push(child);
+        }
+      }
+    }});
+    nodes.set(id,x);return x;
+  }
+  const storage={getItem(k){return stored.get(k)??null},setItem(k,v){stored.set(k,v)},removeItem(k){stored.delete(k)}};
+  const doc={getElementById:node,querySelectorAll(sel){if(sel==='[data-confidence]')return ['miss','unsure','ok'].map(k=>{const v=node('confidence-'+k);v.dataset.confidence=k;return v;});return [];}};
+  const runtime={window:{scrollTo(){}},document:doc,location:{search:'?topic=law-all'},localStorage:storage,URLSearchParams};
+  vm.runInNewContext(coreSource,runtime);
+  vm.runInNewContext(bankSource, runtime);
+  vm.runInNewContext(appSource,runtime);
+  assert.equal(node('law-count-control').hidden,false);
+  node('question-count').value='20';
+  node('start').onclick();
+  let session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  assert.equal(session.ids.length,20,'selected 20 questions started');
+  const firstId=session.ids[0],first=vm.runInNewContext('OTSU4_QUESTIONS',runtime).find(q=>q.id===firstId);
+  assert.ok(first.choices?.length===4);
+  assert.equal(node('submit-choice').disabled,true);
+  node('mark-0-circle').onclick();
+  node('mark-1-cross').onclick();
+  node('mark-2-check').onclick();
+  session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  assert.equal(session.choiceMarks[0],'circle');
+  assert.equal(session.choiceMarks[1],'cross');
+  assert.equal(session.choiceMarks[2],'check');
+  assert.equal(session.pending,undefined,'marking alone must not submit');
+  node('choice-answer-1').onclick();
+  session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  assert.equal(session.selectedChoice,1);
+  assert.equal(session.pending,undefined,'choosing alone must not submit');
+  assert.equal(node('submit-choice').disabled,false);
+  node('submit-choice').onclick();
+  session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  assert.equal(session.pending.value,1);
+  assert.equal(session.pending.choiceMarks[2],'check');
+  assert.equal(node('feedback').hidden,false);
+  node('confidence-unsure').onclick();
+  const after=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  const data=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.STATE_KEY));
+  assert.equal(after.index,1);
+  assert.equal(after.answers[0].choiceMarks[0],'circle');
+  assert.equal(data.attempts[firstId],1);
+  assert.equal(after.selectedChoice,undefined);
+  assert.equal(after.choiceMarks,undefined);
+});

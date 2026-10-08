@@ -5,7 +5,7 @@
   const SESSION_KEY = 'otsu4-topic-test-session-v1';
   const topics = [
     {id:'lecture-marks', label:'★ 講習で線を引いた箇所', marked:true, note:'赤線・丸・星印を優先。写真のページを確認し、誤答・△を繰り返す。'},
-    { id:'law-all', label:'法令総合10問（別表第1とは別）', quota:{'law-common':5,'law-class':5}, note:'共通法令5問＋乙4法令5問。消防組織・防火管理・点検報告・警戒区域を一度に確認。' },
+    { id:'law-all', label:'法令総合（別表第1とは別）', quota:{'law-common':5,'law-class':5}, note:'10問・20問・全70問を選択。消防組織・防火管理・点検報告・警戒区域などを確認。' },
     { id:'law-common', label:'共通法令', category:'law-common', note:'業務範囲・維持責任・点検と報告・複合用途' },
     { id:'law-class', label:'乙4法令・警戒区域', category:'law-class', note:'面積・一辺・見通し例外・第4類の対象' },
     { id:'electric', label:'電気基礎', category:'electric', note:'オームの法則・合成抵抗・電力・交流' },
@@ -42,19 +42,34 @@
     if(s.history.slice(-8).some(r=>r.concept===q.concept)) n-=55;
     return n;
   }
-  function select(rows,topic,state,mode='smart',now=Date.now()) {
+  // Keep the original signature intact: the optional sixth argument sets the law-only session size.
+  function select(rows,topic,state,mode='smart',now=Date.now(),limit=10) {
     const pool=rows.filter(q=>matches(q,topic));
-    const eligible=mode==='weak' ? pool.filter(q=>weak(q,state)) : mode==='unseen' ? pool.filter(q=>!(state.attempts[q.id]||0)) : pool;
+    const law=topic.id==='law-all';
+    const entireLawPool=law && (limit==='all' || Number(limit)===pool.length);
+    const target=law ? (entireLawPool ? pool.length : Number(limit)===20 ? 20 : 10) : 10;
+    // "All 70" means all laws, even when the preference is weak / unseen.
+    const eligible=entireLawPool ? pool : mode==='weak' ? pool.filter(q=>weak(q,state)) : mode==='unseen' ? pool.filter(q=>!(state.attempts[q.id]||0)) : pool;
     const ranked=[...eligible].sort((a,b)=>priority(b,state,now)-priority(a,state,now));
-    const used=new Set(),picked=[];
+    const usedIds=new Set(),usedConcepts=new Set(),picked=[];
     const take=(items,count)=>{
       let n=0;
-      for(const q of items) { if(n>=count) break; if(used.has(q.concept)) continue; used.add(q.concept);picked.push(q);n++; }
+      for(const q of items) {
+        if(n>=count)break;
+        if(usedIds.has(q.id) || usedConcepts.has(q.concept))continue;
+        usedIds.add(q.id);usedConcepts.add(q.concept);picked.push(q);n++;
+      }
     };
-    if(topic.quota) for(const [category,n] of Object.entries(topic.quota)) take(ranked.filter(q=>q.category===category),n);
-    else take(ranked,10);
-    // A law-only drill still supplies up to 10 questions if one category has no weak/unseen items.
-    if(topic.id==='law-all' && picked.length<10)take(ranked,10-picked.length);
+    if(law && !entireLawPool) {
+      const each=target/2;
+      take(ranked.filter(q=>q.category==='law-common'),each);
+      take(ranked.filter(q=>q.category==='law-class'),each);
+      if(picked.length<target)take(ranked,target-picked.length);
+    } else if (law && entireLawPool) {
+      take(ranked,target);
+    } else if(topic.quota) {
+      for(const [category,n] of Object.entries(topic.quota))take(ranked.filter(q=>q.category===category),n);
+    } else take(ranked,10);
     return picked;
   }
   // Fresh read for every mutation: retain comments and all unrelated question records.

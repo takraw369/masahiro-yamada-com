@@ -10,7 +10,7 @@
     const s=C.load(localStorage);
     $('topic-list').innerHTML=C.topics.map(t=>{
       const pool=rows.filter(q=>C.matches(q,t)),seen=pool.filter(q=>s.attempts[q.id]).length,w=pool.filter(q=>C.weak(q,s)).length;
-      return `<a class="panel link-card" href="?topic=${t.id}"><span class="eyebrow">${t.quota?'30〜45分の入口':'1項目 / 最大10問'}</span><h3>${escape(t.label)}</h3><p>${escape(t.note)}</p><p class="stats">収録${pool.length}問 · 経験${seen}問 · 弱点${w}問</p></a>`;
+      return `<a class="panel link-card" href="?topic=${t.id}"><span class="eyebrow">${t.id==='law-all'?'10・20・全70問を選択':t.quota?'30〜45分の入口':'1項目 / 最大10問'}</span><h3>${escape(t.label)}</h3><p>${escape(t.note)}</p><p class="stats">収録${pool.length}問 · 経験${seen}問 · 弱点${w}問</p></a>`;
     }).join('');
     $('resume').hidden=!session;
     if(session)$('resume-copy').textContent=`${C.topics.find(t=>t.id===session.topic)?.label} · ${session.index+1}/${session.ids.length}問目`;
@@ -18,6 +18,8 @@
   }
   function setup(){
     $('topic-title').textContent=topic.label;$('topic-note').textContent=topic.note;
+    $('law-count-control').hidden=topic.id!=='law-all';
+    $('question-count').value='10';
     const pool=rows.filter(q=>C.matches(q,topic)),s=C.load(localStorage);
     $('topic-stats').textContent=`収録${pool.length}問 / 未出${pool.filter(q=>!s.attempts[q.id]).length}問 / 弱点${pool.filter(q=>C.weak(q,s)).length}問`;
     show('setup');
@@ -26,22 +28,66 @@
     const q=byId.get(session.ids[session.index]);if(!q)return finish();
     $('counter').textContent=`${session.index+1} / ${session.ids.length}`;$('progress').max=session.ids.length;$('progress').value=session.index;
     $('question-label').textContent=topic.label+' / '+q.concept;$('question').textContent=q.question;
-    $('choices').innerHTML=q.choices ? q.choices.map((text,i)=>`<button type="button" data-answer="${i}">${'ABCD'[i]}　${escape(text)}</button>`).join('') : '';
+    $('choices-help').hidden=!q.choices;
+    $('submit-choice').hidden=!q.choices;
+    $('choice-status').hidden=!q.choices;
+    $('choices').innerHTML=q.choices ? q.choices.map((text,i)=>
+      `<div class="choice-row" data-choice-row="${i}">`+
+      `<button type="button" class="choice-pick" data-answer="${i}" aria-pressed="false">${'ABCD'[i]}　${escape(text)}<span class="choose-label">（この答えを選ぶ）</span></button>`+
+      `<div class="choice-mark-actions" role="group" aria-label="選択肢${'ABCD'[i]}のメモ"><span>自分の判定：</span><button type="button" data-mark="circle" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を○と思う">○</button><button type="button" data-mark="cross" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を×と思う">×</button><button type="button" data-mark="check" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を後で確認したい">✓</button></div></div>`).join('') : '';
+    $('choices').querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>choose(Number(b.dataset.answer)));
+    $('choices').querySelectorAll('[data-mark]').forEach(b=>b.onclick=()=>markChoice(Number(b.dataset.index),b.dataset.mark));
+    refreshChoiceUI();
     $('written-form').hidden=Boolean(q.choices);$('written').value='';$('written').disabled=false;
     $('written-form').querySelector('button').disabled=false;
     $('feedback').hidden=true;$('review').hidden=true;$('save-error').textContent='';
     $('note').value=session.note ?? C.load(localStorage).notes[q.id] ?? '';pending=null;
-    $('choices').querySelectorAll('button').forEach(b=>b.onclick=()=>answer(Number(b.dataset.answer)));
     show('quiz');
     if(session.pending){pending=session.pending;feedback(q);}
   }
+  function refreshChoiceUI(){
+    if(!session)return;
+    const selected=Number.isInteger(session.selectedChoice)?session.selectedChoice:null;
+    const marks=session.choiceMarks||{};
+    $('choices').querySelectorAll('[data-answer]').forEach(b=>{
+      const isSelected=Number(b.dataset.answer)===selected;
+      b.classList.toggle('selected',isSelected);b.setAttribute('aria-pressed',String(isSelected));
+    });
+    $('choices').querySelectorAll('[data-mark]').forEach(b=>{
+      const marked=marks[b.dataset.index]===b.dataset.mark;
+      b.setAttribute('aria-pressed',String(marked));
+    });
+    $('choices').querySelectorAll('[data-choice-row]').forEach(row=>{
+      const mark=marks[row.dataset.choiceRow];
+      row.classList.toggle('has-mark-circle',mark==='circle');
+      row.classList.toggle('has-mark-cross',mark==='cross');
+      row.classList.toggle('has-mark-check',mark==='check');
+    });
+    $('submit-choice').disabled=selected===null||Boolean(pending);
+    $('choice-status').textContent=selected===null?'まだ解答は確定していません。選択肢を1つ選んでください。':`選択肢${'ABCD'[selected]}を解答に選択中。○×✓の印は採点に影響しません。`;
+  }
+  function choose(index){
+    if(pending||!session)return;
+    session.selectedChoice=index;saveSession();refreshChoiceUI();
+  }
+  function markChoice(index,kind){
+    if(pending||!session)return;
+    session.choiceMarks=session.choiceMarks||{};
+    if(session.choiceMarks[index]===kind)delete session.choiceMarks[index];
+    else session.choiceMarks[index]=kind;
+    saveSession();refreshChoiceUI();
+  }
   function answer(value){
     if(pending || !session)return;
-    const q=byId.get(session.ids[session.index]);if(q.category==='practical'&&!String(value).trim())return;
-    pending={value,correct:C.grade(q,value)};session.pending=pending;saveSession();feedback(q);
+    const q=byId.get(session.ids[session.index]);
+    if(q.category==='practical'&&!String(value).trim())return;
+    if(q.choices&&!Number.isInteger(value))return;
+    pending={value,correct:C.grade(q,value),choiceMarks:{...(session.choiceMarks||{})}};session.pending=pending;saveSession();feedback(q);
   }
   function feedback(q){
-    $('choices').querySelectorAll('button').forEach(b=>{b.disabled=true;b.classList.toggle('selected',Number(b.dataset.answer)===pending.value);});
+    $('choices').querySelectorAll('[data-answer]').forEach(b=>{b.disabled=true;b.classList.toggle('selected',Number(b.dataset.answer)===pending.value);b.setAttribute('aria-pressed',String(Number(b.dataset.answer)===pending.value));});
+    $('choices').querySelectorAll('[data-mark]').forEach(b=>b.disabled=true);
+    $('submit-choice').hidden=true;
     $('written').value=q.category==='practical'?pending.value:'';$('written').disabled=true;$('written-form').querySelector('button').disabled=true;
     $('feedback').hidden=false;$('feedback').className='answer'+(pending.correct?'':' ng');
     $('verdict').textContent=(pending.correct?'○ 正解':'× 正解：'+(q.expected||q.choices[q.answer]));
@@ -54,7 +100,7 @@
     const q=byId.get(session.ids[session.index]);
     try { C.record(localStorage,q,pending.correct,confidence,$('note').value); }
     catch { $('save-error').textContent='記録を保存できませんでした。ブラウザの保存設定を確認して再度押してください。';return; }
-    session.answers.push({id:q.id,...pending,confidence});delete session.pending;delete session.note;pending=null;
+    session.answers.push({id:q.id,...pending,confidence});delete session.pending;delete session.note;delete session.selectedChoice;delete session.choiceMarks;pending=null;
     if(session.index===session.ids.length-1)return finish();
     session.index++;saveSession();render();
   }
@@ -68,12 +114,14 @@
     $('retry').href='?topic='+topic.id;session=null;saveSession();show('results');
   }
   $('start').onclick=()=>{
-    const selected=C.select(rows,topic,C.load(localStorage),$('mode').value);
+    const limit=topic.id==='law-all'?$('question-count').value:10;
+    const selected=C.select(rows,topic,C.load(localStorage),$('mode').value,Date.now(),limit);
     if(!selected.length){$('empty').textContent='この条件の問題はありません。弱点・未出を優先に切り替えてください。';return;}
     // Preserve interrupted topic work; original app's own session is never touched.
     if(session){$('empty').textContent='一覧から途中の項目別テストを再開するか、終了してから開始してください。';return;}
     session={topic:topic.id,ids:selected.map(q=>q.id),index:0,answers:[]};saveSession();render();
   };
+  $('submit-choice').onclick=()=>{if(session&&Number.isInteger(session.selectedChoice))answer(session.selectedChoice);};
   $('written-form').onsubmit=e=>{e.preventDefault();answer($('written').value);};
   document.querySelectorAll('[data-confidence]').forEach(b=>b.onclick=()=>commit(b.dataset.confidence));
   $('note').oninput=()=>{if(session){session.note=$('note').value;saveSession();}};
