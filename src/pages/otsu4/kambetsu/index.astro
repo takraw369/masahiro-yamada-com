@@ -2,7 +2,65 @@
 ---
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>乙4 鑑別｜講習順</title><style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f4f7fa;color:#15202b}main{max-width:680px;margin:auto;padding:16px 16px 80px}.top{display:flex;justify-content:space-between;align-items:center}.top a{color:#28648b;text-decoration:none}.pill{font-size:12px;background:#dcecf6;color:#174e70;padding:6px 10px;border-radius:99px}.card{background:#fff;border-radius:20px;padding:16px;box-shadow:0 8px 30px #17324d12;margin-top:16px}.progress{height:7px;background:#e7edf2;border-radius:9px;overflow:hidden}.progress i{display:block;height:100%;background:#28648b}.photo{height:300px;display:flex;align-items:center;justify-content:center;margin:14px 0;background:#fff;border-radius:14px;overflow:hidden;position:relative}.photo img{width:100%;height:100%;object-fit:contain}.mask{position:absolute;inset:0;pointer-events:none}.mask i{position:absolute;background:#fff;border-radius:6px}.q{font-weight:800;font-size:20px;margin:10px 0}label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}input{width:100%;font-size:16px;padding:13px;border:1px solid #cbd6df;border-radius:11px}button{border:0;border-radius:12px;padding:14px 16px;font-size:16px;font-weight:800}.primary{width:100%;margin-top:16px;background:#28648b;color:#fff}.secondary{background:#e9f1f6;color:#174e70}.answer{margin-top:14px;padding:14px;background:#eef7f0;border-radius:12px;display:none}.answer b{display:block;font-size:19px;margin-bottom:6px}.judge{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.badge{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border-radius:999px;font-size:13px;font-weight:800}.badge.ok{background:#dff3e5;color:#176b35}.badge.ng{background:#fde7e7;color:#9e2929}.badge.warn{background:#fff0c9;color:#855d00}.actions{display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stats{font-size:13px;color:#607080;margin-top:10px;text-align:center}.weakbox{margin-top:14px;padding:12px;background:#f7f9fb;border-radius:12px}.weakbox b{display:block;margin-bottom:7px}.weakrow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}.weakrow strong{color:#174e70}.done{text-align:center;padding:30px 10px}.done strong{font-size:44px;color:#28648b;display:block}.tiny{font-size:11px;color:#7b8994;line-height:1.5;margin-top:12px}@media(max-width:480px){.photo{height:260px}.actions{grid-template-columns:1fr 1fr 1fr}.actions button{padding:13px 8px;font-size:14px}}
-</style></head><body><main><div class="top"><a href="/otsu4/">← 乙4ホーム</a><span class="pill" id="poolPill">鑑別・講習順</span></div><section class="card" id="app"><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
+
+[hidden]{display:none!important}
+#flashcards{overflow-wrap:anywhere}
+.flash-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.flash-kicker{font-size:12px;font-weight:900;letter-spacing:.08em;color:#28648b}
+.flash-intro{color:#546676;line-height:1.7;font-size:14px}
+.flash-scope-label{font-size:14px;font-weight:800;margin-top:14px}
+#flash-scope{display:block;width:100%;min-height:48px;border:1px solid #b7ccd9;border-radius:12px;background:#fff;padding:11px 12px;font:inherit;color:#15202b}
+.flash-progress{margin:14px 0 10px;font-size:13px;color:#536676}
+.flash-progress strong{color:#174e70}
+.flash-visual{border:1px solid #dce7ed;background:#f6fafc;border-radius:18px;padding:16px;min-width:0}
+.flash-visual .flash-group{font-size:12px;font-weight:900;color:#28648b}
+.flash-visual h2{font-size:21px;line-height:1.4;margin:9px 0 8px;overflow-wrap:anywhere}
+.flash-visual p{font-size:16px;line-height:1.75}
+.flash-photo{display:block;width:100%;height:220px;object-fit:contain;background:#fff;border-radius:12px;margin:8px 0}
+.flash-back{border-top:2px solid #c0d9e7;padding-top:13px;margin-top:12px}
+.flash-back h3{font-size:19px;color:#174e70;margin:0 0 6px;overflow-wrap:anywhere}
+.flash-back p{margin:0 0 10px;font-size:15px}
+.flash-back .hint{background:#e4f2fa;border-radius:10px;padding:10px;font-size:13px;line-height:1.7}
+.flash-buttons{display:grid;gap:9px;margin-top:15px}
+.flash-buttons button{min-height:48px}
+.flash-grades{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.flash-grades button{padding:11px 4px;font-size:14px;border:1px solid #b5ccd9;background:#eaf3f8;color:#16405d}
+.flash-grades button[data-flash-grade="ok"]{background:#dff3e5;color:#176b35}
+.flash-grades button[data-flash-grade="miss"]{background:#fdeaea;color:#933331}
+.flash-test{display:block;width:100%;border:1px solid #28648b;border-radius:12px;background:#fff;color:#16405d;font-weight:800;text-align:center;text-decoration:none;padding:14px;margin-top:16px;min-height:48px;cursor:pointer;font-size:16px}
+.flash-test:hover{background:#edf5fa}
+.flash-finish{text-align:center;padding:26px 8px}
+.flash-finish strong{font-size:26px;color:#16405d}
+.flash-previous{margin-bottom:14px;padding:10px 14px;min-height:48px}
+.flash-muted{font-size:12px;color:#607080;line-height:1.6}
+button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #28648b;outline-offset:2px}
+button{touch-action:manipulation}
+@media(max-width:430px){main{padding:12px 12px calc(85px + env(safe-area-inset-bottom))}.flash-visual{padding:13px}.flash-photo{height:188px}.flash-grades{gap:6px}.flash-grades button{font-size:13px}.flash-visual h2{font-size:19px}.top{gap:8px;min-width:0}.top a{overflow-wrap:anywhere}}
+</style></head><body><main><div class="top"><a href="/otsu4/">← 乙4ホーム</a><span class="pill" id="poolPill">鑑別・講習順</span></div><section id="flashcards" class="card" aria-labelledby="flash-heading">
+<div class="flash-head"><span class="flash-kicker">STEP 1 / 鑑別の予習</span><span class="pill">写真・仕組み・用途</span></div>
+<h1 id="flash-heading" style="font-size:25px;line-height:1.4;margin:12px 0 8px">まずカードで覚えよう。</h1>
+<p class="flash-intro">写真を見てすぐ記述テストに入る前に「何を感知する？」「どう見分ける？」を短いカードで理解。<b>裏面を見てから○・△・×</b>を選ぶと、苦手がまた出てくるよ。</p>
+<label class="flash-scope-label" for="flash-scope">学ぶカードの種類</label>
+<select id="flash-scope"><option value="basics">基礎知識・仕組み（18枚から10枚）</option><option value="photos">写真で名称・用途（10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
+<div class="flash-progress" id="flash-progress" role="status" aria-live="polite"></div>
+<div class="flash-visual" id="flash-visual">
+<div class="flash-group" id="flash-group"></div>
+<h2 id="flash-question"></h2>
+<img class="flash-photo" id="flash-photo" alt="鑑別する器具の写真。答えは裏面にあります" referrerpolicy="no-referrer" hidden>
+<div id="flash-back" class="flash-back" hidden>
+<h3 id="flash-answer-title"></h3><p id="flash-answer"></p>
+<p class="hint" id="flash-hint"></p>
+</div>
+</div>
+<div class="flash-buttons">
+<button id="flash-flip" class="primary" type="button">裏面を見て覚える</button>
+<div class="flash-grades" id="flash-grades" hidden>
+<button type="button" data-flash-grade="miss">× まだ</button><button type="button" data-flash-grade="unsure">△ あやしい</button><button type="button" data-flash-grade="ok">○ 言える</button>
+</div>
+</div>
+<button id="flash-test" class="flash-test" type="button">STEP 2：鑑別の記述テストへ →</button>
+<p class="flash-muted">基礎カードは独立した復習履歴。写真カードは既存の鑑別データを共用します。テストの採点記録は書き換えません。</p>
+</section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
 const $=id=>document.getElementById(id);
 const commons=(file)=>`https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=960`;
 const tools=[
@@ -127,8 +185,8 @@ function fallbackSvg(t){
   return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
 }
 
-function loadPhoto(t){
-  const photo=$('photo');
+function loadPhoto(t, elementId='photo'){
+  const photo=$(elementId);
   const urls=[...(t.urls||[]),...((t.files||[]).map(commons))];
   let n=0;
   photo.onerror=()=>{
@@ -335,5 +393,110 @@ document.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>{
   }
   i++;show();
 });
-queue=buildQueue();renderWeak();show();
+
+const foundationFlashCards = [{"id":"base-sense","group":"感知器","title":"熱・煙・炎の3系統","question":"感知器は、何を検出して火災を判断する？","answer":"熱感知器は温度変化や温度到達、煙感知器は煙、炎感知器は炎から出る光を捉える。","hint":"見た目より「何の変化を測るか」で分類する。"},{"id":"base-rate","group":"感知器","title":"差動式は「速さ」","question":"差動式感知器は、温度の何を見て作動する？","answer":"一定時間内の温度上昇の大きさ（上昇率）を捉える。急な上昇で作動する。","hint":"定温式の「温度そのもの」と対比する。"},{"id":"base-fixed","group":"感知器","title":"定温式は「到達」","question":"定温式スポット型感知器は何を条件に作動する？","answer":"感熱部が所定の温度に達すると作動する。バイメタル、サーミスタなどの方式がある。","hint":"差動式=上昇率／定温式=設定温度。"},{"id":"base-air","group":"感知器","title":"空気室・ダイヤフラム・リーク孔","question":"空気膨張式の差動式スポット型で、リーク孔は何のためにある？","answer":"緩やかな温度変化による空気の膨張を逃がし、急な温度上昇と区別する。","hint":"空気室→膨張→ダイヤフラム→接点、ゆっくり変化→リーク孔。"},{"id":"base-compound","group":"感知器","title":"補償式の2機能","question":"補償式スポット型は何の組み合わせ？","answer":"差動式（急激な温度上昇）と定温式（一定温度への到達）の両機能を備える。","hint":"『補償』の文字より「差動＋定温」で覚える。"},{"id":"base-distributed","group":"感知器","title":"分布型は広い範囲","question":"差動式「分布型」と「スポット型」の違いは？","answer":"分布型は空気管・熱電対などで複数の位置から変化を捉え、スポット型は点状の感知部で検知する。","hint":"空気管式・熱電対式・熱半導体式の区別も整理する。"},{"id":"base-smoke","group":"感知器","title":"煙感知器の光","question":"光電式スポット型と光電式分離型、光の見方はどう違う？","answer":"スポット型は煙による光の散乱、分離型は送光部と受光部の間を通る光が弱まることを利用する。","hint":"スポット=散乱／分離=減光。"},{"id":"base-ion","group":"感知器","title":"イオン化式と光電式","question":"イオン化式煙感知器が煙で検出する変化は？","answer":"煙の侵入による電離電流（イオン電流）の変化を利用する。","hint":"光電式は光／イオン化式は電流。"},{"id":"base-flame","group":"感知器","title":"炎感知器","question":"炎感知器には、どんな検知方法がある？","answer":"炎から出る紫外線や赤外線などの光を検出する。","hint":"煙ではなく炎の放射光を捉える。"},{"id":"base-tester","group":"試験器","title":"熱と煙の試験器","question":"加熱試験器と加煙試験器は、それぞれ何を調べる？","answer":"加熱試験器は熱感知器、加煙試験器は煙感知器の作動を確かめる。","hint":"『加えるもの』と『対象となる感知器』を対応させる。"},{"id":"base-filter","group":"試験器","title":"減光フィルター","question":"減光フィルターは、どんな感知器の試験に使う？","answer":"光電式分離型感知器の光を減らし、作動を確認する。","hint":"送光部→受光部の光が弱まった状況を再現する。"},{"id":"base-pressure","group":"試験器","title":"空気管の試験","question":"空気管式の分布型感知器の試験で使うマノメーターは何を測る？","answer":"差動式分布型感知器（空気管式）の流通試験や接点水高試験で圧力・水高を確認する。","hint":"テストポンプで空気を送り、マノメーターで圧力を確認する。"},{"id":"base-receivers","group":"受信・警報","title":"P型・R型・G型","question":"P型・R型・G型受信機の見分け方は？","answer":"P型は回線ごとの火災信号、R型は固有信号で発報位置、G型はガス漏れ信号を扱う。","hint":"P=回線／R=固有信号／G=ガス。"},{"id":"base-manual","group":"受信・警報","title":"発信機・表示灯・地区音響","question":"発信機・表示灯・地区音響装置は何をする？","answer":"発信機は人が押して通報、表示灯は発信機の位置を示し、地区音響装置は音で火災を知らせる。","hint":"押す・示す・鳴らす、の動詞で区別する。"},{"id":"base-end","group":"受信・警報","title":"終端抵抗と中継器","question":"終端抵抗と中継器、役割が違うのはどこ？","answer":"終端抵抗は感知器回線の断線監視に使い、中継器は端末から受信機へ信号を中継する。","hint":"終端=断線／中継=信号の橋渡し。"},{"id":"base-tools","group":"工具・計測","title":"工具は作業で分ける","question":"ニッパー・ストリッパー・圧着ペンチ・リーマは何をする？","answer":"ニッパーは切断、ストリッパーは被覆を剥く、圧着ペンチは接続部を圧着、リーマは管端のバリを取る。","hint":"工具の形より切る・剥く・圧着・バリ取りを言葉にする。"},{"id":"base-meters","group":"工具・計測","title":"計器の使い分け","question":"回路計・絶縁抵抗計・接地抵抗計の違いは？","answer":"回路計は電圧・電流・抵抗を測定、絶縁抵抗計は電路と大地等の間の絶縁状態、接地抵抗計は接地抵抗を測る。","hint":"抵抗という名前が同じでも測定対象が異なる。"},{"id":"base-method","group":"解き方","title":"写真鑑別の答え方","question":"写真鑑別では、どんな順番で答えを組み立てる？","answer":"①名称を特定 ②見分ける特徴 ③『何をどうする』という用途まで声に出す。似た器具との差を最後に確認する。","hint":"カードで覚えた知識を、記述式の答案へ変換する。"}];
+const FLASH_KEY = 'otsu4-kambetsu-flashcards-v1';
+let flashState = {};
+try {
+  const saved = JSON.parse(localStorage.getItem(FLASH_KEY));
+  if (saved && typeof saved === 'object' && !Array.isArray(saved)) flashState = saved;
+} catch { /* Storage may be blocked. */ }
+let flashDeck = [], flashIndex = 0, flashRevealed = false, flashRepeated = new Set(), quizStarted = false;
+const flashItemState = item => {
+  const value = flashState[item.id] || {};
+  return {attempts:Math.max(0,Number(value.attempts)||0),last:String(value.last||''),streak:Math.max(0,Number(value.streak)||0)};
+};
+const photoFlashCards = () => [...orderedTools,...extraTools].map((t,index) => ({
+  id: 'photo-'+index,
+  group: /感知器/.test(t.name) ? '感知器' : /試験器|フィルター|マノメーター/.test(t.name) ? '試験器' : /受信機|発信機|表示灯|警報|中継器|終端器|ガス漏れ/.test(t.name) ? '受信・警報' : '工具・計測',
+  title: t.name,
+  question: 'この写真の名称と用途を説明できる？',
+  answer: t.use,
+  hint: '名前を見ずに用途の動詞まで説明。似た器具と何が違うかも確認しよう。',
+  photoTool: t
+}));
+function flashRank(item) {
+  const own=flashItemState(item);
+  // Existing test record influences photo order without mutating its scores.
+  const exam=item.photoTool ? stateFor(item.photoTool) : null;
+  return (own.last==='miss'?500:own.last==='unsure'?400:!own.attempts?300:100)
+    +(exam?.lastConfidence==='miss'?180:exam?.lastConfidence==='unsure'?120:0)
+    -(own.last==='ok'&&own.streak>=2?250:0);
+}
+function beginFlash() {
+  const scope=$('flash-scope').value;
+  const both=[...foundationFlashCards,...photoFlashCards()];
+  const selected=scope==='photos' ? both.filter(item=>item.photoTool) :
+    scope==='review' ? both.filter(item=>['miss','unsure'].includes(flashItemState(item).last) || (item.photoTool && ['miss','unsure'].includes(stateFor(item.photoTool).lastConfidence))) :
+    foundationFlashCards;
+  flashDeck=[...selected].sort((a,b)=>flashRank(b)-flashRank(a)).slice(0,10);
+  flashIndex=0;flashRevealed=false;flashRepeated=new Set();
+  showFlash();
+}
+function showFlash() {
+  const current=flashDeck[flashIndex];
+  $('flash-flip').hidden=true;
+  $('flash-grades').hidden=true;
+  if (!current) {
+    $('flash-photo').hidden=true;
+    $('flash-visual').hidden=false;
+    $('flash-back').hidden=true;
+    $('flash-progress').textContent=flashDeck.length ? '今回のカードを学び終えました！' : 'まだ復習対象がないよ。基礎から進めよう。';
+    $('flash-group').textContent='REVIEW COMPLETE';
+    $('flash-question').textContent=flashDeck.length ? '△・×は次回も優先されます。次は記述テストへ！' : 'まず基礎・写真カードを選んでね。';
+    return;
+  }
+  flashRevealed=false;
+  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜基礎 ${foundationFlashCards.length}枚＋写真 ${photoFlashCards().length}枚`;
+  $('flash-group').textContent=current.group;
+  $('flash-question').textContent=current.question;
+  $('flash-back').hidden=true;
+  $('flash-answer-title').textContent=current.title;
+  $('flash-answer').textContent=current.answer;
+  $('flash-hint').textContent=current.hint;
+  $('flash-photo').hidden=!current.photoTool;
+  if (current.photoTool) loadPhoto(current.photoTool,'flash-photo');
+  $('flash-flip').hidden=false;
+  $('flash-flip').textContent='裏面を見て覚える';
+}
+function revealFlash(){
+  if (!flashDeck[flashIndex] || flashRevealed) return;
+  flashRevealed=true;
+  $('flash-back').hidden=false;
+  $('flash-flip').hidden=true;
+  $('flash-grades').hidden=false;
+}
+function gradeFlash(grade){
+  const item=flashDeck[flashIndex];
+  if (!flashRevealed||!item||!['ok','unsure','miss'].includes(grade))return;
+  const old=flashItemState(item);
+  flashState[item.id]={attempts:old.attempts+1,last:grade,streak:grade==='ok'?old.streak+1:0,lastSeen:Date.now()};
+  try{localStorage.setItem(FLASH_KEY,JSON.stringify(flashState));}catch{/* Unavailable storage should not block study. */}
+  if (grade!=='ok'&&!flashRepeated.has(item.id)) {
+    const position=Math.min(flashDeck.length,flashIndex+3);
+    flashDeck.splice(position,0,item);
+    flashRepeated.add(item.id);
+  }
+  flashIndex++;
+  showFlash();
+}
+function openTest(){
+  $('flashcards').hidden=true;
+  $('app').hidden=false;
+  if(!quizStarted){queue=buildQueue();i=0;ok=0;review=[];quizStarted=true;renderWeak();show();}
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function openFlash(){
+  $('app').hidden=true;
+  $('flashcards').hidden=false;
+  window.scrollTo({top:0,behavior:'instant'});
+}
+$('flash-scope').addEventListener('change',beginFlash);
+$('flash-flip').addEventListener('click',revealFlash);
+document.querySelectorAll('[data-flash-grade]').forEach(button=>button.addEventListener('click',()=>gradeFlash(button.dataset.flashGrade)));
+$('flash-test').addEventListener('click',openTest);
+$('back-to-flash').addEventListener('click',openFlash);
+
+beginFlash();
+if(new URLSearchParams(location.search).get('mode')==='test') openTest();
 </script></body></html>
