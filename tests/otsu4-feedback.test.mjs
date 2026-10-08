@@ -39,6 +39,38 @@ test('lecture marks remain connected to the shared Otsu4 bank and original recor
   assert.match(app, /mode === "lecture"/);
 });
 
+
+test('Otsu4 identification flashcards are accessible, typed, and preserve the current quiz state', async () => {
+  const source = await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro', import.meta.url), 'utf8');
+  const script = source.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script, 'inline identification script is present');
+  assert.doesNotThrow(() => new vm.Script(script));
+  const raw = script.match(/const foundationFlashCards = (\[[^\n]+\]);/);
+  assert.ok(raw, 'foundation cards are defined separately from the quiz');
+  const cards = JSON.parse(raw[1]);
+  assert.ok(cards.length >= 18, 'at least 18 core knowledge cards');
+  assert.equal(new Set(cards.map(card => card.id)).size, cards.length);
+  assert.ok(cards.every(card => ['id','group','title','question','answer','hint'].every(field => typeof card[field] === 'string' && card[field].length > 2)));
+  assert.ok(cards.some(card => card.question.includes('差動式')));
+  assert.ok(cards.some(card => card.question.includes('P型')));
+  assert.ok(cards.some(card => card.question.includes('加熱試験器')));
+  assert.match(source, /id="flashcards"/);
+  assert.match(source, /id="flash-flip"/);
+  assert.match(source, /data-flash-grade="miss"/);
+  assert.match(source, /data-flash-grade="unsure"/);
+  assert.match(source, /data-flash-grade="ok"/);
+  assert.match(source, /const photoFlashCards = \(\) =>/);
+  assert.match(source, /loadPhoto\(current\.photoTool,'flash-photo'\)/);
+  assert.match(source, /id="app" hidden/);
+  assert.match(source, /const K='otsu4-kambetsu-state-v2'/);
+  assert.match(source, /const FLASH_KEY = 'otsu4-kambetsu-flashcards-v1'/);
+  assert.match(source, /function openTest\(\)/);
+  const home = await readFile(new URL('../src/pages/otsu4/index.astro', import.meta.url), 'utf8');
+  assert.match(home, /鑑別フラッシュカード/);
+  const catalog = await readFile(new URL('../src/pages/otsu4/tests/index.astro', import.meta.url), 'utf8');
+  assert.match(catalog, /鑑別フラッシュカード＋記述テスト/);
+});
+
 test('inline Otsu4 feedback reaches the reusable Supabase feedback pipeline', async (t) => {
   const { POST } = await import('../src/pages/api/app-feedback.ts');
   Object.assign(env, {
