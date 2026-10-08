@@ -398,3 +398,20 @@ test('law test optional left ○ × elimination marks do not block normal final 
   const submitted=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(submitted.pending.value,2,'C○ goes through to grading');
 });
+
+
+test('Otsu4 catalog standalone law card has a single responsive block border on iPhone', async () => {
+  const [page,css]=await Promise.all([
+    readFile(new URL('../src/pages/otsu4/tests/index.astro',import.meta.url),'utf8'),
+    readFile(new URL('../public/otsu4/tests/styles.css',import.meta.url),'utf8')
+  ]);
+  // Regression: this card is NOT inside .cards, therefore it cannot inherit grid layout.
+  assert.match(page, /<div class="section-title"><h2>法令だけを解く<\/h2>[\s\S]*?<a class="panel link-card" href="\/otsu4\/tests\/\?topic=law-all">/);
+  assert.match(css, /\.link-card\s*\{[^}]*display\s*:\s*block\s*;/);
+  assert.match(css, /\.link-card\s*\{[^}]*width\s*:\s*100%\s*;/);
+  assert.match(css, /\.link-card\s*\{[^}]*min-width\s*:\s*0\s*;/);
+  assert.match(css, /\.link-card h3,\.link-card p,\.link-card \.eyebrow\s*\{[^}]*overflow-wrap\s*:\s*anywhere/);
+  assert.match(css, /@media\s*\(max-width:\s*600px\)/,'single-column mobile cards');
+  assert.match(css, /\.cards\s*\{grid-template-columns:\s*1fr/,'mobile grid must be one column');
+  assert.match(page, /\/otsu4\/tests\/styles\.css\?v=4/,'new style URL busts stale iPhone cache');
+});
