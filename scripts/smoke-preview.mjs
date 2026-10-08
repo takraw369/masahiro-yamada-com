@@ -50,8 +50,8 @@ try {
   for (const path of ['/assets/dashboard-runtime/tasks.css', '/assets/dashboard-runtime/graph.css']) {
     const res = await previewFetch(base + path, { redirect: 'manual' });
     assert.equal(res.status, 200, path + ' must be reachable before login');
-    assert.match(res.headers.get('content-type') || '', /text\\/css/, path);
-    assert.match(await res.text(), /@scope\\s*\\(\\./, path);
+    assert.match(res.headers.get('content-type') || '', /text\/css/, path);
+    assert.match(await res.text(), /@scope\s*\(\./, path);
   }
   const dashboard = await previewFetch(base + '/dashboard', { redirect: 'manual' });
   assert.equal(dashboard.status, 302);
