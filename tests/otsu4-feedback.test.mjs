@@ -190,3 +190,47 @@ test('inline Otsu4 feedback reaches the reusable Supabase feedback pipeline', as
   assert.equal(result.ok, true);
   assert.equal(result.data.accepted, true);
 });
+
+
+test('Otsu4 law-only 10 question test is separately reachable and preserves shared history', async () => {
+  const coreSource=await readFile(new URL('../public/otsu4/tests/core.js',import.meta.url),'utf8');
+  const rowsSource=await readFile(new URL('../public/otsu4/questions.js',import.meta.url),'utf8');
+  const runtime={window:{}};
+  vm.runInNewContext(coreSource,runtime);
+  const C=runtime.window.OTSU4_TOPIC_TESTS;
+  const rows=vm.runInNewContext(rowsSource+'\nOTSU4_QUESTIONS');
+  const topic=C.topics.find(t=>t.id==='law-all');
+  assert.ok(topic,'combined legal topic must exist');
+  assert.equal(topic.quota['law-common'],5);
+  assert.equal(topic.quota['law-class'],5);
+  const pool=rows.filter(q=>C.matches(q,topic));
+  assert.equal(pool.length,70);
+  assert.equal(pool.filter(q=>q.category==='law-common').length,39);
+  assert.equal(pool.filter(q=>q.category==='law-class').length,31);
+  const original='{"attempts":{"c01":2},"correct":{"c01":1},"streak":{},"wrong":{},"notes":{},"ratings":{},"feedbackDrafts":{},"feedbackEventIds":{},"history":[]}';
+  const storage={getItem(k){return k===C.STATE_KEY?original:null},setItem(){throw Error('selection must never rewrite history')}};
+  const state=C.load(storage);
+  for(const mode of ['smart','unseen']){
+    const picks=C.select(rows,topic,state,mode);
+    assert.equal(picks.length,10,mode);
+    assert.equal(picks.filter(q=>q.category==='law-common').length,5);
+    assert.equal(picks.filter(q=>q.category==='law-class').length,5);
+    assert.ok(picks.every(q=>q.choices?.length===4&&q.choiceNotes?.length===4));
+  }
+  const weakOnly={...state,wrong:{...state.wrong,...Object.fromEntries(pool.filter(q=>q.category==='law-common').slice(0,9).map(q=>[q.id,1]))}};
+  const weakPicks=C.select(rows,topic,weakOnly,'weak');
+  assert.ok(weakPicks.length>=5,'usable weak-only session with just common-law mistakes');
+  assert.ok(weakPicks.every(q=>q.category==='law-common'));
+  const [home,landing,listing]=await Promise.all([
+    readFile(new URL('../src/pages/otsu4/index.astro',import.meta.url),'utf8'),
+    readFile(new URL('../src/pages/otsu4/hourei/index.astro',import.meta.url),'utf8'),
+    readFile(new URL('../src/pages/otsu4/tests/index.astro',import.meta.url),'utf8')
+  ]);
+  assert.match(home,/href="\/otsu4\/tests\/\?topic=law-all"/);
+  assert.match(landing,/href="\/otsu4\/tests\/\?topic=law-all"/);
+  assert.match(listing,/href="\/otsu4\/tests\/\?topic=law-all"/);
+  assert.match(landing,/href="\/otsu4\/hourei\/betsu1\/"/);
+  assert.match(landing,/href="\/otsu4\/tests\/\?topic=law-common"/);
+  assert.match(landing,/href="\/otsu4\/tests\/\?topic=law-class"/);
+  assert.equal(C.STATE_KEY,'otsu4-study-state-v1');
+});
