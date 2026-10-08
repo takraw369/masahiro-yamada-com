@@ -103,7 +103,7 @@ test('Otsu4 lecture p308 tools drill matches all 12 unique workbook items and ke
  const notes = JSON.parse(hints[1]);
  assert.ok(names.every(name => notes[name]?.length>18));
  assert.match(inline,/scope==='tools308'/);
- assert.match(inline,/flashDeck=scope==='tools308'/);
+ assert.match(inline,/scope==='tools308' \? \[\.\.\.selected\]/);
  assert.match(html,/value="tools308"/);
  assert.match(inline,/entryParams.get\('cards'\)==='p308'/);
  assert.match(html,/otsu4-kambetsu-state-v2/);
