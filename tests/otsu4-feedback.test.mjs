@@ -40,6 +40,29 @@ test('lecture marks remain connected to the shared Otsu4 bank and original recor
 });
 
 
+test('Otsu4 lecture p308 tools drill matches all 12 unique workbook items and keeps records', async () => {
+ const html = await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro', import.meta.url), 'utf8');
+ const inline = html.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(inline);
+ assert.doesNotThrow(() => new vm.Script(inline));
+ const selected = inline.match(/const textbook308Tools = (\[[^\n]+\]);/);
+ assert.ok(selected,'p308 names must be stored');
+ const names = JSON.parse(selected[1]);
+ const namesExpected = ['モール','リングスリーブ','ラジオペンチ','ニッパー','圧着ペンチ','ワイヤーカッター','ワイヤーストリッパー','パイプカッター','パイプベンダー','ねじ切り器','リーマ','ホルソ'];
+ assert.deepEqual(names,namesExpected);
+ assert.equal(new Set(names).size,12);
+ const hints = inline.match(/const textbook308Hints = (\{[^\n]+\});/);
+ assert.ok(hints);
+ const notes = JSON.parse(hints[1]);
+ assert.ok(names.every(name => notes[name]?.length>18));
+ assert.match(inline,/scope==='tools308'/);
+ assert.match(inline,/flashDeck=scope==='tools308'/);
+ assert.match(html,/value="tools308"/);
+ assert.match(inline,/entryParams.get\('cards'\)==='p308'/);
+ assert.match(html,/otsu4-kambetsu-state-v2/);
+ const home=await readFile(new URL('../src/pages/otsu4/index.astro',import.meta.url),'utf8');
+ assert.match(home,/\\?cards=p308/);
+});
 test('Otsu4 identification flashcards are accessible, typed, and preserve the current quiz state', async () => {
   const source = await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro', import.meta.url), 'utf8');
   const script = source.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
