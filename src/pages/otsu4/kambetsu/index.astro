@@ -323,7 +323,13 @@ function buildQueue(){
   const requested=$('quiz-scope')?.value||'priority';
   const focus=requested==='p294'?textbook294AndFlameTools:requested==='tools308'?textbook308Tools:null;
   const active=requested==='all'?[...orderedTools,...extraTools]:focus?focus.map(name=>tools.find(t=>t.name===name)).filter(Boolean):activeTools();
+  const mustSee=['紫外線式スポット型感知器','赤外線式スポット型感知器',
+    '差動式分布型感知器（熱電対式）の検出器','差動式分布型感知器（熱電対式）の熱電対部','ウォーターポンププライヤー'];
   const base=[...active].sort((a,b)=>{
+    if(requested==='priority'){
+      const ra=mustSee.indexOf(a.name),rb=mustSee.indexOf(b.name);
+      if(ra!==rb && (ra!==-1||rb!==-1)) return (ra<0?100:ra)-(rb<0?100:rb);
+    }
     const p=priority(a)-priority(b);
     if(p)return p;
     return (lectureRank.get(a.name)??9999)-(lectureRank.get(b.name)??9999);
