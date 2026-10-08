@@ -46,6 +46,13 @@ try {
     assert.match(res.headers.get('content-type'), /text\/html/, path);
     assert.ok((await res.text()).includes('<html'), path);
   }
+  // Public runtime CSS must bypass Dashboard auth and actually reach the browser.
+  for (const path of ['/assets/dashboard-runtime/tasks.css', '/assets/dashboard-runtime/graph.css']) {
+    const res = await previewFetch(base + path, { redirect: 'manual' });
+    assert.equal(res.status, 200, path + ' must be reachable before login');
+    assert.match(res.headers.get('content-type') || '', /text\\/css/, path);
+    assert.match(await res.text(), /@scope\\s*\\(\\./, path);
+  }
   const dashboard = await previewFetch(base + '/dashboard', { redirect: 'manual' });
   assert.equal(dashboard.status, 302);
   assert.equal(dashboard.headers.get('location'), '/dashboard/login');
