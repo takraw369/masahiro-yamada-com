@@ -22,6 +22,15 @@
     $('question-count').value='10';
     const pool=rows.filter(q=>C.matches(q,topic)),s=C.load(localStorage);
     $('topic-stats').textContent=`収録${pool.length}問 / 未出${pool.filter(q=>!s.attempts[q.id]).length}問 / 弱点${pool.filter(q=>C.weak(q,s)).length}問`;
+    $('setup-resume').hidden=!session;
+    if(session){
+      const name=C.topics.find(t=>t.id===session.topic)?.label||'前のテスト';
+      $('setup-resume-copy').textContent=`${name} / ${session.index+1}問目（全${session.ids.length}問）を途中保存しています。`;
+      $('start').textContent='新しく始める（前の途中テストを終了）';
+    }else{
+      $('start').textContent='テストを始める';
+    }
+    $('empty').textContent='';
     show('setup');
   }
   function render(){
@@ -34,7 +43,7 @@
     // Marking is a compact elimination memo at the LEFT; tap the full text to choose ONE final answer.
     $('choices').innerHTML=q.choices ? q.choices.map((text,i)=>
       `<div class="choice-row" data-choice-row="${i}">`+
-      `<div class="choice-mark-actions" role="group" aria-label="選択肢${'ABCD'[i]}に印を付ける"><button type="button" data-mark="circle" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}に○を付ける">○</button><button type="button" data-mark="cross" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を除外する（×）">×</button></div>`+
+      `<div class="choice-mark-actions" role="group" aria-label="選択肢${'ABCD'[i]}に印を付ける"><button type="button" data-mark="circle" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}に○を付けて回答に選ぶ">○</button><button type="button" data-mark="cross" data-index="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]}を除外する（×）">×</button></div>`+
       `<button type="button" class="choice-pick" data-answer="${i}" aria-pressed="false" aria-label="選択肢${'ABCD'[i]} ${escape(text)}を回答に選ぶ"><span class="choice-letter">${'ABCD'[i]}</span><span class="choice-copy">${escape(text)}</span><span class="selected-indicator" aria-hidden="true">✓</span></button></div>`).join('') : '';
     $('choices').querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>choose(Number(b.dataset.answer)));
     $('choices').querySelectorAll('[data-mark]').forEach(b=>b.onclick=()=>markChoice(Number(b.dataset.index),b.dataset.mark));
@@ -76,8 +85,18 @@
   function markChoice(index,kind){
     if(pending||!session)return;
     session.choiceMarks=session.choiceMarks||{};
-    if(session.choiceMarks[index]===kind)delete session.choiceMarks[index];
+    const removing=session.choiceMarks[index]===kind;
+    if(removing)delete session.choiceMarks[index];
     else session.choiceMarks[index]=kind;
+    if(kind==='circle'){
+      // A circle is the learner's positive answer, not merely an unrelated note.
+      // One circle alone must enable "答え合わせ", even if the answer text was never tapped.
+      if(removing){
+        if(session.selectedChoice===index)delete session.selectedChoice;
+      }else session.selectedChoice=index;
+    }else if(kind==='cross' && session.selectedChoice===index){
+      delete session.selectedChoice;
+    }
     saveSession();refreshChoiceUI();
   }
   function answer(value){
@@ -120,11 +139,14 @@
     const limit=topic.id==='law-all'?$('question-count').value:10;
     const selected=C.select(rows,topic,C.load(localStorage),$('mode').value,Date.now(),limit);
     if(!selected.length){$('empty').textContent='この条件の問題はありません。弱点・未出を優先に切り替えてください。';return;}
-    // Preserve interrupted topic work; original app's own session is never touched.
-    if(session){$('empty').textContent='一覧から途中の項目別テストを再開するか、終了してから開始してください。';return;}
-    session={topic:topic.id,ids:selected.map(q=>q.id),index:0,answers:[]};saveSession();render();
+    // The explicitly labelled "new test" button replaces only the interrupted
+    // topic-test session; already recorded questions remain in the study history.
+    pending=null;
+    session={topic:topic.id,ids:selected.map(q=>q.id),index:0,answers:[]};
+    saveSession();render();
   };
   $('submit-choice').onclick=()=>{if(session&&Number.isInteger(session.selectedChoice))answer(session.selectedChoice);};
+  $('setup-resume-button').onclick=()=>{if(!session)return;topic=C.topics.find(t=>t.id===session.topic);render();};
   $('written-form').onsubmit=e=>{e.preventDefault();answer($('written').value);};
   document.querySelectorAll('[data-confidence]').forEach(b=>b.onclick=()=>commit(b.dataset.confidence));
   $('note').oninput=()=>{if(session){session.note=$('note').value;saveSession();}};
