@@ -332,12 +332,15 @@ test('law test optional left ○ × elimination marks do not block normal final 
   assert.ok(quizHtml.indexOf('data-mark="circle"')<quizHtml.indexOf('data-answer="0"'),'elimination controls go at left');
   assert.doesNotMatch(quizHtml,/data-mark="check"/,'no bulky three-button row');
   node('mark-0-circle').onclick();
-  node('mark-1-cross').onclick();
   session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(session.choiceMarks[0],'circle');
+  assert.equal(session.selectedChoice,0,'○ tap also selects the final answer');
+  assert.equal(node('submit-choice').disabled,false,'○ alone enables answer confirmation');
+  assert.equal(session.pending,undefined,'○ alone never submits or grades');
+  node('mark-1-cross').onclick();
+  session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(session.choiceMarks[1],'cross');
-  assert.equal(session.pending,undefined,'marking alone must not submit');
-  assert.equal(node('submit-choice').disabled,true);
+  assert.equal(session.selectedChoice,0,'crossing out a different option does not change answer');
   // A previously crossed-out choice can be selected again: the × vanishes automatically.
   node('choice-answer-1').onclick();
   session=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
@@ -367,4 +370,31 @@ test('law test optional left ○ × elimination marks do not block normal final 
   const next=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
   assert.equal(next.pending.value,2);
   assert.deepEqual({...next.pending.choiceMarks},{},'marks are never required to answer');
+  // Screenshot reproduction: revisit a saved session from a direct /?topic=law-all entry.
+  vm.runInNewContext(appSource,runtime);
+  assert.equal(node('setup-resume').hidden,false,'saved session must be visible directly from setup');
+  assert.match(node('setup-resume-copy').textContent,/問目/);
+  node('setup-resume-button').onclick();
+  assert.equal(node('quiz').hidden,false,'saved session resumes from setup without visiting catalogue');
+  assert.equal(node('feedback').hidden,false,'already submitted question feedback resumes safely');
+  vm.runInNewContext(appSource,runtime);
+  node('question-count').value='10';
+  node('start').onclick();
+  const restarted=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  assert.equal(restarted.ids.length,10,'starting new law test does not get blocked by saved old session');
+  assert.equal(restarted.index,0);
+  assert.equal(restarted.pending,undefined);
+  assert.equal(JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.STATE_KEY)).attempts[firstId],1,'answered history survives restart');
+  // Screenshot: A/B/D crossed out and C circled, no text tapped, so answer confirmation must work.
+  node('mark-0-cross').onclick();
+  node('mark-1-cross').onclick();
+  node('mark-3-cross').onclick();
+  node('mark-2-circle').onclick();
+  const circled=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  assert.equal(circled.selectedChoice,2,'circled C must be treated as the chosen answer');
+  assert.equal(node('submit-choice').disabled,false,'answer-check button enabled after C○');
+  assert.equal(circled.pending,undefined,'still not graded until explicit submit');
+  node('submit-choice').onclick();
+  const submitted=JSON.parse(stored.get(runtime.window.OTSU4_TOPIC_TESTS.SESSION_KEY));
+  assert.equal(submitted.pending.value,2,'C○ goes through to grading');
 });
