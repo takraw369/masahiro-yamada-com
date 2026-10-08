@@ -42,10 +42,10 @@ test('lecture marks remain connected to the shared Otsu4 bank and original recor
 
 test('Otsu4 identification flashcards are accessible, typed, and preserve the current quiz state', async () => {
   const source = await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro', import.meta.url), 'utf8');
-  const script = source.match(/<script is:inline>([\\s\\S]*?)<\\/script>/)?.[1];
+  const script = source.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script, 'inline identification script is present');
   assert.doesNotThrow(() => new vm.Script(script));
-  const raw = script.match(/const foundationFlashCards = (\\[[^\\n]+\\]);/);
+  const raw = script.match(/const foundationFlashCards = (\[[^\n]+\]);/);
   assert.ok(raw, 'foundation cards are defined separately from the quiz');
   const cards = JSON.parse(raw[1]);
   assert.ok(cards.length >= 18, 'at least 18 core knowledge cards');
