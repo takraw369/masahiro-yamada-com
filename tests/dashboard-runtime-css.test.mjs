@@ -48,11 +48,11 @@ test('dynamically populated pages load route-isolated global styles without edit
   assert.match(layout, /rel="stylesheet" href=\{runtimeStyleHref\}/);
   for (const [name, pageRoot] of dynamics) {
     const source = await readFile(new URL(name, pageDir), 'utf8');
-    const styleName = name.replace(/\\.astro$/, '.css');
+    const styleName = name.replace(/\.astro$/, '.css');
     const css = await readFile(new URL('public/dashboard/runtime-css/' + styleName, root), 'utf8');
     assert.ok(source.includes('<style>'), name + ' page remains unchanged');
     assert.ok(css.includes('@scope (.' + pageRoot + ')'), name + ' runtime style is page-bounded');
-    assert.match(css, /:scope\\s*\\{/, name);
+    assert.match(css, /:scope\s*\{/, name);
     assert.ok(layout.includes("'" + name.replace('.astro','') + "'"), name + ' mapped');
   }
 });
@@ -61,13 +61,13 @@ test('Task Flow runtime CSS styles actual innerHTML cards and contains long text
   const page = await readFile(new URL('tasks.astro',pageDir), 'utf8');
   const css = await readFile(new URL('public/dashboard/runtime-css/tasks.css',root), 'utf8');
   const layout = await readFile(new URL('src/layouts/DashboardLayout.astro',root), 'utf8');
-  assert.match(page, /list\\.innerHTML\\s*=\\s*shown\\.map/);
-  assert.match(css, /@scope \\(\\.task-shell\\)/);
-  assert.match(css, /\\.task-card \\{ min-width:0; max-width:100%; box-sizing:border-box/);
-  assert.match(css, /\\.task-card \\.next \\{ max-width:100%; overflow-wrap:anywhere/);
-  assert.match(css, /\\.task-card \\.flow \\{ width:100%; min-width:0; max-width:100%; overflow-x:auto/);
-  assert.match(css, /grid-template-columns:minmax\\(0,1fr\\)/);
-  assert.match(layout, /pathname === '\/dashboard\/tasks' \\? 'TASK FLOW' : eyebrow/);
+  assert.match(page, /list\.innerHTML\s*=\s*shown\.map/);
+  assert.match(css, /@scope \(\.task-shell\)/);
+  assert.match(css, /\.task-card \{ min-width:0; max-width:100%; box-sizing:border-box/);
+  assert.match(css, /\.task-card \.next \{ max-width:100%; overflow-wrap:anywhere/);
+  assert.match(css, /\.task-card \.flow \{ width:100%; min-width:0; max-width:100%; overflow-x:auto/);
+  assert.match(css, /grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(layout, /pathname === '\/dashboard\/tasks' \? 'TASK FLOW' : eyebrow/);
 });
 
 test('all Dashboard routes load responsive guardrails regardless of rendering technology', async () => {
