@@ -5,6 +5,7 @@
   const SESSION_KEY = 'otsu4-topic-test-session-v1';
   const topics = [
     {id:'lecture-marks', label:'★ 講習で線を引いた箇所', marked:true, note:'赤線・丸・星印を優先。写真のページを確認し、誤答・△を繰り返す。'},
+    { id:'law-all', label:'法令総合10問（別表第1とは別）', quota:{'law-common':5,'law-class':5}, note:'共通法令5問＋乙4法令5問。消防組織・防火管理・点検報告・警戒区域を一度に確認。' },
     { id:'law-common', label:'共通法令', category:'law-common', note:'業務範囲・維持責任・点検と報告・複合用途' },
     { id:'law-class', label:'乙4法令・警戒区域', category:'law-class', note:'面積・一辺・見通し例外・第4類の対象' },
     { id:'electric', label:'電気基礎', category:'electric', note:'オームの法則・合成抵抗・電力・交流' },
@@ -52,6 +53,8 @@
     };
     if(topic.quota) for(const [category,n] of Object.entries(topic.quota)) take(ranked.filter(q=>q.category===category),n);
     else take(ranked,10);
+    // A law-only drill still supplies up to 10 questions if one category has no weak/unseen items.
+    if(topic.id==='law-all' && picked.length<10)take(ranked,10-picked.length);
     return picked;
   }
   // Fresh read for every mutation: retain comments and all unrelated question records.
