@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#16405d" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="description" content="消防設備士乙種第4類の基礎を、短い説明と確認テストで学ぶ。" />
+    <title>乙4 基礎レッスン</title>
+    <link rel="stylesheet" href="/otsu4/learn/styles.css?v=1" />
+  </head>
+  <body>
+    <a class="skip" href="#main">本文へ</a>
+    <header class="topbar"><a class="brand" href="/otsu4/"><span class="mark">4</span><span><strong>乙4 基礎レッスン</strong><small>説明 → 確認 → 模試</small></span></a><a class="return" href="/otsu4/">問題演習へ ↗</a></header>
+    <main id="main">
+      <div id="overview">
+        <section class="hero"><p class="eyebrow">消防設備士 乙種第4類 / STEP 1</p><h1>仕組みを知ってから、解いてみよう。</h1><p>1レッスン約3〜5分。図と短い説明を読み、その場で2問。間違えても理由を確認して、もう一度答えられます。</p><div class="hero-actions"><button id="continue" class="primary">最初から始める</button><a href="/otsu4/">問題演習へ</a></div></section>
+        <section class="scope"><h2>試験の地図</h2><p>乙種第4類は筆記30問と実技の鑑別等5問。筆記は法令10問・電気の基礎5問・構造機能と規格15問です。実技は図や写真を見て記述します。このページは各科目の基本をつかむ入口です。</p><div class="scope-grid"><span><b>01</b> 法令・対象</span><span><b>02</b> 電気の基礎</span><span><b>03</b> 機器・規格</span><span><b>04</b> 鑑別の入口</span></div></section>
+        <div class="section-head"><div><p class="eyebrow">10 LESSONS</p><h2>レッスン一覧</h2></div><span id="total-progress" aria-live="polite">0 / 10 完了</span></div>
+        <div id="lesson-list" class="lesson-list"></div>
+        <section class="after"><p class="eyebrow">STEP 2</p><h2>説明を学んだら、問題演習へ</h2><p>「今日の10問」で弱点を確認し、最後に35問の本番モードへ。鑑別は実物や写真を使う練習も組み合わせてください。</p><a class="primary" href="/otsu4/">演習・35問模試へ →</a></section>
+        <p class="sources">出題科目と試験方法：<a href="https://www.shoubo-shiken.or.jp/shoubou/annai/subject.html" target="_blank" rel="noopener noreferrer">消防試験研究センター「試験科目及び問題数」</a>、<a href="https://www.shoubo-shiken.or.jp/shoubou/annai/way.html" target="_blank" rel="noopener noreferrer">「試験の方法」</a>。確認問題は学習用の独自問題です。法令や設備基準は受験時の最新資料でも確認してください。</p>
+      </div>
+      <section id="lesson-view" hidden aria-live="polite"><nav class="lesson-nav"><button id="back" class="text-button">← 一覧</button><span id="position"></span></nav><div class="progress-track"><span id="progress-bar"></span></div><article class="lesson-card"><p id="lesson-area" class="eyebrow"></p><h1 id="lesson-title"></h1><p id="lesson-intro" class="lead"></p><div id="lesson-visual"></div><div id="lesson-points" class="points"></div><div class="takeaway"><b>覚える軸</b><p id="lesson-takeaway"></p></div><div id="quiz-area"><div class="quiz-heading"><p class="eyebrow">CHECK</p><h2>ここで確認 <span id="question-count"></span></h2></div><p id="question-text" class="question"></p><div id="choices" class="choices"></div><div id="answer" class="answer" hidden><strong id="verdict"></strong><p id="answer-summary"></p><div id="reasons"></div><button id="next" class="primary">次の問題へ</button></div></div><details id="improvement-panel" class="improvement"><summary>💬 この説明・問題の改善コメント</summary><form id="improvement-form"><label for="improvement-message">分かりにくい点をここで送る</label><textarea id="improvement-message" maxlength="800" required placeholder="例：この選択肢と別の機器の違いを図で見たい"></textarea><label for="improvement-email">返信先メール（初回のみ）</label><input id="improvement-email" type="email" required autocomplete="email" placeholder="name@example.com" /><label class="consent"><input id="improvement-consent" type="checkbox" required />コメントとレッスン・問題IDを改善受付に送る</label><button id="improvement-submit" class="primary" type="submit">送信して学習を続ける</button><p id="improvement-status" role="status" aria-live="polite"></p></form></details></article></section>
+    </main>
+    <script is:inline src="/otsu4/learn/lessons.js?v=1"></script>
+    <script is:inline src="/otsu4/learn/app.js?v=1"></script>
+  </body>
+</html>

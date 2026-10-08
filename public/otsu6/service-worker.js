@@ -1,4 +1,4 @@
-const CACHE = "otsu6-cram-v5";
+const CACHE = "otsu6-pass-sprint-v9";
 const ASSETS = ["./", "./styles.css", "./questions.js", "./app.js", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -17,13 +17,28 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  const networkFirst = event.request.mode === "navigate" || /\/otsu6\/(app|questions)\.js$/.test(url.pathname);
+  if (networkFirst) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request.mode === "navigate" ? "./" : event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request.mode === "navigate" ? "./" : event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) =>
       cached || fetch(event.request).then((response) => {
         const copy = response.clone();
         caches.open(CACHE).then((cache) => cache.put(event.request, copy));
         return response;
-      }).catch(() => event.request.mode === "navigate" ? caches.match("./") : Response.error())
+      }).catch(() => Response.error())
     )
   );
 });

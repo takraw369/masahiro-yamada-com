@@ -3,6 +3,7 @@ import { once } from 'node:events';
 import { createServer } from 'node:net';
 import { createLineFixture, smokeLineObservability } from './smoke-line-observability.mjs';
 import { startPreview } from './local-preview.mjs';
+import { createNoteFixture, smokeNoteHarness } from './smoke-note-harness.mjs';
 
 const server = createServer();
 server.listen(0, '127.0.0.1');
@@ -12,7 +13,8 @@ server.close();
 await once(server, 'close');
 const base = `http://127.0.0.1:${port}`;
 const fixture = await createLineFixture();
-const child = await startPreview(port, { vars: fixture.vars }).catch(async (error) => { await fixture.close(); throw error; });
+const noteFixture = await createNoteFixture(fixture);
+const child = await startPreview(port, { vars: noteFixture.vars }).catch(async (error) => { await noteFixture.close(); await fixture.close(); throw error; });
 let logs = '';
 let startupError;
 child.stdout.on('data', (chunk) => { logs = (logs + chunk).slice(-12000); });
@@ -44,6 +46,13 @@ try {
     assert.match(res.headers.get('content-type'), /text\/html/, path);
     assert.ok((await res.text()).includes('<html'), path);
   }
+  // Public runtime CSS must bypass Dashboard auth and actually reach the browser.
+  for (const path of ['/assets/dashboard-runtime/tasks.css', '/assets/dashboard-runtime/graph.css']) {
+    const res = await previewFetch(base + path, { redirect: 'manual' });
+    assert.equal(res.status, 200, path + ' must be reachable before login');
+    assert.match(res.headers.get('content-type') || '', /text\/css/, path);
+    assert.match(await res.text(), /@scope\s*\(\./, path);
+  }
   const dashboard = await previewFetch(base + '/dashboard', { redirect: 'manual' });
   assert.equal(dashboard.status, 302);
   assert.equal(dashboard.headers.get('location'), '/dashboard/login');
@@ -69,6 +78,7 @@ try {
   const csrf = await previewFetch(base + '/api/x-harness/posts', { method: 'POST', headers: { Origin: 'https://other.example.test' } });
   assert.equal(csrf.status, 403);
   await smokeLineObservability(base, fixture);
+  await smokeNoteHarness(base, noteFixture, fixture);
   console.log('Worker preview smoke passed: public pages, auth bootstrap and private boundaries.');
 } catch (error) {
   console.error(logs);
@@ -77,5 +87,6 @@ try {
   child.kill('SIGTERM');
   await Promise.race([once(child, 'exit'), new Promise((resolve) => setTimeout(resolve, 3000))]);
   if (child.exitCode === null) child.kill('SIGKILL');
+  await noteFixture.close();
   await fixture.close();
 }

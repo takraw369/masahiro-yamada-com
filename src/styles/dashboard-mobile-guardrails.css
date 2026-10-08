@@ -1,0 +1,57 @@
+/*
+ * Dashboard mobile guardrails v2 — all dashboard routes (Astro, React, and innerHTML).
+ * Structural containment only. Canvas/graph tracks retain local internal scrolling.
+ */
+.content,
+.content *,
+.content *::before,
+.content *::after {
+  box-sizing: border-box;
+}
+.content-inner,
+.content-inner > *,
+.content :where(section, article, header, footer, nav, form, fieldset, details) {
+  min-width: 0;
+  max-width: 100%;
+}
+.content :where(h1,h2,h3,h4,h5,h6,p,li,dd,dt,blockquote,a,span,strong,small,b,em,label,td,th) {
+  overflow-wrap: anywhere;
+}
+.content :where(pre,code) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.content pre {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.content :where(img,iframe,video,canvas) {
+  max-width: 100%;
+}
+.content :where(input,textarea,select) {
+  min-width: 0;
+  max-width: 100%;
+}
+.content :where(.task-shell,.evidence-shell,.voice-shell,.crm-shell,.asset-shell,.flow-shell,.board-app,.graph-app,.lab-shell) {
+  min-width: 0;
+  max-width: 100%;
+}
+.content :where(.task-card,.evidence-card,.voice-card,.asset-card,.question-card,.crm-card) {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 760px) {
+  .content :where(pre,code) { white-space: pre-wrap; }
+  .content :where(.table-scroll,.table-wrap,.table-wrapper,.overflow-table) {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+  .content :where(.task-card,.evidence-card,.voice-card,.asset-card,.crm-card) :where(a,button) {
+    max-width: 100%;
+    touch-action: manipulation;
+  }
+  .content :where(.task-shell,.evidence-shell,.voice-shell,.crm-shell,.asset-shell,.flow-shell) :where(input,textarea,select) {
+    font-size: 16px;
+  }
+}

@@ -5,5 +5,17 @@ import '../../styles/masa-readable.css';
 import '../../styles/intelligence-board-fix.css';
 ---
 <DashboardLayout title="Intelligence" eyebrow="DISCOVER → TRUST → REUSE">
+  <div class="playground-entry">
+    <div>
+      <span>PRIVATE PLAYGROUND</span>
+      <b>公開前に、まず遊ぶ。</b>
+      <p>AI Output・体験・問い・Sourceを私設Feedで眺め、RELEASEしたものだけ世界の水路へ。</p>
+    </div>
+    <a href="/dashboard/playground">PLAYGROUNDを開く →</a>
+  </div>
   <IntelligenceBoard client:load />
 </DashboardLayout>
+
+<style>
+  .playground-entry{display:flex;justify-content:space-between;gap:20px;align-items:center;margin:0 0 18px;padding:15px 17px;border:1px solid #d8c29e;background:#fffaf2;color:#343a40}.playground-entry div{display:grid;gap:3px}.playground-entry span{font-size:.72rem;font-weight:900;letter-spacing:.09em;color:#8b5b2c}.playground-entry b{font-size:1rem}.playground-entry p{margin:0;color:#66707a;font-size:.84rem;line-height:1.6}.playground-entry a{flex:none;padding:10px 12px;border:1px solid #c7a46d;background:#fff;color:#744b18;text-decoration:none;font-size:.82rem;font-weight:900}@media(max-width:720px){.playground-entry{align-items:flex-start;flex-direction:column}.playground-entry a{width:100%;text-align:center}}
+</style>

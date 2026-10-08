@@ -1,0 +1,119 @@
+---
+import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
+---
+
+<PublicPageLayout
+  title="PUMP QUEST 10.09"
+  description="10月9日のプールに向けて、毎日のトレーニングをゲームのように進める10日間PUMP QUEST。"
+  eyebrow="10 DAYS // BUILD THE SILHOUETTE"
+>
+  <p slot="lead" class="public-lead">筋肉量を急増させるのではなく、肩・胸・背中・腕のシルエットとコンディションを10/9に合わせて仕上げる。</p>
+
+  <link rel="stylesheet" href="/pump/styles.css?v=20261008-1" />
+
+  <section class="pump-hud" aria-label="PUMP QUEST status">
+    <div class="hud-level"><span>LV.</span><strong id="level">1</strong></div>
+    <div class="hud-xp">
+      <div class="hud-row"><span id="xp-copy">0 / 100 XP</span><span id="streak-copy">🔥 0 DAY</span></div>
+      <div class="xp-track"><i id="xp-fill"></i></div>
+    </div>
+    <button id="sound-toggle" class="hud-icon" type="button" aria-label="サウンド切替">🔊</button>
+  </section>
+
+  <section class="hero-quest" aria-labelledby="quest-title">
+    <div class="hero-noise" aria-hidden="true"></div>
+    <div class="countdown-ring" aria-hidden="true">
+      <svg viewBox="0 0 120 120" role="img" aria-label="10月9日までの進捗">
+        <circle class="ring-bg" cx="60" cy="60" r="51"></circle>
+        <circle id="ring-progress" class="ring-progress" cx="60" cy="60" r="51"></circle>
+      </svg>
+      <div class="ring-copy"><strong id="days-left">10</strong><span>DAYS</span></div>
+    </div>
+    <div class="hero-copy">
+      <p class="micro-label">POOL BODY QUEST</p>
+      <h1 id="quest-title">10.09<br /><em>見た目を仕上げる。</em></h1>
+      <p id="today-focus">今日のミッションを読み込み中…</p>
+      <div class="hero-actions">
+        <button id="start-btn" class="cta-main" type="button">今日のQUESTを開始</button>
+        <button id="calendar-jump" class="cta-ghost" type="button">全11日を見る</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="metric-strip" aria-label="今日のトレーニング概要">
+    <div><span>SETS</span><strong id="today-sets">0</strong></div>
+    <div><span>EST.</span><strong id="today-minutes">0m</strong></div>
+    <div><span>XP</span><strong id="today-xp">0</strong></div>
+    <div><span>ZONE</span><strong id="today-zone">UPPER</strong></div>
+  </section>
+
+  <section id="workout-shell" class="workout-shell" hidden>
+    <div class="section-head">
+      <div><p class="micro-label">TODAY'S QUEST</p><h2 id="workout-title">Workout</h2></div>
+      <div class="combo-box"><span>COMBO</span><strong id="combo">x1</strong></div>
+    </div>
+
+    <section class="ai-trainer-card" aria-label="AIトレーナー MIA">
+      <div class="trainer-visual-wrap">
+        <div class="trainer-glow" aria-hidden="true"></div>
+        <div id="trainer-visual" class="trainer-visual" aria-hidden="true"></div>
+        <div class="trainer-badge"><span>AI TRAINER</span><strong>MIA</strong><small>26 / ADULT</small></div>
+      </div>
+      <div class="trainer-talk">
+        <p class="micro-label">PRIVATE COACH MODE</p>
+        <h3 id="trainer-line">今日は私についてきて。</h3>
+        <p id="trainer-sub">動きを見せる。声で煽る。セットごとに距離が近くなる。</p>
+        <div class="trainer-controls">
+          <button id="voice-toggle" class="voice-btn" type="button">💋 艶VOICE ON</button>
+          <span id="voice-status">タップ後に音声が有効になります</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="quest-progress"><i id="quest-progress-fill"></i></div>
+    <p class="quest-progress-copy"><span id="done-count">0</span> / <span id="total-count">0</span> SET COMPLETE</p>
+
+    <div id="exercise-list" class="exercise-list"></div>
+
+    <div id="finish-card" class="finish-card" hidden>
+      <div class="finish-burst" aria-hidden="true"></div>
+      <p class="micro-label">QUEST CLEAR</p>
+      <h2>今日の身体に、<br />1つ積んだ。</h2>
+      <p id="finish-copy">明日へつながるXPを獲得。</p>
+      <button id="finish-close" class="cta-main" type="button">報酬を受け取る</button>
+    </div>
+  </section>
+
+  <section class="recovery-panel">
+    <div class="section-head"><div><p class="micro-label">RECOVERY = GROWTH</p><h2>回復もQUEST。</h2></div><span class="safe-chip">NO WATER CUT</span></div>
+    <div class="recovery-grid">
+      <article><span>01</span><strong>たんぱく質</strong><p>毎食に。目安は1日1.6〜2.2g/kg。</p></article>
+      <article><span>02</span><strong>炭水化物</strong><p>トレ前後に米・芋・果物。筋肉を張らせる燃料。</p></article>
+      <article><span>03</span><strong>睡眠</strong><p>削らない。10日間は回復不足を最優先で避ける。</p></article>
+      <article><span>04</span><strong>水分</strong><p>普通に飲む。水抜き・極端な塩抜きはしない。</p></article>
+    </div>
+  </section>
+
+  <section id="calendar-section" class="calendar-section">
+    <div class="section-head"><div><p class="micro-label">ROAD TO 10.09</p><h2>11日間ロードマップ</h2></div><span id="calendar-progress">0 / 11</span></div>
+    <div id="day-grid" class="day-grid"></div>
+  </section>
+
+  <section class="pool-day-panel">
+    <p class="micro-label">OCT 09 // FINAL PUMP</p>
+    <h2>当日は「鍛える」より<br />「張らせる」。</h2>
+    <p>プールの10〜15分前に、腕立て・ロー・サイドレイズ・カールを軽く2〜3周。限界まで追い込まず、血流を集めて終える。</p>
+  </section>
+
+  <div id="timer-dock" class="timer-dock" hidden>
+    <div><span id="timer-label">REST</span><strong id="timer-seconds">45</strong></div>
+    <button id="timer-skip" type="button">SKIP</button>
+  </div>
+
+  <audio id="coach-audio" preload="auto"></audio>\n\n  <div id="toast" class="pump-toast" role="status" aria-live="polite"></div>
+  <div id="level-overlay" class="level-overlay" hidden aria-live="polite">
+    <div class="level-card"><span>LEVEL UP</span><strong id="level-up-number">2</strong><p>次の自分、解放。</p></div>
+  </div>
+
+  <script is:inline src="/pump/app.js?v=20261008-1"></script>
+</PublicPageLayout>

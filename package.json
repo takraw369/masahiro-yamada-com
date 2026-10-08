@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
+    "pilot:terminal-browser": "node scripts/terminal-browser-pilot.mjs",
     "codex:bridge": "node scripts/codex-dashboard-bridge.mjs",
     "codex:server": "codex app-server --listen ws://127.0.0.1:4500",
     "build": "astro build && node ./scripts/patch-worker.mjs && node scripts/verify-worker-config.mjs",
@@ -14,7 +15,7 @@
     "typecheck": "astro check",
     "typecheck:release": "node scripts/typecheck-release.mjs",
     "test:preview": "node scripts/smoke-preview.mjs",
-    "security:check": "npm audit --omit=dev --audit-level=high"
+    "security:check": "node scripts/security-check.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
@@ -31,8 +32,10 @@
     "wrangler": "4.129.0"
   },
   "overrides": {
+    "devalue": "5.9.4",
+    "undici": "7.30.0",
     "miniflare": {
-      "sharp": "0.35.4"
+      "sharp": "0.35.5"
     }
   }
 }

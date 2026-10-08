@@ -20,6 +20,12 @@ When the same class of learning appears twice:
 
 ## Current learnings
 
+### 2026-10-07 — Otsu4 identification handoff order
+- Corrected: 鑑別項目を一度に全部出さず、講習で渡された順を保持して段階解放する。既存項目は重複追加せず同じ正本配列へ統合する。
+- Cause: 弱点優先ランダムだけでは、講習側が指定した導入順と認知負荷を守れない。
+- Rule: Otsu4鑑別の新規教材は teacher handoff order を canonical sequence とし、初回は小さなprefixだけを出す。○が安定したら後続を小分けに解放し、×/△の再出題だけ順序を上書きしてよい。
+
+
 ### 2026-09-21 — Dashboard narrow-desktop width
 - Corrected: `/dashboard` で固定サイドバーを残したまま狭いデスクトップ幅に入ると、Cockpitカードが横にはみ出して表示が崩れた。
 - Cause: レスポンシブ判定をviewport幅だけで考え、220pxの固定サイドバーを差し引いた実際の本文幅を十分に確保していなかった。
