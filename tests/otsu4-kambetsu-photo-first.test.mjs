@@ -7,9 +7,9 @@ const source=readFileSync(new URL('../src/pages/otsu4/kambetsu/index.astro',impo
 test('photo identification is the initial study mode, with the answer concealed',()=>{
   assert.match(source, /<option value="photos" selected>/);
   assert.match(source, /<img class="flash-photo" id="flash-photo"/);
-  assert.match(source, /\$('flash-back')\.hidden=true/);
-  assert.match(source, /\$('flash-answer-title')\.textContent=current\.title/);
-  assert.match(source, /\$('flash-answer')\.textContent=current\.answer/);
+  assert.match(source, /\$\('flash-back'\)\.hidden=true/);
+  assert.match(source, /\$\('flash-answer-title'\)\.textContent=current\.title/);
+  assert.match(source, /\$\('flash-answer'\)\.textContent=current\.answer/);
 });
 
 test('photo cards never treat generic SVG silhouettes as verified object photos',()=>{
