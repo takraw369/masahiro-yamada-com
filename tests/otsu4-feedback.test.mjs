@@ -41,7 +41,7 @@ test('lecture marks remain connected to the shared Otsu4 bank and original recor
 
 
 
-test('Otsu4 lecture exclusions never appear in test, photo flashcards, or reviews; pliers stay active', async () => {
+test('Otsu4 lecture exclusions stay out of graded quizzes but remain in the full photo catalogue', async () => {
   const html=await readFile(new URL('../src/pages/otsu4/kambetsu/index.astro',import.meta.url),'utf8');
   const script=html.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script);
@@ -73,13 +73,13 @@ test('Otsu4 lecture exclusions never appear in test, photo flashcards, or review
   const app=vm.runInNewContext(script+'\n({tools,examTools,activeTools,buildQueue,photoFlashCards,foundationFlashCards,activeFoundationFlashCards,beginFlash,getDeck:()=>flashDeck})',ctx);
   assert.equal(app.tools.length,78,'retain all original data / stable tool names');
   assert.equal(app.examTools.length,74,'only four lecture-excluded pictures are omitted');
-  assert.equal(app.photoFlashCards().length,74);
+  assert.equal(app.photoFlashCards().length,78,'full photographed catalogue includes reference-only entries');
   assert.equal(app.activeFoundationFlashCards.length,23);
   assert.equal(app.foundationFlashCards.length,26,'keep old learning IDs and history');
   for(const name of excluded){
     assert.ok(app.tools.some(t=>t.name===name),'preserve original definition for historical grades');
     assert.ok(!app.examTools.some(t=>t.name===name),'excluded from exam set: '+name);
-    assert.ok(!app.photoFlashCards().some(t=>t.title===name),'excluded from photo cards: '+name);
+    assert.ok(app.photoFlashCards().some(t=>t.title===name),'available for optional full-range learning: '+name);
   }
   for(const scope of ['priority','all','tools308']){
     el('quiz-scope').value=scope;
@@ -93,12 +93,12 @@ test('Otsu4 lecture exclusions never appear in test, photo flashcards, or review
     el('flash-scope').value=scope;
     app.beginFlash();
     const deck=app.getDeck();
-    assert.ok(deck.every(item=>!excluded.includes(item.title)),'no excluded cards for '+scope);
+    if(scope==='basics'||scope==='tools308')assert.ok(deck.every(item=>!excluded.includes(item.title)),'focused lessons exclude reference-only entries for '+scope);
     assert.ok(deck.every(item=>!['base-flame','base-flame-uv-ir-compare','base-p294-thermocouple-difference'].includes(item.id)),'no excluded foundations for '+scope);
   }
   assert.equal(oldState['otsu4-kambetsu-state-v2'],JSON.stringify(history),'past answer records stay unchanged');
   assert.doesNotMatch(html,/<option value="p294">/);
-  assert.match(html,/講習で本番範囲外/);
+  assert.match(html,/本番対象外/);
   const home=await readFile(new URL('../src/pages/otsu4/index.astro',import.meta.url),'utf8');
   assert.doesNotMatch(home,/\?cards=p294|\?mode=test&scope=p294/);
   assert.match(home,/ウォーターポンププライヤー/);
@@ -147,7 +147,7 @@ test('Otsu4 identification flashcards are accessible, typed, and preserve the cu
   assert.match(source, /data-flash-grade="unsure"/);
   assert.match(source, /data-flash-grade="ok"/);
   assert.match(source, /const photoFlashCards = \(\) =>/);
-  assert.match(source, /loadPhoto\(current\.photoTool,'flash-photo'\)/);
+  assert.match(source, /loadPhoto\(current\.photoTool,'flash-photo',true\)/);
   assert.match(source, /id="app" hidden/);
   assert.match(source, /const K='otsu4-kambetsu-state-v2'/);
   assert.match(source, /const FLASH_KEY = 'otsu4-kambetsu-flashcards-v1'/);
