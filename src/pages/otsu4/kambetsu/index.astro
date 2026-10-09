@@ -64,7 +64,7 @@ button{touch-action:manipulation}
 <p class="flash-muted">器具名からWikimedia Commonsの画像を検索し、実物写真の候補を優先します。外部画像の取得失敗時は誤った模式図を使わず、検索リンクを示します。候補の画像が教材の写真と同一である保証はありません。教材写真自体は転載しません。</p>
 <p class="flash-muted">p293〜309の登録済み項目を写真カードで学習。記述テストは「後半の器具」「△・×」「忘れかけたもの」を多めに抽出します。以前に本番対象外と指示された炎感知器等は写真で参照できますが、記述テストの採点対象からは除外しています。過去の学習履歴は保持します。</p>
 <p class="flash-muted">基礎カードは独立した復習履歴。写真カードは既存の鑑別データを共用します。テストの採点記録は書き換えません。</p>
-</section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><p class="flash-photo-status" id="quiz-photo-status" role="status" aria-live="polite" hidden></p><p class="flash-muted" id="quiz-photo-search-wrap" hidden><a id="quiz-photo-search" href="#" target="_blank" rel="noopener noreferrer">この器具の画像候補を検索 →</a></p><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
+</section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><p class="flash-photo-status" id="quiz-photo-status" role="status" aria-live="polite" hidden></p><p class="flash-muted" id="quiz-photo-search-wrap" hidden><a id="quiz-photo-search" href="#" target="_blank" rel="noopener noreferrer">この器具の画像候補を検索 →</a></p><button type="button" id="quiz-skip-photo" class="secondary" hidden>画像がないので、この問題をスキップ →</button><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
 const $=id=>document.getElementById(id);
 const commons=(file)=>`https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=960`;
 const tools=[
@@ -339,6 +339,7 @@ function loadPhoto(t, elementId='photo', photoOnly=false){
   const requestId=String(Number(photo.dataset.requestId||'0')+1);
   photo.dataset.requestId=requestId;
   if(photoOnly)photo.hidden=true; // Never show the previous card's photo while searching.
+  if(mode==='quiz')$('quiz-skip-photo').hidden=true;
   if(searchWrap)searchWrap.hidden=true;
   if(status){status.hidden=false;status.textContent='実物写真を探しています…';}
   if(searchLink)searchLink.href=imageSearchPage(t);
@@ -355,7 +356,10 @@ function loadPhoto(t, elementId='photo', photoOnly=false){
     if(!isCurrent())return;
     if(photoOnly){
       photo.hidden=true;
+      photo.onerror=null;
+      photo.onload=null;
       photo.src='';
+      if(mode==='quiz')$('quiz-skip-photo').hidden=false;
       if(status){status.hidden=false;status.textContent='この器具に一致する実物写真を取得できませんでした。誤認防止のため別の器具の写真や模式図は表示しません。';}
       if(searchWrap)searchWrap.hidden=false;
       return;
@@ -376,6 +380,7 @@ function loadPhoto(t, elementId='photo', photoOnly=false){
       photo.hidden=false;
       if(status)status.hidden=true;
       if(searchWrap)searchWrap.hidden=true;
+      if(mode==='quiz')$('quiz-skip-photo').hidden=true;
       showSource(entry.source);
     };
     photo.onerror=()=>{
@@ -591,6 +596,7 @@ function show(){
   $('actions').style.display='none';
   $('reveal').style.display='block';
 }
+$('quiz-skip-photo').onclick=()=>{i++;show();};
 $('reveal').onclick=()=>{
   const t=queue[i];
   lastResult={
