@@ -169,13 +169,14 @@ const vettedPhotoFiles = Object.freeze({
   '騒音計':['Sound level meter, DVM85.jpg'],
   '接地抵抗計':['Digital Earth resistance tester.jpg'],
   'アウトレットボックス':['Junction box.jpg'],
+  'ねじなし電線管':['ねじなし電線管 (E25).JPG'],
+  '加熱試験器用の火口':['Hakukin Kairo KaeHiguchi.jpg'],
   'ウォーターポンププライヤー':['440Tongue+and+GroovePliers.JPG','Channellock tongue-and-groove pliers.jpg'],
   'パイプレンチ':['Pipe wrench.JPG'],
   'パイプバイス':['Pipe Vice J. Morris CC BY-SA-3.0.jpg'],
   '地区音響装置':['Fire Alarm Bell red.jpg'],
   '表示灯用発光ダイオード':['Red LEDs.jpg'],
-  '密閉型蓄電池':['Sealed-lead-acid-batteries-connected-in-series.jpg'],
-  'R型受信機':['Noumi R Fire Alarm Control Panel.jpg']
+  '密閉型蓄電池':['Sealed-lead-acid-batteries-connected-in-series.jpg']
 });
 const hasVettedPhoto=t=>Boolean(t&&vettedPhotoFiles[t.name]?.length);
 const verifiedPhotos=()=>tools.filter(hasVettedPhoto);
