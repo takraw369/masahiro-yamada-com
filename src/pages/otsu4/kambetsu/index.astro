@@ -353,73 +353,65 @@ async function searchNamedPhoto(t){
   photoSearchCache.set(t.name,task);
   return task;
 }
-function loadPhoto(t, elementId='photo', photoOnly=false){
+function loadPhoto(t, elementId='photo', photoOnly=false, callbacks={}){
   const photo=$(elementId);
   const mode=elementId==='flash-photo'?'flash':'quiz';
   const status=photoOnly?$(mode+'-photo-status'):null;
   const searchWrap=photoOnly?$(mode+'-photo-search-wrap'):null;
-  const searchLink=photoOnly?$(mode+'-photo-search'):null;
   const reference=$('flash-reference');
-  const imageUrls=(vettedPhotoFiles[t.name]||[]).map(file=>({url:commons(file),source:'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_'))}));
+  const imageUrls=(vettedPhotoFiles[t.name]||[]).map(file=>({
+    url:commons(file),
+    source:'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_'))
+  }));
   const requestId=String(Number(photo.dataset.requestId||'0')+1);
   photo.dataset.requestId=requestId;
-  if(photoOnly)photo.hidden=true; // Never show the previous card's photo while searching.
+  if(photoOnly)photo.hidden=true;
   if(mode==='quiz')$('quiz-skip-photo').hidden=true;
   if(searchWrap)searchWrap.hidden=true;
-  if(status){status.hidden=false;status.textContent='実物写真を探しています…';}
-  if(searchLink)searchLink.href=imageSearchPage(t);
+  if(status){status.hidden=false;status.textContent='実物写真を読み込んでいます…';}
   const isCurrent=()=>photo.dataset.requestId===requestId;
-  const showSource=source=>{
-    if(!isCurrent()||elementId!=='flash-photo'||!reference)return;
-    if(!source)return;
-    reference.href=source;
-    reference.textContent='参考写真の出典・利用条件を確認 →';
-    reference.hidden=elementId==='flash-photo'&&!flashRevealed; // Show the source if the answer is already open.
-    photo.dataset.source=source;
+  let settled=false, position=0, timer=null;
+  const end=()=>{
+    settled=true;
+    if(timer!==null && typeof clearTimeout==='function')clearTimeout(timer);
   };
-  const finishFailure=()=>{
-    if(!isCurrent())return;
-    if(photoOnly){
-      photo.hidden=true;
-      photo.onerror=null;
-      photo.onload=null;
-      photo.src='';
-      if(mode==='quiz')$('quiz-skip-photo').hidden=false;
-      if(status){status.hidden=false;status.textContent='この器具に一致する実物写真を取得できませんでした。誤認防止のため別の器具の写真や模式図は表示しません。';}
-      if(searchWrap)searchWrap.hidden=false;
-      return;
-    }
-    photo.onerror=null;photo.src=fallbackSvg(t);
+  const fail=()=>{
+    if(!isCurrent()||settled)return;
+    end();
+    photo.onerror=null;
+    photo.onload=null;
+    photo.hidden=true;
+    if(status){status.hidden=false;status.textContent='写真を表示できなかったため、この問題は飛ばしました。';}
+    if(typeof callbacks.onFailure==='function')callbacks.onFailure();
   };
-  const findNext=async()=>{
-    const found=await searchNamedPhoto(t);
-    if(!isCurrent())return;
-    if(found){setPhoto(found);return;}
-    finishFailure();
-  };
-  let next=0;
-  const setPhoto=entry=>{
-    if(!isCurrent())return;
+  const attempt=()=>{
+    if(!isCurrent()||settled)return;
+    if(position>=imageUrls.length){fail();return;}
+    const entry=imageUrls[position++];
     photo.onload=()=>{
-      if(!isCurrent())return;
+      if(!isCurrent()||settled)return;
+      end();
       photo.hidden=false;
       if(status)status.hidden=true;
       if(searchWrap)searchWrap.hidden=true;
-      if(mode==='quiz')$('quiz-skip-photo').hidden=true;
-      showSource(entry.source);
+      if(elementId==='flash-photo'){
+        photo.dataset.source=entry.source;
+        reference.href=entry.source;
+        reference.textContent='参考写真の出典・利用条件を確認 →';
+        reference.hidden=!flashRevealed;
+      }
+      if(typeof callbacks.onReady==='function')callbacks.onReady();
     };
     photo.onerror=()=>{
-      if(!isCurrent())return;
-      if(next<imageUrls.length){setPhoto(imageUrls[next++]);return;}
-      void findNext();
+      if(!isCurrent()||settled)return;
+      attempt();
     };
     photo.src=entry.url;
   };
-  if(imageUrls.length)setPhoto(imageUrls[next++]);
-  else if(photoOnly)void findNext();
-  else photo.src=fallbackSvg(t);
+  // A stalled mobile image request must not leave a question without a photo.
+  if(typeof setTimeout==='function')timer=setTimeout(fail,10000);
+  attempt();
 }
-
 const hiraToKata=s=>s.replace(/[ぁ-ゖ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));
 const norm=s=>hiraToKata(String(s||'').normalize('NFKC').toLowerCase()).replace(/[\s　・、。,.!?！？「」『』（）()\-ー]/g,'');
 function judgeName(t,value){
