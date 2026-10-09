@@ -5,6 +5,12 @@
   const SESSION_KEY = 'otsu4-topic-test-session-v1';
   const topics = [
     {id:'lecture-marks', label:'★ 講習で線を引いた箇所', marked:true, note:'赤線・丸・星印を優先。写真のページを確認し、誤答・△を繰り返す。'},
+    { id:'jikahou-focus', label:'10/9〜13 自火報集中10問', ids:[
+      'l01','l02','l03','l04','l05','l06','l07','l08','l09','l10','l11','l12','l13','l14','l15','l16','l17','l18','l19',
+      's01','s02','s03','s04','s05','s06','s07','s08','s09','s10','s11','s12','s13','s14','s15','s16','s17','s18','s19','s20',
+      'p01','p02','p03','p04','p05','p06','p07'
+    ],quota:{'law-class':3,structure:6,practical:1},
+      note:'講習：自火報の構成・信号経路・受信機・感知器・発信機を中心に、関連法令3・構造機能6・名称記述1。既存の問題と学習履歴を使います。' },
     { id:'law-all', label:'法令総合（別表第1とは別）', quota:{'law-common':5,'law-class':5}, note:'10問・20問・全70問を選択。消防組織・防火管理・点検報告・警戒区域などを確認。' },
     { id:'law-common', label:'共通法令', category:'law-common', note:'業務範囲・維持責任・点検と報告・複合用途' },
     { id:'law-class', label:'乙4法令・警戒区域', category:'law-class', note:'面積・一辺・見通し例外・第4類の対象' },
