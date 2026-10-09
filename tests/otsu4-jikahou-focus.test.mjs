@@ -26,9 +26,9 @@ test('weak/unseen modes honor preexisting history, and never rewrite it on read'
   for(const q of rows){state.attempts[q.id]=1;}
   state.ratings.s18='repeat';state.wrong.l01=1;state.attempts.s12=0;
   storage.setItem(C.STATE_KEY,JSON.stringify(state));
-  const weak=C.select(rows,topic,C.load(storage()),'weak');
+  const weak=C.select(rows,topic,C.load(storage),'weak');
   assert.deepEqual([...weak].map(q=>q.id).sort(),['l01','s18']);
-  const unseen=C.select(rows,topic,C.load(storage()),'unseen');
+  const unseen=C.select(rows,topic,C.load(storage),'unseen');
   assert.deepEqual([...unseen].map(q=>q.id),['s12']);
   assert.equal(storage.getItem(C.STATE_KEY),JSON.stringify(state));
 });
