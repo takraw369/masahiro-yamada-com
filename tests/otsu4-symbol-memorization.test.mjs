@@ -102,7 +102,7 @@ test('weak-mode includes only saved △・×, never erases history or weak IDs',
   const {api,element,storage}=setup(seed);
   element('study-mode').value='weak';
   const deck=api.buildDeck().map(x=>x.id);
-  assert.deepEqual(deck.sort(),['h-diff','h-fixed1']);
+  assert.deepEqual(Array.from(deck).sort(),['h-diff','h-fixed1']);
   assert.equal(storage.get('otsu4-symbol-cards-v1'),seed['otsu4-symbol-cards-v1'],'load should not mutate storage');
 });
 
