@@ -355,7 +355,7 @@ function loadPhoto(t, elementId='photo', photoOnly=false){
     if(!isCurrent())return;
     if(photoOnly){
       photo.hidden=true;
-      photo.removeAttribute('src');
+      photo.src='';
       if(status){status.hidden=false;status.textContent='この器具に一致する実物写真を取得できませんでした。誤認防止のため別の器具の写真や模式図は表示しません。';}
       if(searchWrap)searchWrap.hidden=false;
       return;
@@ -732,7 +732,7 @@ function showFlash() {
   $('flash-reference').hidden=!ref;
   $('flash-reference').hidden=true;
   if(ref) {$('flash-reference').href=ref;$('flash-reference').textContent='外部参考資料へ →';}
-  else {$('flash-reference').removeAttribute('href');}
+  else {$('flash-reference').href='#';}
   delete $('flash-photo').dataset.source;
   $('flash-photo').hidden=!current.photoTool;
   $('flash-photo-status').hidden=true;
