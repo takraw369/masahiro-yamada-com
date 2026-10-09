@@ -16,7 +16,7 @@
 .flash-visual .flash-group{font-size:12px;font-weight:900;color:#28648b}
 .flash-visual h2{font-size:21px;line-height:1.4;margin:9px 0 8px;overflow-wrap:anywhere}
 .flash-visual p{font-size:16px;line-height:1.75}
-.flash-photo{display:block;width:100%;height:220px;object-fit:contain;background:#fff;border-radius:12px;margin:8px 0}
+.flash-photo{display:block;width:100%;height:270px;object-fit:contain;background:#fff;border-radius:12px;margin:8px 0}.flash-photo-status{font-size:13px;line-height:1.6;color:#684f22;background:#fff4d8;padding:12px;border-radius:10px}.flash-photo[hidden]{display:none}.photo:has(img[hidden]){height:26px;background:transparent}.flash-photo-status[hidden],.flash-muted[hidden]{display:none}
 .flash-back{border-top:2px solid #c0d9e7;padding-top:13px;margin-top:12px}
 .flash-back h3{font-size:19px;color:#174e70;margin:0 0 6px;overflow-wrap:anywhere}
 .flash-back p{margin:0 0 10px;font-size:15px}
@@ -35,18 +35,18 @@
 .flash-muted{font-size:12px;color:#607080;line-height:1.6}
 button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #28648b;outline-offset:2px}
 button{touch-action:manipulation}
-@media(max-width:430px){main{padding:12px 12px calc(85px + env(safe-area-inset-bottom))}.flash-visual{padding:13px}.flash-photo{height:188px}.flash-grades{gap:6px}.flash-grades button{font-size:13px}.flash-visual h2{font-size:19px}.top{gap:8px;min-width:0}.top a{overflow-wrap:anywhere}}
+@media(max-width:430px){main{padding:12px 12px calc(85px + env(safe-area-inset-bottom))}.flash-visual{padding:13px}.flash-photo{height:235px}.flash-grades{gap:6px}.flash-grades button{font-size:13px}.flash-visual h2{font-size:19px}.top{gap:8px;min-width:0}.top a{overflow-wrap:anywhere}}
 </style></head><body><main><div class="top"><a href="/otsu4/">← 乙4ホーム</a><span class="pill" id="poolPill">鑑別・講習順</span></div><section id="flashcards" class="card" aria-labelledby="flash-heading">
 <div class="flash-head"><span class="flash-kicker">STEP 1 / 鑑別の予習</span><span class="pill">写真・仕組み・用途</span></div>
-<h1 id="flash-heading" style="font-size:25px;line-height:1.4;margin:12px 0 8px">まずカードで覚えよう。</h1>
-<p class="flash-intro">写真を見てすぐ記述テストに入る前に「何を感知する？」「どう見分ける？」を短いカードで理解。<b>裏面を見てから○・△・×</b>を選ぶと、苦手がまた出てくるよ。</p>
+<h1 id="flash-heading" style="font-size:25px;line-height:1.4;margin:12px 0 8px">まず実物写真で覚えよう。</h1>
+<p class="flash-intro">まず写真だけを見て、器具の名前と用途を思い出そう。<b>裏面で正式名称・用途・見分け方を確認</b>して○・△・×。苦手な器具はもう一度出てくるよ。仕組みの解説は「補助知識」で学べる。</p>
 <label class="flash-scope-label" for="flash-scope">学ぶカードの種類</label>
-<select id="flash-scope"><option value="basics">基礎知識・仕組み（23枚から10枚）</option><option value="tools308">講習p308｜工具・材料12種を集中</option><option value="photos">写真で名称・用途（10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
+<select id="flash-scope"><option value="photos" selected>p293〜309｜写真で名称・用途を覚える（10枚ずつ）</option><option value="tools308">講習p308｜工具・材料12種を集中</option><option value="basics">補助知識・仕組み（文字カード・10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
 <div class="flash-progress" id="flash-progress" role="status" aria-live="polite"></div>
 <div class="flash-visual" id="flash-visual">
 <div class="flash-group" id="flash-group"></div>
 <h2 id="flash-question"></h2>
-<img class="flash-photo" id="flash-photo" alt="鑑別する器具の写真。答えは裏面にあります" referrerpolicy="no-referrer" hidden>
+<img class="flash-photo" id="flash-photo" alt="鑑別する器具の実物写真。答えは裏面にあります" referrerpolicy="no-referrer" hidden><p class="flash-photo-status" id="flash-photo-status" role="status" aria-live="polite" hidden></p><p class="flash-muted" id="flash-photo-search-wrap" hidden><a id="flash-photo-search" href="#" target="_blank" rel="noopener noreferrer">この名称で参考写真を検索 →</a></p>
 <div id="flash-back" class="flash-back" hidden>
 <h3 id="flash-answer-title"></h3><p id="flash-answer"></p>
 <p class="hint" id="flash-hint"></p><p><a id="flash-reference" href="#" target="_blank" rel="noopener noreferrer" hidden>実物写真・仕組みの参考資料へ（外部サイト）→</a></p>
@@ -59,12 +59,12 @@ button{touch-action:manipulation}
 </div>
 </div>
 <label class="flash-scope-label" for="quiz-scope">記述テストの出題範囲</label>
-<select id="quiz-scope"><option value="priority">通常＋ウォーターポンププライヤー優先</option><option value="all">講習対象の全範囲（解放制限なし）</option><option value="tools308">工具p308（12種全部）</option></select>
+<select id="quiz-scope"><option value="priority">p293〜309｜後半・苦手優先で出題</option><option value="all">登録済みの全範囲をすべて出題</option><option value="tools308">工具p308（12種全部）</option></select><label class="flash-scope-label" for="quiz-count">優先出題の問題数</label><select id="quiz-count"><option value="10">10問</option><option value="20" selected>20問</option><option value="30">30問</option><option value="all">全件</option></select>
 <button id="flash-test" class="flash-test" type="button">STEP 2：選んだ範囲の鑑別テストへ →</button>
-<p class="flash-muted">教材p308の名称と用途を照合済み。写真は既存の公開参照画像を表示し、教材の写真そのものは公開サイトへ転載しません。</p>
-<p class="flash-muted">講習で本番範囲外とされた炎感知器・教材の×印は出題から除外済み。ウォーターポンププライヤーは出題します。過去の学習履歴は削除しません。</p>
+<p class="flash-muted">器具名からWikimedia Commonsの画像を検索し、実物写真の候補を優先します。外部画像の取得失敗時は誤った模式図を使わず、検索リンクを示します。候補の画像が教材の写真と同一である保証はありません。教材写真自体は転載しません。</p>
+<p class="flash-muted">p293〜309の登録済み項目を写真カードで学習。記述テストは「後半の器具」「△・×」「忘れかけたもの」を多めに抽出します。以前に本番対象外と指示された炎感知器等は写真で参照できますが、記述テストの採点対象からは除外しています。過去の学習履歴は保持します。</p>
 <p class="flash-muted">基礎カードは独立した復習履歴。写真カードは既存の鑑別データを共用します。テストの採点記録は書き換えません。</p>
-</section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
+</section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><p class="flash-photo-status" id="quiz-photo-status" role="status" aria-live="polite" hidden></p><p class="flash-muted" id="quiz-photo-search-wrap" hidden><a id="quiz-photo-search" href="#" target="_blank" rel="noopener noreferrer">この器具の画像候補を検索 →</a></p><button type="button" id="quiz-skip-photo" class="secondary" hidden>画像がないので、この問題をスキップ →</button><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
 const $=id=>document.getElementById(id);
 const commons=(file)=>`https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=960`;
 const tools=[
@@ -77,7 +77,7 @@ const tools=[
 {name:'パイプベンダー',aliases:['ベンダー','パイプベンダ'],use:'金属管の曲げ加工に用いる。',useGroups:[['曲げ']],files:['Conduit bender.jpg','Hand Bender for EMT J. Morris CC BY-SA-3.0.jpg']},
 {name:'ねじ切り器',aliases:['ネジ切り器','ねじ切り','ネジ切り','ダイス'],use:'金属管にねじを切る。',useGroups:[['ねじ','ネジ','螺子']],files:['Die wrench handle holding a die, plus a second die..jpg','ThreadingDies.jpg']},
 {name:'リーマ',aliases:['リーマー'],use:'金属管内側のバリ取りに用いる。',useGroups:[['バリ','面取り']],files:['ReamerAdjustableHand.jpg','Taper reamer K-442 removed handle.jpg']},
-{name:'ホルソ',aliases:['ホールソー','ホールソ','ホルソー'],use:'金属板などに穴を開ける。',useGroups:[['穴','穿孔']],files:['Holesaw (PSF).png','Drill arbor holesaw 2.jpg']},
+{name:'ホルソ',aliases:['ホールソー','ホールソ','ホルソー'],use:'金属板などに穴を開ける。',useGroups:[['穴','穿孔']],files:['Drill arbor holesaw 2.jpg','Holesaw (PSF).png']},
 {name:'モール',aliases:['配線モール','ケーブルモール'],use:'電線を収め、保護・整理するために用いる。',useGroups:[['保護','収納','収め','整理']],files:['Insertion trunking.JPG','Electcablesinconstruction.jpg']},
 {name:'リングスリーブ',aliases:['スリーブ'],use:'電線相互を圧着接続するために用いる。',useGroups:[['接続','圧着']],files:['Wire ferrules with and without insulation.jpg','Close-up of Butt Connectors for ESC and Motor.JPG']},
 {name:'回路計',aliases:['テスター','マルチメーター','マルチテスター'],use:'回路の電流・電圧・抵抗値を測定する。',useGroups:[['電流','電圧','抵抗','測定']],files:['Multimetar.jpg','All multimeters.jpg']},
@@ -145,7 +145,7 @@ const tools=[
 {name:'コックスタンド',aliases:['試験コック','コック'],use:'差動式分布型感知器（空気管式）の検出部で、監視状態と試験状態を切り替える。',useGroups:[['空気管'],['試験','切り替']],kind:'component'},
 {name:'パイプバイス',aliases:['管バイス'],use:'金属管を加工するときに固定する。',useGroups:[['金属管','管'],['固定']],kind:'tool'},
 {name:'パイプレンチ',aliases:['管レンチ'],use:'金属管などの丸い管をつかんで回す。',useGroups:[['管'],['つか','回']],kind:'tool'},
-{name:'ウォーターポンププライヤー',aliases:['ウォーターポンププライヤ','ポンププライヤー'],use:'口幅を調整して管やナットをつかみ、回す。',useGroups:[['管','ナット'],['つか','回']],kind:'tool'},
+{name:'ウォーターポンププライヤー',aliases:['ウォーターポンププライヤ','ポンププライヤー'],use:'口幅を調整して管やナットをつかみ、回す。',useGroups:[['管','ナット'],['つか','回']],kind:'tool',files:['440Tongue+and+GroovePliers.JPG','Channellock tongue-and-groove pliers.jpg']},
 {name:"差動式分布型感知器（空気管式）の検出器",aliases:["空気管式の検出器"],use:"空気管内の空気膨張による圧力変化を受け、急激な温度上昇を検出する。",useGroups:[["空気管"],["圧力"]],kind:"airTubeDetector"},
 {name:"差動式分布型感知器（熱電対式）の検出器",aliases:["熱電対式の検出器"],use:"熱電対部の温度上昇で生じた熱起電力を受け、火災信号を送る。",useGroups:[["熱電対"],["検出"]],kind:"thermocoupleDetector"},
 {name:"差動式分布型感知器（熱電対式）の熱電対部",aliases:["熱電対部"],use:"異種金属の温度差によって熱起電力を発生させ、検出器に伝える感熱部品。",useGroups:[["熱電対"],["起電力"]],kind:"thermocoupleProbe"},
@@ -205,17 +205,194 @@ function fallbackSvg(t){
   return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
 }
 
-function loadPhoto(t, elementId='photo'){
+
+const photoSearchAliases = {
+  'ウォーターポンププライヤー':'tongue and groove pliers',
+  'ラジオペンチ':'needle nose pliers',
+  'ニッパー':'diagonal cutting pliers',
+  '圧着ペンチ':'crimping pliers',
+  'ワイヤーカッター':'cable cutter pliers',
+  'ワイヤーストリッパー':'wire stripper',
+  'パイプカッター':'pipe cutter',
+  'パイプベンダー':'conduit bender',
+  'ねじ切り器':'threading die wrench',
+  'リーマ':'hand reamer',
+  'ホルソ':'hole saw',
+  'モール':'plastic cable trunking',
+  'リングスリーブ':'wire ferrule connector',
+  'パイプバイス':'pipe vise',
+  'パイプレンチ':'pipe wrench',
+  '回路計':'digital multimeter',
+  '絶縁抵抗計':'insulation resistance tester',
+  '騒音計':'sound level meter',
+  '接地抵抗計':'earth resistance tester',
+  '検電器':'voltage tester',
+  'マノメーター':'U tube manometer',
+  'テストポンプ':'pressure test pump',
+  'メーターリレー試験器':'relay test instrument',
+  '減光フィルター':'neutral density filter',
+  '煙感知器感度試験器':'smoke detector tester',
+  '加熱試験器':'heat detector tester',
+  '加煙試験器':'smoke detector test kit',
+  '密閉型蓄電池':'sealed lead acid battery',
+  '終端器（終端抵抗）':'electrical end of line resistor',
+  '表示灯用発光ダイオード':'red LED component',
+  '携帯用送受話器':'telephone handset',
+  '表示灯':'fire alarm indicator lamp',
+  '地区音響装置':'fire alarm bell',
+  '機器収容箱':'fire alarm control box',
+  '中継器':'fire alarm repeater',
+  'ガス漏れ検知器':'gas detector',
+  '火災通報装置':'fire alarm communicator',
+  'P型1級発信機':'manual call point fire alarm',
+  'P型2級発信機':'manual call point fire alarm',
+  'P型1級受信機':'fire alarm control panel',
+  'P型2級受信機（1回線用）':'fire alarm control panel',
+  'P型2級受信機（多回線用）':'fire alarm control panel',
+  'P型3級受信機':'fire alarm control panel',
+  'R型受信機':'addressable fire alarm panel',
+  '副受信機':'fire alarm repeater panel',
+  '光電式スポット型感知器':'photoelectric smoke detector',
+  'イオン化式スポット型感知器':'ionization smoke detector',
+  '光電式分離型感知器':'beam smoke detector',
+  '補償式スポット型感知器':'heat detector',
+  '定温式スポット型感知器（サーミスタ式）':'fixed temperature heat detector',
+  '定温式スポット型感知器（金属膨張式）':'heat detector',
+  '定温式スポット型感知器（バイメタル式）':'bimetal heat detector',
+  '定温式感知線型感知器':'linear heat detection cable',
+  '差動式スポット型感知器（空気膨張式）':'rate of rise heat detector',
+  '差動式スポット型感知器（半導体式）':'rate of rise heat detector',
+  '差動式分布型感知器（空気管式）':'air tube fire detector',
+  '差動式分布型感知器（熱電対式）':'thermocouple fire detector',
+  '差動式分布型感知器（熱半導体式）':'thermal fire detector',
+  '空気管':'copper capillary tube',
+  '空気管用スリーブ':'copper tube sleeve',
+  '銅管端子':'copper tube connector',
+  'ステップル':'cable staple',
+  'ステッカー':'cable clips',
+  '貫通キャップ':'conduit wall bushing',
+  'コックスタンド':'pressure test valve',
+  'ねじなし電線管':'electrical metal conduit',
+  'ノーマルベンド':'conduit elbow',
+  'ボックスコネクタ':'electrical conduit box connector',
+  'サドル':'electrical conduit saddle clamp',
+  '絶縁ブッシング':'insulated conduit bushing',
+  'アウトレットボックス':'electrical outlet junction box',
+  '炎感知器試験器':'flame detector tester',
+  '加熱試験器用の火口':'platinum catalytic heater burner',
+  '紫外線式スポット型感知器':'UV flame detector',
+  '赤外線式スポット型感知器':'infrared flame detector'
+};
+const photoSearchCache=new Map();
+function imageSearchPage(t) {
+  const q=photoSearchAliases[t.name]||t.name;
+  return 'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(q);
+}
+async function searchNamedPhoto(t){
+  if(photoSearchCache.has(t.name))return photoSearchCache.get(t.name);
+  const task=(async()=>{
+    const terms=[photoSearchAliases[t.name],t.name].filter(Boolean);
+    for(const term of [...new Set(terms)]) {
+      try{
+        const params=new URLSearchParams({
+          action:'query',format:'json',formatversion:'2',generator:'search',
+          gsrsearch:'filetype:bitmap '+term,gsrnamespace:'6',gsrlimit:'12',
+          prop:'imageinfo',iiprop:'url|size|mime',iiurlwidth:'960',origin:'*'
+        });
+        const response=await fetch('https://commons.wikimedia.org/w/api.php?'+params.toString(),{credentials:'omit'});
+        if(!response.ok)continue;
+        const result=await response.json();
+        const keywords=term.toLowerCase().split(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/).filter(x=>x.length>=3&&!['the','and','for','electric','electrical','fire'].includes(x));
+        const choices=(result.query?.pages||[]).filter(page=>{
+          const info=page.imageinfo?.[0],title=page.title?.toLowerCase()||'';
+          if(!info||!/^image\/(jpeg|png|webp)$/.test(info.mime||''))return false;
+          if(/\b(diagram|schematic|drawing|illustration|logo|icon|manual|poster|wiring|symbol)\b/i.test(title))return false;
+          const found=keywords.filter(k=>title.includes(k)).length;
+          return keywords.length ? found>=Math.min(2,keywords.length) : false;
+        }).sort((a,b)=>{
+          const score=page=>keywords.reduce((n,k)=>n+(page.title.toLowerCase().includes(k)?1:0),0);
+          return score(b)-score(a);
+        });
+        const winner=choices[0];
+        if(winner){
+          const info=winner.imageinfo[0];
+          return {url:info.thumburl||info.url,source:info.descriptionurl||'https://commons.wikimedia.org/wiki/'+encodeURIComponent(winner.title.replaceAll(' ','_')),title:winner.title};
+        }
+      }catch{/* Network or Commons throttling can fail; try a narrower/alternative query. */}
+    }
+    return null;
+  })();
+  photoSearchCache.set(t.name,task);
+  return task;
+}
+function loadPhoto(t, elementId='photo', photoOnly=false){
   const photo=$(elementId);
-  const urls=[...(t.urls||[]),...((t.files||[]).map(commons))];
-  let n=0;
-  photo.onerror=()=>{
-    n++;
-    if(n<urls.length){photo.src=urls[n];return}
-    photo.onerror=null;
-    photo.src=fallbackSvg(t);
+  const mode=elementId==='flash-photo'?'flash':'quiz';
+  const status=photoOnly?$(mode+'-photo-status'):null;
+  const searchWrap=photoOnly?$(mode+'-photo-search-wrap'):null;
+  const searchLink=photoOnly?$(mode+'-photo-search'):null;
+  const reference=$('flash-reference');
+  const imageUrls=[
+    ...(t.urls||[]).map(url=>({url,source:url})),
+    ...((t.files||[]).map(file=>({url:commons(file),source:'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_'))})))
+  ];
+  const requestId=String(Number(photo.dataset.requestId||'0')+1);
+  photo.dataset.requestId=requestId;
+  if(photoOnly)photo.hidden=true; // Never show the previous card's photo while searching.
+  if(mode==='quiz')$('quiz-skip-photo').hidden=true;
+  if(searchWrap)searchWrap.hidden=true;
+  if(status){status.hidden=false;status.textContent='実物写真を探しています…';}
+  if(searchLink)searchLink.href=imageSearchPage(t);
+  const isCurrent=()=>photo.dataset.requestId===requestId;
+  const showSource=source=>{
+    if(!isCurrent()||elementId!=='flash-photo'||!reference)return;
+    if(!source)return;
+    reference.href=source;
+    reference.textContent='参考写真の出典・利用条件を確認 →';
+    reference.hidden=elementId==='flash-photo'&&!flashRevealed; // Show the source if the answer is already open.
+    photo.dataset.source=source;
   };
-  photo.src=urls[0]||fallbackSvg(t);
+  const finishFailure=()=>{
+    if(!isCurrent())return;
+    if(photoOnly){
+      photo.hidden=true;
+      photo.onerror=null;
+      photo.onload=null;
+      photo.src='';
+      if(mode==='quiz')$('quiz-skip-photo').hidden=false;
+      if(status){status.hidden=false;status.textContent='この器具に一致する実物写真を取得できませんでした。誤認防止のため別の器具の写真や模式図は表示しません。';}
+      if(searchWrap)searchWrap.hidden=false;
+      return;
+    }
+    photo.onerror=null;photo.src=fallbackSvg(t);
+  };
+  const findNext=async()=>{
+    const found=await searchNamedPhoto(t);
+    if(!isCurrent())return;
+    if(found){setPhoto(found);return;}
+    finishFailure();
+  };
+  let next=0;
+  const setPhoto=entry=>{
+    if(!isCurrent())return;
+    photo.onload=()=>{
+      if(!isCurrent())return;
+      photo.hidden=false;
+      if(status)status.hidden=true;
+      if(searchWrap)searchWrap.hidden=true;
+      if(mode==='quiz')$('quiz-skip-photo').hidden=true;
+      showSource(entry.source);
+    };
+    photo.onerror=()=>{
+      if(!isCurrent())return;
+      if(next<imageUrls.length){setPhoto(imageUrls[next++]);return;}
+      void findNext();
+    };
+    photo.src=entry.url;
+  };
+  if(imageUrls.length)setPhoto(imageUrls[next++]);
+  else if(photoOnly)void findNext();
+  else photo.src=fallbackSvg(t);
 }
 
 const hiraToKata=s=>s.replace(/[ぁ-ゖ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));
@@ -328,10 +505,39 @@ function insertRepeat(deck,t,minDelay,maxDelay){
   if(deck.slice(Math.max(i+1,pos-1),pos+2).some(x=>x.name===t.name))return;
   deck.splice(pos,0,t);
 }
+function quizImageWeight(t){
+  const x=stateFor(t);
+  const late=lectureLateBonus(t);
+  const wrong=x.lastConfidence==='miss'?7:x.lastConfidence==='unsure'?5:(x.miss||x.unsure)?3:1;
+  const unseen=!x.attempts?1.8:1;
+  const forgotten=x.lastSeen?1+Math.min(2,daysSince(x.lastSeen)/6):1;
+  const mastered=x.streakOk>=2&&x.lastConfidence==='ok'?0.35:1;
+  return Math.max(0.2,adaptiveWeight(t)*wrong*unseen*forgotten*mastered*(1+2*late));
+}
+function pickWeightedQuiz(active,n){
+  const rest=[...active], result=[];
+  const requestedPliers=rest.find(t=>t.name==='ウォーターポンププライヤー');
+  if(requestedPliers && !stateFor(requestedPliers).attempts && n){
+    result.push(requestedPliers);
+    rest.splice(rest.indexOf(requestedPliers),1);
+  }
+  while(rest.length&&result.length<n){
+    const weights=rest.map(quizImageWeight);
+    let roll=Math.random()*weights.reduce((a,b)=>a+b,0);
+    let index=weights.findIndex(w=>(roll-=w)<=0);
+    if(index<0)index=rest.length-1;
+    result.push(rest.splice(index,1)[0]);
+  }
+  return result;
+}
 function buildQueue(){
   const requested=$('quiz-scope')?.value||'priority';
   const focus=requested==='tools308'?textbook308Tools:null;
-  const active=requested==='all'?examTools:focus?focus.map(name=>examTools.find(t=>t.name===name)).filter(Boolean):activeTools();
+  const active=(requested==='all'||requested==='priority')?examTools:focus?focus.map(name=>examTools.find(t=>t.name===name)).filter(Boolean):activeTools();
+  if(requested==='priority'){
+    const n=$('quiz-count')?.value==='all'?active.length:Math.max(1,Number($('quiz-count')?.value)||20);
+    return pickWeightedQuiz(active,Math.min(n,active.length));
+  }
   const mustSee=['ウォーターポンププライヤー'];
   const base=[...active].sort((a,b)=>{
     if(requested==='priority'){
@@ -356,7 +562,7 @@ function buildQueue(){
   return base;
 }
 function renderWeak(){
-  const rows=activeTools().map(t=>{
+  const rows=examTools.map(t=>{
     const x=stateFor(t);
     const nameMastery=x.attempts?Math.round(x.nameOk/x.attempts*100):0;
     const useMastery=x.attempts?Math.round(x.useOk/x.attempts*100):0;
@@ -381,8 +587,8 @@ function show(){
   }
   const t=queue[i];
   lastResult=null;
-  loadPhoto(t);setMask(t);
-  $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜通常解放 ${unlockedCount()} / ${examOrderedTools.length}`;
+  loadPhoto(t,'photo',true);setMask(t);
+  $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜登録済み ${examTools.length}項目` ;
   if($('poolPill'))$('poolPill').textContent=`鑑別・${examTools.length}項目`;
   $('bar').style.width=`${i/queue.length*100}%`;
   $('name').value='';$('use').value='';
@@ -390,6 +596,7 @@ function show(){
   $('actions').style.display='none';
   $('reveal').style.display='block';
 }
+$('quiz-skip-photo').onclick=()=>{i++;show();};
 $('reveal').onclick=()=>{
   const t=queue[i];
   lastResult={
@@ -419,8 +626,8 @@ document.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>{
   if(autoMiss||confidence==='miss')insertRepeat(queue,t,2,4);
   else if(confidence==='unsure')insertRepeat(queue,t,3,6);
   if(after>before){
-    const unlockedNow=orderedTools.slice(before,after);
-    for(const next of unlockedNow) if(!queue.some(x=>x.name===next.name)) queue.push(next);
+    // New mastery levels affect the next weighted session; do not increase the
+    // current session beyond the user's selected question count.
   }
   i++;show();
 });
@@ -440,23 +647,49 @@ const flashItemState = item => {
 };
 const textbook308Tools = ["モール","リングスリーブ","ラジオペンチ","ニッパー","圧着ペンチ","ワイヤーカッター","ワイヤーストリッパー","パイプカッター","パイプベンダー","ねじ切り器","リーマ","ホルソ"];
 const textbook308Hints = {"モール":"細長い樹脂製の配線カバー。電線を壁や床に沿わせて収納・保護する。","リングスリーブ":"筒形の小さな接続金具。電線同士を差し込み、圧着ペンチで圧着接続する。","ラジオペンチ":"細長い先端でつまむ・曲げる。切断が主目的のニッパーとは先端形状が違う。","ニッパー":"刃で細めの電線を切断。線径に応じた工具を使い、被覆剥き専用ではない。","圧着ペンチ":"ダイスの刻印・かしめ部を見る。リングスリーブや端子を圧着する。","ワイヤーカッター":"太めの電線・ケーブルを切断するための刃。ニッパーと用途が近いので刃形状を比較。","ワイヤーストリッパー":"線径に応じた刃やレバー。導体を切らずに被覆だけを剥ぎ取る。","パイプカッター":"管を挟む円形刃とローラー、締め付けノブ。管の周りを回しながら切る。","パイプベンダー":"曲げ溝のあるヘッド＋長い柄。金属管を曲げる。切断用ではない。","ねじ切り器":"ダイス・ねじ切りヘッドが特徴。管の外周にねじ山を作る。","リーマ":"円すい状の刃。金属管を切断した後、内側のバリやかえりを取る。","ホルソ":"円筒状の穴あけ刃（ホールソー）。金属板・ボックス等に穴を開ける。"};
+const hasPhotoSource = t => Boolean((t.files&&t.files.length)||(t.urls&&t.urls.length));
 const photoFlashCards = () => [...orderedTools,...extraTools].map((t,index) => ({
   id: 'photo-'+index,
   group: /感知器/.test(t.name) ? '感知器' : /試験器|フィルター|マノメーター/.test(t.name) ? '試験器' : /受信機|発信機|表示灯|警報|中継器|終端器|ガス漏れ/.test(t.name) ? '受信・警報' : '工具・計測',
   title: t.name,
-  question: 'この写真の名称と用途を説明できる？',
+  question: 'この器具の正式名称と用途は？',
   answer: t.use,
   hint: textbook308Hints[t.name] || '名前を見ずに用途の動詞まで説明。似た器具と何が違うかも確認しよう。',
   lectureToolPage: textbook308Tools.includes(t.name) ? '308' : null,
   photoTool: t
-})).filter(item=>isExamTool(item.photoTool));
+}));
+function lectureLateBonus(t){
+  const pos=lectureRank.get(t?.name) ?? 0;
+  return pos / Math.max(1,lectureOrderNames.length-1);
+}
+function daysSince(timestamp){
+  return timestamp ? Math.max(0,(Date.now()-timestamp)/86400000) : 0;
+}
 function flashRank(item) {
   const own=flashItemState(item);
-  // Existing test record influences photo order without mutating its scores.
   const exam=item.photoTool ? stateFor(item.photoTool) : null;
-  return (own.last==='miss'?500:own.last==='unsure'?400:!own.attempts?300:100)
-    +(exam?.lastConfidence==='miss'?180:exam?.lastConfidence==='unsure'?120:0)
-    -(own.last==='ok'&&own.streak>=2?250:0);
+  const forgotten = own.attempts && own.lastSeen ? Math.min(260,daysSince(own.lastSeen)*28) : 0;
+  return (own.last==='miss'?1200:own.last==='unsure'?900:!own.attempts?350:150)
+    +(exam?.lastConfidence==='miss'?650:exam?.lastConfidence==='unsure'?450:0)
+    +(item.photoTool ? Math.round(260*lectureLateBonus(item.photoTool)) : 0)
+    +forgotten-(own.last==='ok'&&own.streak>=2?350:0);
+}
+function selectPhotoFlashSession(ranked,limit=10) {
+  const priority=ranked.filter(item=>{
+    const own=flashItemState(item);
+    const exam=item.photoTool ? stateFor(item.photoTool) : null;
+    return ['miss','unsure'].includes(own.last)||['miss','unsure'].includes(exam?.lastConfidence);
+  }).slice(0,7);
+  const chosen=[...priority],chosenIds=new Set(chosen.map(item=>item.id));
+  const remaining=ranked.filter(item=>!chosenIds.has(item.id));
+  const isLate=item=>item.photoTool&&lectureLateBonus(item.photoTool)>=0.60;
+  const lateNeeded=Math.max(0,6-chosen.filter(isLate).length);
+  const earlyNeeded=Math.max(0,2-chosen.filter(item=>!isLate(item)).length);
+  const append=list=>{for(const item of list){if(chosen.length>=limit)break;if(!chosenIds.has(item.id)){chosen.push(item);chosenIds.add(item.id);}}};
+  append(remaining.filter(isLate).slice(0,lateNeeded));
+  append(remaining.filter(item=>!isLate(item)).slice(0,earlyNeeded));
+  append(ranked);
+  return chosen.slice(0,limit);
 }
 function beginFlash() {
   const scope=$('flash-scope').value;
@@ -465,7 +698,13 @@ function beginFlash() {
     scope==='photos' ? both.filter(item=>item.photoTool) :
     scope==='review' ? both.filter(item=>['miss','unsure'].includes(flashItemState(item).last) || (item.photoTool && ['miss','unsure'].includes(stateFor(item.photoTool).lastConfidence))) :
     activeFoundationFlashCards;
-  flashDeck=scope==='tools308' ? [...selected].sort((a,b)=>textbook308Tools.indexOf(a.title)-textbook308Tools.indexOf(b.title)) : [...selected].sort((a,b)=>flashRank(b)-flashRank(a)).slice(0,10);
+  const ranked=[...selected].sort((a,b)=>flashRank(b)-flashRank(a));
+  // Give the explicitly requested water-pump pliers a place in the first photo session.
+  if(scope==='photos'){
+    const idx=ranked.findIndex(item=>item.title==='ウォーターポンププライヤー' && !flashItemState(item).streak);
+    if(idx>0) ranked.unshift(...ranked.splice(idx,1));
+  }
+  flashDeck=scope==='tools308' ? [...selected].sort((a,b)=>textbook308Tools.indexOf(a.title)-textbook308Tools.indexOf(b.title)) : scope==='basics' ? ranked.slice(0,10) : selectPhotoFlashSession(ranked,10);
   flashIndex=0;flashRevealed=false;flashRepeated=new Set();
   showFlash();
 }
@@ -474,7 +713,10 @@ function showFlash() {
   $('flash-flip').hidden=true;
   $('flash-grades').hidden=true;
   if (!current) {
+    $('flash-photo').dataset.requestId=String(Number($('flash-photo').dataset.requestId||'0')+1);
     $('flash-photo').hidden=true;
+    $('flash-photo-status').hidden=true;
+    $('flash-photo-search-wrap').hidden=true;
     $('flash-visual').hidden=false;
     $('flash-back').hidden=true;
     $('flash-progress').textContent=flashDeck.length ? '今回のカードを学び終えました！' : 'まだ復習対象がないよ。基礎から進めよう。';
@@ -483,7 +725,7 @@ function showFlash() {
     return;
   }
   flashRevealed=false;
-  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜基礎 ${activeFoundationFlashCards.length}枚＋写真 ${photoFlashCards().length}枚`;
+  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜p293〜309の登録項目 ${photoFlashCards().length}枚（後半・苦手優先）` ;
   $('flash-group').textContent=current.group;
   $('flash-question').textContent=current.question;
   $('flash-back').hidden=true;
@@ -494,9 +736,17 @@ function showFlash() {
     'https://www.hosyu-kyokai.or.jp/jikahou.html' :
     current.photoTool?.kind==='flameDetector' ? 'https://www.kaho.or.jp/pages/jikaho/images/device-sensor-05.html' : '';
   $('flash-reference').hidden=!ref;
-  if(ref) $('flash-reference').href=ref;
+  $('flash-reference').hidden=true;
+  if(ref) {$('flash-reference').href=ref;$('flash-reference').textContent='外部参考資料へ →';}
+  else {$('flash-reference').href='#';}
+  delete $('flash-photo').dataset.source;
   $('flash-photo').hidden=!current.photoTool;
-  if (current.photoTool) { loadPhoto(current.photoTool,'flash-photo'); $('flash-photo').alt='鑑別用参考写真または模式図（教材原版の転載ではありません）'; }
+  $('flash-photo-status').hidden=true;
+  $('flash-photo-search-wrap').hidden=true;
+  if (current.photoTool) {
+    loadPhoto(current.photoTool,'flash-photo',true);
+    $('flash-photo').alt='鑑別用の実物参考写真（答えは裏面にあります）';
+  }
   $('flash-flip').hidden=false;
   $('flash-flip').textContent='裏面を見て覚える';
 }
@@ -504,6 +754,8 @@ function revealFlash(){
   if (!flashDeck[flashIndex] || flashRevealed) return;
   flashRevealed=true;
   $('flash-back').hidden=false;
+  const source=$('flash-photo').dataset.source;
+  if(source){$('flash-reference').href=source;$('flash-reference').textContent='参考写真の出典・利用条件を確認 →';$('flash-reference').hidden=false;}
   $('flash-flip').hidden=true;
   $('flash-grades').hidden=false;
 }
