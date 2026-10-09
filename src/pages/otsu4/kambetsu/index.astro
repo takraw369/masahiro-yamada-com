@@ -325,76 +325,55 @@ async function searchNamedPhoto(t){
   photoSearchCache.set(t.name,task);
   return task;
 }
-function loadPhoto(t, elementId='photo', photoOnly=false){
+function loadPhoto(t, elementId='photo', photoOnly=false, callbacks={}){
   const photo=$(elementId);
-  const mode=elementId==='flash-photo'?'flash':'quiz';
-  const status=photoOnly?$(mode+'-photo-status'):null;
-  const searchWrap=photoOnly?$(mode+'-photo-search-wrap'):null;
-  const searchLink=photoOnly?$(mode+'-photo-search'):null;
+  const flash=elementId==='flash-photo';
+  const status=$(flash?'flash-photo-status':'quiz-photo-status');
+  const searchWrap=$(flash?'flash-photo-search-wrap':'quiz-photo-search-wrap');
   const reference=$('flash-reference');
-  const imageUrls=[
-    ...(t.urls||[]).map(url=>({url,source:url})),
-    ...((t.files||[]).map(file=>({url:commons(file),source:'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_'))})))
+  // Photo-less questions must not turn into name-search prompts.
+  const images=[
+    ...(t.urls||[]).map(url=>({url,credit:url})),
+    ...((t.files||[]).map(file=>({url:commons(file),credit:'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_'))})))
   ];
-  const requestId=String(Number(photo.dataset.requestId||'0')+1);
-  photo.dataset.requestId=requestId;
-  if(photoOnly)photo.hidden=true; // Never show the previous card's photo while searching.
-  if(mode==='quiz')$('quiz-skip-photo').hidden=true;
+  const token=String(Number(photo.dataset.requestId||'0')+1);
+  photo.dataset.requestId=token;
+  photo.hidden=true;
+  photo.onload=null;photo.onerror=null;
   if(searchWrap)searchWrap.hidden=true;
-  if(status){status.hidden=false;status.textContent='実物写真を探しています…';}
-  if(searchLink)searchLink.href=imageSearchPage(t);
-  const isCurrent=()=>photo.dataset.requestId===requestId;
-  const showSource=source=>{
-    if(!isCurrent()||elementId!=='flash-photo'||!reference)return;
-    if(!source)return;
-    reference.href=source;
-    reference.textContent='参考写真の出典・利用条件を確認 →';
-    reference.hidden=elementId==='flash-photo'&&!flashRevealed; // Show the source if the answer is already open.
-    photo.dataset.source=source;
+  if(status){status.textContent='参考写真を読み込み中…';status.hidden=false;}
+  if(!flash)$('quiz-skip-photo').hidden=true;
+  const current=()=>photo.dataset.requestId===token;
+  let index=0,finished=false,timeoutId=null;
+  const end=()=>{finished=true;if(timeoutId!==null&&typeof clearTimeout==='function')clearTimeout(timeoutId);};
+  const failure=()=>{
+    if(!current()||finished)return;
+    end();photo.hidden=true;photo.onload=null;photo.onerror=null;
+    if(status)status.hidden=true;
+    if(callbacks.onFailure)callbacks.onFailure();
   };
-  const finishFailure=()=>{
-    if(!isCurrent())return;
-    if(photoOnly){
-      photo.hidden=true;
-      photo.onerror=null;
-      photo.onload=null;
-      photo.src='';
-      if(mode==='quiz')$('quiz-skip-photo').hidden=false;
-      if(status){status.hidden=false;status.textContent='この器具に一致する実物写真を取得できませんでした。誤認防止のため別の器具の写真や模式図は表示しません。';}
-      if(searchWrap)searchWrap.hidden=false;
-      return;
-    }
-    photo.onerror=null;photo.src=fallbackSvg(t);
-  };
-  const findNext=async()=>{
-    const found=await searchNamedPhoto(t);
-    if(!isCurrent())return;
-    if(found){setPhoto(found);return;}
-    finishFailure();
-  };
-  let next=0;
-  const setPhoto=entry=>{
-    if(!isCurrent())return;
+  const tryNext=()=>{
+    if(!current()||finished)return;
+    if(index>=images.length){failure();return;}
+    const image=images[index++];
     photo.onload=()=>{
-      if(!isCurrent())return;
-      photo.hidden=false;
+      if(!current()||finished)return;
+      end();photo.hidden=false;
       if(status)status.hidden=true;
-      if(searchWrap)searchWrap.hidden=true;
-      if(mode==='quiz')$('quiz-skip-photo').hidden=true;
-      showSource(entry.source);
+      if(flash){
+        photo.dataset.source=image.credit;
+        reference.href=image.credit;
+        reference.textContent='参考写真の出典・ライセンス →';
+        reference.hidden=!flashRevealed;
+      }
+      if(callbacks.onReady)callbacks.onReady();
     };
-    photo.onerror=()=>{
-      if(!isCurrent())return;
-      if(next<imageUrls.length){setPhoto(imageUrls[next++]);return;}
-      void findNext();
-    };
-    photo.src=entry.url;
+    photo.onerror=tryNext;
+    photo.src=image.url;
   };
-  if(imageUrls.length)setPhoto(imageUrls[next++]);
-  else if(photoOnly)void findNext();
-  else photo.src=fallbackSvg(t);
+  if(typeof setTimeout==='function')timeoutId=setTimeout(failure,10000);
+  tryNext();
 }
-
 const hiraToKata=s=>s.replace(/[ぁ-ゖ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));
 const norm=s=>hiraToKata(String(s||'').normalize('NFKC').toLowerCase()).replace(/[\s　・、。,.!?！？「」『』（）()\-ー]/g,'');
 function judgeName(t,value){
