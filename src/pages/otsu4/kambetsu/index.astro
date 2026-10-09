@@ -338,6 +338,7 @@ function loadPhoto(t, elementId='photo', photoOnly=false){
   ];
   const requestId=String(Number(photo.dataset.requestId||'0')+1);
   photo.dataset.requestId=requestId;
+  if(photoOnly)photo.hidden=true; // Never show the previous card's photo while searching.
   if(searchWrap)searchWrap.hidden=true;
   if(status){status.hidden=false;status.textContent='実物写真を探しています…';}
   if(searchLink)searchLink.href=imageSearchPage(t);
@@ -347,7 +348,7 @@ function loadPhoto(t, elementId='photo', photoOnly=false){
     if(!source)return;
     reference.href=source;
     reference.textContent='参考写真の出典・利用条件を確認 →';
-    reference.hidden=true; // Source is revealed with the answer, not on the question face.
+    reference.hidden=elementId==='flash-photo'&&!flashRevealed; // Show the source if the answer is already open.
     photo.dataset.source=source;
   };
   const finishFailure=()=>{
@@ -706,7 +707,10 @@ function showFlash() {
   $('flash-flip').hidden=true;
   $('flash-grades').hidden=true;
   if (!current) {
+    $('flash-photo').dataset.requestId=String(Number($('flash-photo').dataset.requestId||'0')+1);
     $('flash-photo').hidden=true;
+    $('flash-photo-status').hidden=true;
+    $('flash-photo-search-wrap').hidden=true;
     $('flash-visual').hidden=false;
     $('flash-back').hidden=true;
     $('flash-progress').textContent=flashDeck.length ? '今回のカードを学び終えました！' : 'まだ復習対象がないよ。基礎から進めよう。';
