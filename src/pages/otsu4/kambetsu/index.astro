@@ -64,7 +64,7 @@ button{touch-action:manipulation}
 <p class="flash-muted">写真は出典ページで対象物を確認して固定登録した参考写真。表示できないものは自動で飛ばし、写真なしで名前を答えさせることはありません。教材原版とは型式や見た目が異なる場合があります。</p>
 <p class="flash-muted">教材p293〜309の登録項目は78種類。現在は実物が照合できた写真だけを出題します。未確認の画像・単なる自動検索結果は出題しません。苦手と後半を優先し、学習履歴を保持します。</p>
 <p class="flash-muted">基礎カードは独立した復習履歴。写真カードは既存の鑑別データを共用します。テストの採点記録は書き換えません。</p>
-</section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><p class="flash-photo-status" id="quiz-photo-status" role="status" aria-live="polite" hidden></p><p class="flash-muted" id="quiz-photo-search-wrap" hidden><a id="quiz-photo-search" href="#" target="_blank" rel="noopener noreferrer">この器具の画像候補を検索 →</a></p><button type="button" id="quiz-skip-photo" class="secondary" hidden>画像がないので、この問題をスキップ →</button><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
+</section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><p class="flash-photo-status" id="quiz-photo-status" role="status" aria-live="polite" hidden></p><p class="flash-muted" id="quiz-photo-search-wrap" hidden><a id="quiz-photo-search" href="#" target="_blank" rel="noopener noreferrer">この器具の画像候補を検索 →</a></p><button type="button" id="quiz-skip-photo" class="secondary" hidden>画像がないので、この問題をスキップ →</button><div class="q" id="quiz-question" hidden>この名称と用途は？</div><div id="quiz-fields" hidden><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button></div><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
 const $=id=>document.getElementById(id);
 const commons=(file)=>`https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=960`;
 const tools=[
@@ -558,7 +558,8 @@ function pickWeightedQuiz(active,n){
 function buildQueue(){
   const requested=$('quiz-scope')?.value||'priority';
   const focus=requested==='tools308'?textbook308Tools:null;
-  const active=(requested==='all'||requested==='priority')?examTools:focus?focus.map(name=>examTools.find(t=>t.name===name)).filter(Boolean):activeTools();
+  const photoEligible=examTools.filter(hasVettedPhoto);
+  const active=(requested==='all'||requested==='priority')?photoEligible:focus?focus.map(name=>examTools.find(t=>t.name===name)).filter(t=>t&&hasVettedPhoto(t)):photoEligible;
   if(requested==='priority'){
     const n=$('quiz-count')?.value==='all'?active.length:Math.max(1,Number($('quiz-count')?.value)||20);
     return pickWeightedQuiz(active,Math.min(n,active.length));
@@ -613,8 +614,8 @@ function show(){
   const t=queue[i];
   lastResult=null;
   loadPhoto(t,'photo',true);setMask(t);
-  $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜登録済み ${examTools.length}項目` ;
-  if($('poolPill'))$('poolPill').textContent=`鑑別・${examTools.length}項目`;
+  $('counter').textContent=`${i+1} / ${queue.length}｜写真確認済み ${examTools.filter(hasVettedPhoto).length} / 登録 ${examTools.length} 項目`;
+  if($('poolPill'))$('poolPill').textContent=`写真鑑別・${examTools.filter(hasVettedPhoto).length}項目`;
   $('bar').style.width=`${i/queue.length*100}%`;
   $('name').value='';$('use').value='';
   $('answer').style.display='none';
@@ -719,9 +720,9 @@ function selectPhotoFlashSession(ranked,limit=10) {
 function beginFlash() {
   const scope=$('flash-scope').value;
   const both=[...activeFoundationFlashCards,...photoFlashCards()];
-  const selected=scope==='tools308' ? both.filter(item=>item.photoTool && textbook308Tools.includes(item.title)) :
-    scope==='photos' ? both.filter(item=>item.photoTool) :
-    scope==='review' ? both.filter(item=>['miss','unsure'].includes(flashItemState(item).last) || (item.photoTool && ['miss','unsure'].includes(stateFor(item.photoTool).lastConfidence))) :
+  const selected=scope==='tools308' ? both.filter(item=>item.photoTool && hasVettedPhoto(item.photoTool) && textbook308Tools.includes(item.title)) :
+    scope==='photos' ? both.filter(item=>item.photoTool && hasVettedPhoto(item.photoTool)) :
+    scope==='review' ? both.filter(item=>item.photoTool && hasVettedPhoto(item.photoTool) && (['miss','unsure'].includes(flashItemState(item).last) || ['miss','unsure'].includes(stateFor(item.photoTool).lastConfidence))) :
     activeFoundationFlashCards;
   const ranked=[...selected].sort((a,b)=>flashRank(b)-flashRank(a));
   // Give the explicitly requested water-pump pliers a place in the first photo session.
@@ -750,7 +751,7 @@ function showFlash() {
     return;
   }
   flashRevealed=false;
-  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜p293〜309の登録項目 ${photoFlashCards().length}枚（後半・苦手優先）` ;
+  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜実物確認済み ${verifiedPhotos().length} / 登録 ${photoFlashCards().length} 項目｜苦手・後半優先`;
   $('flash-group').textContent=current.group;
   $('flash-question').textContent=current.question;
   $('flash-back').hidden=true;
