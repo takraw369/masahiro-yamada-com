@@ -70,7 +70,7 @@ test('Otsu4 lecture exclusions stay out of graded quizzes but remain in the full
     location:{search:''},
     localStorage:{getItem(key){return oldState[key]??null},setItem(key,value){oldState[key]=value}}
   };
-  const app=vm.runInNewContext(script+'\n({tools,examTools,activeTools,buildQueue,photoFlashCards,foundationFlashCards,activeFoundationFlashCards,beginFlash,getDeck:()=>flashDeck})',ctx);
+  const app=vm.runInNewContext(script+'\n({tools,examTools,activeTools,hasPhotoSource,buildQueue,photoFlashCards,foundationFlashCards,activeFoundationFlashCards,beginFlash,getDeck:()=>flashDeck})',ctx);
   assert.equal(app.tools.length,78,'retain all original data / stable tool names');
   assert.equal(app.examTools.length,74,'only four lecture-excluded pictures are omitted');
   assert.equal(app.photoFlashCards().length,78,'full photographed catalogue includes reference-only entries');
@@ -87,7 +87,7 @@ test('Otsu4 lecture exclusions stay out of graded quizzes but remain in the full
     assert.ok(queue.length>0,scope);
     assert.ok(queue.every(name=>!excluded.includes(name)),'no excluded items for '+scope);
     if(scope==='priority')assert.equal(queue[0],'ウォーターポンププライヤー','user explicitly requested pliers');
-    if(scope==='all')assert.equal(new Set(queue).size,74);
+    if(scope==='all')assert.equal(new Set(queue).size,app.examTools.filter(app.hasPhotoSource).length,'all means photos with a reference URL, not all 74 registrations');
   }
   for(const scope of ['basics','photos','tools308','review']){
     el('flash-scope').value=scope;
@@ -147,7 +147,7 @@ test('Otsu4 identification flashcards are accessible, typed, and preserve the cu
   assert.match(source, /data-flash-grade="unsure"/);
   assert.match(source, /data-flash-grade="ok"/);
   assert.match(source, /const photoFlashCards = \(\) =>/);
-  assert.match(source, /loadPhoto\(current\.photoTool,'flash-photo',true\)/);
+  assert.match(source, /loadPhoto\(current\.photoTool,'flash-photo',true,\{/);
   assert.match(source, /id="app" hidden/);
   assert.match(source, /const K='otsu4-kambetsu-state-v2'/);
   assert.match(source, /const FLASH_KEY = 'otsu4-kambetsu-flashcards-v1'/);
