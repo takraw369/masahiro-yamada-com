@@ -1,0 +1,84 @@
+---
+const studyDays = [
+  {date:'10/9',day:'金',title:'全体構成と信号の流れ',priority:'感知器・発信機 → 受信機 → 地区音響／連動',why:'今日の講習で登場した全機器を、入力・受信・出力・電源に分類。',id:'day-09'},
+  {date:'10/10',day:'土',title:'感知器・受信機の構造機能',priority:'差動／定温／光電・P型／R型・リーク孔',why:'見た目・検出する現象・信号の伝達方法を結びつける。',id:'day-10'},
+  {date:'10/11',day:'日',title:'自火報の設置法令',priority:'設置対象・警戒区域・例外・点検と報告',why:'名称だけでなく「何の条件で必要になるか」を説明する。',id:'day-11'},
+  {date:'10/12',day:'月',title:'画像鑑別と試験・故障',priority:'感知器・発信機・受信機・終端抵抗・試験器',why:'画像から名称だけでなく用途・見分ける特徴まで回答。',id:'day-12'},
+  {date:'10/13',day:'火',title:'受信機・音響と総復習',priority:'受信機操作・地区音響・電源・法令・鑑別',why:'次の講習に接続。△・×を優先し、自分の言葉で一連の動作を説明。',id:'day-13'}
+];
+---
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#28648b"><meta name="robots" content="noindex,nofollow">
+<title>乙4 自火報 集中学習｜10/9〜13</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;color:#182938;background:#f2f6f9;font-size:16px}*{box-sizing:border-box}body{margin:0}a{color:#1e6188}main{max-width:800px;margin:auto;padding:14px 14px calc(75px + env(safe-area-inset-bottom))}nav{display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:700;margin:4px 0 18px}.pill{font-size:12px;background:#e6eef4;border-radius:99px;padding:6px 11px;color:#28648b}h1{font-size:clamp(25px,6vw,34px);line-height:1.25;margin:7px 0 13px;letter-spacing:-.02em}h2{font-size:22px;margin:0 0 12px;line-height:1.4}h3{font-size:18px;margin:0 0 6px}p{line-height:1.75;margin:8px 0}.ey{font-size:12px;font-weight:800;letter-spacing:.09em;color:#367397;text-transform:uppercase}.hero{background:#143e5a;color:#fff;padding:23px 20px;border-radius:20px;margin-bottom:14px}.hero .ey{color:#badced}.hero p{color:#e0ecf4}.hero .days{font-size:12px;color:#e6f3fa;background:#2b617d;display:inline-block;padding:7px 11px;border-radius:99px}.panel{background:#fff;border:1px solid #dbe5ec;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 3px 15px #17324d08}.call{font-weight:700;color:#194764}.button{display:block;text-decoration:none;border-radius:13px;padding:14px;text-align:center;background:#28648b;color:#fff;font-weight:800;line-height:1.45;min-height:48px}.button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #ffab31;outline-offset:2px}.button.sub{background:#e7f0f6;color:#194865}.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.action-grid .button:nth-child(1){grid-column:1/-1}.flow{display:grid;gap:9px}.flow-node{background:#f0f6fa;border:1px solid #d8e5ee;border-radius:14px;text-align:center;padding:13px 10px}.flow-node b{display:block;font-size:17px}.flow-node small{font-size:12px;color:#4f6c80}.arrow{text-align:center;color:#28648b;line-height:1;font-size:24px;font-weight:800}.flow-note{color:#546f80;font-size:13px;margin-top:11px}.day{border-left:4px solid #aec5d5;padding:10px 0 12px 13px;margin:0 0 4px}.day.today{border-color:#28648b;background:#f1f7fb;padding:13px;border-radius:0 12px 12px 0}.day-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.day-head strong{font-size:16px}.day-head span{font-size:13px;color:#4e6a7b}.day p{font-size:14px;margin:5px 0}.small{font-size:13px;color:#546f80}.topic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.topic-grid a{display:flex;align-items:center;justify-content:center;min-height:72px;padding:10px;border-radius:13px;background:#f0f6fa;text-decoration:none;text-align:center;font-weight:700}.quick>details{border-top:1px solid #dbe6ee;padding:13px 0}.quick summary{cursor:pointer;font-weight:750;line-height:1.55}.quick details p{font-size:14px;color:#435b6b;padding-left:12px}.foot{font-size:12px;color:#516b7d;line-height:1.8}.foot a{overflow-wrap:anywhere}@media(max-width:340px){.action-grid{grid-template-columns:1fr}.action-grid .button:nth-child(1){grid-column:auto}.topic-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<nav><a href="/otsu4/">← 乙4ホーム</a><span class="pill">11/1 本試験</span></nav>
+<header class="hero">
+  <div class="ey">OTSU 4 / SPECIAL STUDY SPRINT</div>
+  <h1>自火報を、構成から理解する。</h1>
+  <span class="days">10/9（金）〜10/13（火）</span>
+  <p>講習に合わせて、法令・鑑別・自動火災報知設備の構造／機能を1本の流れにつなげて学ぶ5日間。</p>
+</header>
+<section class="panel" aria-labelledby="flow-heading">
+  <div class="ey">STEP 1 / INPUT → CONTROL → OUTPUT</div>
+  <h2 id="flow-heading">まず「火災の信号」を追う</h2>
+  <div class="flow">
+    <div class="flow-node"><b>① 感知器（自動）／発信機（手動）</b><small>熱・煙などを検出する／人が押して知らせる</small></div>
+    <div class="arrow" aria-hidden="true">↓</div>
+    <div class="flow-node"><b>② 受信機（P型・R型など）</b><small>信号を受け、火災・警戒区域などを表示する</small></div>
+    <div class="arrow" aria-hidden="true">↓</div>
+    <div class="flow-node"><b>③ 地区音響装置・連動先</b><small>ベルや音声で報知。必要に応じ他設備と連動</small></div>
+  </div>
+  <p class="flow-note">補助役：中継器（信号の中継）／表示灯（発信機の位置を示す）／電源・予備電源（動作を維持）／終端抵抗（断線監視）。表示灯が受信機から火災信号を受けて点灯する、という単純な直列回路ではありません。</p>
+  <div class="action-grid">
+    <a class="button" href="/otsu4/tests/?topic=jikahou-focus">自火報集中10問を解く →</a>
+    <a class="button sub" href="/otsu4/kambetsu/">実物画像で鑑別 →</a>
+    <a class="button sub" href="/otsu4/hourei/betsu1/">別表第1・設置基準 →</a>
+  </div>
+</section>
+<section class="panel" aria-labelledby="plan-heading">
+  <div class="ey">DAILY SPRINT / 5 DAYS</div>
+  <h2 id="plan-heading">火曜日までの学習順</h2>
+  <p class="small">毎日40〜50分を目安に、構造機能20分＋法令10分＋写真鑑別10分＋△・×の見直し5分。講習がある日は当日の復習を優先。</p>
+  {studyDays.map(d=><div id={d.id} class="day">
+    <div class="day-head"><strong>{d.date}（{d.day}） {d.title}</strong><span>{d.priority}</span></div>
+    <p>{d.why}</p>
+  </div>)}
+  <p class="small"><b>10/13の目標：</b>図を見ずに「誰が検知し、どこへ信号が届き、何が鳴るか」を説明できる。法令は設置の対象・警戒区域を区別し、鑑別は実物写真から名称と用途を言える。</p>
+</section>
+<section class="panel">
+  <div class="ey">PRACTICE / CANONICAL DB</div><h2>3科目の反復ルート</h2>
+  <div class="topic-grid">
+    <a href="/otsu4/tests/?topic=law-class">法令・警戒区域 →</a>
+    <a href="/otsu4/tests/?topic=structure">構造・機能 →</a>
+    <a href="/otsu4/tests/?topic=receiver">P型／R型受信機 →</a>
+    <a href="/otsu4/tests/?topic=signal">発信機・断線 →</a>
+    <a href="/otsu4/tests/?topic=heat">熱感知器 →</a>
+    <a href="/otsu4/tests/?topic=smoke">煙感知器 →</a>
+    <a href="/otsu4/tests/?topic=alarm-power">音響・電源 →</a>
+    <a href="/otsu4/tests/?topic=law-all">法令総合10/20/70問 →</a>
+  </div>
+  <p class="small">集中10問は新しい問題DBを増やさず、既存の問題から「法令3・構造機能6・名称記述1」で選びます。誤答・△・未出の優先や学習履歴は既存アプリと共通です。上の鑑別は既存の画像トレーナーへ接続します。</p>
+</section>
+<section class="panel quick">
+  <div class="ey">SELF CHECK / 1-MINUTE RECALL</div><h2>見ずに説明できる？</h2>
+  <details><summary>「感知器」と「発信機」の違いは？</summary><p>感知器は熱・煙・炎などから火災を自動で検知して信号を出す。発信機は人が操作して火災信号を出す。</p></details>
+  <details><summary>P型受信機とR型受信機は、何が違う？</summary><p>P型は回線単位で信号を扱い、R型は固有の信号を伝送して発報した端末・場所を把握する。機器型式ごとの機能・対応範囲も確認する。</p></details>
+  <details><summary>地区音響装置と表示灯の役割は？</summary><p>地区音響装置は建物内の人にベルや音声で火災を知らせる。表示灯は発信機の位置を示す。</p></details>
+  <details><summary>終端抵抗はなぜ必要？</summary><p>感知器回線末端の監視に用い、断線等を把握するための回路構成に関係する。火災を感知する部品ではない。</p></details>
+  <details><summary>構造機能と法令をどう区別する？</summary><p>構造機能は「どう検知・伝送・報知するか」、法令は「どの建物に、どんな条件で設置・維持しなければならないか」。写真鑑別は「これは何で、何に使うか」。</p></details>
+</section>
+<footer class="foot">参考：<a href="https://www.fdma.go.jp/singi_kento/kento/items/post-140/01/shiryou1-1.pdf" target="_blank" rel="noopener noreferrer">消防庁「自動火災報知設備の概要」</a>、<a href="https://www.fesc.or.jp/ihanzesei/symposium/pdf/S-seminer_R6_4.pdf" target="_blank" rel="noopener noreferrer">日本火災報知機工業会「自動火災報知設備の構成」</a>、<a href="https://laws.e-gov.go.jp/law/356M50000008017" target="_blank" rel="noopener noreferrer">e-Gov「感知器及び発信機の技術上の規格」</a>。設置基準は建物用途や例外を含めて照合してください。<br>新たな写真素材は作成・転載していません。既存の鑑別教材はそのまま使用します。</footer>
+</main>
+<script is:inline>
+const day=String(new Date().getMonth()+1)+'/'+String(new Date().getDate());
+const found=Array.from(document.querySelectorAll('.day')).find(node=>node.querySelector('strong')?.textContent?.startsWith(day+'（'));
+if(found){found.classList.add('today');found.setAttribute('aria-current','date');}
+</script>
+</body></html>
