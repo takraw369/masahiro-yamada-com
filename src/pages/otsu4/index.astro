@@ -16,7 +16,7 @@
       <section id="view-home" class="view active">
         <div class="hero"><div><p class="eyebrow">OTSU 4 / 2026.11.01</p><h1><span id="days-left">試験まで</span>。穴から学ぶ。</h1><p>講習日程を背骨に、弱点・当日範囲・鑑別・未出をつなげて復習。</p></div><div class="readiness"><strong id="readiness-value">--</strong></div></div>
         <section id="resume-card" class="panel resume" hidden><b>途中のセッション</b><p id="resume-copy"></p><div class="resume-actions"><button id="resume-quiz">続きから</button><button id="discard-session">破棄</button></div></section>
-        <section class="panel mission lecture-entry"><p class="eyebrow">★ LECTURE MARKS / 赤線・丸・星印</p><h2>講習の重要ポイント10問</h2><p>講習写真で印を付けた設置基準・人数・面積・周期から、まだ覚えていないところを優先。間違えた問題は次回また出る。</p><div class="actions"><button class="primary wide" data-start="lecture">★ マークした箇所を解く</button><a class="secondary" style="text-decoration:none;text-align:center;grid-column:1/-1" href="/otsu4/tests/?topic=lecture-marks">印の付いた論点を項目別に学ぶ →</a></div></section>
+        <section class="panel mission" id="jikahou-focus-banner"><p class="eyebrow">10/9〜13 / 自火報の構成・機能を集中</p><h2>自火報を、構成から覚える5日間</h2><p>感知器・発信機 → 受信機 → 地区音響装置。火曜まで法令・鑑別・構造機能を毎日セットで学ぶ。既存の問題履歴を使う集中10問も追加。</p><div class="actions"><a class="primary wide" style="text-decoration:none;text-align:center;grid-column:1/-1" href="/otsu4/jikahou/">今日の重点・学習ルートを見る →</a><a class="secondary" style="text-decoration:none;text-align:center;grid-column:1/-1" href="/otsu4/tests/?topic=jikahou-focus">自火報集中10問へ →</a></div></section><section class="panel mission lecture-entry"><p class="eyebrow">★ LECTURE MARKS / 赤線・丸・星印</p><h2>講習の重要ポイント10問</h2><p>講習写真で印を付けた設置基準・人数・面積・周期から、まだ覚えていないところを優先。間違えた問題は次回また出る。</p><div class="actions"><button class="primary wide" data-start="lecture">★ マークした箇所を解く</button><a class="secondary" style="text-decoration:none;text-align:center;grid-column:1/-1" href="/otsu4/tests/?topic=lecture-marks">印の付いた論点を項目別に学ぶ →</a></div></section>
         <section class="panel foundation-entry"><p class="eyebrow">STEP 1 / 基本から</p><h2>まず説明を読んで、すぐ確認</h2><p>法令・電気・感知器・受信機・鑑別を10の短いレッスンで学べます。各レッスンは2問で理解を確認。進み具合はこの端末に保存します。</p><a class="primary foundation-link" href="/otsu4/learn/">基礎レッスンを始める →</a></section>
         <section class="panel foundation-entry"><p class="eyebrow">KAMBESTU / 鑑別の予習</p><h2>写真を見る前に、仕組みと用途を覚える</h2><p>差動式と定温式・受信機・試験器・工具をフラッシュカードで復習。写真を見て名称と用途を思い出したら、記述式の鑑別テストへ。</p><a class="primary foundation-link" href="/otsu4/kambetsu/">鑑別フラッシュカード →</a>
 
@@ -35,5 +35,12 @@
     <script is:inline src="/otsu4/training-schedule.js?v=1"></script>
     <script is:inline src="/otsu4/app.js?v=3"></script>
     <script is:inline src="/otsu4/training-sync.js?v=1"></script>
-  </body>
+  <script is:inline>
+  // The intensive route remains accessible, but the dated highlight ends after 10/13.
+  const now=new Date();
+  if(now.getFullYear()>2026 || (now.getFullYear()===2026 && (now.getMonth()>9 || (now.getMonth()===9 && now.getDate()>13)))) {
+    const banner=document.getElementById('jikahou-focus-banner');
+    if(banner){banner.querySelector('.eyebrow').textContent='自火報の構成・機能を復習';banner.querySelector('h2').textContent='自火報の集中学習コース';}
+  }
+</script></body>
 </html>
