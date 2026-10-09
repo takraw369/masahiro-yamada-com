@@ -205,28 +205,188 @@ function fallbackSvg(t){
   return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
 }
 
+
+const photoSearchAliases = {
+  'ウォーターポンププライヤー':'tongue and groove pliers',
+  'ラジオペンチ':'needle nose pliers',
+  'ニッパー':'diagonal cutting pliers',
+  '圧着ペンチ':'crimping pliers',
+  'ワイヤーカッター':'cable cutter pliers',
+  'ワイヤーストリッパー':'wire stripper',
+  'パイプカッター':'pipe cutter',
+  'パイプベンダー':'conduit bender',
+  'ねじ切り器':'threading die wrench',
+  'リーマ':'hand reamer',
+  'ホルソ':'hole saw',
+  'モール':'plastic cable trunking',
+  'リングスリーブ':'wire ferrule connector',
+  'パイプバイス':'pipe vise',
+  'パイプレンチ':'pipe wrench',
+  '回路計':'digital multimeter',
+  '絶縁抵抗計':'insulation resistance tester',
+  '騒音計':'sound level meter',
+  '接地抵抗計':'earth resistance tester',
+  '検電器':'voltage tester',
+  'マノメーター':'U tube manometer',
+  'テストポンプ':'pressure test pump',
+  'メーターリレー試験器':'relay test instrument',
+  '減光フィルター':'neutral density filter',
+  '煙感知器感度試験器':'smoke detector tester',
+  '加熱試験器':'heat detector tester',
+  '加煙試験器':'smoke detector test kit',
+  '密閉型蓄電池':'sealed lead acid battery',
+  '終端器（終端抵抗）':'electrical end of line resistor',
+  '表示灯用発光ダイオード':'red LED component',
+  '携帯用送受話器':'telephone handset',
+  '表示灯':'fire alarm indicator lamp',
+  '地区音響装置':'fire alarm bell',
+  '機器収容箱':'fire alarm control box',
+  '中継器':'fire alarm repeater',
+  'ガス漏れ検知器':'gas detector',
+  '火災通報装置':'fire alarm communicator',
+  'P型1級発信機':'manual call point fire alarm',
+  'P型2級発信機':'manual call point fire alarm',
+  'P型1級受信機':'fire alarm control panel',
+  'P型2級受信機（1回線用）':'fire alarm control panel',
+  'P型2級受信機（多回線用）':'fire alarm control panel',
+  'P型3級受信機':'fire alarm control panel',
+  'R型受信機':'addressable fire alarm panel',
+  '副受信機':'fire alarm repeater panel',
+  '光電式スポット型感知器':'photoelectric smoke detector',
+  'イオン化式スポット型感知器':'ionization smoke detector',
+  '光電式分離型感知器':'beam smoke detector',
+  '補償式スポット型感知器':'heat detector',
+  '定温式スポット型感知器（サーミスタ式）':'fixed temperature heat detector',
+  '定温式スポット型感知器（金属膨張式）':'heat detector',
+  '定温式スポット型感知器（バイメタル式）':'bimetal heat detector',
+  '定温式感知線型感知器':'linear heat detection cable',
+  '差動式スポット型感知器（空気膨張式）':'rate of rise heat detector',
+  '差動式スポット型感知器（半導体式）':'rate of rise heat detector',
+  '差動式分布型感知器（空気管式）':'air tube fire detector',
+  '差動式分布型感知器（熱電対式）':'thermocouple fire detector',
+  '差動式分布型感知器（熱半導体式）':'thermal fire detector',
+  '空気管':'copper capillary tube',
+  '空気管用スリーブ':'copper tube sleeve',
+  '銅管端子':'copper tube connector',
+  'ステップル':'cable staple',
+  'ステッカー':'cable clips',
+  '貫通キャップ':'conduit wall bushing',
+  'コックスタンド':'pressure test valve',
+  'ねじなし電線管':'electrical metal conduit',
+  'ノーマルベンド':'conduit elbow',
+  'ボックスコネクタ':'electrical conduit box connector',
+  'サドル':'electrical conduit saddle clamp',
+  '絶縁ブッシング':'insulated conduit bushing',
+  'アウトレットボックス':'electrical outlet junction box',
+  '炎感知器試験器':'flame detector tester',
+  '加熱試験器用の火口':'platinum catalytic heater burner',
+  '紫外線式スポット型感知器':'UV flame detector',
+  '赤外線式スポット型感知器':'infrared flame detector'
+};
+const photoSearchCache=new Map();
+function imageSearchPage(t) {
+  const q=photoSearchAliases[t.name]||t.name;
+  return 'https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search='+encodeURIComponent(q);
+}
+async function searchNamedPhoto(t){
+  if(photoSearchCache.has(t.name))return photoSearchCache.get(t.name);
+  const task=(async()=>{
+    const terms=[photoSearchAliases[t.name],t.name].filter(Boolean);
+    for(const term of [...new Set(terms)]) {
+      try{
+        const params=new URLSearchParams({
+          action:'query',format:'json',formatversion:'2',generator:'search',
+          gsrsearch:'filetype:bitmap '+term,gsrnamespace:'6',gsrlimit:'12',
+          prop:'imageinfo',iiprop:'url|size|mime',iiurlwidth:'960',origin:'*'
+        });
+        const response=await fetch('https://commons.wikimedia.org/w/api.php?'+params.toString(),{credentials:'omit'});
+        if(!response.ok)continue;
+        const result=await response.json();
+        const keywords=term.toLowerCase().split(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/).filter(x=>x.length>=3&&!['the','and','for','electric','electrical','fire'].includes(x));
+        const choices=(result.query?.pages||[]).filter(page=>{
+          const info=page.imageinfo?.[0],title=page.title?.toLowerCase()||'';
+          if(!info||!/^image\/(jpeg|png|webp)$/.test(info.mime||''))return false;
+          if(/\b(diagram|schematic|drawing|illustration|logo|icon|manual|poster|wiring|symbol)\b/i.test(title))return false;
+          const found=keywords.filter(k=>title.includes(k)).length;
+          return keywords.length ? found>=Math.min(2,keywords.length) : false;
+        }).sort((a,b)=>{
+          const score=page=>keywords.reduce((n,k)=>n+(page.title.toLowerCase().includes(k)?1:0),0);
+          return score(b)-score(a);
+        });
+        const winner=choices[0];
+        if(winner){
+          const info=winner.imageinfo[0];
+          return {url:info.thumburl||info.url,source:info.descriptionurl||'https://commons.wikimedia.org/wiki/'+encodeURIComponent(winner.title.replaceAll(' ','_')),title:winner.title};
+        }
+      }catch{/* Network or Commons throttling can fail; try a narrower/alternative query. */}
+    }
+    return null;
+  })();
+  photoSearchCache.set(t.name,task);
+  return task;
+}
 function loadPhoto(t, elementId='photo', photoOnly=false){
   const photo=$(elementId);
-  const urls=[...(t.urls||[]),...((t.files||[]).map(commons))];
-  let n=0;
-  const status=photoOnly?$('flash-photo-status'):null;
-  if(status){status.hidden=false;status.textContent='実物写真を読み込み中…';}
-  photo.onload=()=>{
-    if(photoOnly){photo.hidden=false;if(status) status.hidden=true;}
+  const mode=elementId==='flash-photo'?'flash':'quiz';
+  const status=photoOnly?$(mode+'-photo-status'):null;
+  const searchWrap=photoOnly?$(mode+'-photo-search-wrap'):null;
+  const searchLink=photoOnly?$(mode+'-photo-search'):null;
+  const reference=$('flash-reference');
+  const imageUrls=[
+    ...(t.urls||[]).map(url=>({url,source:url})),
+    ...((t.files||[]).map(file=>({url:commons(file),source:'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_'))})))
+  ];
+  const requestId=String(Number(photo.dataset.requestId||'0')+1);
+  photo.dataset.requestId=requestId;
+  if(searchWrap)searchWrap.hidden=true;
+  if(status){status.hidden=false;status.textContent='実物写真を探しています…';}
+  if(searchLink)searchLink.href=imageSearchPage(t);
+  const isCurrent=()=>photo.dataset.requestId===requestId;
+  const showSource=source=>{
+    if(!isCurrent()||elementId!=='flash-photo'||!reference)return;
+    if(!source)return;
+    reference.href=source;
+    reference.textContent='参考写真の出典・利用条件を確認 →';
+    reference.hidden=true; // Source is revealed with the answer, not on the question face.
+    photo.dataset.source=source;
   };
-  photo.onerror=()=>{
-    n++;
-    if(n<urls.length){photo.src=urls[n];return;}
-    photo.onerror=null;
+  const finishFailure=()=>{
+    if(!isCurrent())return;
     if(photoOnly){
       photo.hidden=true;
-      if(status){status.hidden=false;status.textContent='この器具の実物写真を取得できません。別の画像を準備中です（模式図では代用しません）。';}
+      photo.removeAttribute('src');
+      if(status){status.hidden=false;status.textContent='この器具に一致する実物写真を取得できませんでした。誤認防止のため別の器具の写真や模式図は表示しません。';}
+      if(searchWrap)searchWrap.hidden=false;
       return;
     }
-    photo.src=fallbackSvg(t);
+    photo.onerror=null;photo.src=fallbackSvg(t);
   };
-  if(photoOnly && !urls.length){photo.onerror();return;}
-  photo.src=urls[0]||fallbackSvg(t);
+  const findNext=async()=>{
+    const found=await searchNamedPhoto(t);
+    if(!isCurrent())return;
+    if(found){setPhoto(found);return;}
+    finishFailure();
+  };
+  let next=0;
+  const setPhoto=entry=>{
+    if(!isCurrent())return;
+    photo.onload=()=>{
+      if(!isCurrent())return;
+      photo.hidden=false;
+      if(status)status.hidden=true;
+      if(searchWrap)searchWrap.hidden=true;
+      showSource(entry.source);
+    };
+    photo.onerror=()=>{
+      if(!isCurrent())return;
+      if(next<imageUrls.length){setPhoto(imageUrls[next++]);return;}
+      void findNext();
+    };
+    photo.src=entry.url;
+  };
+  if(imageUrls.length)setPhoto(imageUrls[next++]);
+  else if(photoOnly)void findNext();
+  else photo.src=fallbackSvg(t);
 }
 
 const hiraToKata=s=>s.replace(/[ぁ-ゖ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));
@@ -392,7 +552,7 @@ function show(){
   }
   const t=queue[i];
   lastResult=null;
-  loadPhoto(t);setMask(t);
+  loadPhoto(t,'photo',true);setMask(t);
   $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜通常解放 ${unlockedCount()} / ${examOrderedTools.length}`;
   if($('poolPill'))$('poolPill').textContent=`鑑別・${examTools.length}項目`;
   $('bar').style.width=`${i/queue.length*100}%`;
@@ -512,12 +672,10 @@ function showFlash() {
     'https://www.hosyu-kyokai.or.jp/jikahou.html' :
     current.photoTool?.kind==='flameDetector' ? 'https://www.kaho.or.jp/pages/jikaho/images/device-sensor-05.html' : '';
   $('flash-reference').hidden=!ref;
-  if(ref) $('flash-reference').href=ref;
-  const photoFile=current.photoTool?.files?.[0];
-  const photoSource=photoFile ? 'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(photoFile.replaceAll(' ','_')) : '';
-  if(photoSource){$('flash-reference').hidden=false;$('flash-reference').href=photoSource;$('flash-reference').textContent='写真の出典・ライセンス（Wikimedia Commons）→';}
-  else if(ref){$('flash-reference').textContent='外部参考資料へ →';}
-  else {$('flash-reference').hidden=true;}
+  $('flash-reference').hidden=true;
+  if(ref) {$('flash-reference').href=ref;$('flash-reference').textContent='外部参考資料へ →';}
+  else {$('flash-reference').removeAttribute('href');}
+  delete $('flash-photo').dataset.source;
   $('flash-photo').hidden=!current.photoTool;
   $('flash-photo-status').hidden=true;
   $('flash-photo-search-wrap').hidden=true;
@@ -532,6 +690,8 @@ function revealFlash(){
   if (!flashDeck[flashIndex] || flashRevealed) return;
   flashRevealed=true;
   $('flash-back').hidden=false;
+  const source=$('flash-photo').dataset.source;
+  if(source){$('flash-reference').href=source;$('flash-reference').textContent='参考写真の出典・利用条件を確認 →';$('flash-reference').hidden=false;}
   $('flash-flip').hidden=true;
   $('flash-grades').hidden=false;
 }
