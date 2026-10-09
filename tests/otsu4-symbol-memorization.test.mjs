@@ -8,8 +8,8 @@ const page=read('src/pages/otsu4/symbols/index.astro');
 const script=page.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script,'inline memorization script present');
 
-function setup(){
-  const dom=new Map(), storage=new Map();
+function setup(seed={}){
+  const dom=new Map(), storage=new Map(Object.entries(seed));
   function element(id){
     if(!dom.has(id))dom.set(id,{
       hidden:false, textContent:'', innerHTML:'', value:'', dataset:{},
@@ -91,18 +91,19 @@ test('reverse direction provides four different symbol choices and a wrong guess
   assert.equal(saved[current.id].last,'miss','no false mastery');
 });
 
-test('weak-mode includes only past △・× and old study records remain unchanged on read',()=>{
-  const {api,element,storage}=setup();
-  const items=api.markDefs.slice(0,2);
-  const existing={
-    [items[0].id]:{attempts:3,streak:0,last:'miss',lastSeen:Date.now()-86400000},
-    [items[1].id]:{attempts:4,streak:0,last:'unsure',lastSeen:Date.now()-86400000}
+test('weak-mode includes only saved △・×, never erases history or weak IDs',()=>{
+  const seed={
+    'otsu4-symbol-cards-v1':JSON.stringify({
+      'h-diff':{attempts:3,streak:0,last:'miss',lastSeen:Date.now()-86400000},
+      'h-fixed1':{attempts:4,streak:0,last:'unsure',lastSeen:Date.now()-86400000},
+      'a-manual':{attempts:6,streak:3,last:'ok',lastSeen:Date.now()-86400000}
+    })
   };
-  storage.set('otsu4-symbol-cards-v1',JSON.stringify(existing));
-  // Rerun from saved content in a fresh mount to check old entries.
+  const {api,element,storage}=setup(seed);
   element('study-mode').value='weak';
-  assert.deepEqual([...api.buildDeck()],[], 'current-page state is intentionally loaded only on first open');
-  // Read-only reload is deliberately tested by the previous storage persistence test.
+  const deck=api.buildDeck().map(x=>x.id);
+  assert.deepEqual(deck.sort(),['h-diff','h-fixed1']);
+  assert.equal(storage.get('otsu4-symbol-cards-v1'),seed['otsu4-symbol-cards-v1'],'load should not mutate storage');
 });
 
 test('the existing Otsu4 home and focused self-fire-alarm syllabus link to the symbol trainer',()=>{
