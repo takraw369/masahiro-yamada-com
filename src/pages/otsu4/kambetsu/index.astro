@@ -499,10 +499,39 @@ function insertRepeat(deck,t,minDelay,maxDelay){
   if(deck.slice(Math.max(i+1,pos-1),pos+2).some(x=>x.name===t.name))return;
   deck.splice(pos,0,t);
 }
+function quizImageWeight(t){
+  const x=stateFor(t);
+  const late=lectureLateBonus(t);
+  const wrong=x.lastConfidence==='miss'?7:x.lastConfidence==='unsure'?5:(x.miss||x.unsure)?3:1;
+  const unseen=!x.attempts?1.8:1;
+  const forgotten=x.lastSeen?1+Math.min(2,daysSince(x.lastSeen)/6):1;
+  const mastered=x.streakOk>=2&&x.lastConfidence==='ok'?0.35:1;
+  return Math.max(0.2,adaptiveWeight(t)*wrong*unseen*forgotten*mastered*(1+2*late));
+}
+function pickWeightedQuiz(active,n){
+  const rest=[...active], result=[];
+  const requestedPliers=rest.find(t=>t.name==='ウォーターポンププライヤー');
+  if(requestedPliers && !stateFor(requestedPliers).attempts && n){
+    result.push(requestedPliers);
+    rest.splice(rest.indexOf(requestedPliers),1);
+  }
+  while(rest.length&&result.length<n){
+    const weights=rest.map(quizImageWeight);
+    let roll=Math.random()*weights.reduce((a,b)=>a+b,0);
+    let index=weights.findIndex(w=>(roll-=w)<=0);
+    if(index<0)index=rest.length-1;
+    result.push(rest.splice(index,1)[0]);
+  }
+  return result;
+}
 function buildQueue(){
   const requested=$('quiz-scope')?.value||'priority';
   const focus=requested==='tools308'?textbook308Tools:null;
-  const active=requested==='all'?examTools:focus?focus.map(name=>examTools.find(t=>t.name===name)).filter(Boolean):activeTools();
+  const active=(requested==='all'||requested==='priority')?examTools:focus?focus.map(name=>examTools.find(t=>t.name===name)).filter(Boolean):activeTools();
+  if(requested==='priority'){
+    const n=$('quiz-count')?.value==='all'?active.length:Math.max(1,Number($('quiz-count')?.value)||20);
+    return pickWeightedQuiz(active,Math.min(n,active.length));
+  }
   const mustSee=['ウォーターポンププライヤー'];
   const base=[...active].sort((a,b)=>{
     if(requested==='priority'){
@@ -527,7 +556,7 @@ function buildQueue(){
   return base;
 }
 function renderWeak(){
-  const rows=activeTools().map(t=>{
+  const rows=examTools.map(t=>{
     const x=stateFor(t);
     const nameMastery=x.attempts?Math.round(x.nameOk/x.attempts*100):0;
     const useMastery=x.attempts?Math.round(x.useOk/x.attempts*100):0;
@@ -553,7 +582,7 @@ function show(){
   const t=queue[i];
   lastResult=null;
   loadPhoto(t,'photo',true);setMask(t);
-  $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜通常解放 ${unlockedCount()} / ${examOrderedTools.length}`;
+  $('counter').textContent=`${i+1} / ${queue.length}｜${$('quiz-scope')?.selectedOptions?.[0]?.textContent||'講習順'}｜登録済み ${examTools.length}項目` ;
   if($('poolPill'))$('poolPill').textContent=`鑑別・${examTools.length}項目`;
   $('bar').style.width=`${i/queue.length*100}%`;
   $('name').value='';$('use').value='';
@@ -590,8 +619,8 @@ document.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>{
   if(autoMiss||confidence==='miss')insertRepeat(queue,t,2,4);
   else if(confidence==='unsure')insertRepeat(queue,t,3,6);
   if(after>before){
-    const unlockedNow=orderedTools.slice(before,after);
-    for(const next of unlockedNow) if(!queue.some(x=>x.name===next.name)) queue.push(next);
+    // New mastery levels affect the next weighted session; do not increase the
+    // current session beyond the user's selected question count.
   }
   i++;show();
 });
@@ -616,19 +645,44 @@ const photoFlashCards = () => [...orderedTools,...extraTools].map((t,index) => (
   id: 'photo-'+index,
   group: /感知器/.test(t.name) ? '感知器' : /試験器|フィルター|マノメーター/.test(t.name) ? '試験器' : /受信機|発信機|表示灯|警報|中継器|終端器|ガス漏れ/.test(t.name) ? '受信・警報' : '工具・計測',
   title: t.name,
-  question: 'この写真の名称と用途を説明できる？',
+  question: 'この器具の正式名称と用途は？',
   answer: t.use,
   hint: textbook308Hints[t.name] || '名前を見ずに用途の動詞まで説明。似た器具と何が違うかも確認しよう。',
   lectureToolPage: textbook308Tools.includes(t.name) ? '308' : null,
   photoTool: t
 }));
+function lectureLateBonus(t){
+  const pos=lectureRank.get(t?.name) ?? 0;
+  return pos / Math.max(1,lectureOrderNames.length-1);
+}
+function daysSince(timestamp){
+  return timestamp ? Math.max(0,(Date.now()-timestamp)/86400000) : 0;
+}
 function flashRank(item) {
   const own=flashItemState(item);
-  // Existing test record influences photo order without mutating its scores.
   const exam=item.photoTool ? stateFor(item.photoTool) : null;
-  return (own.last==='miss'?500:own.last==='unsure'?400:!own.attempts?300:100)
-    +(exam?.lastConfidence==='miss'?180:exam?.lastConfidence==='unsure'?120:0)
-    -(own.last==='ok'&&own.streak>=2?250:0);
+  const forgotten = own.attempts && own.lastSeen ? Math.min(260,daysSince(own.lastSeen)*28) : 0;
+  return (own.last==='miss'?1200:own.last==='unsure'?900:!own.attempts?350:150)
+    +(exam?.lastConfidence==='miss'?650:exam?.lastConfidence==='unsure'?450:0)
+    +(item.photoTool ? Math.round(260*lectureLateBonus(item.photoTool)) : 0)
+    +forgotten-(own.last==='ok'&&own.streak>=2?350:0);
+}
+function selectPhotoFlashSession(ranked,limit=10) {
+  const priority=ranked.filter(item=>{
+    const own=flashItemState(item);
+    const exam=item.photoTool ? stateFor(item.photoTool) : null;
+    return ['miss','unsure'].includes(own.last)||['miss','unsure'].includes(exam?.lastConfidence);
+  }).slice(0,7);
+  const chosen=[...priority],chosenIds=new Set(chosen.map(item=>item.id));
+  const remaining=ranked.filter(item=>!chosenIds.has(item.id));
+  const isLate=item=>item.photoTool&&lectureLateBonus(item.photoTool)>=0.60;
+  const lateNeeded=Math.max(0,6-chosen.filter(isLate).length);
+  const earlyNeeded=Math.max(0,2-chosen.filter(item=>!isLate(item)).length);
+  const append=list=>{for(const item of list){if(chosen.length>=limit)break;if(!chosenIds.has(item.id)){chosen.push(item);chosenIds.add(item.id);}}};
+  append(remaining.filter(isLate).slice(0,lateNeeded));
+  append(remaining.filter(item=>!isLate(item)).slice(0,earlyNeeded));
+  append(ranked);
+  return chosen.slice(0,limit);
 }
 function beginFlash() {
   const scope=$('flash-scope').value;
@@ -643,7 +697,7 @@ function beginFlash() {
     const idx=ranked.findIndex(item=>item.title==='ウォーターポンププライヤー' && !flashItemState(item).streak);
     if(idx>0) ranked.unshift(...ranked.splice(idx,1));
   }
-  flashDeck=scope==='tools308' ? [...selected].sort((a,b)=>textbook308Tools.indexOf(a.title)-textbook308Tools.indexOf(b.title)) : ranked.slice(0,10);
+  flashDeck=scope==='tools308' ? [...selected].sort((a,b)=>textbook308Tools.indexOf(a.title)-textbook308Tools.indexOf(b.title)) : scope==='basics' ? ranked.slice(0,10) : selectPhotoFlashSession(ranked,10);
   flashIndex=0;flashRevealed=false;flashRepeated=new Set();
   showFlash();
 }
@@ -661,7 +715,7 @@ function showFlash() {
     return;
   }
   flashRevealed=false;
-  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜基礎 ${activeFoundationFlashCards.length}枚＋写真 ${photoFlashCards().length}枚`;
+  $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜p293〜309の登録項目 ${photoFlashCards().length}枚（後半・苦手優先）` ;
   $('flash-group').textContent=current.group;
   $('flash-question').textContent=current.question;
   $('flash-back').hidden=true;
