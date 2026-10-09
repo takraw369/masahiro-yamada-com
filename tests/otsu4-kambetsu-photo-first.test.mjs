@@ -41,7 +41,7 @@ test('first photo question stays hidden until real image onload, then reveals ti
   const {api,element}=mount();
   assert.equal(api.tools.length,78);
   assert.equal(api.photoFlashCards().length,78,'catalog must retain all lesson records');
-  assert.equal(api.tools.filter(api.hasVettedPhoto).length,20,'20 verified images in the first release');
+  assert.equal(api.tools.filter(api.hasVettedPhoto).length,21,'21 vetted picture references in the first release');
   const photo=element('flash-photo');
   assert.ok(photo.hidden,'image starts concealed');
   assert.ok(element('flash-flip').hidden,'no reveal button before an image');
