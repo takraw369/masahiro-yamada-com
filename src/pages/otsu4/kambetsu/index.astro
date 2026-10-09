@@ -605,7 +605,20 @@ function show(){
   }
   const t=queue[i];
   lastResult=null;
-  loadPhoto(t,'photo',true);setMask(t);
+  $('quiz-question').hidden=true;
+  $('quiz-fields').hidden=true;
+  loadPhoto(t,'photo',true,{
+    onReady:()=>{
+      if(queue[i]!==t)return;
+      $('quiz-question').hidden=false;
+      $('quiz-fields').hidden=false;
+    },
+    onFailure:()=>{
+      if(queue[i]!==t)return;
+      i++;show();
+    }
+  });
+  setMask(t);
   $('counter').textContent=`${i+1} / ${queue.length}｜写真確認済み ${examTools.filter(hasVettedPhoto).length} / 登録 ${examTools.length} 項目`;
   if($('poolPill'))$('poolPill').textContent=`写真鑑別・${examTools.filter(hasVettedPhoto).length}項目`;
   $('bar').style.width=`${i/queue.length*100}%`;
@@ -616,6 +629,7 @@ function show(){
 }
 $('quiz-skip-photo').onclick=()=>{i++;show();};
 $('reveal').onclick=()=>{
+  if($('photo').hidden)return; // A photo is mandatory before scoring.
   const t=queue[i];
   lastResult={
     nameOk:judgeName(t,$('name').value),
@@ -634,6 +648,7 @@ $('reveal').onclick=()=>{
 document.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>{
   const t=queue[i];
   const confidence=b.dataset.grade;
+  if($('photo').hidden)return;
   const result=lastResult||{nameOk:false,useOk:false};
   const before=unlockedCount();
   saveGrade(t,result,confidence);
@@ -737,15 +752,15 @@ function showFlash() {
     $('flash-photo-search-wrap').hidden=true;
     $('flash-visual').hidden=false;
     $('flash-back').hidden=true;
-    $('flash-progress').textContent=flashDeck.length ? '今回のカードを学び終えました！' : 'まだ復習対象がないよ。基礎から進めよう。';
+    $('flash-progress').textContent=flashDeck.length ? '今回のカードを学び終えました！' : '表示できる写真がありませんでした。別の学習モードを選ぶか、通信状況を確認してください。';
     $('flash-group').textContent='REVIEW COMPLETE';
-    $('flash-question').textContent=flashDeck.length ? '△・×は次回も優先されます。次は記述テストへ！' : 'まず基礎・写真カードを選んでね。';
+    $('flash-question').textContent=flashDeck.length ? '△・×は次回も優先されます。次は記述テストへ！' : '写真のない問題は出題していません。';
     return;
   }
   flashRevealed=false;
   $('flash-progress').textContent=`${flashIndex+1} / ${flashDeck.length}｜実物確認済み ${verifiedPhotos().length} / 登録 ${photoFlashCards().length} 項目｜苦手・後半優先`;
   $('flash-group').textContent=current.group;
-  $('flash-question').textContent=current.question;
+  $('flash-question').textContent=current.photoTool ? '実物写真を読み込み中…' : current.question;
   $('flash-back').hidden=true;
   $('flash-answer-title').textContent=current.title;
   $('flash-answer').textContent=current.answer;
@@ -762,10 +777,22 @@ function showFlash() {
   $('flash-photo-status').hidden=true;
   $('flash-photo-search-wrap').hidden=true;
   if (current.photoTool) {
-    loadPhoto(current.photoTool,'flash-photo',true);
+    loadPhoto(current.photoTool,'flash-photo',true,{
+      onReady:()=>{
+        if(flashDeck[flashIndex]!==current)return;
+        $('flash-question').textContent=current.question;
+        $('flash-flip').hidden=false;
+      },
+      onFailure:()=>{
+        if(flashDeck[flashIndex]!==current)return;
+        flashDeck.splice(flashIndex,1);
+        showFlash();
+      }
+    });
     $('flash-photo').alt='鑑別用の実物参考写真（答えは裏面にあります）';
+  }else{
+    $('flash-flip').hidden=false;
   }
-  $('flash-flip').hidden=false;
   $('flash-flip').textContent='裏面を見て覚える';
 }
 function revealFlash(){
