@@ -41,7 +41,7 @@ button{touch-action:manipulation}
 <h1 id="flash-heading" style="font-size:25px;line-height:1.4;margin:12px 0 8px">まず実物写真で覚えよう。</h1>
 <p class="flash-intro">まず写真だけを見て、器具の名前と用途を思い出そう。<b>裏面で正式名称・用途・見分け方を確認</b>して○・△・×。苦手な器具はもう一度出てくるよ。仕組みの解説は「補助知識」で学べる。</p>
 <label class="flash-scope-label" for="flash-scope">学ぶカードの種類</label>
-<select id="flash-scope"><option value="photos" selected>p293〜309｜写真で名称・用途を覚える（10枚ずつ）</option><option value="tools308">講習p308｜工具・材料12種を集中</option><option value="basics">補助知識・仕組み（文字カード・10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
+<select id="flash-scope"><option value="photos" selected>実物写真で鑑別（写真確認済みだけ）</option><option value="tools308">講習p308｜工具・材料12種を集中</option><option value="basics">補助知識・仕組み（文字カード・10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
 <div class="flash-progress" id="flash-progress" role="status" aria-live="polite"></div>
 <div class="flash-visual" id="flash-visual">
 <div class="flash-group" id="flash-group"></div>
@@ -59,10 +59,10 @@ button{touch-action:manipulation}
 </div>
 </div>
 <label class="flash-scope-label" for="quiz-scope">記述テストの出題範囲</label>
-<select id="quiz-scope"><option value="priority">p293〜309｜後半・苦手優先で出題</option><option value="all">登録済みの全範囲をすべて出題</option><option value="tools308">工具p308（12種全部）</option></select><label class="flash-scope-label" for="quiz-count">優先出題の問題数</label><select id="quiz-count"><option value="10">10問</option><option value="20" selected>20問</option><option value="30">30問</option><option value="all">全件</option></select>
+<select id="quiz-scope"><option value="priority">p293〜309｜後半・苦手優先で出題</option><option value="all">写真確認済みの全件を出題</option><option value="tools308">工具p308（12種全部）</option></select><label class="flash-scope-label" for="quiz-count">優先出題の問題数</label><select id="quiz-count"><option value="10">10問</option><option value="20" selected>20問</option><option value="30">30問</option><option value="all">全件</option></select>
 <button id="flash-test" class="flash-test" type="button">STEP 2：選んだ範囲の鑑別テストへ →</button>
-<p class="flash-muted">器具名からWikimedia Commonsの画像を検索し、実物写真の候補を優先します。外部画像の取得失敗時は誤った模式図を使わず、検索リンクを示します。候補の画像が教材の写真と同一である保証はありません。教材写真自体は転載しません。</p>
-<p class="flash-muted">p293〜309の登録済み項目を写真カードで学習。記述テストは「後半の器具」「△・×」「忘れかけたもの」を多めに抽出します。以前に本番対象外と指示された炎感知器等は写真で参照できますが、記述テストの採点対象からは除外しています。過去の学習履歴は保持します。</p>
+<p class="flash-muted">写真は出典ページで対象物を確認して固定登録した参考写真。表示できないものは自動で飛ばし、写真なしで名前を答えさせることはありません。教材原版とは型式や見た目が異なる場合があります。</p>
+<p class="flash-muted">教材p293〜309の登録項目は78種類。現在は実物が照合できた写真だけを出題します。未確認の画像・単なる自動検索結果は出題しません。苦手と後半を優先し、学習履歴を保持します。</p>
 <p class="flash-muted">基礎カードは独立した復習履歴。写真カードは既存の鑑別データを共用します。テストの採点記録は書き換えません。</p>
 </section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><p class="flash-photo-status" id="quiz-photo-status" role="status" aria-live="polite" hidden></p><p class="flash-muted" id="quiz-photo-search-wrap" hidden><a id="quiz-photo-search" href="#" target="_blank" rel="noopener noreferrer">この器具の画像候補を検索 →</a></p><button type="button" id="quiz-skip-photo" class="secondary" hidden>画像がないので、この問題をスキップ →</button><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
 const $=id=>document.getElementById(id);
@@ -151,6 +151,34 @@ const tools=[
 {name:"差動式分布型感知器（熱電対式）の熱電対部",aliases:["熱電対部"],use:"異種金属の温度差によって熱起電力を発生させ、検出器に伝える感熱部品。",useGroups:[["熱電対"],["起電力"]],kind:"thermocoupleProbe"},
 {name:"赤外線式スポット型感知器",aliases:["赤外線式炎感知器"],use:"炎から放射される赤外線の変化を受光素子で検出する炎感知器。",useGroups:[["炎"],["赤外線"]],kind:"flameDetector"}
 ];
+
+
+// Public Commons file pages were individually checked for the depicted object.
+// Do not guess a detector subtype from a generic circular detector photograph.
+const vettedPhotoFiles = Object.freeze({
+  'ラジオペンチ':['Basic NeedleNose Pliers.jpg'],
+  'ニッパー':['Sidecutters.jpg'],
+  '圧着ペンチ':['Crimping tool3.jpg'],
+  'ワイヤーストリッパー':['Wire stripper.jpg'],
+  'パイプカッター':['Ridgid Pipe Cutter.jpg'],
+  'パイプベンダー':['Conduit bender.jpg'],
+  'モール':['Insertion trunking.JPG'],
+  'ホルソ':['Drill arbor holesaw.jpg'],
+  '回路計':['All multimeters.jpg'],
+  '絶縁抵抗計':['Insulation testers by Megger.jpg'],
+  '騒音計':['Sound level meter, DVM85.jpg'],
+  '接地抵抗計':['Digital Earth resistance tester.jpg'],
+  'アウトレットボックス':['Junction box.jpg'],
+  'ウォーターポンププライヤー':['440Tongue+and+GroovePliers.JPG','Channellock tongue-and-groove pliers.jpg'],
+  'パイプレンチ':['Pipe wrench.JPG'],
+  'パイプバイス':['Pipe Vice J. Morris CC BY-SA-3.0.jpg'],
+  '地区音響装置':['Fire Alarm Bell red.jpg'],
+  '表示灯用発光ダイオード':['Red LEDs.jpg'],
+  '密閉型蓄電池':['Sealed-lead-acid-batteries-connected-in-series.jpg'],
+  'R型受信機':['Noumi R Fire Alarm Control Panel.jpg']
+});
+const hasVettedPhoto=t=>Boolean(t&&vettedPhotoFiles[t.name]?.length);
+const verifiedPhotos=()=>tools.filter(hasVettedPhoto);
 
 const lectureOrderNames=[
 'ねじなし電線管','ノーマルベンド','ボックスコネクタ','サドル','絶縁ブッシング','アウトレットボックス',
@@ -332,10 +360,7 @@ function loadPhoto(t, elementId='photo', photoOnly=false){
   const searchWrap=photoOnly?$(mode+'-photo-search-wrap'):null;
   const searchLink=photoOnly?$(mode+'-photo-search'):null;
   const reference=$('flash-reference');
-  const imageUrls=[
-    ...(t.urls||[]).map(url=>({url,source:url})),
-    ...((t.files||[]).map(file=>({url:commons(file),source:'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_'))})))
-  ];
+  const imageUrls=(vettedPhotoFiles[t.name]||[]).map(file=>({url:commons(file),source:'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_'))}));
   const requestId=String(Number(photo.dataset.requestId||'0')+1);
   photo.dataset.requestId=requestId;
   if(photoOnly)photo.hidden=true; // Never show the previous card's photo while searching.
