@@ -1,5 +1,6 @@
 :root{--pump-bg:#0d0b08;--pump-surface:#17130f;--pump-elev:#211a13;--pump-gold:#c9a96e;--pump-gold2:#f0ce84;--pump-fire:#e85d4a;--pump-text:#d4c5a9;--pump-muted:#837665;--pump-border:#332b22}
 body{background:radial-gradient(circle at 50% -12%,#2c2114 0,#0d0b08 27%,#080706 72%)}
+.level-overlay[hidden],.timer-dock[hidden]{display:none!important}
 .pump-hud{position:sticky;top:76px;z-index:30;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin:-24px 0 16px;padding:10px 12px;background:rgba(13,11,8,.92);border:1px solid var(--pump-border);backdrop-filter:blur(10px)}
 .hud-level{display:flex;align-items:baseline;gap:4px;min-width:60px;padding:7px 9px;background:#17120d;border:1px solid #51412d}.hud-level span{font-size:.58rem;letter-spacing:.12em;color:#8b7355}.hud-level strong{font:600 1.35rem 'Cormorant Garamond',serif;color:var(--pump-gold2)}
 .hud-xp{min-width:0}.hud-row{display:flex;justify-content:space-between;gap:8px;margin-bottom:5px;font-size:.58rem;color:#948571}.xp-track{height:7px;overflow:hidden;background:#211c16;border:1px solid #31291f}.xp-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b97834,#f0ce84);box-shadow:0 0 16px rgba(240,206,132,.4);transition:width .45s ease}
@@ -29,3 +30,101 @@ body{background:radial-gradient(circle at 50% -12%,#2c2114 0,#0d0b08 27%,#080706
 @media(max-width:720px){.hero-quest{min-height:560px;grid-template-columns:1fr;gap:10px;align-content:center}.countdown-ring{width:128px;height:128px}.ring-copy strong{font-size:2.4rem}.metric-strip{grid-template-columns:repeat(2,1fr)}.exercise-card{grid-template-columns:96px 1fr}.motion-stage{height:112px}.exercise-action{grid-column:2;grid-template-columns:1fr auto;align-items:center}.recovery-grid{grid-template-columns:repeat(2,1fr)}.day-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:430px){.pump-hud{top:64px}.hero-quest{padding:28px 18px}.hero-actions{display:grid}.cta-main,.cta-ghost{width:100%}.exercise-card{grid-template-columns:82px 1fr;gap:12px;padding:12px}.motion-stage{height:104px}.motion-figure{scale:.82}.exercise-action{grid-column:1 / -1;grid-template-columns:1fr 96px}.set-dots{justify-content:flex-start}.recovery-grid{grid-template-columns:1fr}.day-grid{grid-template-columns:1fr}.metric-strip strong{font-size:1rem}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}.xp-track i,.ring-progress,.quest-progress i{transition:none!important}}
+
+
+/* 2026-10-07 mobile polish: screenshot-driven */
+.motion-svg{display:block;width:100%;height:100%;overflow:visible}
+.motion-svg .body-line{stroke:#ead19b;stroke-width:8;stroke-linecap:round;fill:none}
+.motion-svg .skin-fill{fill:#f0ce84}
+.motion-svg .load-line{stroke:#e85d4a;stroke-width:8;stroke-linecap:square}
+.motion-svg .ground-line{stroke:#6b5942;stroke-width:2}
+.motion-svg .bench-line{stroke:#8b7355;stroke-width:5;stroke-linecap:square}
+.motion-svg .pose{transform-box:fill-box;transform-origin:center;transition:opacity .2s ease}
+.motion-svg .pose-a{opacity:1}.motion-svg .pose-b{opacity:.18}
+.exercise-card.is-active .motion-svg .pose-a{animation:poseA 1.15s ease-in-out infinite}
+.exercise-card.is-active .motion-svg .pose-b{animation:poseB 1.15s ease-in-out infinite}
+@keyframes poseA{0%,42%{opacity:1}52%,92%{opacity:.12}100%{opacity:1}}
+@keyframes poseB{0%,42%{opacity:.12}52%,92%{opacity:1}100%{opacity:.12}}
+
+.exercise-card.is-active{border-color:#a47e47;box-shadow:inset 3px 0 0 #c9a96e,0 14px 36px rgba(0,0,0,.18)}
+.exercise-card.is-active .motion-stage{border-color:#6d5638;background:radial-gradient(circle at 50% 48%,rgba(240,206,132,.11),transparent 58%),#0b0907}
+.set-btn{position:relative;overflow:hidden;min-height:52px;border-color:#8b6840;background:linear-gradient(145deg,#2c1d0f,#17100a);color:#f0ce84;font-size:.78rem;letter-spacing:.08em}
+.set-btn::after{content:'';position:absolute;inset:-40% -30%;background:linear-gradient(110deg,transparent 35%,rgba(255,233,180,.18) 50%,transparent 65%);transform:translateX(-65%);transition:transform .35s ease}
+.set-btn:active::after{transform:translateX(65%)}
+.set-btn:not([disabled]){box-shadow:inset 0 0 0 1px rgba(240,206,132,.05),0 8px 22px rgba(0,0,0,.2)}
+.set-dot{width:10px;height:10px}
+.set-dot.on{box-shadow:0 0 14px rgba(240,206,132,.55)}
+
+@media(max-width:430px){
+  .pump-hud{top:8px;margin:0 0 18px;padding:8px 9px;gap:9px;box-shadow:0 10px 26px rgba(0,0,0,.28)}
+  .hud-level{min-width:52px;padding:6px 8px}.hud-level strong{font-size:1.15rem}
+  .hud-icon{width:38px;height:38px}
+  .hud-row{font-size:.54rem}.xp-track{height:6px}
+  .hero-quest{min-height:auto;padding:26px 18px 30px}
+  .workout-shell{padding:22px 0}
+  .exercise-list{gap:12px}
+  .exercise-card{grid-template-columns:112px 1fr;gap:13px;padding:13px}
+  .motion-stage{height:126px}
+  .exercise-info h3{font-size:.95rem;line-height:1.4}
+  .exercise-meta{gap:5px;margin:7px 0}.exercise-meta span{font-size:.5rem;padding:3px 5px}
+  .exercise-info p{font-size:.67rem;line-height:1.65}
+  .exercise-action{grid-column:1 / -1;grid-template-columns:1fr 118px;align-items:center;gap:12px;margin-top:2px}
+  .set-dots{justify-content:flex-start;gap:6px}.set-btn{width:118px;min-height:52px}
+  .section-head{align-items:center}
+  .combo-box strong{font-size:1.55rem}
+  .timer-dock{bottom:18px;width:calc(100% - 28px);min-width:0;justify-content:space-between}
+  .pump-toast{bottom:88px;max-width:calc(100% - 32px);text-align:center}
+}
+
+
+/* 2026-10-08 AI TRAINER MODE */
+.ai-trainer-card{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(260px,.9fr) minmax(260px,1.1fr);gap:0;margin:0 0 26px;border:1px solid #5c3e43;background:radial-gradient(circle at 18% 22%,rgba(225,91,120,.18),transparent 28%),radial-gradient(circle at 78% 15%,rgba(240,206,132,.08),transparent 35%),linear-gradient(145deg,#171013,#0d0a0c 70%);box-shadow:0 20px 46px rgba(0,0,0,.28)}
+.trainer-visual-wrap{position:relative;min-height:420px;display:grid;place-items:end center;overflow:hidden;border-right:1px solid #3a2b30;background:linear-gradient(180deg,rgba(255,255,255,.012),transparent 25%),radial-gradient(circle at 50% 70%,rgba(225,91,120,.13),transparent 46%)}
+.trainer-glow{position:absolute;width:290px;height:290px;left:50%;bottom:20px;transform:translateX(-50%);border-radius:50%;background:rgba(221,101,140,.13);filter:blur(42px);animation:trainerGlow 2.8s ease-in-out infinite}
+.trainer-visual{position:relative;z-index:2;width:min(310px,92%);height:390px;display:grid;place-items:end center}
+.trainer-svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 18px 22px rgba(0,0,0,.35))}
+.trainer-hair{fill:#171015;stroke:#513544;stroke-width:2}
+.trainer-skin{fill:#f2c9b8;stroke:#b87e78;stroke-width:1.6}
+.trainer-neck{fill:#eab8a9}
+.trainer-top{fill:url(#miaTop);stroke:#ef829e;stroke-width:1.5}
+.trainer-waist{fill:url(#miaLeg);stroke:#5d4059;stroke-width:1.5}
+.trainer-arm{stroke:#efc2b3;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.trainer-leg{stroke:#3a2838;stroke-width:20;stroke-linecap:round}
+.trainer-weight{stroke:#d84c67;stroke-width:10;stroke-linecap:square}
+.trainer-ground{stroke:#6a4b50;stroke-width:2}
+.trainer-pose{opacity:.12}
+.trainer-pose.pose-a{opacity:1;animation:trainerPoseA 1.35s ease-in-out infinite}
+.trainer-pose.pose-b{animation:trainerPoseB 1.35s ease-in-out infinite}
+.trainer-badge{position:absolute;z-index:4;left:14px;bottom:14px;padding:10px 12px;border:1px solid rgba(240,206,132,.28);background:rgba(10,8,9,.72);backdrop-filter:blur(8px)}
+.trainer-badge span,.trainer-badge small{display:block;font-size:.48rem;letter-spacing:.17em;color:#9c7b73}
+.trainer-badge strong{display:block;margin:2px 0;font:500 1.35rem 'Cormorant Garamond',serif;color:#f0ce84}
+.trainer-talk{display:grid;align-content:center;padding:34px 30px;min-width:0}
+.trainer-talk h3{margin:4px 0 12px;font:400 clamp(1.6rem,4.8vw,2.65rem)/1.25 'Cormorant Garamond',serif;color:#f1d6ca;text-wrap:balance}
+.trainer-talk h3.pulse{animation:trainerTalkPulse .55s ease}
+.trainer-talk>p:not(.micro-label){margin:0 0 22px;color:#9c837e;font-size:.76rem;line-height:1.75}
+.trainer-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.voice-btn{min-height:48px;padding:11px 16px;border:1px solid #8d5061;background:linear-gradient(145deg,#4b2331,#211018);color:#f3c5d2;font-weight:700;letter-spacing:.06em;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.24),inset 0 0 24px rgba(225,91,120,.06)}
+.voice-btn:active{transform:scale(.98)}
+#voice-status{font-size:.56rem;color:#806b68}
+.trainer-svg-floor{height:330px;align-self:end}
+@keyframes trainerPoseA{0%,43%{opacity:1;transform:translateY(0)}53%,93%{opacity:.08;transform:translateY(3px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes trainerPoseB{0%,43%{opacity:.08;transform:translateY(3px)}53%,93%{opacity:1;transform:translateY(0)}100%{opacity:.08;transform:translateY(3px)}}
+@keyframes trainerGlow{0%,100%{opacity:.65;scale:.94}50%{opacity:1;scale:1.05}}
+@keyframes trainerTalkPulse{0%{transform:translateY(4px);opacity:.45}100%{transform:none;opacity:1}}
+
+@media(max-width:720px){
+  .ai-trainer-card{grid-template-columns:1fr}
+  .trainer-visual-wrap{min-height:360px;border-right:0;border-bottom:1px solid #3a2b30}
+  .trainer-visual{height:350px;width:min(300px,88%)}
+  .trainer-talk{padding:24px 20px 26px}
+}
+@media(max-width:430px){
+  .ai-trainer-card{margin-bottom:20px}
+  .trainer-visual-wrap{min-height:330px}
+  .trainer-visual{height:320px;width:min(280px,88%)}
+  .trainer-talk{padding:21px 17px 23px}
+  .trainer-talk h3{font-size:1.8rem}
+  .trainer-talk>p:not(.micro-label){font-size:.68rem;margin-bottom:16px}
+  .trainer-controls{display:grid;grid-template-columns:1fr}
+  .voice-btn{width:100%;min-height:52px}
+}

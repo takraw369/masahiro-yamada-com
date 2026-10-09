@@ -1,0 +1,149 @@
+---
+---
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>乙4 別表第1ドリル</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f4f7fa;color:#15202b}main{max-width:760px;margin:auto;padding:14px 12px 80px}a{color:#28648b;text-decoration:none}.card{background:#fff;border-radius:18px;padding:15px;box-shadow:0 8px 30px #17324d12;margin-top:14px}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tabs button,button{border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px}.tabs button.on,.primary{background:#28648b;color:#fff}.tabs button:not(.on),.secondary{background:#e9f1f6;color:#174e70}.q{font-size:20px;font-weight:900;line-height:1.5}.answer{background:#eef7f0;border-radius:12px;padding:13px;margin-top:12px}.answer.ng{background:#fdeeee}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.choice-title{font-size:12px;font-weight:900;color:#607080;margin:15px 0 7px}.number-picks{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.kana-picks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.pick{padding:11px 4px;background:#eef3f6;color:#24465d;border:1px solid #d6e0e7}.pick.selected{background:#28648b;color:#fff;border-color:#28648b}.pick:disabled{opacity:.75}.written{width:100%;font:inherit;font-size:16px;padding:13px;border:1px solid #cbd6df;border-radius:11px;margin-top:10px}.written:disabled{background:#f3f5f7}.match{font-size:12px;color:#607080;margin-top:8px;line-height:1.6}.submit{width:100%;margin-top:14px}.submit:disabled{opacity:.45}.gridwrap{overflow-x:auto}.grid{display:grid;grid-template-columns:58px repeat(4,minmax(58px,1fr));gap:4px;min-width:340px}.cell,.head,.rowhead{min-height:43px;border-radius:8px;padding:6px 3px;font-size:12px;font-weight:800;text-align:center}.head{display:flex;align-items:center;justify-content:center;background:#dcecf6;color:#174e70}.rowhead,.cell{border:1px solid #d6e0e7;background:#fff;color:#334}.rowhead{background:#f4f8fb}.cell.correct,.rowhead.correct{background:#dff3e5;border-color:#64a979}.cell.wrong,.rowhead.wrong{background:#fde7e7;border-color:#d98383}.status{font-size:13px;color:#607080;margin:9px 0}.weak{font-size:12px;line-height:1.7;color:#607080}.weakrow{padding:7px 0;border-bottom:1px solid #e8edf1}.weakrow:last-child{border:0}.hidden{display:none}.use{font-size:14px;color:#53636f;line-height:1.6}.hint{font-size:12px;color:#6b7882}.rate-note{text-align:center;font-size:12px;color:#6b7882;margin:10px 0 0}@media(max-width:520px){.tabs button{font-size:12px;padding:11px 5px}.q{font-size:18px}.number-picks{grid-template-columns:repeat(5,1fr)}.kana-picks{grid-template-columns:repeat(5,1fr)}.pick{font-size:13px;padding:11px 2px}.cell,.head,.rowhead{font-size:11px}.actions button{padding:12px 5px;font-size:13px}}
+</style></head><body><main><a href="/otsu4/hourei/">← 法令テスト</a><section class="card"><h1>消防法施行令 別表第1</h1><p class="use">順引きは用途→<b>項番号＋イ・ロ・ハ・ニ</b>。逆引きは<b>番号・区分→用途を自分で書く</b>。どのモードも同じ弱点履歴へつながります。</p><div class="tabs"><button id="qaTab" class="on">番号＋イロハ</button><button id="gridTab">表で当てる</button><button id="reverseTab">逆引き・記述</button></div></section>
+<section id="qa" class="card"><div class="status" id="qaCount"></div><div class="q" id="qaQ"></div><div class="choice-title">① 項番号を選ぶ</div><div id="numberPicks" class="number-picks"></div><div class="choice-title">② 区分を選ぶ</div><div id="kanaPicks" class="kana-picks"></div><button id="submitQA" class="primary submit" disabled>回答する</button><div id="qaA" class="answer hidden"></div><div id="qaActions" class="actions hidden"><button class="secondary" data-rate="weak">弱い</button><button class="secondary" data-rate="repeat">もう一度</button><button class="primary" data-rate="mastered">ここは覚えた</button></div><p id="qaRateNote" class="rate-note hidden">評価すると次へ。弱い・もう一度は今後も出やすくなります。</p></section>
+<section id="gridMode" class="card hidden"><div class="status" id="gridCount"></div><div class="q" id="gridQ"></div><p class="use">イロハがある用途は交点をタップ。区分なしの用途は左端の<b>項番号</b>をタップ。存在しない枠も見た目では区別しません。</p><div class="gridwrap"><div id="grid" class="grid"></div></div><div id="gridFeedback" class="answer hidden"></div><div id="gridActions" class="actions hidden"><button class="secondary" data-grid-rate="weak">弱い</button><button class="secondary" data-grid-rate="repeat">もう一度</button><button class="primary" data-grid-rate="mastered">ここは覚えた</button></div></section>
+<section id="reverseMode" class="card hidden"><div class="status" id="reverseCount"></div><div class="q" id="reverseQ"></div><p class="use">その項・区分に入る用途を、自分の言葉で書く。完全一致でなくても主要語を見て○／△／×を仮判定します。</p><textarea id="reverseInput" class="written" rows="3" maxlength="120" placeholder="例：旅館・ホテル・宿泊所"></textarea><button id="submitReverse" class="primary submit">答え合わせ</button><div id="reverseFeedback" class="answer hidden"></div><div id="reverseActions" class="actions hidden"><button class="secondary" data-reverse-rate="weak">弱い</button><button class="secondary" data-reverse-rate="repeat">もう一度</button><button class="primary" data-reverse-rate="mastered">ここは覚えた</button></div><p id="reverseRateNote" class="rate-note hidden">表記ゆれはあります。自動判定より自分の理解を優先して評価してOK。</p></section>
+<section class="card"><b>弱点・再出題</b><div id="weak" class="weak"></div></section></main><script is:inline>
+const data=[
+['1','イ','劇場・映画館・演芸場・観覧場'],['1','ロ','公会堂・集会場'],
+['2','イ','キャバレー・カフェー・ナイトクラブ等'],['2','ロ','遊技場・ダンスホール'],['2','ハ','性風俗関連特殊営業店舗等'],['2','ニ','カラオケボックス・個室型店舗等'],
+['3','イ','待合・料理店等'],['3','ロ','飲食店'],
+['4','','百貨店・マーケット・物品販売店舗・展示場'],
+['5','イ','旅館・ホテル・宿泊所等'],['5','ロ','寄宿舎・下宿・共同住宅'],
+['6','イ','病院・診療所・助産所'],['6','ロ','自力避難困難者が入所する社会福祉施設等'],['6','ハ','老人デイサービスセンター等の社会福祉施設等'],['6','ニ','幼稚園・特別支援学校'],
+['7','','小学校・中学校・高等学校・大学・各種学校等'],['8','','図書館・博物館・美術館等'],
+['9','イ','蒸気浴場・熱気浴場等の特殊浴場'],['9','ロ','イ以外の公衆浴場'],
+['10','','車両の停車場・船舶・航空機の発着場'],['11','','神社・寺院・教会等'],
+['12','イ','工場・作業場'],['12','ロ','映画・テレビスタジオ'],
+['13','イ','自動車車庫・駐車場'],['13','ロ','飛行機・回転翼航空機の格納庫'],
+['14','','倉庫'],['15','','前各項に該当しない事業場'],
+['16','イ','特定用途を含む複合用途防火対象物'],['16','ロ','イ以外の複合用途防火対象物'],
+['16の2','','地下街'],['16の3','','準地下街'],['17','','重要文化財等'],['18','','延長50m以上のアーケード'],['19','','市町村長が指定する山林'],['20','','総務省令で定める舟車']
+];
+const rows=['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','16の2','16の3','17','18','19','20'], cols=['イ','ロ','ハ','ニ'], kanaChoices=[...cols,'区分なし'];
+const key=(r,c)=>r+'-'+(c||'なし'), byKey=new Map(data.map(x=>[key(x[0],x[1]),x]));
+const $=x=>document.getElementById(x), K='otsu4-betsu1-v1';
+let hist={};try{hist=JSON.parse(localStorage.getItem(K))||{}}catch{}
+function stateFor(k){
+  const x=hist[k]||{};
+  return {
+    attempts:Number(x.attempts)||0,
+    correct:Number(x.correct)||Number(x.ok)||0,
+    wrong:Number(x.wrong)||Number(x.miss)||0,
+    weak:Number(x.weak)||0,
+    repeat:Number(x.repeat)||Number(x.unsure)||0,
+    mastered:Number(x.mastered)||Number(x.ok)||0,
+    lastRating:String(x.lastRating||((x.miss||0)?'weak':(x.unsure||0)?'repeat':(x.ok||0)?'mastered':'')),
+    lastSeen:Number(x.lastSeen)||0
+  };
+}
+function saveResult(item,correct,rating){
+  const k=key(item[0],item[1]),x=stateFor(k);
+  x.attempts++; if(correct)x.correct++; else x.wrong++;
+  x[rating]=(x[rating]||0)+1;x.lastRating=rating;x.lastSeen=Date.now();hist[k]=x;
+  localStorage.setItem(K,JSON.stringify(hist));renderWeak();
+}
+function weight(item){
+  const x=stateFor(key(item[0],item[1])); if(!x.attempts)return 7;
+  let w=1+Math.min(7,x.wrong*1.7)+Math.min(5,x.repeat*1.1)+Math.min(5,x.weak*1.4);
+  if(x.lastRating==='weak')w+=11; else if(x.lastRating==='repeat')w+=7; else if(x.lastRating==='mastered')w*=.4;
+  const accuracy=x.attempts?x.correct/x.attempts:0;if(accuracy<.6)w+=5;if(x.mastered>=2&&accuracy>.8)w*=.55;
+  return Math.max(.4,w);
+}
+function buildQueue(){
+  const base=[...data].sort((a,b)=>(weight(b)+Math.random()*4)-(weight(a)+Math.random()*4)),extra=[];
+  for(const item of data){const x=stateFor(key(item[0],item[1]));let n=x.lastRating==='weak'?2:x.lastRating==='repeat'?1:(!x.attempts?1:0);while(n-->0)extra.push(item)}
+  extra.sort(()=>Math.random()-.5);for(const item of extra){if(base.length>=48)break;const p=2+Math.floor(Math.random()*Math.max(1,base.length-1));if(!base.slice(Math.max(0,p-1),p+2).some(x=>key(x[0],x[1])===key(item[0],item[1])))base.splice(p,0,item)}
+  return base;
+}
+function scheduleAgain(queue,index,item,rating){
+  if(rating==='mastered'||queue.length>=56)return;
+  const min=rating==='weak'?2:3,max=rating==='weak'?4:6,from=Math.min(queue.length,index+min),to=Math.min(queue.length,index+max);
+  let p=from+Math.floor(Math.random()*Math.max(1,to-from+1));
+  while(p<queue.length&&queue.slice(Math.max(index+1,p-1),p+2).some(x=>key(x[0],x[1])===key(item[0],item[1])))p++;
+  queue.splice(Math.min(p,queue.length),0,item);
+}
+function renderWeak(){
+  const list=data.map(item=>{const k=key(item[0],item[1]),x=stateFor(k);return{item,k,x,w:weight(item)}}).filter(x=>x.x.attempts).sort((a,b)=>b.w-a.w).slice(0,8);
+  $('weak').innerHTML=list.length?list.map(({item,x})=>'<div class="weakrow"><b>'+item[0]+'項 '+(item[1]||'区分なし')+'</b>　'+item[2]+'<br><span>誤答 '+x.wrong+' / 弱い '+x.weak+' / もう一度 '+x.repeat+' / 覚えた '+x.mastered+'</span></div>').join(''):'まだ記録なし。回答後の「弱い」「もう一度」がここに溜まります。';
+}
+let queue=buildQueue(),qi=0,selectedRow='',selectedKana='',qaLocked=false,qaCorrect=false;
+function renderChoiceButtons(){
+  $('numberPicks').innerHTML=rows.map(r=>'<button class="pick" data-row="'+r+'">'+r+'</button>').join('');
+  $('kanaPicks').innerHTML=kanaChoices.map(c=>'<button class="pick" data-kana="'+c+'">'+c+'</button>').join('');
+  $('numberPicks').querySelectorAll('[data-row]').forEach(b=>b.onclick=()=>{if(qaLocked)return;selectedRow=b.dataset.row;$('numberPicks').querySelectorAll('.pick').forEach(x=>x.classList.toggle('selected',x===b));syncSubmit()});
+  $('kanaPicks').querySelectorAll('[data-kana]').forEach(b=>b.onclick=()=>{if(qaLocked)return;selectedKana=b.dataset.kana==='区分なし'?'':b.dataset.kana;$('kanaPicks').querySelectorAll('.pick').forEach(x=>x.classList.toggle('selected',x===b));syncSubmit()});
+}
+function syncSubmit(){$('submitQA').disabled=!(selectedRow&&selectedKana!==null&&document.querySelector('#kanaPicks .selected'))}
+function showQA(){
+  if(qi>=queue.length){queue=buildQueue();qi=0}
+  const item=queue[qi];selectedRow='';selectedKana=null;qaLocked=false;qaCorrect=false;
+  $('qaCount').textContent=(qi+1)+' / '+queue.length+'｜弱点優先ランダム';$('qaQ').textContent='「'+item[2]+'」は別表第1の何項・何区分？';
+  $('qaA').classList.add('hidden');$('qaA').classList.remove('ng');$('qaActions').classList.add('hidden');$('qaRateNote').classList.add('hidden');$('submitQA').disabled=true;
+  renderChoiceButtons();
+}
+$('submitQA').onclick=()=>{
+  if(qaLocked)return;const item=queue[qi];qaLocked=true;qaCorrect=selectedRow===item[0]&&selectedKana===item[1];
+  $('numberPicks').querySelectorAll('button').forEach(b=>b.disabled=true);$('kanaPicks').querySelectorAll('button').forEach(b=>b.disabled=true);$('submitQA').disabled=true;
+  const mine=selectedRow+'項 '+(selectedKana||'区分なし'),truth=item[0]+'項 '+(item[1]||'区分なし');
+  $('qaA').innerHTML=(qaCorrect?'○ 正解':'× 不正解')+'<br>あなた：<b>'+mine+'</b><br>正解：<b>'+truth+'</b>';$('qaA').classList.toggle('ng',!qaCorrect);$('qaA').classList.remove('hidden');$('qaActions').classList.remove('hidden');$('qaRateNote').classList.remove('hidden');
+};
+document.querySelectorAll('[data-rate]').forEach(b=>b.onclick=()=>{if(!qaLocked)return;const item=queue[qi],rating=b.dataset.rate;saveResult(item,qaCorrect,rating);scheduleAgain(queue,qi,item,rating);qi++;showQA()});
+
+function buildGrid(){
+  const g=$('grid');g.innerHTML='<div class="head">項</div>'+cols.map(c=>'<div class="head">'+c+'</div>').join('');
+  rows.forEach(r=>{g.insertAdjacentHTML('beforeend','<button class="rowhead" data-rowonly="'+r+'">'+r+'</button>');cols.forEach(c=>g.insertAdjacentHTML('beforeend','<button class="cell" data-r="'+r+'" data-c="'+c+'">'+c+'</button>'))});
+  g.querySelectorAll('.cell').forEach(b=>b.onclick=()=>pickGrid(b.dataset.r,b.dataset.c,b));g.querySelectorAll('.rowhead').forEach(b=>b.onclick=()=>pickGrid(b.dataset.rowonly,'',b));
+}
+let gqueue=buildQueue(),gi=0,gridLocked=false,gridCorrect=false,gridItem=null;
+function showGrid(){
+  if(gi>=gqueue.length){gqueue=buildQueue();gi=0}gridLocked=false;gridCorrect=false;gridItem=gqueue[gi];
+  document.querySelectorAll('.cell,.rowhead').forEach(x=>x.classList.remove('correct','wrong'));$('gridFeedback').classList.add('hidden');$('gridFeedback').classList.remove('ng');$('gridActions').classList.add('hidden');
+  $('gridCount').textContent=(gi+1)+' / '+gqueue.length+'｜弱点優先ランダム';$('gridQ').textContent='「'+gridItem[2]+'」はどの枠？';
+}
+function pickGrid(r,c,el){
+  if(gridLocked)return;gridLocked=true;gridCorrect=gridItem[0]===r&&gridItem[1]===c;if(gridCorrect)el.classList.add('correct');else el.classList.add('wrong');
+  const target=gridItem[1]?document.querySelector('.cell[data-r="'+gridItem[0]+'"][data-c="'+gridItem[1]+'"]'):document.querySelector('.rowhead[data-rowonly="'+gridItem[0]+'"]');target?.classList.add('correct');
+  $('gridFeedback').innerHTML=(gridCorrect?'○ 正解':'× 不正解')+'　正解：<b>'+gridItem[0]+'項 '+(gridItem[1]||'区分なし')+'</b>';$('gridFeedback').classList.toggle('ng',!gridCorrect);$('gridFeedback').classList.remove('hidden');$('gridActions').classList.remove('hidden');
+}
+document.querySelectorAll('[data-grid-rate]').forEach(b=>b.onclick=()=>{if(!gridLocked)return;const rating=b.dataset.gridRate;saveResult(gridItem,gridCorrect,rating);scheduleAgain(gqueue,gi,gridItem,rating);gi++;showGrid()});
+
+const normalizeText=v=>String(v||'').normalize('NFKC').toLowerCase().replace(/[\s　・、。,.!?！？「」『』（）()／\/\-ー]/g,'');
+const stopWords=['等','イ以外の','前各項に該当しない','総務省令で定める','市町村長が指定する','自力避難困難者が入所する'];
+function answerTokens(text){
+  const cleaned=String(text||'').replace(/等/g,'').replace(/イ以外の/g,'').replace(/前各項に該当しない/g,'').replace(/総務省令で定める/g,'').replace(/市町村長が指定する/g,'').replace(/自力避難困難者が入所する/g,'');
+  return cleaned.split(/[・、,／\/]/).map(x=>normalizeText(x)).filter(x=>x.length>=2);
+}
+function reverseMatch(input,answer){
+  const v=normalizeText(input),tokens=answerTokens(answer),hits=tokens.filter(t=>v.includes(t));
+  const simple=tokens.length<=2;
+  const ok=simple ? hits.length>=1 : hits.length>=Math.min(2,tokens.length);
+  const partial=!ok&&hits.length>0;
+  return{ok,partial,hits,tokens};
+}
+let rqueue=buildQueue(),ri=0,reverseLocked=false,reverseCorrect=false,reverseItem=null;
+function showReverse(){
+  if(ri>=rqueue.length){rqueue=buildQueue();ri=0}
+  reverseItem=rqueue[ri];reverseLocked=false;reverseCorrect=false;
+  $('reverseCount').textContent=(ri+1)+' / '+rqueue.length+'｜弱点優先ランダム';
+  $('reverseQ').textContent=reverseItem[0]+'項 '+(reverseItem[1]||'区分なし')+' は、どんな用途？';
+  $('reverseInput').value='';$('reverseInput').disabled=false;$('submitReverse').disabled=false;
+  $('reverseFeedback').classList.add('hidden');$('reverseFeedback').classList.remove('ng');$('reverseActions').classList.add('hidden');$('reverseRateNote').classList.add('hidden');
+}
+$('submitReverse').onclick=()=>{
+  if(reverseLocked)return;
+  const input=$('reverseInput').value.trim();if(!input){$('reverseFeedback').textContent='まず用途を書いてから答え合わせ。';$('reverseFeedback').classList.add('ng');$('reverseFeedback').classList.remove('hidden');return}
+  reverseLocked=true;$('reverseInput').disabled=true;$('submitReverse').disabled=true;
+  const m=reverseMatch(input,reverseItem[2]);reverseCorrect=m.ok;
+  const verdict=m.ok?'○ 主要語一致':m.partial?'△ 部分一致':'× 一致なし';
+  const matched=m.hits.length?'一致した語：'+m.hits.join(' / '):'一致した主要語なし';
+  $('reverseFeedback').innerHTML='<b>'+verdict+'</b><br>あなた：'+input+'<br>正答：<b>'+reverseItem[2]+'</b><div class="match">'+matched+'<br>表記ゆれや言い換えは自己評価で補正してOK。</div>';
+  $('reverseFeedback').classList.toggle('ng',!m.ok);$('reverseFeedback').classList.remove('hidden');$('reverseActions').classList.remove('hidden');$('reverseRateNote').classList.remove('hidden');
+};
+document.querySelectorAll('[data-reverse-rate]').forEach(b=>b.onclick=()=>{if(!reverseLocked)return;const rating=b.dataset.reverseRate;saveResult(reverseItem,reverseCorrect,rating);scheduleAgain(rqueue,ri,reverseItem,rating);ri++;showReverse()});
+function tab(mode){$('qa').classList.toggle('hidden',mode!=='qa');$('gridMode').classList.toggle('hidden',mode!=='grid');$('reverseMode').classList.toggle('hidden',mode!=='reverse');$('qaTab').classList.toggle('on',mode==='qa');$('gridTab').classList.toggle('on',mode==='grid');$('reverseTab').classList.toggle('on',mode==='reverse')}
+$('qaTab').onclick=()=>tab('qa');$('gridTab').onclick=()=>tab('grid');$('reverseTab').onclick=()=>tab('reverse');buildGrid();showQA();showGrid();showReverse();renderWeak();
+</script></body></html>

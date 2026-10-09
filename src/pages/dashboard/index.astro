@@ -35,7 +35,7 @@ const deepDoors = [
 ];
 ---
 
-<DashboardLayout title="今日" eyebrow="DAILY COMMAND CENTER">
+<DashboardLayout title="今日" eyebrow="MASA OS · TODAY">
   <div class="dash-shell">
     <header class="dash-head">
       <div>
@@ -92,7 +92,7 @@ const deepDoors = [
       </div>
     </details>
 
-    <footer class="dash-foot"><p>Dashboard Cockpit v0.1</p><span>Projectを見れば済むことは質問にしない。UI配置はoverlay、正本変更は既存Gateを維持。</span></footer>
+    <footer class="dash-foot"><p>Dashboard Cockpit v0.2 · contrast-first</p><span>Projectを見れば済むことは質問にしない。UI配置はoverlay、正本変更は既存Gateを維持。</span></footer>
   </div>
 </DashboardLayout>
 
@@ -112,7 +112,14 @@ const deepDoors = [
   .output-section{scroll-margin-top:90px}.output-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:15px}.output-card{min-height:92px;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:14px;border:1px solid #dedbd6;border-radius:14px;background:#fff;text-decoration:none}.output-card>span{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:#fff;background:#20242a;font-weight:900}.output-card.green>span{background:#2b8f65}.output-card.blue>span{background:#507fb6}.output-card strong,.output-card small{display:block}.output-card strong{font-size:.86rem}.output-card small{margin-top:2px;color:#7c858e;font-size:.7rem}.output-card>b{color:#a56c22}
   .deep-section{margin-top:16px;border:1px solid var(--hairline);border-radius:16px;background:rgba(255,255,255,.52);overflow:hidden}.deep-section>summary{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;cursor:pointer;list-style:none;color:#606a74;font-size:.76rem}.deep-section>summary::-webkit-details-marker{display:none}.deep-section>summary b{margin-right:9px;color:#8b5b2c;font-size:.68rem;letter-spacing:.1em}.deep-section[open]>summary em{transform:rotate(45deg)}.deep-section>summary em{font-size:1rem;font-style:normal}.deep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid #e5e1db}.deep-grid a{position:relative;min-height:108px;padding:14px;border-right:1px solid #e8e4de;border-bottom:1px solid #e8e4de;text-decoration:none}.deep-grid a:nth-child(4n){border-right:0}.deep-grid small,.deep-grid strong,.deep-grid span{display:block}.deep-grid small{color:#8b5b2c;font-size:.62rem;letter-spacing:.09em;font-weight:800}.deep-grid strong{margin-top:7px;font-size:.82rem}.deep-grid span{margin-top:3px;color:#7c858e;font-size:.68rem}.deep-grid a>b{position:absolute;right:13px;top:12px;color:#b79c75;font-weight:500}
   .dash-foot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:1px solid #dedad4;color:#8a9199;font-size:.68rem}
+  /* Light reading canvas with one deliberate dark mission surface inside the cockpit. */
+  .dash-shell{padding-bottom:54px}
+  .flow-section{background:linear-gradient(155deg,#fff,#faf8f3);box-shadow:0 10px 32px rgba(36,43,54,.035)}
+  .output-section{background:#fff;box-shadow:0 10px 32px rgba(36,43,54,.035)}
+  .output-card{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;box-shadow:0 4px 12px rgba(35,40,50,.03)}
+  .output-card:focus-visible{outline:3px solid #9dbee1;outline-offset:2px}
+  @media(hover:hover){.output-card:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(35,40,50,.09);border-color:#aec5d9}}
   @media(max-width:900px){.flow-track{grid-template-columns:repeat(2,1fr)}.flow-step:nth-child(2){border-right:0}.output-grid{grid-template-columns:1fr}.deep-grid{grid-template-columns:repeat(2,1fr)}.deep-grid a:nth-child(2n){border-right:0}}
-  @media(max-width:620px){.dash-head,.section-head{align-items:flex-start;flex-direction:column}.date-chip{min-width:0;width:100%}.flow-section,.output-section{padding:16px}.flow-track,.deep-grid{grid-template-columns:1fr}.flow-step{border-right:0;border-bottom:1px solid #e8e4de}.flow-step:last-child{border-bottom:0}.deep-grid a{border-right:0}.section-head>p{max-width:100%}}
+  @media(max-width:620px){.dash-head{display:none}.section-head{align-items:flex-start;flex-direction:column}.flow-section,.output-section{padding:16px}.flow-track,.deep-grid{grid-template-columns:1fr}.flow-step{border-right:0;border-bottom:1px solid #e8e4de}.flow-step:last-child{border-bottom:0}.deep-grid a{border-right:0}.section-head>p{max-width:100%}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>

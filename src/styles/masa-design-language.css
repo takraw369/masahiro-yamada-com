@@ -1,0 +1,76 @@
+/* MASA Design Language v0.1
+   Reusable visual grammar distilled from MANIMANI.
+   Opt-in by adding .masa-world to a page-level container. */
+:root {
+  --masa-night-0: #070a12;
+  --masa-night-1: #0a1020;
+  --masa-night-2: #111a2e;
+  --masa-surface: rgba(17, 27, 48, .82);
+  --masa-surface-soft: rgba(255, 255, 255, .055);
+  --masa-surface-strong: #15213a;
+  --masa-ink-on-dark: #f4f7ff;
+  --masa-text-muted: #9eabc4;
+  --masa-line: rgba(255, 255, 255, .10);
+  --masa-line-strong: rgba(255, 255, 255, .18);
+  --masa-gold: #ffd36e;
+  --masa-cyan: #7de3ff;
+  --masa-violet: #c6a9ff;
+  --masa-green: #7df3b2;
+  --masa-danger: #ff9b9b;
+  --masa-glow-cyan: rgba(125, 227, 255, .18);
+  --masa-glow-gold: rgba(255, 211, 110, .16);
+  --masa-radius-sm: 12px;
+  --masa-radius-md: 18px;
+  --masa-radius-lg: 26px;
+  --masa-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+  --masa-motion: 160ms cubic-bezier(.2,.8,.2,1);
+}
+
+.masa-world {
+  position: relative;
+  isolation: isolate;
+  color: var(--masa-ink-on-dark);
+  background:
+    radial-gradient(circle at 14% 0%, rgba(52, 92, 170, .34), transparent 34%),
+    radial-gradient(circle at 92% 4%, rgba(101, 48, 119, .25), transparent 28%),
+    linear-gradient(180deg, var(--masa-night-0), var(--masa-night-1) 55%, #080b13);
+  border: 1px solid var(--masa-line);
+  box-shadow: var(--masa-shadow);
+}
+
+.masa-world::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: min(34vw, 360px);
+  aspect-ratio: 1;
+  right: -7%;
+  top: -70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 229, 154, .20), rgba(255, 211, 110, .05) 42%, transparent 70%);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.masa-glass {
+  border: 1px solid var(--masa-line);
+  background: var(--masa-surface);
+  box-shadow: 0 14px 40px rgba(0,0,0,.16);
+  backdrop-filter: blur(16px);
+}
+
+.masa-signal { color: var(--masa-cyan); }
+.masa-reward { color: var(--masa-gold); }
+
+@media (hover:hover) {
+  .masa-world :where(a, button) {
+    transition: transform var(--masa-motion), border-color var(--masa-motion), background var(--masa-motion), color var(--masa-motion), box-shadow var(--masa-motion);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .masa-world *, .masa-world *::before, .masa-world *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

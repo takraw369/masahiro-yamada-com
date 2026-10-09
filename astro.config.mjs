@@ -27,6 +27,7 @@ export default { renderToString, renderToStaticMarkup, renderToReadableStream };
 };
 
 export default defineConfig({
+  site: 'https://masahiroyamada.com',
   output: 'server',
   // Dashboard sessions use the signed cookie contract, not Astro's session API.
   // Avoid silently provisioning a SESSION KV binding during the Astro 7 cutover.

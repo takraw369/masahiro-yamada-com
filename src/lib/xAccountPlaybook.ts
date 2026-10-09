@@ -1,13 +1,18 @@
 export type XAccountPlaybook = {
   username: string;
+  publicUsername?: string;
+  handleStatus?: string;
   name: string;
   role: string;
+  mission: string;
   profile: string;
   concept: string;
   worldview: string;
   audience: string;
   tone: string;
   pillars: string[];
+  routeWhen: string;
+  routeExamples: string[];
   boundary: string;
   accountStatus: string;
   accountSource: string;
@@ -18,65 +23,82 @@ export type XAccountPlaybook = {
 
 export const LAST_X_ACCOUNT_KEY = 'masa_x_last_account';
 
-// Derived UI snapshot only.
-// Canonical account state: Drive SNS_ACCOUNT_REGISTRY.
-// Canonical publish queue/state: Drive DISTRIBUTION_OS.
-// Keep this list limited to owner-verified / registered X accounts.
+// Operational snapshot for the dashboard.
+// Canonical account / publish state can continue to live in Drive, but this UI also
+// carries owner-decided draft positioning that has not yet been pushed to public profiles.
 export const X_ACCOUNT_PLAYBOOKS: XAccountPlaybook[] = [
   {
     username: 'MASAHIRO_501',
-    name: '山田昌寛｜Flowをつくる元日本代表',
-    role: 'Main / Personal',
-    profile: '元セパタクロー日本代表🇯🇵｜全日本6連覇・アジア大会🥉\n20年以上の競技経験から「練習でできるを、本番で出す条件」を探究。\n才能を潰さないアスリート脳と心身の整え方。\n↓ 必要な人はLINE「勝ち筋」へ',
-    concept: 'MASA本人の一次体験を起点に、競技・身体・Flow・脳科学・哲学を「問い→実践→検証」に変える本丸。',
-    worldview: '完成された先生として語るより、20年以上の競技経験と今の実践をつなぎ、身体で確かめながら流れを見る。',
-    audience: '自己成長・健康・教育・アスリートに関心がある人。特に「練習ではできるのに本番で出せない」競技者。',
-    tone: '速い・生っぽい・考えている途中も出す。体験が先、理論は後。断定しすぎず、最後に問いを残す。',
-    pillars: ['競技20年の再解釈', '本番再現性 / FLOW', '身体・脳・教育'],
-    boundary: '情報まとめ専用・ブランド告知専用にはしない。MASA自身が何を見たか、どう試したかを必ず入れる。',
-    accountStatus: 'ACTIVE / profile rebuild',
-    accountSource: 'SNS_ACCOUNT_REGISTRY / Profiles',
-    nextPost: '技術があるのに、本番で出せない。\n全部「メンタルが弱い」で終わらせない。\n\n崩れる時、先に変わっているものがある。\n呼吸、視線、身体、思考、声。\n\nまず最初の変化を観る。そこから次の1プレーに戻る。\n\nあなたは崩れる時、最初に何が変わりますか？',
-    nextPostStatus: 'READY / HUMAN_GATE',
-    nextPostSource: 'DISTRIBUTION_OS · C034',
+    publicUsername: 'MASAHIRO_501',
+    handleStatus: 'CURRENT / KEEP',
+    name: 'MASA｜生き方×探究',
+    role: 'PERSON / 実践者',
+    mission: '自分で生きて、試して、掘って、見えたことを打ち込む。',
+    profile: '元セパタクロー日本代表🇯🇵｜日本一30回超・アジア大会🥉\n食べる・動く・考える・遊ぶ。自分で試して、掘って、見えたことを打ち込む。\n人の可能性と、日々の選択から生まれるFLOWを探究。',
+    concept: 'MASA本人を実験場にするアカウント。完成した正解を教えるより、一次体験・違和感・問い・実践・検証をそのまま資産にする。',
+    worldview: '人は固定された完成品ではない。日々の選択と体験によって、見える世界も身体も関係性も変わっていく。',
+    audience: '生き方、身体、食、学び、スポーツ、仕事を自分で試しながら更新したい人。',
+    tone: '生っぽい・好奇心・実験的。体験が先、理屈は後。断定しすぎず、でも打ち込む時は迷わない。',
+    pillars: ['一次体験 / 実験', '身体・食・思考', '挑戦 / FLOW / 生き方'],
+    routeWhen: '「俺はこう感じた・試した・変わった」が主語になる時。',
+    routeExamples: ['自分の食事を変えてみた結果', '競技経験の再解釈', '仕事・家族・身体で起きた発見'],
+    boundary: '情報まとめ専用にしない。ブランドの公式見解だけを流さない。MASA自身の体験・問い・選択が見える状態に戻す。',
+    accountStatus: 'ACTIVE / PROFILE DRAFT',
+    accountSource: 'OWNER DECISION · 2026-10-06',
+    nextPost: '最近あらためて思う。\n\n人が変わるのは、正しい答えを知った瞬間より、\n「ちょっと試してみよう」と次の体験を選んだ瞬間かもしれない。\n\n食も、身体も、学びも同じ。\nまず自分で試す。そこから見えたものを残していく。',
+    nextPostStatus: 'SEED DRAFT / HUMAN_GATE',
+    nextPostSource: '3-account brand architecture · 2026-10-06',
   },
   {
-    username: 'spirit_exp',
-    name: 'AROUND/40 Exp.',
-    role: 'Adult / Spirit & Body / Experience',
-    profile: '極上な人生を選択するための経験値を上げろ / Spirit & Body .Exp / ココロとカラダの本質を体感し生き様を魅せつけろ',
-    concept: '40代から人生の経験値を上げる。身体・仕事・家族・学び・挑戦を、自分を使ったExperience Logとして残す。',
-    worldview: '年齢＝衰えだけではない。身体・経験・人脈・失敗を統合し、人生資本として使い直せる時期として40代を捉える。',
-    audience: '35〜49歳前後／心身・生き方・再挑戦に関心がある人。ここは初期仮説として反応データで更新する。',
-    tone: '軽い、率直、実験的。途中経過OK。失敗も出す。先生になるより「やってみた→どうだった→次どうする」。',
-    pillars: ['Spirit & Body', '40代の人生資本', '挑戦 / 学び / Experience'],
-    boundary: '完成形を教える垢にしない。研究資料だけでも終わらせない。必ず実体験・身体感覚・次の実験へ戻す。',
-    accountStatus: 'ACTIVE / OWNER VERIFIED / POSITIONING TEST',
-    accountSource: 'SNS_ACCOUNT_REGISTRY · owner screenshot 2026-09-17',
-    nextPost: '40代って、衰える時期じゃなくて「経験が複利化し始める時期」なんじゃないか。\n\n身体。経験。人脈。失敗。\n若い頃はバラバラだったものが、あとから繋がって武器になる。\n\nだから今は、若さを取り戻すより、持ってる経験をどう使うか。\n\n40代になって、むしろ強くなったものって何？',
-    nextPostStatus: 'DRAFT / HUMAN_GATE',
-    nextPostSource: 'DISTRIBUTION_OS · C044',
+    username: 'sunlovesflow',
+    publicUsername: 'sunlovesflow',
+    handleStatus: 'CURRENT / KEEP',
+    name: 'Sun Loves Flow｜歓びから文化へ',
+    role: 'CULTURE / 世界観',
+    mission: '歓びから選んだ日々が、文化と豊かさのFLOWになっていく。',
+    profile: '日々の選択と、人と人との関係から文化は生まれる。\n食・身体・癒し・暮らし・自然・仕事・祝うこと。\nSoul Pleasureから生まれる、豊かなFLOWを探究する。',
+    concept: '個人の習慣を超えて、暮らし・関係・地域・経済・文化がどう循環するかを見るSLFの世界観アカウント。',
+    worldview: '社会を変えるために「正しく生きる」のではなく、歓びから選んだ生き方が結果として周囲や文化を豊かにしていく。',
+    audience: '食・健康・自然・文化・地域・働き方などを、分断せず「暮らし全体」として考えたい人。',
+    tone: '温かい・余白がある・詩的すぎない。本質は深く、入口は日常。否定や対立を起点にしない。',
+    pillars: ['食と暮らし', '身体と癒し', '文化・地域・経済循環'],
+    routeWhen: '「個人の体験」より、暮らし・文化・社会のあり方や循環が主語になる時。',
+    routeExamples: ['世界の食文化と日々の選択', '地域にお金が循環する仕組み', '祭り・風習・自然と暮らす知恵'],
+    boundary: '政治的な敵味方づくりや正しさの押し付けを主語にしない。思想は日常の選択・体験・文化へ着地させる。',
+    accountStatus: 'ACTIVE / PROFILE DRAFT',
+    accountSource: 'OWNER VERIFIED + POSITIONING DECISION · 2026-10-06',
+    nextPost: '文化って、誰かが上から作るものだけじゃない。\n\n何を食べるか。どう身体を使うか。誰と過ごすか。何を祝うか。\n毎日の小さな選択が、繰り返されて、誰かに渡っていく。\n\nその先に文化がある。\n歓びから始まるFLOWを、日常から見つけていきたい。',
+    nextPostStatus: 'SEED DRAFT / HUMAN_GATE',
+    nextPostSource: '3-account brand architecture · 2026-10-06',
   },
   {
     username: 'kodomo_athlete',
-    name: '元日本代表｜子どもの才能を惹き出す脳科学',
-    role: 'Athlete Education / Kids',
-    profile: '元日本代表🇯🇵日本一30回超のアスリートが、脳科学で子どもの隠れた才能を惹き出す方法を発信｜教育の本質は「教える」じゃなく「惹き出す」｜体験セッション受付中→DMまたは下記リンクから',
-    concept: '子どもの可能性を潰さず「惹き出す」。運動・身体感覚・脳・声かけを、親と指導者が使える形へ変える。',
-    worldview: '完成させるより発現させる。評価・比較を先に置かず、その子を観察して、動き出せる環境と次の一歩をつくる。',
-    audience: '保護者・ジュニアアスリート・指導者。子どもの才能や競技成長に関わる人。',
-    tone: 'やさしい、具体的、短く実践的。専門語は噛み砕く。不安を煽らず、親・指導者が今日使える問いへ落とす。',
-    pillars: ['子ども×アスリート', '脳科学 / 身体感覚', '親・指導者の関わり方'],
-    boundary: '子どもを比較・選別する言葉で煽らない。大人向け自己啓発へ寄せすぎず、観察と具体的な関わり方へ戻す。',
-    accountStatus: 'ACTIVE',
-    accountSource: 'SNS_ACCOUNT_REGISTRY / Profiles',
-    nextPost: '子どもへの「期待」は、応援にもなる。\nでも「こうなってほしい」が強くなると、いつの間にか親の理想を彫刻し始める。\n\n大事なのは、期待を捨てることじゃなくて、一度問い直すこと。\n\n「その期待は、誰の未来？」\n\n親にも指導者にも、たまに必要な問いだと思う。',
-    nextPostStatus: 'DRAFT / HUMAN_GATE',
-    nextPostSource: 'DISTRIBUTION_OS · C049',
+    publicUsername: 'all_are_ace',
+    handleStatus: 'TARGET / RENAME UIで取得可否を最終確認',
+    name: 'ALL ARE ACE｜可能性をひらく教育',
+    role: 'GROWTH / 人づくり',
+    mission: '一人ひとりのACEが発揮される環境と、次に選べる体験を増やす。',
+    profile: '保護者・指導者・教育者へ。\n教育は「次に選べる体験を増やす」こと。\n遊び・運動・学び・食・関わり方から、一人ひとりのACEが発揮される環境を探究する。',
+    concept: '「一部の優秀な人だけがACE」ではなく、全員の中に固有のACEがあるという思想を、教育・育成の実践へ落とす。',
+    worldview: '育てる側／育てられる側を固定しない。観察し、体験を増やし、本人が選べる余白をつくることで可能性が発現していく。',
+    audience: '保護者、指導者、教育者。今は次世代育成を中心にしながら、将来は大人の学びや組織にも広げられる。',
+    tone: '肯定的・具体的・実践的。不安を煽らず、今日ひとつ変えられる関わり方や体験へ落とす。',
+    pillars: ['遊び・運動・学び', '食・身体・成長環境', '親・指導者・教育者の関わり'],
+    routeWhen: '「人がどう育つか」「次にどんな体験を選べるか」が主語になる時。',
+    routeExamples: ['子どもの間食と成長環境', '指導中の声かけと観察', '遊びから運動能力や好奇心が育つ条件'],
+    boundary: '子どもの比較・選別や恐怖訴求を軸にしない。「こうすべき」より、選択肢と体験を増やす方向へ戻す。',
+    accountStatus: 'ACTIVE AS @kodomo_athlete / REBRAND DRAFT',
+    accountSource: 'CURRENT ACCOUNT + TARGET ID DECISION · 2026-10-06',
+    nextPost: 'ALL ARE ACE。\n\nACEは、一部の「できる人」だけの称号じゃない。\n一人ひとりに、その人にしか出せない強みや役割がある。\n\n教育で増やしたいのは、正解の数より「次に選べる体験」。\nその体験の中から、自分のACEが少しずつ見えてくる。',
+    nextPostStatus: 'SEED DRAFT / HUMAN_GATE',
+    nextPostSource: '3-account brand architecture · 2026-10-06',
   },
 ];
 
 export function findXAccountPlaybook(username?: string | null) {
-  const normalized = String(username || '').replace(/^@/, '');
-  return X_ACCOUNT_PLAYBOOKS.find((item) => item.username === normalized) || X_ACCOUNT_PLAYBOOKS[0];
+  const normalized = String(username || '').replace(/^@/, '').toLowerCase();
+  return X_ACCOUNT_PLAYBOOKS.find((item) =>
+    item.username.toLowerCase() === normalized ||
+    item.publicUsername?.toLowerCase() === normalized
+  ) || X_ACCOUNT_PLAYBOOKS[0];
 }
