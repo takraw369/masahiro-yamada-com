@@ -452,7 +452,7 @@ const flashItemState = item => {
 const textbook308Tools = ["モール","リングスリーブ","ラジオペンチ","ニッパー","圧着ペンチ","ワイヤーカッター","ワイヤーストリッパー","パイプカッター","パイプベンダー","ねじ切り器","リーマ","ホルソ"];
 const textbook308Hints = {"モール":"細長い樹脂製の配線カバー。電線を壁や床に沿わせて収納・保護する。","リングスリーブ":"筒形の小さな接続金具。電線同士を差し込み、圧着ペンチで圧着接続する。","ラジオペンチ":"細長い先端でつまむ・曲げる。切断が主目的のニッパーとは先端形状が違う。","ニッパー":"刃で細めの電線を切断。線径に応じた工具を使い、被覆剥き専用ではない。","圧着ペンチ":"ダイスの刻印・かしめ部を見る。リングスリーブや端子を圧着する。","ワイヤーカッター":"太めの電線・ケーブルを切断するための刃。ニッパーと用途が近いので刃形状を比較。","ワイヤーストリッパー":"線径に応じた刃やレバー。導体を切らずに被覆だけを剥ぎ取る。","パイプカッター":"管を挟む円形刃とローラー、締め付けノブ。管の周りを回しながら切る。","パイプベンダー":"曲げ溝のあるヘッド＋長い柄。金属管を曲げる。切断用ではない。","ねじ切り器":"ダイス・ねじ切りヘッドが特徴。管の外周にねじ山を作る。","リーマ":"円すい状の刃。金属管を切断した後、内側のバリやかえりを取る。","ホルソ":"円筒状の穴あけ刃（ホールソー）。金属板・ボックス等に穴を開ける。"};
 const hasPhotoSource = t => Boolean((t.files&&t.files.length)||(t.urls&&t.urls.length));
-const photoFlashCards = () => [...orderedTools,...extraTools].filter(hasPhotoSource).map((t,index) => ({
+const photoFlashCards = () => [...orderedTools,...extraTools].map((t,index) => ({
   id: 'photo-'+index,
   group: /感知器/.test(t.name) ? '感知器' : /試験器|フィルター|マノメーター/.test(t.name) ? '試験器' : /受信機|発信機|表示灯|警報|中継器|終端器|ガス漏れ/.test(t.name) ? '受信・警報' : '工具・計測',
   title: t.name,
@@ -461,7 +461,7 @@ const photoFlashCards = () => [...orderedTools,...extraTools].filter(hasPhotoSou
   hint: textbook308Hints[t.name] || '名前を見ずに用途の動詞まで説明。似た器具と何が違うかも確認しよう。',
   lectureToolPage: textbook308Tools.includes(t.name) ? '308' : null,
   photoTool: t
-})).filter(item=>isExamTool(item.photoTool));
+})).filter(item=>isExamTool(item.photoTool) && hasPhotoSource(item.photoTool));
 function flashRank(item) {
   const own=flashItemState(item);
   // Existing test record influences photo order without mutating its scores.
@@ -477,7 +477,13 @@ function beginFlash() {
     scope==='photos' ? both.filter(item=>item.photoTool) :
     scope==='review' ? both.filter(item=>['miss','unsure'].includes(flashItemState(item).last) || (item.photoTool && ['miss','unsure'].includes(stateFor(item.photoTool).lastConfidence))) :
     activeFoundationFlashCards;
-  flashDeck=scope==='tools308' ? [...selected].sort((a,b)=>textbook308Tools.indexOf(a.title)-textbook308Tools.indexOf(b.title)) : [...selected].sort((a,b)=>flashRank(b)-flashRank(a)).slice(0,10);
+  const ranked=[...selected].sort((a,b)=>flashRank(b)-flashRank(a));
+  // Give the explicitly requested water-pump pliers a place in the first photo session.
+  if(scope==='photos'){
+    const idx=ranked.findIndex(item=>item.title==='ウォーターポンププライヤー' && !flashItemState(item).streak);
+    if(idx>0) ranked.unshift(...ranked.splice(idx,1));
+  }
+  flashDeck=scope==='tools308' ? [...selected].sort((a,b)=>textbook308Tools.indexOf(a.title)-textbook308Tools.indexOf(b.title)) : ranked.slice(0,10);
   flashIndex=0;flashRevealed=false;flashRepeated=new Set();
   showFlash();
 }
