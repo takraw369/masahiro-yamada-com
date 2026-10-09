@@ -16,7 +16,7 @@
 .flash-visual .flash-group{font-size:12px;font-weight:900;color:#28648b}
 .flash-visual h2{font-size:21px;line-height:1.4;margin:9px 0 8px;overflow-wrap:anywhere}
 .flash-visual p{font-size:16px;line-height:1.75}
-.flash-photo{display:block;width:100%;height:220px;object-fit:contain;background:#fff;border-radius:12px;margin:8px 0}
+.flash-photo{display:block;width:100%;height:270px;object-fit:contain;background:#fff;border-radius:12px;margin:8px 0}.flash-photo-status{font-size:13px;line-height:1.6;color:#684f22;background:#fff4d8;padding:12px;border-radius:10px}.flash-photo[hidden]{display:none}
 .flash-back{border-top:2px solid #c0d9e7;padding-top:13px;margin-top:12px}
 .flash-back h3{font-size:19px;color:#174e70;margin:0 0 6px;overflow-wrap:anywhere}
 .flash-back p{margin:0 0 10px;font-size:15px}
@@ -35,18 +35,18 @@
 .flash-muted{font-size:12px;color:#607080;line-height:1.6}
 button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #28648b;outline-offset:2px}
 button{touch-action:manipulation}
-@media(max-width:430px){main{padding:12px 12px calc(85px + env(safe-area-inset-bottom))}.flash-visual{padding:13px}.flash-photo{height:188px}.flash-grades{gap:6px}.flash-grades button{font-size:13px}.flash-visual h2{font-size:19px}.top{gap:8px;min-width:0}.top a{overflow-wrap:anywhere}}
+@media(max-width:430px){main{padding:12px 12px calc(85px + env(safe-area-inset-bottom))}.flash-visual{padding:13px}.flash-photo{height:235px}.flash-grades{gap:6px}.flash-grades button{font-size:13px}.flash-visual h2{font-size:19px}.top{gap:8px;min-width:0}.top a{overflow-wrap:anywhere}}
 </style></head><body><main><div class="top"><a href="/otsu4/">← 乙4ホーム</a><span class="pill" id="poolPill">鑑別・講習順</span></div><section id="flashcards" class="card" aria-labelledby="flash-heading">
 <div class="flash-head"><span class="flash-kicker">STEP 1 / 鑑別の予習</span><span class="pill">写真・仕組み・用途</span></div>
-<h1 id="flash-heading" style="font-size:25px;line-height:1.4;margin:12px 0 8px">まずカードで覚えよう。</h1>
-<p class="flash-intro">写真を見てすぐ記述テストに入る前に「何を感知する？」「どう見分ける？」を短いカードで理解。<b>裏面を見てから○・△・×</b>を選ぶと、苦手がまた出てくるよ。</p>
+<h1 id="flash-heading" style="font-size:25px;line-height:1.4;margin:12px 0 8px">まず実物写真で覚えよう。</h1>
+<p class="flash-intro">まず写真だけを見て、器具の名前と用途を思い出そう。<b>裏面で正式名称・用途・見分け方を確認</b>して○・△・×。苦手な器具はもう一度出てくるよ。仕組みの解説は「補助知識」で学べる。</p>
 <label class="flash-scope-label" for="flash-scope">学ぶカードの種類</label>
-<select id="flash-scope"><option value="basics">基礎知識・仕組み（23枚から10枚）</option><option value="tools308">講習p308｜工具・材料12種を集中</option><option value="photos">写真で名称・用途（10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
+<select id="flash-scope"><option value="photos" selected>実物写真から名称・用途を覚える（10枚ずつ）</option><option value="tools308">講習p308｜工具・材料12種を集中</option><option value="basics">補助知識・仕組み（文字カード・10枚ずつ）</option><option value="review">△・×だけ復習</option></select>
 <div class="flash-progress" id="flash-progress" role="status" aria-live="polite"></div>
 <div class="flash-visual" id="flash-visual">
 <div class="flash-group" id="flash-group"></div>
 <h2 id="flash-question"></h2>
-<img class="flash-photo" id="flash-photo" alt="鑑別する器具の写真。答えは裏面にあります" referrerpolicy="no-referrer" hidden>
+<img class="flash-photo" id="flash-photo" alt="鑑別する器具の実物写真。答えは裏面にあります" referrerpolicy="no-referrer" hidden><p class="flash-photo-status" id="flash-photo-status" role="status" aria-live="polite" hidden></p>
 <div id="flash-back" class="flash-back" hidden>
 <h3 id="flash-answer-title"></h3><p id="flash-answer"></p>
 <p class="hint" id="flash-hint"></p><p><a id="flash-reference" href="#" target="_blank" rel="noopener noreferrer" hidden>実物写真・仕組みの参考資料へ（外部サイト）→</a></p>
@@ -61,7 +61,7 @@ button{touch-action:manipulation}
 <label class="flash-scope-label" for="quiz-scope">記述テストの出題範囲</label>
 <select id="quiz-scope"><option value="priority">通常＋ウォーターポンププライヤー優先</option><option value="all">講習対象の全範囲（解放制限なし）</option><option value="tools308">工具p308（12種全部）</option></select>
 <button id="flash-test" class="flash-test" type="button">STEP 2：選んだ範囲の鑑別テストへ →</button>
-<p class="flash-muted">教材p308の名称と用途を照合済み。写真は既存の公開参照画像を表示し、教材の写真そのものは公開サイトへ転載しません。</p>
+<p class="flash-muted">写真カードは実物画像の参照先が登録された器具を優先します。写真の取得に失敗した場合は、実物と異なる汎用図で代用しません。教材画像そのものは転載しません。</p>
 <p class="flash-muted">講習で本番範囲外とされた炎感知器・教材の×印は出題から除外済み。ウォーターポンププライヤーは出題します。過去の学習履歴は削除しません。</p>
 <p class="flash-muted">基礎カードは独立した復習履歴。写真カードは既存の鑑別データを共用します。テストの採点記録は書き換えません。</p>
 </section><section class="card" id="app" hidden><button class="secondary flash-previous" id="back-to-flash" type="button">← フラッシュカードで予習する</button><div class="progress"><i id="bar"></i></div><div class="stats" id="counter"></div><div class="photo"><img id="photo" referrerpolicy="no-referrer" alt="鑑別する工具・材料の写真"><div class="mask" id="mask"></div></div><div class="q">この名称と用途は？</div><label for="name">名称</label><input id="name" autocomplete="off" placeholder="名称を書く"><label for="use">用途</label><input id="use" autocomplete="off" placeholder="何に使う？"><button class="primary" id="reveal">答え合わせ</button><div class="answer" id="answer"><div class="judge" id="judge"></div><b id="correctName"></b><span id="correctUse"></span></div><div class="actions" id="actions"><button class="secondary" data-grade="miss">× 覚えてない</button><button class="secondary" data-grade="unsure">△ あやしい</button><button class="primary" style="margin:0" data-grade="ok">○ 覚えた</button></div><div class="weakbox"><b>鑑別の弱点</b><div id="weakness"></div></div><p class="tiny">講習で渡された順を優先。最初から全部は出さず、まず6個だけ解放し、安定したら3個ずつ追加します。×→△→未出→○の順で復習し、×・△は数問後に再登場します。</p></section></main><script is:inline>
@@ -77,7 +77,7 @@ const tools=[
 {name:'パイプベンダー',aliases:['ベンダー','パイプベンダ'],use:'金属管の曲げ加工に用いる。',useGroups:[['曲げ']],files:['Conduit bender.jpg','Hand Bender for EMT J. Morris CC BY-SA-3.0.jpg']},
 {name:'ねじ切り器',aliases:['ネジ切り器','ねじ切り','ネジ切り','ダイス'],use:'金属管にねじを切る。',useGroups:[['ねじ','ネジ','螺子']],files:['Die wrench handle holding a die, plus a second die..jpg','ThreadingDies.jpg']},
 {name:'リーマ',aliases:['リーマー'],use:'金属管内側のバリ取りに用いる。',useGroups:[['バリ','面取り']],files:['ReamerAdjustableHand.jpg','Taper reamer K-442 removed handle.jpg']},
-{name:'ホルソ',aliases:['ホールソー','ホールソ','ホルソー'],use:'金属板などに穴を開ける。',useGroups:[['穴','穿孔']],files:['Holesaw (PSF).png','Drill arbor holesaw 2.jpg']},
+{name:'ホルソ',aliases:['ホールソー','ホールソ','ホルソー'],use:'金属板などに穴を開ける。',useGroups:[['穴','穿孔']],files:['Drill arbor holesaw 2.jpg','Holesaw (PSF).png']},
 {name:'モール',aliases:['配線モール','ケーブルモール'],use:'電線を収め、保護・整理するために用いる。',useGroups:[['保護','収納','収め','整理']],files:['Insertion trunking.JPG','Electcablesinconstruction.jpg']},
 {name:'リングスリーブ',aliases:['スリーブ'],use:'電線相互を圧着接続するために用いる。',useGroups:[['接続','圧着']],files:['Wire ferrules with and without insulation.jpg','Close-up of Butt Connectors for ESC and Motor.JPG']},
 {name:'回路計',aliases:['テスター','マルチメーター','マルチテスター'],use:'回路の電流・電圧・抵抗値を測定する。',useGroups:[['電流','電圧','抵抗','測定']],files:['Multimetar.jpg','All multimeters.jpg']},
@@ -145,7 +145,7 @@ const tools=[
 {name:'コックスタンド',aliases:['試験コック','コック'],use:'差動式分布型感知器（空気管式）の検出部で、監視状態と試験状態を切り替える。',useGroups:[['空気管'],['試験','切り替']],kind:'component'},
 {name:'パイプバイス',aliases:['管バイス'],use:'金属管を加工するときに固定する。',useGroups:[['金属管','管'],['固定']],kind:'tool'},
 {name:'パイプレンチ',aliases:['管レンチ'],use:'金属管などの丸い管をつかんで回す。',useGroups:[['管'],['つか','回']],kind:'tool'},
-{name:'ウォーターポンププライヤー',aliases:['ウォーターポンププライヤ','ポンププライヤー'],use:'口幅を調整して管やナットをつかみ、回す。',useGroups:[['管','ナット'],['つか','回']],kind:'tool'},
+{name:'ウォーターポンププライヤー',aliases:['ウォーターポンププライヤ','ポンププライヤー'],use:'口幅を調整して管やナットをつかみ、回す。',useGroups:[['管','ナット'],['つか','回']],kind:'tool',files:['440Tongue+and+GroovePliers.JPG','Channellock tongue-and-groove pliers.jpg']},
 {name:"差動式分布型感知器（空気管式）の検出器",aliases:["空気管式の検出器"],use:"空気管内の空気膨張による圧力変化を受け、急激な温度上昇を検出する。",useGroups:[["空気管"],["圧力"]],kind:"airTubeDetector"},
 {name:"差動式分布型感知器（熱電対式）の検出器",aliases:["熱電対式の検出器"],use:"熱電対部の温度上昇で生じた熱起電力を受け、火災信号を送る。",useGroups:[["熱電対"],["検出"]],kind:"thermocoupleDetector"},
 {name:"差動式分布型感知器（熱電対式）の熱電対部",aliases:["熱電対部"],use:"異種金属の温度差によって熱起電力を発生させ、検出器に伝える感熱部品。",useGroups:[["熱電対"],["起電力"]],kind:"thermocoupleProbe"},
@@ -205,16 +205,27 @@ function fallbackSvg(t){
   return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
 }
 
-function loadPhoto(t, elementId='photo'){
+function loadPhoto(t, elementId='photo', photoOnly=false){
   const photo=$(elementId);
   const urls=[...(t.urls||[]),...((t.files||[]).map(commons))];
   let n=0;
+  const status=photoOnly?$('flash-photo-status'):null;
+  if(status){status.hidden=false;status.textContent='実物写真を読み込み中…';}
+  photo.onload=()=>{
+    if(photoOnly){photo.hidden=false;if(status) status.hidden=true;}
+  };
   photo.onerror=()=>{
     n++;
-    if(n<urls.length){photo.src=urls[n];return}
+    if(n<urls.length){photo.src=urls[n];return;}
     photo.onerror=null;
+    if(photoOnly){
+      photo.hidden=true;
+      if(status){status.hidden=false;status.textContent='この器具の実物写真を取得できません。別の画像を準備中です（模式図では代用しません）。';}
+      return;
+    }
     photo.src=fallbackSvg(t);
   };
+  if(photoOnly && !urls.length){photo.onerror();return;}
   photo.src=urls[0]||fallbackSvg(t);
 }
 
@@ -440,7 +451,8 @@ const flashItemState = item => {
 };
 const textbook308Tools = ["モール","リングスリーブ","ラジオペンチ","ニッパー","圧着ペンチ","ワイヤーカッター","ワイヤーストリッパー","パイプカッター","パイプベンダー","ねじ切り器","リーマ","ホルソ"];
 const textbook308Hints = {"モール":"細長い樹脂製の配線カバー。電線を壁や床に沿わせて収納・保護する。","リングスリーブ":"筒形の小さな接続金具。電線同士を差し込み、圧着ペンチで圧着接続する。","ラジオペンチ":"細長い先端でつまむ・曲げる。切断が主目的のニッパーとは先端形状が違う。","ニッパー":"刃で細めの電線を切断。線径に応じた工具を使い、被覆剥き専用ではない。","圧着ペンチ":"ダイスの刻印・かしめ部を見る。リングスリーブや端子を圧着する。","ワイヤーカッター":"太めの電線・ケーブルを切断するための刃。ニッパーと用途が近いので刃形状を比較。","ワイヤーストリッパー":"線径に応じた刃やレバー。導体を切らずに被覆だけを剥ぎ取る。","パイプカッター":"管を挟む円形刃とローラー、締め付けノブ。管の周りを回しながら切る。","パイプベンダー":"曲げ溝のあるヘッド＋長い柄。金属管を曲げる。切断用ではない。","ねじ切り器":"ダイス・ねじ切りヘッドが特徴。管の外周にねじ山を作る。","リーマ":"円すい状の刃。金属管を切断した後、内側のバリやかえりを取る。","ホルソ":"円筒状の穴あけ刃（ホールソー）。金属板・ボックス等に穴を開ける。"};
-const photoFlashCards = () => [...orderedTools,...extraTools].map((t,index) => ({
+const hasPhotoSource = t => Boolean((t.files&&t.files.length)||(t.urls&&t.urls.length));
+const photoFlashCards = () => [...orderedTools,...extraTools].filter(hasPhotoSource).map((t,index) => ({
   id: 'photo-'+index,
   group: /感知器/.test(t.name) ? '感知器' : /試験器|フィルター|マノメーター/.test(t.name) ? '試験器' : /受信機|発信機|表示灯|警報|中継器|終端器|ガス漏れ/.test(t.name) ? '受信・警報' : '工具・計測',
   title: t.name,
@@ -495,8 +507,17 @@ function showFlash() {
     current.photoTool?.kind==='flameDetector' ? 'https://www.kaho.or.jp/pages/jikaho/images/device-sensor-05.html' : '';
   $('flash-reference').hidden=!ref;
   if(ref) $('flash-reference').href=ref;
+  const photoFile=current.photoTool?.files?.[0];
+  const photoSource=photoFile ? 'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(photoFile.replaceAll(' ','_')) : '';
+  if(photoSource){$('flash-reference').hidden=false;$('flash-reference').href=photoSource;$('flash-reference').textContent='写真の出典・ライセンス（Wikimedia Commons）→';}
+  else if(ref){$('flash-reference').textContent='外部参考資料へ →';}
+  else {$('flash-reference').hidden=true;}
   $('flash-photo').hidden=!current.photoTool;
-  if (current.photoTool) { loadPhoto(current.photoTool,'flash-photo'); $('flash-photo').alt='鑑別用参考写真または模式図（教材原版の転載ではありません）'; }
+  $('flash-photo-status').hidden=true;
+  if (current.photoTool) {
+    loadPhoto(current.photoTool,'flash-photo',true);
+    $('flash-photo').alt='鑑別用の実物参考写真（答えは裏面にあります）';
+  }
   $('flash-flip').hidden=false;
   $('flash-flip').textContent='裏面を見て覚える';
 }
