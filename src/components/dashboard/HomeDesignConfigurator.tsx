@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { homeDesignPresets, isHomeDesignPreset } from '../../data/homeDesignPresets';
+import { homeDesignPresets, isHomeDesignPreset, HOME_PRESET_STORAGE_KEY } from '../../data/homeDesignPresets';
 import {
-  DEFAULT_HOME_DESIGN, HOME_DESIGN_FAVORITES_KEY, HOME_DESIGN_STORAGE_KEY, HOME_PRESET_STORAGE_KEY,
+  DEFAULT_HOME_DESIGN, HOME_DESIGN_FAVORITES_KEY,
   homeComponentPresets, homeLayoutPresets, describeHomeDesign, isHomeDesignConfig, loadHomeDesign,
   resetHomeDesign, writeHomeDesign, type HomeDesignConfig,
 } from '../../data/homeDesignCombinations';
