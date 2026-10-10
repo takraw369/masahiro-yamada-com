@@ -1,0 +1,91 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import {
+  COCONALA_REVENUE_AGENT,
+  COCONALA_REVENUE_STEPS,
+  automationCoverage,
+  humanGateCount,
+} from '../../lib/coconalaRevenueAgent';
+
+const coverage = Math.round(automationCoverage() * 100);
+const gates = humanGateCount();
+const automatedSteps = COCONALA_REVENUE_STEPS.filter(step => step.lane !== 'MASA_GATE').length;
+---
+
+<DashboardLayout title="Coconala Revenue Agent" eyebrow="AI VENTURE STUDIO · MISSION 001">
+  <main class="agent-shell">
+    <header class="hero">
+      <div>
+        <p class="kicker">{COCONALA_REVENUE_AGENT.missionId} · PROFIT LOOP</p>
+        <h1>Coconala Revenue Agent</h1>
+        <p class="lead">{COCONALA_REVENUE_AGENT.purpose}</p>
+      </div>
+      <div class="status"><small>STRATEGY</small><strong>CONTENT MARKET</strong><span>受託 → 無人販売へ</span></div>
+    </header>
+
+    <section class="metrics" aria-label="Agent metrics">
+      <article><span>AUTOMATION</span><strong>{coverage}%</strong><small>設計上の自動レーン比率</small></article>
+      <article><span>AUTO STEPS</span><strong>{automatedSteps}/{COCONALA_REVENUE_STEPS.length}</strong><small>AI + Platform</small></article>
+      <article><span>HUMAN GATE</span><strong>{gates}</strong><small>公開 / 重大変更のみ</small></article>
+      <article><span>GOAL</span><strong>¥1</strong><small>まず最初の無人売上</small></article>
+    </section>
+
+    <section class="panel offer">
+      <div class="panel-head"><div><p class="kicker">FIRST PRODUCT</p><h2>{COCONALA_REVENUE_AGENT.offer.workingTitle}</h2></div><span class="chip">PRODUCTIZED CONTENT</span></div>
+      <p class="promise">{COCONALA_REVENUE_AGENT.offer.promise}</p>
+      <div class="offer-grid">
+        <div><small>FORMAT</small><strong>{COCONALA_REVENUE_AGENT.offer.format}</strong></div>
+        <div><small>SOURCE</small><strong>{COCONALA_REVENUE_AGENT.offer.sourceAsset}</strong></div>
+      </div>
+      <ul>
+        {COCONALA_REVENUE_AGENT.offer.deliverables.map(item => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div><p class="kicker">LOOP</p><h2>売上までの閉ループ</h2></div><a href="/dashboard/tasks">Task Flow →</a></div>
+      <div class="flow">
+        {COCONALA_REVENUE_STEPS.map((step, index) => (
+          <article class:list={["step", step.lane.toLowerCase()]}>
+            <div class="step-no">{String(index + 1).padStart(2, '0')}</div>
+            <div><small>{step.lane}</small><strong>{step.title}</strong><p>{step.detail}</p></div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="two-col">
+      <article class="panel">
+        <p class="kicker">HUMAN GATES</p>
+        <h2>人が触るのは例外だけ</h2>
+        <ol class="gate-list">
+          <li><b>公開</b><span>Preview確認 → Publish</span></li>
+          <li><b>重大変更</b><span>価格・公開状態・規約リスク</span></li>
+        </ol>
+        <p class="note">購入後の納品や個別チャットを商品仕様から外すことで、売れるたびにMASAの時間が増えない構造にする。</p>
+      </article>
+
+      <article class="panel">
+        <p class="kicker">NEXT BUILD</p>
+        <h2>実装順</h2>
+        <ol class="gate-list">
+          <li><b>01</b><span>既存サービス4を自己完結ワークブックへ変換</span></li>
+          <li><b>02</b><span>商品本文・表紙・説明文・サンプルを1 Package化</span></li>
+          <li><b>03</b><span>公開Human Gateを1回通す</span></li>
+          <li><b>04</b><span>売上SignalをGmail / Evidenceへ戻す</span></li>
+          <li><b>05</b><span>0売上ならCopy→Price→Productの順で改善</span></li>
+        </ol>
+      </article>
+    </section>
+
+    <section class="panel rules">
+      <p class="kicker">GUARDRAILS</p>
+      <h2>自動化しても越えない線</h2>
+      <div class="rule-grid">{COCONALA_REVENUE_AGENT.hardRules.map(rule => <div>{rule}</div>)}</div>
+    </section>
+  </main>
+</DashboardLayout>
+
+<style>
+  .agent-shell{max-width:1180px;margin:0 auto;padding-bottom:48px}.kicker{margin:0;color:var(--gold-muted);font-size:.7rem;letter-spacing:.12em;font-weight:800}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}.hero h1{margin:5px 0 0;font-size:clamp(2rem,5vw,3.8rem);letter-spacing:-.045em;line-height:1}.lead{max-width:730px;margin:12px 0 0;color:#67717b;line-height:1.75}.status{min-width:210px;padding:15px 17px;border:1px solid #ddd8d1;border-radius:16px;background:#fff}.status small,.status strong,.status span{display:block}.status small{color:#9b7a51;font-size:.65rem;letter-spacing:.12em}.status strong{margin-top:4px;font-size:.92rem}.status span{margin-top:3px;color:#737d87;font-size:.72rem}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:24px}.metrics article,.panel{border:1px solid #e0dcd6;border-radius:18px;background:rgba(255,255,255,.82);box-shadow:0 10px 30px rgba(50,45,40,.035)}.metrics article{padding:16px}.metrics span,.metrics small,.metrics strong{display:block}.metrics span{color:#8f724e;font-size:.63rem;letter-spacing:.1em;font-weight:800}.metrics strong{margin-top:5px;font-size:1.7rem}.metrics small{margin-top:2px;color:#89919a;font-size:.68rem}.panel{margin-top:14px;padding:22px}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.panel h2{margin:4px 0 0;font-size:1.12rem}.panel-head a{font-size:.72rem;text-decoration:none;color:#8b5b2c}.chip{padding:7px 9px;border-radius:999px;background:#efe9df;color:#795c35;font-size:.62rem;font-weight:800;white-space:nowrap}.promise{max-width:800px;color:#626d77;line-height:1.7}.offer-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}.offer-grid>div{padding:13px;border-radius:12px;background:#f6f4f1}.offer-grid small,.offer-grid strong{display:block}.offer-grid small{color:#9d876c;font-size:.62rem}.offer-grid strong{margin-top:3px;font-size:.78rem}.offer ul{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:16px 0 0;padding:0;list-style:none}.offer li{padding:11px 13px;border:1px solid #ebe6df;border-radius:11px;font-size:.75rem}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:17px}.step{min-height:128px;padding:13px;border:1px solid #e8e3dc;border-radius:13px;background:#fff}.step-no{color:#c2b49e;font-family:serif;font-size:1.35rem}.step small,.step strong{display:block}.step small{margin-top:7px;color:#7e8790;font-size:.58rem;letter-spacing:.08em}.step strong{margin-top:2px;font-size:.8rem}.step p{margin:5px 0 0;color:#7a838d;font-size:.67rem;line-height:1.55}.step.masa_gate{border-color:#dcc9b0;background:#fffaf3}.step.ai_run small{color:#426f9c}.step.platform_auto small{color:#39785a}.step.masa_gate small{color:#a06523}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gate-list{margin:16px 0 0;padding:0;list-style:none}.gate-list li{display:grid;grid-template-columns:92px 1fr;gap:10px;padding:10px 0;border-top:1px solid #eee9e2;font-size:.74rem}.gate-list b{color:#745b3e}.gate-list span{color:#6f7982}.note{margin:15px 0 0;padding:12px;border-radius:11px;background:#f5f3ef;color:#69737d;font-size:.72rem;line-height:1.65}.rule-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:15px}.rule-grid div{padding:11px 12px;border-radius:10px;background:#f7f5f2;color:#69737d;font-size:.72rem}.rules{margin-bottom:20px}@media(max-width:850px){.metrics,.flow{grid-template-columns:repeat(2,1fr)}.two-col,.offer-grid,.offer ul,.rule-grid{grid-template-columns:1fr}}@media(max-width:620px){.hero{align-items:flex-start;flex-direction:column}.status{width:100%;min-width:0}.metrics,.flow{grid-template-columns:1fr}.panel{padding:17px}.panel-head{flex-direction:column}}
+</style>
