@@ -10,7 +10,7 @@
     const s=C.load(localStorage);
     $('topic-list').innerHTML=C.topics.map(t=>{
       const pool=rows.filter(q=>C.matches(q,t)),seen=pool.filter(q=>s.attempts[q.id]).length,w=pool.filter(q=>C.weak(q,s)).length;
-      return `<a class="panel link-card" href="?topic=${t.id}"><span class="eyebrow">${t.id==='law-all'?'10・20・全70問を選択':t.quota?'30〜45分の入口':'1項目 / 最大10問'}</span><h3>${escape(t.label)}</h3><p>${escape(t.note)}</p><p class="stats">収録${pool.length}問 · 経験${seen}問 · 弱点${w}問</p></a>`;
+      return `<a class="panel link-card" href="?topic=${t.id}"><span class="eyebrow">${t.id==='law-all'?'10・20・全問を選択':t.quota?'30〜45分の入口':'1項目 / 最大10問'}</span><h3>${escape(t.label)}</h3><p>${escape(t.note)}</p><p class="stats">収録${pool.length}問 · 経験${seen}問 · 弱点${w}問</p></a>`;
     }).join('');
     $('resume').hidden=!session;
     if(session)$('resume-copy').textContent=`${C.topics.find(t=>t.id===session.topic)?.label} · ${session.index+1}/${session.ids.length}問目`;

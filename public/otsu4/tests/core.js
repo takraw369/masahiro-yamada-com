@@ -4,6 +4,7 @@
   const STATE_KEY = 'otsu4-study-state-v1';
   const SESSION_KEY = 'otsu4-topic-test-session-v1';
   const topics = [
+    {id:'photo-install-20261010', label:'写真教材｜自火報設置・警戒区域6問', ids:['l32','l33','l34','l35','l36','l37'], note:'10/10に受け取った過去問写真の問題3・4・5・7・8・9を法令確認のうえ再構成。面積・用途・階・スプリンクラー省略・警戒区域・危険物製造所等の警報設備。問題10は写真が切れているため保留。'},
     {id:'lecture-marks', label:'★ 講習で線を引いた箇所', marked:true, note:'赤線・丸・星印を優先。写真のページを確認し、誤答・△を繰り返す。'},
     { id:'jikahou-focus', label:'10/9〜13 自火報の構成＋設置基準10問', ids:[
       'l01','l02','l03','l05','l06','l07','l08','l09','l10','l11','l12','l13','l14','l15','l16','l17','l18','l19','l24',
@@ -14,7 +15,7 @@
     { id:'jikahou-install', label:'自火報の設置基準｜集中10問', ids:[
       'l01','l02','l03','l05','l08','l09','l10','l11','l12','l13','l14','l15','l16','l17','l18','l19','l24'
     ],note:'講習の設置基準を深掘り。防火対象物の用途・面積と例外、地階・無窓階・駐車場・11階以上、警戒区域、区画の考え方。既存法令問題の△・×・未出を優先。' },
-    { id:'law-all', label:'法令総合（別表第1とは別）', quota:{'law-common':5,'law-class':5}, note:'10問・20問・全70問を選択。消防組織・防火管理・点検報告・警戒区域などを確認。' },
+    { id:'law-all', label:'法令総合（別表第1とは別）', quota:{'law-common':5,'law-class':5}, note:'10問・20問・全問を選択。消防組織・防火管理・点検報告・警戒区域などを確認。' },
     { id:'law-common', label:'共通法令', category:'law-common', note:'業務範囲・維持責任・点検と報告・複合用途' },
     { id:'law-class', label:'乙4法令・警戒区域', category:'law-class', note:'面積・一辺・見通し例外・第4類の対象' },
     { id:'electric', label:'電気基礎', category:'electric', note:'オームの法則・合成抵抗・電力・交流' },
@@ -57,7 +58,7 @@
     const law=topic.id==='law-all';
     const entireLawPool=law && (limit==='all' || Number(limit)===pool.length);
     const target=law ? (entireLawPool ? pool.length : Number(limit)===20 ? 20 : 10) : 10;
-    // "All 70" means all laws, even when the preference is weak / unseen.
+    // "all" means the current entire canonical law pool, even when the preference is weak / unseen.
     const eligible=entireLawPool ? pool : mode==='weak' ? pool.filter(q=>weak(q,state)) : mode==='unseen' ? pool.filter(q=>!(state.attempts[q.id]||0)) : pool;
     const ranked=[...eligible].sort((a,b)=>priority(b,state,now)-priority(a,state,now));
     const usedIds=new Set(),usedConcepts=new Set(),picked=[];
