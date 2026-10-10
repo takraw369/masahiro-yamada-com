@@ -54,13 +54,26 @@ const deepDoors = [
       <a href="/dashboard/design-templates">デザインを変更・元に戻す ↗</a>
     </div>
 
-    <DashboardCockpit client:load />
+    <nav class="home-quick-nav" id="home-quick-nav" aria-label="ホームのクイックナビ" hidden>
+      <a href="/dashboard/tasks">Task Flow</a>
+      <a href="/dashboard/line">LINE</a>
+      <a href="/dashboard/ace-assets">ACE Assets</a>
+      <a href="/mind?action=capture">Capture</a>
+    </nav>
 
-    <RevenueMission client:only="react">
-      <p slot="fallback">First Product の共有進捗を読み込み中…</p>
-    </RevenueMission>
+    <div class="home-layout-grid">
+      <div class="home-unit home-unit--cockpit">
+        <DashboardCockpit client:load />
+      </div>
 
-    <section class="flow-section" aria-labelledby="flow-title">
+      <div class="home-unit home-unit--revenue">
+        <RevenueMission client:only="react">
+          <p slot="fallback">First Product の共有進捗を読み込み中…</p>
+        </RevenueMission>
+      </div>
+
+      <div class="home-unit home-unit--flow">
+        <section class="flow-section" aria-labelledby="flow-title">
       <div class="section-head">
         <div><p class="kicker">FLOW</p><h2 id="flow-title">流れを見失った時だけ、ここへ戻る。</h2></div>
         <p>Dashboardを読むための説明ではなく、循環の地図。</p>
@@ -74,9 +87,11 @@ const deepDoors = [
           </a>
         ))}
       </div>
-    </section>
+        </section>
+      </div>
 
-    <section class="output-section" id="output" aria-labelledby="output-title">
+      <div class="home-unit home-unit--output">
+        <section class="output-section" id="output" aria-labelledby="output-title">
       <div class="section-head">
         <div><p class="kicker">OUTPUT</p><h2 id="output-title">外へ流す。</h2></div>
         <p>細かい制作・公開は各ページへ。公開はHuman Gate。</p>
@@ -86,7 +101,9 @@ const deepDoors = [
         <a class="output-card green" href="/dashboard/line"><span>L</span><div><strong>LINE Flow</strong><small>教育・関係・顧客導線を動かす</small></div><b>→</b></a>
         <a class="output-card blue" href="/dashboard/ace-assets"><span>A</span><div><strong>ACE Assets</strong><small>学びを教材へ変える</small></div><b>→</b></a>
       </div>
-    </section>
+        </section>
+      </div>
+    </div>
 
     <section class="home-style-section" aria-labelledby="home-style-title">
       <div class="home-style-heading">
@@ -121,20 +138,26 @@ const deepDoors = [
 </DashboardLayout>
 
 <script>
-  import { HOME_PRESET_STORAGE_KEY, homeDesignPresets, isHomeDesignPreset } from '../../data/homeDesignPresets';
+  import { loadHomeDesign, describeHomeDesign } from '../../data/homeDesignCombinations';
   try {
-    const raw = localStorage.getItem(HOME_PRESET_STORAGE_KEY);
-    if (isHomeDesignPreset(raw)) {
+    const config = loadHomeDesign(localStorage);
+    if (config) {
       const shell = document.getElementById('dashboard-home-shell');
       const indicator = document.getElementById('home-design-indicator');
+      const nav = document.getElementById('home-quick-nav');
       const label = document.getElementById('home-design-label');
-      shell?.setAttribute('data-home-preset', raw);
+      shell?.setAttribute('data-home-preset', config.style);
+      shell?.setAttribute('data-home-layout', config.layout);
+      shell?.setAttribute('data-home-buttons', config.buttons);
+      shell?.setAttribute('data-home-cards', config.cards);
+      shell?.setAttribute('data-home-navigation', config.navigation);
+      shell?.setAttribute('data-home-cta', config.cta);
       if (indicator) indicator.hidden = false;
-      const preset = homeDesignPresets.find(item => item.id === raw);
-      if (label && preset) label.textContent = `適用中：${preset.name}`;
+      if (nav) nav.hidden = false;
+      if (label) label.textContent = `適用中：${describeHomeDesign(config)}`;
     }
   } catch {
-    // Browser storage may be unavailable; keep the original home design.
+    // Invalid/unavailable storage never breaks the original home layout.
   }
 </script>
 
