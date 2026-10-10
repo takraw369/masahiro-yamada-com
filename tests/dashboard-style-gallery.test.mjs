@@ -100,3 +100,19 @@ test('structural choices really rearrange production home regions while the base
   assert.match(home,/home-style-preview-rail/);
   assert.match(home,/design-templates\?style=/);
 });
+
+test('all six structures keep independent order and phone-first guardrails',async()=>{
+  const css=await read('src/styles/dashboard-home-presets.css');
+  const expectOrder=[
+    ['journey','flow'],['tiles','output'],['editorial','flow'],['split','revenue'],['studio','output'],
+  ];
+  for(const [layout,region] of expectOrder) {
+    assert.ok(css.includes('data-home-layout="'+layout+'"'),layout);
+    assert.ok(css.includes('home-unit--'+region),region);
+  }
+  assert.match(css,/\.home-unit--revenue\{order:-1\}/);
+  assert.match(css,/\.home-unit--output\{order:1\}/);
+  assert.match(css,/\.widget-cell\.span-2/);
+  assert.match(css,/@media\(max-width:1159px\)/);
+  assert.match(css,/@media\(max-width:620px\)/);
+});
