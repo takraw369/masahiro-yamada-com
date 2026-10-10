@@ -2,6 +2,7 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import DashboardCockpit from '../../components/dashboard/DashboardCockpit';
 import RevenueMission from '../../components/dashboard/RevenueMission';
+import '../../styles/dashboard-home-presets.css';
 
 const dateLabel = new Intl.DateTimeFormat('ja-JP', {
   timeZone: 'Asia/Tokyo',
@@ -28,6 +29,7 @@ const deepDoors = [
   { group:'SYSTEM', title:'Chat Sweep', detail:'Chatを診断してPROJECT / 資産化 / Archiveへ', href:'/dashboard/chat-sweep' },
   { group:'AI', title:'AI Commands', detail:'Driveの指示を目的から選ぶ', href:'/dashboard/ai-commands' },
   { group:'CREATE', title:'Visual Structures', detail:'20型から図解・スライド構造を選ぶ', href:'/dashboard/visual-structures' },
+  { group:'CREATE', title:'Style Gallery', detail:'6つのサンプルを見てホームのデザインを選ぶ', href:'/dashboard/design-templates' },
   { group:'CREATE', title:'X Post', detail:'投稿を編集・確認する', href:'/dashboard/post' },
   { group:'BUILD', title:'Quest', detail:'実践できる形へ変換', href:'/dashboard/quest' },
   { group:'AGENT', title:'Codex Agent', detail:'Task → Agent → Human Gate', href:'/dashboard/codex' },
@@ -36,7 +38,7 @@ const deepDoors = [
 ---
 
 <DashboardLayout title="今日" eyebrow="MASA OS · TODAY">
-  <div class="dash-shell">
+  <div class="dash-shell" id="dashboard-home-shell">
     <header class="dash-head">
       <div>
         <p class="kicker">MASA OS · TODAY</p>
@@ -45,6 +47,11 @@ const deepDoors = [
       </div>
       <div class="date-chip"><span>TODAY</span><strong>{dateLabel}</strong></div>
     </header>
+
+    <div class="home-design-indicator" id="home-design-indicator" hidden>
+      <span id="home-design-label">表示スタイルを変更中</span>
+      <a href="/dashboard/design-templates">デザインを変更・元に戻す ↗</a>
+    </div>
 
     <DashboardCockpit client:load />
 
@@ -95,6 +102,24 @@ const deepDoors = [
     <footer class="dash-foot"><p>Dashboard Cockpit v0.2 · contrast-first</p><span>Projectを見れば済むことは質問にしない。UI配置はoverlay、正本変更は既存Gateを維持。</span></footer>
   </div>
 </DashboardLayout>
+
+<script>
+  import { HOME_PRESET_STORAGE_KEY, homeDesignPresets, isHomeDesignPreset } from '../../data/homeDesignPresets';
+  try {
+    const raw = localStorage.getItem(HOME_PRESET_STORAGE_KEY);
+    if (isHomeDesignPreset(raw)) {
+      const shell = document.getElementById('dashboard-home-shell');
+      const indicator = document.getElementById('home-design-indicator');
+      const label = document.getElementById('home-design-label');
+      shell?.setAttribute('data-home-preset', raw);
+      if (indicator) indicator.hidden = false;
+      const preset = homeDesignPresets.find(item => item.id === raw);
+      if (label && preset) label.textContent = `適用中：${preset.name}`;
+    }
+  } catch {
+    // Browser storage may be unavailable; keep the original home design.
+  }
+</script>
 
 <style>
   .dash-shell{--panel:#fff;--muted:#68717b;--hairline:#e3e0db;max-width:1240px;margin:0 auto;padding-bottom:42px}
