@@ -8,7 +8,7 @@ const OTSU4_SOURCES = {
 const OTSU4_AUTUMN_LAW_SOURCES = {
   "l46": { "label": "e-Gov｜消防法施行令 第34条", "url": "https://laws.e-gov.go.jp/law/336CO0000000037" },
   "l47": { "label": "e-Gov｜消防法施行令 第35条", "url": "https://laws.e-gov.go.jp/law/336CO0000000037" },
-  "l48": { "label": "e-Gov｜消防法施行令 第36条の2条", "url": "https://laws.e-gov.go.jp/law/336CO0000000037" },
+  "l48": { "label": "e-Gov｜消防法施行令 第36条の2", "url": "https://laws.e-gov.go.jp/law/336CO0000000037" },
   "l38": {
     "label": "東京消防庁｜消防用設備等設置届出",
     "url": "https://www.tfd.metro.tokyo.lg.jp/drs/ss_04/001.html"
