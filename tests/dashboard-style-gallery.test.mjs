@@ -49,3 +49,13 @@ test('theme presets remain limited to home and protect narrow phones', async () 
   assert.match(gallery, /@media\(max-width:359px\)/);
   assert.match(gallery, /@media\(prefers-reduced-motion:reduce\)/);
 });
+
+test('Dashboard home displays original, locally hosted thumbnails and links to the selected preview', async () => {
+  const home = await read('src/pages/dashboard/index.astro');
+  const gallery = await read('src/pages/dashboard/design-templates.astro');
+  assert.match(home, /home-style-preview-rail/);
+  assert.match(home, /dashboard-style-presets/);
+  assert.match(home, /design-templates\?style=/);
+  assert.match(gallery, /requestedStyle/);
+  assert.match(gallery, /isHomeDesignPreset\(requestedStyle\)/);
+});
