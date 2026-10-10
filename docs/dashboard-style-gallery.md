@@ -4,6 +4,7 @@
 MASAが「サンプル画像で比較 → 選択 → ライブプレビュー → 適用 → 元に戻す」をiPhoneから行える最初のデザイン選定UI。
 
 ## Scope
+- Six clickable local preview images also appear in a scroll-contained rail on private Dashboard home, after primary actions. Each opens its chosen style in the gallery.
 - Private authenticated route: `/dashboard/design-templates`
 - First use case: `/dashboard` (home) only.
 - Six original SVG preview images: Dawn Focus / Night Gold / Ocean Flow / Glass Layers / Editorial Calm / Quest Energy.
