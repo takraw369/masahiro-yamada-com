@@ -23,3 +23,5 @@
 .home-design-indicator a {flex-shrink:0;min-height:44px;display:inline-flex;align-items:center;color:var(--preset-accent,#8b5b2c);font-weight:700;text-underline-offset:3px;}
 @media(max-width:620px){.dash-shell[data-home-preset]{padding:12px}.home-design-indicator{align-items:flex-start;flex-wrap:wrap}.home-design-indicator a{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.dash-shell[data-home-preset]{transition:none}}
+
+.home-design-indicator[hidden]{display:none!important}
