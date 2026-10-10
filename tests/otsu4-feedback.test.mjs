@@ -204,9 +204,10 @@ test('Otsu4 law-only 10 question test is separately reachable and preserves shar
   assert.equal(topic.quota['law-common'],5);
   assert.equal(topic.quota['law-class'],5);
   const pool=rows.filter(q=>C.matches(q,topic));
-  assert.equal(pool.length,70);
+  assert.equal(pool.length,rows.filter(q=>q.category==='law-common'||q.category==='law-class').length);
   assert.equal(pool.filter(q=>q.category==='law-common').length,39);
-  assert.equal(pool.filter(q=>q.category==='law-class').length,31);
+  assert.equal(pool.filter(q=>q.category==='law-class').length,rows.filter(q=>q.category==='law-class').length);
+  assert.ok(pool.length>70,'new canonical law questions should join the all-law pool');
   const original='{"attempts":{"c01":2},"correct":{"c01":1},"streak":{},"wrong":{},"notes":{},"ratings":{},"feedbackDrafts":{},"feedbackEventIds":{},"history":[]}';
   const storage={getItem(k){return k===C.STATE_KEY?original:null},setItem(){throw Error('selection must never rewrite history')}};
   const state=C.load(storage);
@@ -236,7 +237,7 @@ test('Otsu4 law-only 10 question test is separately reachable and preserves shar
 });
 
 
-test('law-only 10 20 and all 70 use unique questions and the original shared history', async () => {
+test('law-only 10, 20 and all canonical law questions use unique questions and original shared history', async () => {
   const coreSource=await readFile(new URL('../public/otsu4/tests/core.js',import.meta.url),'utf8');
   const bankSource=await readFile(new URL('../public/otsu4/questions.js',import.meta.url),'utf8');
   const ctx={window:{}};vm.runInNewContext(coreSource,ctx);
@@ -244,16 +245,19 @@ test('law-only 10 20 and all 70 use unique questions and the original shared his
   const bank=vm.runInNewContext(bankSource+'\nOTSU4_QUESTIONS');
   const law=C.topics.find(t=>t.id==='law-all');
   const state=C.load({getItem(){return null}});
-  for(const [size,common,related] of [[10,5,5],[20,10,10],[70,39,31]]) {
-    const chosen=C.select(bank,law,state,'smart',Date.now(),size);
+  const commonTotal=bank.filter(q=>q.category==='law-common').length;
+  const classTotal=bank.filter(q=>q.category==='law-class').length;
+  const lawTotal=commonTotal+classTotal;
+  for(const [limit,size,common,related] of [[10,10,5,5],[20,20,10,10],['all',lawTotal,commonTotal,classTotal]]) {
+    const chosen=C.select(bank,law,state,'smart',Date.now(),limit);
     assert.equal(chosen.length,size);
     assert.equal(new Set(chosen.map(q=>q.id)).size,size);
     assert.equal(chosen.filter(q=>q.category==='law-common').length,common);
     assert.equal(chosen.filter(q=>q.category==='law-class').length,related);
   }
-  // Never silently drop questions when the learner selects all 70 in weak/unseen mode.
+  // Selecting all remains an all-question traversal even in weak/unseen mode.
   for(const mode of ['smart','weak','unseen']){
-    assert.equal(C.select(bank,law,state,mode,Date.now(),'all').length,70);
+    assert.equal(C.select(bank,law,state,mode,Date.now(),'all').length,lawTotal);
   }
   const others=C.topics.find(t=>t.id==='electric');
   assert.ok(C.select(bank,others,state,'smart').length<=10,'other small topics retain maximum ten');
@@ -261,7 +265,7 @@ test('law-only 10 20 and all 70 use unique questions and the original shared his
   const page=await readFile(new URL('../src/pages/otsu4/tests/index.astro',import.meta.url),'utf8');
   assert.match(page,/<select id="question-count">/);
   assert.match(page,/<option value="20">20問/);
-  assert.match(page,/<option value="all">全70問/);
+  assert.match(page,/<option value="all">全問/);
   assert.match(page,/id="submit-choice"/);
   assert.match(page,/id="choice-status"/);
   assert.match(page,/id="choices-help"/);
