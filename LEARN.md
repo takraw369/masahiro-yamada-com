@@ -50,3 +50,9 @@ When the same class of learning appears twice:
 - Corrected: treat executable project configuration as authoritative when repository documentation claims a different framework/runtime state.
 - Cause: documentation can remain correct in spirit while technical version details become stale.
 - Rule: before acting on framework, deploy, domain, storage, or runtime claims in docs, verify them against current executable config and fix confirmed stale docs.
+
+### 2026-10-07 — Mobile visual quality before style fidelity
+- Corrected: Floating Showroom初版はiPhoneで構図が崩れ、CSSの簡易衣服・黒金の重い配色も含めて「陳腐で魅力を感じない」と判定された。参考表現の構造を守ることより、モバイル上で作品として魅力が立つことを優先する。
+- Cause: Desktopのrack構造を縮小してMobileへ流用し、prototypeであることを理由にObject fidelityを落とした。また既存のblack/gold tokenをReferenceのsoft/editorialな感情より優先した。
+- Rule: Public-facing / visual-labの表現はMobile Firstで別構図として設計し、Human Gate前に①iPhone 3秒感情 ②object/material fidelity ③next-item affordance ④type/whitespace ratioを確認する。既存Brand tokenは目的・Referenceの感情を壊す場合に実験Surfaceへ強制しない。簡易CSS図形をHero Objectとして使わない。
+
