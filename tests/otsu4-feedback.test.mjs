@@ -205,7 +205,7 @@ test('Otsu4 law-only 10 question test is separately reachable and preserves shar
   assert.equal(topic.quota['law-class'],5);
   const pool=rows.filter(q=>C.matches(q,topic));
   assert.equal(pool.length,rows.filter(q=>q.category==='law-common'||q.category==='law-class').length);
-  assert.equal(pool.filter(q=>q.category==='law-common').length,39);
+  assert.ok(pool.filter(q=>q.category==='law-common').length>=39, 'adding law questions must not remove existing common-law questions');
   assert.equal(pool.filter(q=>q.category==='law-class').length,rows.filter(q=>q.category==='law-class').length);
   assert.ok(pool.length>70,'new canonical law questions should join the all-law pool');
   const original='{"attempts":{"c01":2},"correct":{"c01":1},"streak":{},"wrong":{},"notes":{},"ratings":{},"feedbackDrafts":{},"feedbackEventIds":{},"history":[]}';
