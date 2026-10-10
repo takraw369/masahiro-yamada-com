@@ -38,7 +38,8 @@ test('Dashboard stays readable and puts one high-contrast quest in the task widg
   assert.match(cockpit, /nowTasks\.length/);
   assert.match(cockpit, /nextTasks\.length/);
   assert.match(cockpit, /waitTasks\.length/);
-  assert.match(cockpit, /Task Flowで進める/);
+  assert.match(cockpit, /このTaskをGPTで着手・相談/);
+  assert.match(cockpit, /encodeURIComponent\(primaryTask\.taskId\)/);
   assert.match(cockpit, /\.focus-cta\{min-height:46px/);
   assert.match(cockpit, /\.primary-focus\.masa-world \.focus-next-copy/);
 });
