@@ -41,3 +41,79 @@
 .dash-shell[data-home-preset] .home-style-section h2{color:var(--preset-ink)}
 .dash-shell[data-home-preset] .home-style-heading a{color:var(--preset-accent)}
 @media(max-width:620px){.home-style-section{padding:12px}.home-style-preview{flex-basis:66%;max-width:210px}.home-style-heading{align-items:flex-start}.home-style-heading a{max-width:140px;text-align:right}}
+
+/* Composition engine v2: only the authenticated Dashboard HOME changes, never shared pages.
+ * Default unconfigured home stays visually unchanged with display:contents. */
+#dashboard-home-shell .home-layout-grid{display:contents}
+#dashboard-home-shell .home-unit{min-width:0;max-width:100%;box-sizing:border-box}
+#dashboard-home-shell .home-quick-nav[hidden]{display:none!important}
+#dashboard-home-shell[data-home-layout] .home-layout-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px;align-items:start}
+#dashboard-home-shell[data-home-layout] .home-unit{grid-column:1/-1}
+#dashboard-home-shell[data-home-layout] .home-unit>.flow-section,
+#dashboard-home-shell[data-home-layout] .home-unit>.output-section{margin-top:0;min-width:0}
+#dashboard-home-shell[data-home-layout] .home-unit--cockpit{order:0}
+#dashboard-home-shell[data-home-layout] .home-unit--revenue{order:1}
+#dashboard-home-shell[data-home-layout] .home-unit--flow{order:2}
+#dashboard-home-shell[data-home-layout] .home-unit--output{order:3}
+#dashboard-home-shell[data-home-layout="focus"] .home-layout-grid{max-width:100%}
+@media(min-width:1160px){
+ #dashboard-home-shell[data-home-layout="focus"] .home-layout-grid{max-width:1000px;margin-inline:auto}
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--cockpit{grid-column:span 8}
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--revenue{grid-column:span 4}
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--flow{grid-column:span 6}
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--output{grid-column:span 6}
+ #dashboard-home-shell[data-home-layout="journey"] .home-unit--cockpit{grid-column:span 8}
+ #dashboard-home-shell[data-home-layout="journey"] .home-unit--revenue{grid-column:span 4}
+ #dashboard-home-shell[data-home-layout="tiles"] .home-unit--cockpit{grid-column:span 7}
+ #dashboard-home-shell[data-home-layout="tiles"] .home-unit--revenue{grid-column:span 5}
+ #dashboard-home-shell[data-home-layout="editorial"] .home-unit--output{grid-column:span 5}
+ #dashboard-home-shell[data-home-layout="editorial"] .home-unit--cockpit{grid-column:span 7}
+ #dashboard-home-shell[data-home-layout="studio"] .home-unit--revenue{grid-column:span 4}
+ #dashboard-home-shell[data-home-layout="studio"] .home-unit--flow{grid-column:span 4}
+ #dashboard-home-shell[data-home-layout="studio"] .home-unit--output{grid-column:span 4}
+}
+#dashboard-home-shell[data-home-layout="journey"] .home-unit--flow{order:-2}
+#dashboard-home-shell[data-home-layout="journey"] .home-unit--cockpit{order:-1}
+#dashboard-home-shell[data-home-layout="tiles"] .home-unit--output{order:-1}
+#dashboard-home-shell[data-home-layout="editorial"] .home-unit--flow{order:-2}
+#dashboard-home-shell[data-home-layout="editorial"] .home-unit--output{order:-1}
+#dashboard-home-shell[data-home-layout="editorial"] .home-unit--cockpit{order:0}
+#dashboard-home-shell[data-home-layout="studio"] .home-unit--cockpit{order:0}
+#dashboard-home-shell[data-home-layout="studio"] .home-unit--revenue{order:1}
+#dashboard-home-shell[data-home-layout="studio"] .home-unit--flow{order:2}
+#dashboard-home-shell[data-home-layout="studio"] .home-unit--output{order:3}
+/* A real home quick-navigation component; variants change structure, not just color. */
+#dashboard-home-shell .home-quick-nav{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:6px 0 18px}
+#dashboard-home-shell .home-quick-nav a{min-height:44px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;overflow-wrap:anywhere;font-size:.74rem;font-weight:700;color:var(--preset-ink);background:var(--preset-paper);padding:9px 12px;border:1px solid var(--preset-line);box-sizing:border-box}
+#dashboard-home-shell[data-home-navigation="tabs"] .home-quick-nav{border-bottom:1px solid var(--preset-line)}
+#dashboard-home-shell[data-home-navigation="tabs"] .home-quick-nav a{background:transparent;border:0;border-bottom:3px solid var(--preset-line)}
+#dashboard-home-shell[data-home-navigation="tabs"] .home-quick-nav a:first-child{border-bottom-color:var(--preset-accent)}
+#dashboard-home-shell[data-home-navigation="chips"] .home-quick-nav a{border-radius:100px}
+#dashboard-home-shell[data-home-navigation="dock"] .home-quick-nav{width:max-content;max-width:100%;margin:8px auto 18px;padding:6px;gap:4px;border:1px solid var(--preset-line);border-radius:30px;background:var(--preset-paper)}
+#dashboard-home-shell[data-home-navigation="dock"] .home-quick-nav a{background:transparent;padding:8px;border:0;border-radius:20px;font-size:.68rem}
+#dashboard-home-shell[data-home-navigation="dock"] .home-quick-nav a:first-child{background:var(--preset-accent);color:var(--preset-bg,#17191c)}
+/* Card variants are scoped to real home sections, links and rendered React widget surfaces. */
+#dashboard-home-shell[data-home-cards="outline"] :is(.flow-section,.output-section,.output-card,.flow-step,.widget-cell,.deep-section){border:2px solid var(--preset-accent);border-radius:0;box-shadow:none}
+#dashboard-home-shell[data-home-cards="soft"] :is(.flow-section,.output-section,.output-card,.flow-step,.widget-cell){border-radius:var(--preset-rad,14px)}
+#dashboard-home-shell[data-home-cards="float"] :is(.flow-section,.output-section,.output-card,.widget-cell){border-radius:calc(var(--preset-rad,14px) + 5px);box-shadow:0 12px 26px rgba(16,20,27,.16)}
+/* Button silhouettes + CTA emphasis on real navigation/action anchors (no click handlers changed). */
+#dashboard-home-shell[data-home-buttons="sharp"] :is(.focus-cta,.output-card,.home-quick-nav a){border-radius:0}
+#dashboard-home-shell[data-home-buttons="soft"] :is(.focus-cta,.output-card,.home-quick-nav a){border-radius:10px}
+#dashboard-home-shell[data-home-buttons="pill"] :is(.focus-cta,.home-quick-nav a){border-radius:100px}
+#dashboard-home-shell[data-home-cta="solid"] .focus-cta{background:var(--preset-accent);color:var(--preset-bg,#141414);border-color:var(--preset-accent)}
+#dashboard-home-shell[data-home-cta="outline"] .focus-cta{background:transparent;color:var(--preset-accent);border:2px solid var(--preset-accent);box-shadow:none}
+#dashboard-home-shell[data-home-cta="minimal"] .focus-cta{background:transparent;color:var(--preset-accent);border:0;border-bottom:2px solid var(--preset-accent);border-radius:0;box-shadow:none;padding-inline:0}
+#dashboard-home-shell[data-home-cta="outline"] .output-card{border-color:var(--preset-accent)}
+#dashboard-home-shell[data-home-cta="minimal"] .output-card{border-width:0 0 2px;border-radius:0;box-shadow:none}
+/* Respect phone-first constraints even for layouts selected on desktop. */
+@media(max-width:1159px){
+ #dashboard-home-shell[data-home-layout] .home-layout-grid{grid-template-columns:minmax(0,1fr)}
+ #dashboard-home-shell[data-home-layout] .home-unit{grid-column:1/-1}
+}
+@media(max-width:620px){
+ #dashboard-home-shell .home-quick-nav{gap:5px;margin:5px 0 10px}
+ #dashboard-home-shell .home-quick-nav a{flex:1 1 44%;min-width:0;min-height:44px}
+ #dashboard-home-shell[data-home-navigation="dock"] .home-quick-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%}
+ #dashboard-home-shell[data-home-navigation="dock"] .home-quick-nav a{min-width:0;min-height:44px;padding-inline:3px;text-align:center}
+ #dashboard-home-shell[data-home-layout] .home-layout-grid{gap:11px}
+}
