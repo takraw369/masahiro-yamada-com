@@ -45,7 +45,7 @@ import { homeDesignPresets } from '../../data/homeDesignPresets';
 </DashboardLayout>
 
 <script>
-  import { homeDesignPresets, HOME_PRESET_STORAGE_KEY, isHomeDesignPreset } from '../../data/homeDesignPresets';
+  import { homeDesignPresets, HOME_PRESET_STORAGE_KEY, isHomeDesignPreset, type HomeDesignPresetId } from '../../data/homeDesignPresets';
 
   const cards = [...document.querySelectorAll<HTMLButtonElement>('[data-preset-select]')];
   const stage = document.getElementById('preview-stage');
@@ -56,7 +56,7 @@ import { homeDesignPresets } from '../../data/homeDesignPresets';
   const applyButton = document.getElementById('apply-preset');
   const resetButton = document.getElementById('reset-preset');
 
-  let chosen = homeDesignPresets[0].id;
+  let chosen: HomeDesignPresetId = homeDesignPresets[0].id;
   let applied: string | null = null;
   let storageReady = true;
 
