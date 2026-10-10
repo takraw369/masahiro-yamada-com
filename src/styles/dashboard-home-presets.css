@@ -117,3 +117,27 @@
  #dashboard-home-shell[data-home-navigation="dock"] .home-quick-nav a{min-width:0;min-height:44px;padding-inline:3px;text-align:center}
  #dashboard-home-shell[data-home-layout] .home-layout-grid{gap:11px}
 }
+
+/* Preserve 6 meaningfully distinct composition orders on iPhone as well as desktop.
+   Narrow displays must not force 3 columns or hide actions. */
+@media(max-width:1159px){
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--revenue{order:-1}
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--cockpit{order:0}
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--flow{order:1}
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--output{order:2}
+ #dashboard-home-shell[data-home-layout="studio"] .home-unit--cockpit{order:0}
+ #dashboard-home-shell[data-home-layout="studio"] .home-unit--output{order:1}
+ #dashboard-home-shell[data-home-layout="studio"] .home-unit--flow{order:2}
+ #dashboard-home-shell[data-home-layout="studio"] .home-unit--revenue{order:3}
+}
+/* React cockpit stays readable when hosted in a narrower two-column home layout. */
+@media(min-width:1160px){
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--cockpit .cockpit-grid,
+ #dashboard-home-shell[data-home-layout="journey"] .home-unit--cockpit .cockpit-grid,
+ #dashboard-home-shell[data-home-layout="tiles"] .home-unit--cockpit .cockpit-grid,
+ #dashboard-home-shell[data-home-layout="editorial"] .home-unit--cockpit .cockpit-grid {grid-template-columns:minmax(0,1fr)}
+ #dashboard-home-shell[data-home-layout="split"] .home-unit--cockpit .widget-cell.span-2,
+ #dashboard-home-shell[data-home-layout="journey"] .home-unit--cockpit .widget-cell.span-2,
+ #dashboard-home-shell[data-home-layout="tiles"] .home-unit--cockpit .widget-cell.span-2,
+ #dashboard-home-shell[data-home-layout="editorial"] .home-unit--cockpit .widget-cell.span-2 {grid-column:span 1}
+}
