@@ -1,0 +1,150 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { homeDesignPresets } from '../../data/homeDesignPresets';
+---
+
+<DashboardLayout title="Style Gallery" eyebrow="MASA DESIGN LAB">
+  <div class="style-gallery">
+    <header class="hero">
+      <p class="eyebrow-label">DESIGN LAB / STYLE GALLERY · v0.1</p>
+      <h1>見て、選んで、<em>着せ替える。</em></h1>
+      <p>サンプル画像をタップすると下の画面が変わる。「ホームに適用」でこの端末のDashboardホームだけを切り替えられる。データ・機能・他の画面は変更しない。</p>
+      <div class="hero-links"><a href="/dashboard">← Dashboard</a><a href="/dashboard/design-lab">25の好み選択へ ↗</a></div>
+    </header>
+
+    <section class="section" aria-labelledby="gallery-heading">
+      <div class="section-heading"><div><small>01 · EXPLORE</small><h2 id="gallery-heading">6つのスタイルから選ぶ</h2></div><p>画像は参考サイトの転載ではなく、MASA向けのオリジナル見本。</p></div>
+      <div class="preset-grid" id="preset-grid">
+        {homeDesignPresets.map((preset, index) => (
+          <button type="button" class:list={['preset-card',index === 0 && 'is-selected']} data-preset-select={preset.id} aria-pressed={index===0?'true':'false'}>
+            <span class="preset-art"><img src={`/assets/dashboard-style-presets/${preset.id}.svg`} alt={`${preset.name} のDashboardサンプル画像`} width="720" height="440" loading="lazy" decoding="async" /></span>
+            <span class="card-copy"><span class="card-top"><strong>{preset.name}</strong><span class="selected-mark" aria-hidden="true">選択中</span></span><span>{preset.description}</span><small>参考：{preset.source}</small></span>
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <section class="section live-section" aria-labelledby="preview-heading">
+      <div class="section-heading"><div><small>02 · LIVE PREVIEW</small><h2 id="preview-heading">実際の画面イメージ</h2></div><p>表示内容はデモです。実際の案件・売上データではありません。</p></div>
+      <div class="live-preview" id="preview-stage" data-preset="dawn" aria-label="デザインライブプレビュー">
+        <div class="demo-sidebar"><div class="demo-brand">MASA OS</div><span>TODAY</span><span>CAPTURE</span><span>OUTPUT</span><span>REVIEW</span></div>
+        <div class="demo-main"><div class="demo-meta">MASA DESIGN INTELLIGENCE <span>PREVIEW</span></div><div class="demo-hero"><span>FLOW COCKPIT</span><h3>今日の一歩を、<br/>自分で選ぶ。</h3><p>見る → 決める → 動く。必要なものだけを手元に。</p><span class="demo-cta">次の一手を見る →</span></div><div class="demo-cards"><div><small>01 / THINK</small><strong>今、大事なこと</strong><p>考えを整理して次へ。</p></div><div><small>02 / BUILD</small><strong>つくる・試す</strong><p>小さな成果から始める。</p></div><div><small>03 / FLOW</small><strong>経験を資産に</strong><p>記録・学び・再利用。</p></div></div></div>
+      </div>
+      <div class="selection-panel">
+        <div><small>CURRENT CHOICE</small><h3 id="selected-name">Dawn Focus</h3><p id="selected-note">余白で、次の一手を際立たせる。</p><p id="applied-copy" class="applied-copy">この端末では標準デザインを表示中。</p></div>
+        <div class="action-group">
+          <button id="apply-preset" class="apply" type="button">このデザインをホームに適用</button>
+          <a id="view-dashboard" href="/dashboard">ホームで確認 ↗</a>
+          <button id="reset-preset" class="reset" type="button">標準デザインに戻す</button>
+        </div>
+      </div>
+      <p id="style-status" class="status" role="status" aria-live="polite">選択を変えて、比較してみよう。</p>
+    </section>
+    <footer class="foot">この試作は「本人の端末だけ」の表示設定。Stripe / LINE / ACEのデザインや実際の公開ページは変更されません。正式な共通デザインへの昇格は、iPhone実機確認とMASAの判断後。</footer>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { homeDesignPresets, HOME_PRESET_STORAGE_KEY, isHomeDesignPreset } from '../../data/homeDesignPresets';
+
+  const cards = [...document.querySelectorAll<HTMLButtonElement>('[data-preset-select]')];
+  const stage = document.getElementById('preview-stage');
+  const selectedName = document.getElementById('selected-name');
+  const selectedNote = document.getElementById('selected-note');
+  const appliedCopy = document.getElementById('applied-copy');
+  const status = document.getElementById('style-status');
+  const applyButton = document.getElementById('apply-preset');
+  const resetButton = document.getElementById('reset-preset');
+
+  let chosen = homeDesignPresets[0].id;
+  let applied: string | null = null;
+  let storageReady = true;
+
+  try {
+    const found = localStorage.getItem(HOME_PRESET_STORAGE_KEY);
+    applied = isHomeDesignPreset(found) ? found : null;
+  } catch {
+    storageReady = false;
+  }
+
+  function renderApplied() {
+    const match = homeDesignPresets.find(preset => preset.id === applied);
+    if (appliedCopy) appliedCopy.textContent = match
+      ? `この端末のホームに適用中：${match.name}`
+      : 'この端末では標準デザインを表示中。';
+  }
+
+  function selectPreset(id: string) {
+    const preset = homeDesignPresets.find(item => item.id === id);
+    if (!preset) return;
+    chosen = preset.id;
+    if (stage) stage.dataset.preset = preset.id;
+    if (selectedName) selectedName.textContent = preset.name;
+    if (selectedNote) selectedNote.textContent = preset.subtitle;
+    for (const card of cards) {
+      const selected = card.dataset.presetSelect === chosen;
+      card.setAttribute('aria-pressed', String(selected));
+      card.classList.toggle('is-selected', selected);
+    }
+    if (status) status.textContent = `${preset.name} をプレビュー中。適用するまで実際のホームは変わりません。`;
+  }
+
+  cards.forEach(card => card.addEventListener('click', () => selectPreset(card.dataset.presetSelect || '')));
+  applyButton?.addEventListener('click', () => {
+    if (!storageReady) {
+      if (status) status.textContent = '端末の設定を保存できません。プライベートブラウズなどの保存制限を確認してください。';
+      return;
+    }
+    try {
+      localStorage.setItem(HOME_PRESET_STORAGE_KEY, chosen);
+      applied = chosen;
+      renderApplied();
+      if (status) status.textContent = '適用しました。ホームで確認できます。標準デザインへいつでも戻せます。';
+    } catch {
+      if (status) status.textContent = '保存できませんでした。ホーム画面は変更されていません。';
+    }
+  });
+  resetButton?.addEventListener('click', () => {
+    try {
+      localStorage.removeItem(HOME_PRESET_STORAGE_KEY);
+      applied = null;
+      renderApplied();
+      if (status) status.textContent = '標準デザインに戻しました。ホームで確認できます。';
+    } catch {
+      if (status) status.textContent = '保存領域にアクセスできず、設定を戻せませんでした。';
+    }
+  });
+  renderApplied();
+  selectPreset(applied || chosen);
+</script>
+
+<style>
+.style-gallery{--ink:#22282e;--muted:#65707c;--line:#d5d2cc;color:var(--ink);max-width:1220px;margin:auto;padding-bottom:50px;min-width:0}
+.hero{border-bottom:1px solid var(--line);padding:15px 0 28px}.eyebrow-label{color:#9a6428;font-size:.7rem;font-weight:700;letter-spacing:.13em}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.3rem,5vw,4.8rem);line-height:1.04;margin-top:9px}.hero h1 em{font-style:normal;color:#91795b}
+.hero>p:not(.eyebrow-label){max-width:730px;margin-top:12px;font-size:.85rem;line-height:1.8;color:var(--muted)}
+.hero-links{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px}.hero-links a{font-size:.78rem;min-height:44px;display:inline-flex;align-items:center;color:#815c30;text-underline-offset:4px}
+.section{margin-top:28px}.section-heading{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:14px}.section-heading small,.selection-panel small{font-size:.65rem;color:#956a37;font-weight:800;letter-spacing:.13em}.section-heading h2{font-size:1.3rem;margin-top:3px}.section-heading p{font-size:.72rem;color:var(--muted);max-width:370px}
+.preset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.preset-card{display:block;min-width:0;overflow:hidden;padding:0;text-align:left;border:2px solid #d8d4cc;background:#fff;color:inherit;cursor:pointer;transition:border-color .15s}
+.preset-card:hover,.preset-card[aria-pressed="true"]{border-color:#946629}.preset-card:focus-visible{outline:3px solid #c09252;outline-offset:2px}.preset-art{display:block;aspect-ratio:720/440;background:#eceae5;overflow:hidden}.preset-art img{display:block;width:100%;height:100%;object-fit:cover}
+.card-copy{display:block;padding:12px}.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.card-top strong{font-size:.95rem}.selected-mark{color:#89632d;font-size:.64rem;font-weight:700;visibility:hidden}.preset-card[aria-pressed="true"] .selected-mark{visibility:visible}
+.card-copy>span:nth-child(2){display:block;font-size:.76rem;line-height:1.65;color:var(--muted);margin-top:7px}.card-copy small{display:block;color:#828a92;font-size:.65rem;margin-top:9px;overflow-wrap:anywhere}
+.live-preview{--demo-bg:#f5f1ea;--demo-card:#fffefa;--demo-ink:#29251e;--demo-muted:#796e60;--demo-line:#d7c9b7;--demo-accent:#96652d;--demo-radius:10px;display:grid;grid-template-columns:140px minmax(0,1fr);background:var(--demo-bg);color:var(--demo-ink);border:1px solid var(--demo-line);border-radius:var(--demo-radius);overflow:hidden;min-height:375px}
+.live-preview[data-preset="night"]{--demo-bg:#10141b;--demo-card:#1c2530;--demo-ink:#f2ebdd;--demo-muted:#aeb8c0;--demo-line:#3a4b57;--demo-accent:#cfac70;--demo-radius:8px}
+.live-preview[data-preset="ocean"]{--demo-bg:#eef5f6;--demo-card:#fff;--demo-ink:#183f4a;--demo-muted:#527681;--demo-line:#bed9df;--demo-accent:#167e88;--demo-radius:22px}
+.live-preview[data-preset="glass"]{--demo-bg:#e9ecfb;--demo-card:rgba(255,255,255,.74);--demo-ink:#243153;--demo-muted:#5f6986;--demo-line:#bec8e9;--demo-accent:#6677c5;--demo-radius:24px;background:linear-gradient(135deg,#e5eaf9,#eff4f6 52%,#f5eaf5)}
+.live-preview[data-preset="editorial"]{--demo-bg:#f8f5ec;--demo-card:#fffcf5;--demo-ink:#292b23;--demo-muted:#656a5d;--demo-line:#c9c8b9;--demo-accent:#4e5149;--demo-radius:0px}
+.live-preview[data-preset="quest"]{--demo-bg:#142a31;--demo-card:#1d3a42;--demo-ink:#f0f4eb;--demo-muted:#b3c8cb;--demo-line:#3f6165;--demo-accent:#b4df73;--demo-radius:18px}
+.demo-sidebar{display:flex;flex-direction:column;gap:18px;padding:20px 14px;border-right:1px solid var(--demo-line);font-size:.7rem;color:var(--demo-muted)}.demo-brand{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--demo-accent);margin-bottom:14px}.demo-main{min-width:0;padding:20px;display:flex;flex-direction:column;gap:13px}
+.demo-meta{display:flex;justify-content:space-between;gap:8px;color:var(--demo-accent);font-weight:700;font-size:.64rem;letter-spacing:.13em}.demo-meta span{color:var(--demo-muted)}
+.demo-hero{min-height:160px;padding:20px;background:var(--demo-card);border:1px solid var(--demo-line);border-radius:var(--demo-radius)}.demo-hero>span:first-child{color:var(--demo-accent);font-size:.6rem;font-weight:800;letter-spacing:.12em}.demo-hero h3{margin-top:6px;font-size:clamp(1.15rem,2vw,1.65rem);line-height:1.4;color:var(--demo-ink)}.demo-hero p{color:var(--demo-muted);font-size:.73rem;margin-top:6px}.demo-cta{display:inline-flex;align-items:center;min-height:38px;margin-top:12px;padding:7px 16px;background:var(--demo-accent);color:var(--demo-bg);border-radius:calc(var(--demo-radius) / 2);font-size:.71rem;font-weight:800}
+.demo-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.demo-cards>div{min-width:0;background:var(--demo-card);border:1px solid var(--demo-line);border-radius:var(--demo-radius);padding:15px}.demo-cards small{display:block;color:var(--demo-accent);font-size:.61rem}.demo-cards strong{display:block;color:var(--demo-ink);margin-top:9px;font-size:.86rem}.demo-cards p{color:var(--demo-muted);font-size:.67rem;margin-top:5px}
+.selection-panel{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:20px 0;border-bottom:1px solid var(--line)}.selection-panel h3{margin-top:5px;font-size:1.35rem}.selection-panel p{font-size:.78rem;color:var(--muted);margin-top:6px}.applied-copy{color:#176a48!important;font-weight:700}
+.action-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.action-group button,.action-group a{min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;font-size:.79rem;cursor:pointer;text-align:center;text-decoration:none}
+.action-group .apply{background:#8d622e;border:1px solid #8d622e;color:white;font-weight:800}.action-group a{background:#fff;border:1px solid #bbb0a2;color:#684e30}.action-group .reset{background:transparent;border:1px solid var(--line);color:#637080}
+.status{font-size:.76rem;margin-top:10px;color:#65502c;min-height:22px}.foot{border-top:1px solid var(--line);padding-top:20px;margin-top:28px;font-size:.72rem;color:var(--muted);line-height:1.8}
+@media(max-width:900px){.preset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.selection-panel{align-items:flex-start;flex-direction:column}.action-group{width:100%}}
+@media(max-width:580px){.style-gallery{max-width:100%}.section-heading{align-items:flex-start;flex-direction:column;gap:6px}.preset-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.preset-card{border-width:1.5px}.card-copy{padding:9px}.card-top strong{font-size:.8rem}.card-copy>span:nth-child(2){font-size:.68rem}.card-copy small{font-size:.58rem}.live-preview{display:block}.demo-sidebar{display:none}.demo-main{padding:12px}.demo-cards{gap:6px}.demo-cards>div{padding:10px}.demo-cards strong{font-size:.72rem}.demo-cards p{font-size:.61rem}.action-group{display:grid;grid-template-columns:1fr}.action-group button,.action-group a{width:100%}}
+@media(max-width:359px){.preset-grid{grid-template-columns:1fr}.demo-cards{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.preset-card{transition:none}}
+</style>
