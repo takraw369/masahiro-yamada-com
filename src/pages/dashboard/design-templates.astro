@@ -115,7 +115,8 @@ import { homeDesignPresets } from '../../data/homeDesignPresets';
     }
   });
   renderApplied();
-  selectPreset(applied || chosen);
+  const requestedStyle = new URLSearchParams(window.location.search).get('style');
+  selectPreset(isHomeDesignPreset(requestedStyle) ? requestedStyle : (applied || chosen));
 </script>
 
 <style>
