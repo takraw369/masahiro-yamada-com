@@ -2,6 +2,8 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import DashboardCockpit from '../../components/dashboard/DashboardCockpit';
 import RevenueMission from '../../components/dashboard/RevenueMission';
+import '../../styles/dashboard-home-presets.css';
+import { homeDesignPresets } from '../../data/homeDesignPresets';
 
 const dateLabel = new Intl.DateTimeFormat('ja-JP', {
   timeZone: 'Asia/Tokyo',
@@ -28,6 +30,7 @@ const deepDoors = [
   { group:'SYSTEM', title:'Chat Sweep', detail:'Chatを診断してPROJECT / 資産化 / Archiveへ', href:'/dashboard/chat-sweep' },
   { group:'AI', title:'AI Commands', detail:'Driveの指示を目的から選ぶ', href:'/dashboard/ai-commands' },
   { group:'CREATE', title:'Visual Structures', detail:'20型から図解・スライド構造を選ぶ', href:'/dashboard/visual-structures' },
+  { group:'CREATE', title:'Design Studio', detail:'スタイル・構成・パーツを組み合わせる', href:'/dashboard/design-templates' },
   { group:'CREATE', title:'X Post', detail:'投稿を編集・確認する', href:'/dashboard/post' },
   { group:'BUILD', title:'Quest', detail:'実践できる形へ変換', href:'/dashboard/quest' },
   { group:'AGENT', title:'Codex Agent', detail:'Task → Agent → Human Gate', href:'/dashboard/codex' },
@@ -36,7 +39,7 @@ const deepDoors = [
 ---
 
 <DashboardLayout title="今日" eyebrow="MASA OS · TODAY">
-  <div class="dash-shell">
+  <div class="dash-shell" id="dashboard-home-shell">
     <header class="dash-head">
       <div>
         <p class="kicker">MASA OS · TODAY</p>
@@ -46,13 +49,31 @@ const deepDoors = [
       <div class="date-chip"><span>TODAY</span><strong>{dateLabel}</strong></div>
     </header>
 
-    <DashboardCockpit client:load />
+    <div class="home-design-indicator" id="home-design-indicator" hidden>
+      <span id="home-design-label">表示スタイルを変更中</span>
+      <a href="/dashboard/design-templates">デザインを変更・元に戻す ↗</a>
+    </div>
 
-    <RevenueMission client:only="react">
-      <p slot="fallback">First Product の共有進捗を読み込み中…</p>
-    </RevenueMission>
+    <nav class="home-quick-nav" id="home-quick-nav" aria-label="ホームのクイックナビ" hidden>
+      <a href="/dashboard/tasks">Task Flow</a>
+      <a href="/dashboard/line">LINE</a>
+      <a href="/dashboard/ace-assets">ACE Assets</a>
+      <a href="/mind?action=capture">Capture</a>
+    </nav>
 
-    <section class="flow-section" aria-labelledby="flow-title">
+    <div class="home-layout-grid">
+      <div class="home-unit home-unit--cockpit">
+        <DashboardCockpit client:load />
+      </div>
+
+      <div class="home-unit home-unit--revenue">
+        <RevenueMission client:only="react">
+          <p slot="fallback">First Product の共有進捗を読み込み中…</p>
+        </RevenueMission>
+      </div>
+
+      <div class="home-unit home-unit--flow">
+        <section class="flow-section" aria-labelledby="flow-title">
       <div class="section-head">
         <div><p class="kicker">FLOW</p><h2 id="flow-title">流れを見失った時だけ、ここへ戻る。</h2></div>
         <p>Dashboardを読むための説明ではなく、循環の地図。</p>
@@ -66,9 +87,11 @@ const deepDoors = [
           </a>
         ))}
       </div>
-    </section>
+        </section>
+      </div>
 
-    <section class="output-section" id="output" aria-labelledby="output-title">
+      <div class="home-unit home-unit--output">
+        <section class="output-section" id="output" aria-labelledby="output-title">
       <div class="section-head">
         <div><p class="kicker">OUTPUT</p><h2 id="output-title">外へ流す。</h2></div>
         <p>細かい制作・公開は各ページへ。公開はHuman Gate。</p>
@@ -78,6 +101,24 @@ const deepDoors = [
         <a class="output-card green" href="/dashboard/line"><span>L</span><div><strong>LINE Flow</strong><small>教育・関係・顧客導線を動かす</small></div><b>→</b></a>
         <a class="output-card blue" href="/dashboard/ace-assets"><span>A</span><div><strong>ACE Assets</strong><small>学びを教材へ変える</small></div><b>→</b></a>
       </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="home-style-section" aria-labelledby="home-style-title">
+      <div class="home-style-heading">
+        <div><p class="kicker">STYLE GALLERY</p><h2 id="home-style-title">好きな画面を組み立てる。</h2></div>
+        <a href="/dashboard/design-templates">スタイル・構成・部品を選ぶ →</a>
+      </div>
+      <div class="home-style-preview-rail">
+        {homeDesignPresets.map(preset => (
+          <a href={`/dashboard/design-templates?style=${preset.id}`} class="home-style-preview" aria-label={`${preset.name} のサンプルとプレビューを開く`}>
+            <img src={`/assets/dashboard-style-presets/${preset.id}.svg`} alt="" width="720" height="440" loading="lazy" decoding="async" />
+            <strong>{preset.name}</strong>
+          </a>
+        ))}
+      </div>
+      <p class="home-style-hint">画像をタップすると拡大プレビューへ。適用するまではホームの表示は変わらない。</p>
     </section>
 
     <details class="deep-section">
@@ -95,6 +136,30 @@ const deepDoors = [
     <footer class="dash-foot"><p>Dashboard Cockpit v0.2 · contrast-first</p><span>Projectを見れば済むことは質問にしない。UI配置はoverlay、正本変更は既存Gateを維持。</span></footer>
   </div>
 </DashboardLayout>
+
+<script>
+  import { loadHomeDesign, describeHomeDesign } from '../../data/homeDesignCombinations';
+  try {
+    const config = loadHomeDesign(localStorage);
+    if (config) {
+      const shell = document.getElementById('dashboard-home-shell');
+      const indicator = document.getElementById('home-design-indicator');
+      const nav = document.getElementById('home-quick-nav');
+      const label = document.getElementById('home-design-label');
+      shell?.setAttribute('data-home-preset', config.style);
+      shell?.setAttribute('data-home-layout', config.layout);
+      shell?.setAttribute('data-home-buttons', config.buttons);
+      shell?.setAttribute('data-home-cards', config.cards);
+      shell?.setAttribute('data-home-navigation', config.navigation);
+      shell?.setAttribute('data-home-cta', config.cta);
+      if (indicator) indicator.hidden = false;
+      if (nav) nav.hidden = false;
+      if (label) label.textContent = `適用中：${describeHomeDesign(config)}`;
+    }
+  } catch {
+    // Invalid/unavailable storage never breaks the original home layout.
+  }
+</script>
 
 <style>
   .dash-shell{--panel:#fff;--muted:#68717b;--hairline:#e3e0db;max-width:1240px;margin:0 auto;padding-bottom:42px}
