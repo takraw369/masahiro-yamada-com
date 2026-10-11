@@ -116,7 +116,11 @@
     $('verdict').textContent=(pending.correct?'○ 正解':'× 正解：'+(q.expected||q.choices[q.answer]));
     $('explanation').textContent=q.explanation;
     $('choice-reasons').innerHTML=q.choices?`<ol>${q.choices.map((v,i)=>`<li><b>${'ABCD'[i]} ${escape(v)}${i===q.answer?'（正解）':''}</b><br>${escape(q.choiceNotes[i])}</li>`).join('')}</ol>`:`<p>模範：${escape(q.expected)}</p>`;
-    $('source').href=q.source.url;$('source').textContent=q.source.label;$('review').hidden=false;
+    $('source').href=q.source.url;$('source').textContent=q.source.label;
+    const section=q.guide||deepGuide[q.id],deep=$('weakpoint-depth');
+    deep.hidden=!section;
+    if(section)deep.href='/otsu4/weakpoints/#'+encodeURIComponent(section);
+    $('review').hidden=false;
   }
   function commit(confidence){
     if(!pending||!session)return;
