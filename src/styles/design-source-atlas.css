@@ -1,0 +1,31 @@
+/* Draft Design Studio Research Atlas — original CSS, no external dependencies */
+.ds-atlas{max-width:1120px;margin:48px auto 56px;min-width:0;padding:28px 24px;color:#2c343a;background:#f5f4f0;border:1px solid #d9d7d0}
+.ds-atlas *{box-sizing:border-box;min-width:0}
+.ds-atlas-heading{display:flex;align-items:start;justify-content:space-between;gap:18px;margin-bottom:24px}
+.ds-atlas-kicker{font-size:.7rem;letter-spacing:.15em;font-weight:800;color:#8e6736}
+.ds-atlas-heading h2{font-size:clamp(1.4rem,3vw,2.2rem);line-height:1.2;letter-spacing:-.035em;margin:12px 0}
+.ds-atlas-heading em{color:#90642d;font-style:normal}
+.ds-atlas-heading p:not(.ds-atlas-kicker){max-width:60ch;line-height:1.8;font-size:.85rem;color:#58616a}
+.ds-atlas-heading>a{flex:none;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:10px 13px;background:white;color:#6a4c24;border:1px solid #cbbba2;text-decoration:none;font-size:.78rem;font-weight:800}
+.ds-atlas-groups{display:grid;gap:12px}
+.ds-atlas-group{border:1px solid #d5d5cf;background:#fff}
+.ds-atlas-group>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:15px 16px;cursor:pointer;min-height:66px}
+.ds-atlas-group>summary::-webkit-details-marker{display:none}
+.ds-atlas-group>summary span:nth-child(2){flex:1}
+.ds-atlas-group>summary strong{display:block;font-size:.98rem}
+.ds-atlas-group>summary small{display:block;font-size:.73rem;line-height:1.6;color:#686f75;margin-top:2px}
+.ds-atlas-chevron{font-size:1.5rem;line-height:1;color:#956b31;display:inline-block;transition:transform .2s ease}
+.ds-atlas-group[open] .ds-atlas-chevron{transform:rotate(90deg)}
+.ds-atlas-count{font-size:.66rem;color:#7d694d;white-space:nowrap}
+.ds-atlas-grid{padding:0 15px 15px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ds-atlas-card{border:1px solid #e1dfd8;background:#fcfbf8;padding:16px;display:flex;flex-direction:column;align-items:flex-start}
+.ds-atlas-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:.63rem;font-weight:750;color:#6d5437}
+.ds-atlas-meta span{padding:4px 6px;border:1px solid #d8cbb9}
+.ds-atlas-card h3{font-size:1.05rem;line-height:1.35;margin:11px 0 6px;overflow-wrap:anywhere}
+.ds-atlas-card p{font-size:.75rem;line-height:1.8;color:#596169;flex:1;margin:0 0 14px}
+.ds-atlas-card a{min-height:44px;display:inline-flex;align-items:center;gap:8px;color:#79501e;font-size:.79rem;font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.ds-atlas-method{border-left:3px solid #987446;background:#ebe7de;padding:14px 16px;font-size:.78rem;line-height:1.8;margin-top:18px}
+.ds-atlas-disclaimer{font-size:.7rem;line-height:1.8;color:#747777;margin-top:14px}
+.ds-atlas a:focus-visible,.ds-atlas summary:focus-visible{outline:3px solid #386eb8;outline-offset:2px}
+@media(max-width:600px){.ds-atlas{padding:18px 12px;margin:30px auto}.ds-atlas-heading{flex-direction:column}.ds-atlas-heading>a{align-self:flex-start}.ds-atlas-grid{grid-template-columns:1fr;padding:0 10px 10px}.ds-atlas-group>summary{padding:12px 10px;gap:7px}.ds-atlas-count{font-size:.58rem}}
+@media(prefers-reduced-motion:reduce){.ds-atlas-chevron{transition:none}}

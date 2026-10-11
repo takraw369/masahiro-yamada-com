@@ -50,7 +50,7 @@ function messageFor(error: unknown) {
   return messages[code] || '共有保存を完了できませんでした。入力を残したまま、接続と共有状態を確認してください。';
 }
 
-export default function RevenueMission() {
+export default function RevenueMission({readOnly=false}:{readOnly?:boolean}={}) {
   const [board, setBoard] = useState<BoardSnapshot | null>(null);
   const [revision, setRevision] = useState(0);
   const [mission, setMission] = useState<Mission>(createRevenueMission);
@@ -67,7 +67,7 @@ export default function RevenueMission() {
   const stageIndex = REVENUE_STAGES.indexOf(mission.state);
   const afterLive = stageIndex >= REVENUE_STAGES.indexOf('LIVE');
   const nextStage = REVENUE_STAGES[stageIndex + 1];
-  const disabled = busy || !board || conflict;
+  const disabled = readOnly || busy || !board || conflict;
 
   async function load() {
     setBusy(true); setError(''); setStatus('共有 FLOW Board を読み込み中…');

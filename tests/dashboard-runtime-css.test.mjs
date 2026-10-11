@@ -50,7 +50,12 @@ test('dynamically populated pages load route-isolated global styles without edit
     const source = await readFile(new URL(name, pageDir), 'utf8');
     const styleName = name.replace(/\.astro$/, '.css');
     const css = await readFile(new URL('public/assets/dashboard-runtime/' + styleName, root), 'utf8');
-    assert.ok(source.includes('<style>'), name + ' page remains unchanged');
+    if (name === 'content-flow.astro') {
+      assert.match(source, /publishing-flow-base\.css/);
+      const owned = await readFile(new URL('src/styles/publishing-flow-base.css', root), 'utf8');
+      assert.match(owned, /\.flow-shell \.materials article/);
+      assert.match(owned, /\.flow-shell \.results article/);
+    } else assert.ok(source.includes('<style>'), name + ' retains its scoped styles');
     assert.ok(css.includes('@scope (.' + pageRoot + ')'), name + ' runtime style is page-bounded');
     assert.match(css, /:scope\s*\{/, name);
     assert.ok(layout.includes("'" + name.replace('.astro','') + "'"), name + ' mapped');

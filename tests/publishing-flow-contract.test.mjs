@@ -9,12 +9,15 @@ const flow = await readFile(new URL('../src/pages/dashboard/content-flow.astro',
 const post = await readFile(new URL('../src/pages/dashboard/post.astro', import.meta.url), 'utf8');
 const dashboard = await readFile(new URL('../src/pages/dashboard/index.astro', import.meta.url), 'utf8');
 
+const homeDoors=await readFile(new URL('../src/data/dashboardHome.ts',import.meta.url),'utf8');
+
 test('Publishing Flow stays a local decision overlay over existing canonical surfaces', () => {
   assert.match(flow, /const oldKey = 'masa-content-flow-v1'/);
   assert.match(flow, /masa-publishing-flow-v2/);
   assert.match(flow, /正式な配信実績・KPIはDISTRIBUTION_OSへ戻す/);
   assert.match(flow, /href="\/dashboard\/content-schedule"/);
-  assert.match(dashboard, /href="\/dashboard\/content-flow"/);
+  assert.match(dashboard, /HomeOutputDoors/);
+  assert.match(homeDoors, /href:'\/dashboard\/content-flow'/);
   assert.doesNotMatch(flow, /\bfetch\s*\(/);
   assert.doesNotMatch(flow, /\/api\//);
 });
