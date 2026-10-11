@@ -42,7 +42,7 @@ test('new focused session reuses existing questions and starts with six newly ma
   assert.ok(topic.ids.includes('l57') && topic.ids.includes('l55'));
   const selected=core.select(rows,topic,core.load({getItem:()=>null}));
   assert.equal(selected.length,10);
-  assert.deepEqual(selected.slice(0,6).map(q=>q.id),ids);
+  assert.deepEqual(Array.from(selected.slice(0,6),q=>q.id),ids);
   assert.equal(new Set(selected.map(q=>q.concept)).size,10);
 });
 test('paper marks are not fabricated wrong answers and two confident correct attempts release the weakness',()=>{
