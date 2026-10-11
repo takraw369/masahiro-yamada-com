@@ -120,7 +120,7 @@ const drive = {
       <article class="panel" id="where">
         <div class="section-head compact"><div><p class="kicker">WHERE / CTA</p><h2>お願いの大きさを温度に合わせる</h2></div><a href={drive.rules} target="_blank" rel="noreferrer">配信ルール ↗</a></div>
         <div class="field-grid single">
-          <label>Primary Channel<select id="channel">{channels.map(([value,label]) => <option value={value}>{label}</option>)}</select></label>
+          <label>Primary Channel<select id="channel" aria-label="Primary Channel">{channels.map(([value,label]) => <option value={value}>{label}</option>)}</select></label>
           <label>CTA<input id="cta" placeholder="例：崩れ始めの最初のサインを1つ返信" /></label>
         </div>
         <div class="cta-hint"><span>このPhaseのCTA目安</span><strong id="cta-suggestion">保存・返信・フォローなど小さい反応</strong></div>
@@ -171,13 +171,13 @@ const drive = {
 
     <section class="panel inbox-panel">
       <div class="section-head compact"><div><p class="kicker">MATERIAL INBOX</p><h2>ネタを「テーマ × Phase」で置く</h2></div><p>完成させず、そのまま置いてOK。</p></div>
-      <form id="material-form"><textarea id="material-text" rows="3" placeholder="例：絶対音感＝正解を当てる能力、だけではないかもしれない"></textarea><button>今のPhaseに置く</button></form>
+      <form id="material-form"><textarea id="material-text" aria-label="素材メモ" rows="3" placeholder="例：絶対音感＝正解を当てる能力、だけではないかもしれない"></textarea><button>今のPhaseに置く</button></form>
       <div id="material-list" class="materials"></div>
     </section>
 
     <section class="panel result-panel" id="result">
       <div class="section-head compact"><div><p class="kicker">RESULT → LEARNING</p><h2>出した後に、次のFlowを決める</h2></div><a href={drive.distribution} target="_blank" rel="noreferrer">DISTRIBUTION_OS ↗</a></div>
-      <form id="result-form"><textarea id="result-text" rows="3" placeholder="例：返信は少ないが保存が伸びた。次はMAPで構造図にする。"></textarea><button>今回の学びを残す</button></form>
+      <form id="result-form"><textarea id="result-text" aria-label="今回の学び" rows="3" placeholder="例：返信は少ないが保存が伸びた。次はMAPで構造図にする。"></textarea><button>今回の学びを残す</button></form>
       <div id="result-list" class="results"></div>
       <small>ここは判断overlay。正式な配信実績・KPIはDISTRIBUTION_OSへ戻す。</small>
     </section>
