@@ -36,7 +36,7 @@
   function render(){
     const q=byId.get(session.ids[session.index]);if(!q)return finish();
     $('counter').textContent=`${session.index+1} / ${session.ids.length}`;$('progress').max=session.ids.length;$('progress').value=session.index;
-    $('question-label').textContent=topic.label+' / '+q.concept;$('question').textContent=q.question;
+    $('question-label').textContent=topic.label+' / '+q.concept+(q.paperMarkLabels?.length ? ' / 原紙 '+q.paperMarkLabels.join('・') : '');$('question').textContent=q.question;
     $('choices-help').hidden=!q.choices;
     $('submit-choice').hidden=!q.choices;
     $('choice-status').hidden=!q.choices;
