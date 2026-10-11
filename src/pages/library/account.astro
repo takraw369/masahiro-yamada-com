@@ -69,6 +69,7 @@ const selectedItem = libraryItemBySlug(selectedSlug);
 </PublicPageLayout>
 
 <script>
+  import { trackKnowledgeJourney } from '../../lib/knowledgeJourneyClient';
   type AuthConfig = { url: string; publishableKey: string };
   type Session = { access_token: string; refresh_token: string; expires_at: number; email?: string };
   const KEY = 'masa.ks.auth.session.v1';
@@ -284,6 +285,7 @@ const selectedItem = libraryItemBySlug(selectedSlug);
         readerBody.appendChild(markdownAsText(String(asset.body_markdown || '')));
         reader.hidden = false;
         setContentMessage('購入済みの教材を表示しています。');
+        void trackKnowledgeJourney('ks_item_view', { reader: 'member' }, assetSelect.value);
       }
     } catch {
       setContentMessage('ネットワークを確認して再試行してください。');
