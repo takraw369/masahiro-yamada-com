@@ -48,7 +48,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     !DASHBOARD_AUTH_BOOTSTRAP_APIS.has(pathname) &&
     !isCalendarSyncApi;
   const isHarnessApi = /^\/api\/(x|line)-harness(?:\/|$)/.test(pathname);
-  const isPrivate = isFlowMindPage || pathname.startsWith('/dashboard') || pathname.startsWith('/api/dashboard') || isHarnessApi;
+  const isShelfProtected = pathname === '/library/access'
+    || /^\/library\/[a-z0-9-]+\/read\/?$/.test(pathname)
+    || ['/api/library/claim-key', '/api/library/unlock'].includes(pathname);
+  const isPrivate = isFlowMindPage || pathname.startsWith('/dashboard') || pathname.startsWith('/api/dashboard') || isHarnessApi || isShelfProtected;
 
   if (isPrivate && !isCalendarSyncApi && !isSameOriginRequest(context.request)) {
     return new Response(JSON.stringify({ ok: false, error: 'same_origin_required' }), {
