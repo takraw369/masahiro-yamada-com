@@ -95,3 +95,15 @@ test('buyer portal never leaks premium text into public static HTML or enables c
   assert.doesNotMatch(portal, /body_markdown\s*:\s*['`]/);
   assert.match(catalog, /status: 'preview'/);
 });
+
+
+test('buyer-only route is not misclassified as an asset and completed purchase events are server-only', async () => {
+  const client = await read('src/lib/knowledgeJourneyClient.ts');
+  const endpoint = await read('src/pages/api/library/journey.ts');
+  const account = await read('src/pages/library/account.astro');
+  assert.match(client, /path === '\/library\/account'/);
+  assert.match(client, /assetSlugOverride/);
+  assert.match(account, /trackKnowledgeJourney\('ks_item_view'/);
+  assert.doesNotMatch(endpoint, /^\s*'ks_purchase',/m);
+  assert.match(endpoint, /verified payment webhook/);
+});
