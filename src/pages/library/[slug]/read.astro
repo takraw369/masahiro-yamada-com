@@ -5,10 +5,11 @@ import { accessCookieName,accessKeyPattern,renderProtectedMarkdown,sha256,slugPa
 const slug=Astro.params.slug||'';
 if(!slugPattern.test(slug))return new Response('Not found',{status:404});
 const key=Astro.cookies.get(accessCookieName(slug))?.value;
-let asset:{title:string;body_markdown:string;version:number}|null=null;
+type ProtectedAsset={title:string;body_markdown:string;version:number};
+let asset:ProtectedAsset|null=null;
 let unavailable=false;
 if(key&&accessKeyPattern.test(key)){
- try{const result=await supabaseRpc<{status:string;asset?:typeof asset}>(getSiteStorageEnv(Astro.locals),'knowledge_shelf_key_content_v1',{p_slug:slug,p_key_hash:await sha256(key)});if(result.status==='ok'&&result.asset)asset=result.asset;}
+ try{const result=await supabaseRpc<{status:string;asset?:ProtectedAsset}>(getSiteStorageEnv(Astro.locals),'knowledge_shelf_key_content_v1',{p_slug:slug,p_key_hash:await sha256(key)});if(result.status==='ok'&&result.asset)asset=result.asset;}
  catch{unavailable=true;Astro.response.status=503;}
 }
 ---

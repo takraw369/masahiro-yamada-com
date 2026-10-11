@@ -16,7 +16,7 @@ const { title, fullHeight = false, focusMode = false, eyebrow = 'MASA OS', previ
 const pathname = Astro.url.pathname;
 const runtimeStylePages = new Set([
   'tasks', 'evidence', 'choice-lab', 'board', 'graph', 'design-lab',
-  'question-lab', 'relationships', 'voice', 'ace-assets', 'content-flow',
+  'question-lab', 'relationships', 'voice', 'ace-assets', 'content-flow', 'content-studio',
 ]);
 const runtimePage = pathname.startsWith('/dashboard/') ? pathname.split('/').filter(Boolean).at(-1) || '' : '';
 const runtimeStyleHref = runtimeStylePages.has(runtimePage) ? `/assets/dashboard-runtime/${runtimePage}.css` : null;
