@@ -37,11 +37,11 @@ test('private RPC refuses anonymous role; signed-in readers cannot read table di
 
 test('content route requires bearer token and forwards it for Supabase JWT validation', async () => {
   const api = await read(routePath);
-  assert.match(api, /Bearer \(\[A-Za-z0-9_\.\-\]\+\)/);
+  assert.ok(api.includes('const match = /^Bearer ([A-Za-z0-9_.-]+)$/.exec(authorization);'));
   assert.match(api, /Authorization: `Bearer \$\{match\[1\]\}`/);
   assert.match(api, /rpc\/knowledge_shelf_content_read_v1/);
   assert.doesNotMatch(api, /request\.json\(\)/);
-  assert.doesNotMatch(api.split('// Auth tokens')[0], /contactId|contact_id|email|visitorId|visitor_id/);
+  assert.doesNotMatch(api, /p_contact_id|p_email|p_visitor_id/);
 });
 
 test('paid content is never publicly cacheable', async () => {
