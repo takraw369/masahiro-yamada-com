@@ -49,7 +49,7 @@
   const grade = (q,value) => q.category==='practical' ? q.accepted.some(v=>normalize(v)===normalize(value)) : Number(value)===q.answer;
   function matches(q,topic) { return topic.marked ? Boolean(q.lectureMarked) : topic.category ? q.category===topic.category : topic.ids ? topic.ids.includes(q.id) : Boolean(topic.quota?.[q.category]); }
   function priority(q,s,now) {
-    let n=(weak(q,s)?120:0)+((s.attempts[q.id]||0)===0?100:0)+(q.officialSignal?25:0)+(q.lectureMarked?35:0)+(q.paperMarked?45:0);
+    let n=(weak(q,s)?120:0)+((s.attempts[q.id]||0)===0?100:0)+(q.officialSignal?25:0)+(q.lectureMarked?35:0)+(q.paperMarked?45:0)+(q.freshPaperFocus?60:0);
     if ((s.streak[q.id]||0)>=2 && !weak(q,s)) n-=90;
     const last=[...s.history].reverse().find(r=>r.id===q.id);
     if(last && now-last.at<2*60*60*1000) n-=100;
