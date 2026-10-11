@@ -1,10 +1,13 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import HomeDesignConfigurator from '../../components/dashboard/HomeDesignConfigurator';
+import DesignSourceAtlas from '../../components/dashboard/DesignSourceAtlas.astro';
+import '../../styles/design-source-atlas.css';
 ---
 
 <DashboardLayout title="Design Studio" eyebrow="MASA DESIGN INTELLIGENCE">
   <HomeDesignConfigurator client:only="react">
     <p slot="fallback">デザインのサンプルを読み込み中…</p>
   </HomeDesignConfigurator>
+  <DesignSourceAtlas />
 </DashboardLayout>
