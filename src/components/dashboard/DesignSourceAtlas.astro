@@ -1,0 +1,69 @@
+---
+/**
+ * Source Atlas for MASA Design Studio (research links only).
+ * Primary source of truth: MASA DESIGN INTELLIGENCE Google Doc.
+ * No third-party assets, snippets, packages, tracking scripts or screenshots.
+ */
+const groups = [
+  {
+    id: 'screens', name: '画面全体・配置', description: '何を先に見せるか、情報の階層やページ全体の流れを研究。', expanded: true,
+    sites: [
+      { name: 'shadcn/ui Blocks', url: 'https://ui.shadcn.com/blocks', tag: 'Dashboard / Auth', priority: '最初に比較', use: 'MASA Dashboard・ACEの情報配置、サイドバーと画面構成。' },
+      { name: 'Shadcnblocks', url: 'https://www.shadcnblocks.com/', tag: 'LP / Blocks', priority: 'LP候補', use: '勝ち筋OSのLP構成。Proブロックは利用権限を確認。' },
+      { name: 'Preline UI', url: 'https://preline.co/', tag: 'App / Marketing', priority: '実務画面', use: '運営ダッシュボード・情報の密度とレスポンシブ配置。' },
+      { name: 'Launch UI', url: 'https://www.launchuicomponents.com/', tag: 'Landing', priority: 'LP候補', use: '提供価値→信頼材料→申込CTAの順番。' },
+      { name: 'Tailwind Plus', url: 'https://tailwindcss.com/plus/ui-blocks', tag: 'Premium', priority: '構造研究', use: '洗練された画面構造を観察。コードは有償ライセンス。' },
+    ]
+  },
+  {
+    id: 'parts', name: '操作パーツ・入力', description: 'そのまま使う前に、使いやすさ・権利・React/Astro互換性を評価。', expanded: false,
+    sites: [
+      { name: 'Arc UI', url: 'https://uiarc.dev/', tag: 'React / Blocks', priority: '最初に比較', use: 'カード・画面ブロック・AI向け実装手順。Free/Proの条件を分けて検証。' },
+      { name: '21st.dev', url: 'https://21st.dev/', tag: 'Community UI', priority: '最初に比較', use: '操作パターンとAI用サンプル。個々の作者のライセンスを照合。' },
+      { name: 'Origin UI / coss', url: 'https://coss.com/origin/', tag: 'Form / Input', priority: '乙4に最適', use: '選択肢・入力・検索・並べ替え。学習者の誤タップ防止。' },
+      { name: 'HyperUI', url: 'https://www.hyperui.dev/', tag: 'Tailwind', priority: '軽量実装', use: 'ナビ・フォーム・カード。依存を増やさず小さく再構築。' },
+    ]
+  },
+  {
+    id: 'motion', name: '動き・体験', description: '驚きではなく、状態理解と次の行動に役立つアニメーションを選ぶ。', expanded: false,
+    sites: [
+      { name: 'Magic UI', url: 'https://magicui.design/', tag: 'Motion / LP', priority: 'LP演出', use: 'スクロール・ヒーロー・達成フィードバック。必要な箇所だけに。' },
+      { name: 'Aceternity UI', url: 'https://ui.aceternity.com/', tag: 'Motion / Hero', priority: '世界観', use: 'ACE/SLFの入口。モバイル負荷・reduced motionに注意。' },
+      { name: 'React Bits', url: 'https://reactbits.dev/', tag: 'React Motion', priority: '要ライセンス確認', use: 'トランジション・反応演出。再利用前に配布条件を個別確認。' },
+      { name: 'UI Layouts', url: 'https://www.ui-layouts.com/', tag: 'Motion / Layout', priority: '比較候補', use: '軽いカード・背景・配置の動き。情報理解が改善するか検証。' },
+    ]
+  },
+];
+---
+
+<section class="ds-atlas" id="source-atlas" aria-labelledby="ds-atlas-title">
+  <div class="ds-atlas-heading">
+    <div>
+      <p class="ds-atlas-kicker">06 / SOURCE ATLAS · RESEARCH</p>
+      <h2 id="ds-atlas-title">世界のUIを、<em>自分たちの構成へ。</em></h2>
+      <p>公開ライブラリを13件分類。配色だけでなく、<strong>画面構成・入力・動き</strong>からTTPできる原理を探す。リンクは外部の公式サイトへ移動します。</p>
+    </div>
+    <a href="https://docs.google.com/document/d/1Zzyj7SmCCKfxelVevjunbp-jaantlSDIMgXayu2JIsM/edit" target="_blank" rel="noopener noreferrer">Research 正本 ↗</a>
+  </div>
+  <div class="ds-atlas-groups">
+    {groups.map(group => (
+      <details class="ds-atlas-group" open={group.expanded}>
+        <summary><span class="ds-atlas-chevron" aria-hidden="true">›</span><span><strong>{group.name}</strong><small>{group.description}</small></span><span class="ds-atlas-count">{group.sites.length} sources</span></summary>
+        <div class="ds-atlas-grid">
+          {group.sites.map(site => (
+            <article class="ds-atlas-card">
+              <div class="ds-atlas-meta"><span>{site.tag}</span><span>{site.priority}</span></div>
+              <h3>{site.name}</h3>
+              <p>{site.use}</p>
+              <a href={site.url} target="_blank" rel="noopener noreferrer" aria-label={site.name + 'の公式サイトを開く'}>公式サイトで見る <span aria-hidden="true">↗</span></a>
+            </article>
+          ))}
+        </div>
+      </details>
+    ))}
+  </div>
+  <div class="ds-atlas-method">
+    <strong>使い方：</strong> 参考を選ぶ → 構造・操作を分解 → 独自に再設計 → このDesign Studioで比較 → iPhoneで検証 → KEEP / REFINE / DROP
+  </div>
+  <p class="ds-atlas-disclaimer">このカタログは研究用リンク集です。外部サイトの画像・コードは取得していません。各コンポーネントの権利、React/Astro互換性、アクセシビリティを確認してから実装します。既存の8参考サイトとDesign Labの記録は維持します。</p>
+</section>
