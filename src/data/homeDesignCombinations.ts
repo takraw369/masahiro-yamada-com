@@ -129,3 +129,9 @@ export function homeRegionOrder(layout:HomeLayoutId, phone:boolean):HomeRegion[]
     default: return ['cockpit','revenue','flow','output'];
   }
 }
+
+// MASA selected this concrete combination in the source preview on 2026-10-11.
+// A recoverable choice, not a global default or a proven cross-product grammar.
+export const MASA_SELECTED_HOME_DESIGN:HomeDesignConfig={
+  version:2,style:'night',layout:'tiles',buttons:'soft',cards:'soft',navigation:'chips',cta:'solid',
+};

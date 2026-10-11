@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { homeDesignPresets, isHomeDesignPreset } from '../../data/homeDesignPresets';
 import {
-  DEFAULT_HOME_DESIGN, HOME_DESIGN_FAVORITES_KEY,
+  DEFAULT_HOME_DESIGN, MASA_SELECTED_HOME_DESIGN, HOME_DESIGN_FAVORITES_KEY,
   homeComponentPresets, homeLayoutPresets, describeHomeDesign, isHomeDesignConfig, loadHomeDesign,
   resetHomeDesign, writeHomeDesign, type HomeDesignConfig,
 } from '../../data/homeDesignCombinations';
@@ -122,6 +122,7 @@ export default function HomeDesignConfigurator() {
       <div><p className="overline">DESIGN STUDIO</p><h1>自分の動きに、<br/><em>合う画面を。</em></h1></div>
       <p>まず配置を選ぶ。見た目と部品はあとから。<br/>画面を見ながら、しっくりくる形を探そう。</p>
     </header>
+    <div className="studio-adopted"><div><span>選んだ組み合わせ</span><strong>夜の集中 × すぐに届ける</strong><small>やわらかい面・チップの導線・はっきりした一手</small></div><button type="button" onClick={()=>{setChoice({...MASA_SELECTED_HOME_DESIGN});setStatus('選んだ組み合わせを読み込みました。適用するまでホームは変わりません。');}}>この組み合わせを試す</button></div>
     <div className="studio-workbench">
       <div className="studio-picker" id="studio-choices">
         <div className="studio-tabs" role="tablist" aria-label="デザインを選ぶ順番">

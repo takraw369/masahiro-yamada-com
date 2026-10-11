@@ -37,7 +37,7 @@ Components visibly affect actual home output cards, real links and quick home na
 4. Apply / reload / favorite save / favorite load / favorite remove / standard reset; try legacy style v1 and malicious/corrupt v2 JSON; confirm baseline unchanged.
 5. Check focus, color contrast and reduced-motion behavior, and that no unrelated Dashboard/ACE routes change.
 6. CI build, typecheck-release, tests, security and isolated Worker preview must pass.
-7. MASA visual verdict **KEEP / REFINE / DROP**, *then* separate merge & production release approval. Keep draft until visual gate passes.
+7. MASA visual verdict **KEEP / REFINE / DROP** before adopting a combination. Follow already-authorized release scope; do not ask again for permission supplied in the session.
 
 ## Follow-up opportunities
 After hands-on use, promote approved layout/part combinations to reusable Design Grammar, support device-independent saved presets (authenticated Cloud state with explicit choice and revision policy), and add per-product template targeting to ACE, SLF and sales landing pages. Avoid importing a reference site's exact code until licensing and accessibility are checked.
@@ -48,3 +48,10 @@ User feedback: difficult to see, read, choose and use. Structure and feedback pr
 Local evidence: source-bundled React preview with explicitly synthetic fixtures; 320/375/390/430px page widths checked without horizontal overflow; active picker controls at least 44px and editable inputs 16px. Read-only nested preview controls are inert. Structure switch changed actual region order; tab arrow navigation worked. Apply/favorites/reset verification and exact-head CI are recorded in the Drive checkpoint once observed. Local dependencies differ from the project lockfile, so localhost is visual interaction evidence only. Production deployment, physical iPhone use and MASA taste verdict remain UNVERIFIED until separately observed.
 
 Next phases: (2) carry MASA-approved composition to Dashboard and Publishing Flow, then (3) refine X/ACE and public conversion pages for each audience. Reuse this grammar only after observed use; do not equate aesthetic polish with proven popularity or conversion.
+
+## Phase 2 selected combination | 2026-10-11
+MASA said 選んだ; the applied local Home DOM showed **night / tiles / soft buttons / soft cards / chips / solid CTA**. This exact combination is recoverable via the named choice in Design Studio. It is not imposed as the default on other browsers. Explicit Apply remains required.
+
+Selected dark Home skins now use opaque readable widget surfaces, larger supporting text, consistent accent/field colors and 44px revenue controls. Publishing Flow reads the same validated browser preference, prioritizes one draft-opening action before the metadata, uses Japanese task shortcuts and labels, and moves phase guidance/week planning/full roadmap behind native details. Its existing field IDs, storage schema, canonical Drive links, human publication boundary and handoff payload are preserved. Its base/choice CSS is globally bounded by the route root so runtime-added material/result rows receive the same styling.
+
+Source QA: 320/375/390/430px page overflow0; primary draft CTA in the first practical viewport; active actions≥44px and all text inputs16px. Selecting MAP updated the visible summary and previously folded guide, then TOUCH was restored. Release proof is the exact remote CI and deployment receipt in Drive, not this description.
