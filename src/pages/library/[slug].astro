@@ -126,6 +126,13 @@ const isMember = item.access === 'member' || item.access === 'pro';
     </div>
   </section>
 
+  <section class="public-section public-card buyer-entry">
+    <p class="item-kicker">MEMBER ACCESS / PREVIEW</p>
+    <h2>すでに購入・会員登録されている方へ</h2>
+    <p>会員用ページではメール認証後に購入・会員権限を確認します。現在は販売開始前の検証中で、未公開の教材本文は表示されません。</p>
+    <a class="public-btn" href={`/library/account?asset=${encodeURIComponent(item.slug)}`}>会員用ライブラリで確認する</a>
+  </section>
+
   <section class="public-section public-card item-bridge">
     <p class="item-kicker">NEXT DEPTH</p>
     <h2>もっと深く知る必要が出たら。</h2>
