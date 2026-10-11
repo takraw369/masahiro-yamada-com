@@ -5,9 +5,18 @@ const answerFor = (answers, key) => Array.isArray(answers)
   ? answers.find((answer) => answer?.questionKey === key)?.value
   : undefined;
 const isYes = (value) => /^(true|yes|1|はい|希望する)$/i.test(asText(value));
-const hasInterest = (value) => {
-  const text = asText(value);
-  return Boolean(text) && !/^(false|no|none|0|いいえ|希望しない|不要)$/i.test(text);
+// Read-only interpretation of the current mental_condition_lead_v1 option keys.
+// These are routing hints, not diagnostic scores or medical judgments.
+const problemGuides = {
+  pressure: ['緊張・感情との向き合い方', '本番で揺れた瞬間のサインと、次の一動作に注意を戻す合図を一つずつ決めましょう。'],
+  mistake: ['ミスのあとの切り替え', '直近のミスを一つ振り返り、次のプレーに戻るための合図を一つ決めましょう。'],
+  confidence: ['自信の根拠を見つける', 'うまくできた場面を一つ思い出し、次も再現できる行動を一つ書きましょう。'],
+  direction: ['目標と次の一手', '次の目標を一文で書き、24時間以内に始められる最小の一手へ分解しましょう。'],
+  continuity: ['行動・習慣の再現性', '次の2日間だけ試す行動を一つ決め、「いつ・どこで始めるか」を書きましょう。'],
+  motivation: ['意欲の波との付き合い方', '調子が出ない日にも始められる、小さな行動を一つ決めておきましょう。'],
+  relationship: ['対話と期待の整理', '相手への期待と自分から伝えたいことを、一つずつ書き分けてみましょう。'],
+  body: ['身体・コンディション', '次の大事な場面の前後で、呼吸・姿勢・疲れのサインを一つだけ記録しましょう。'],
+  verbalize: ['状態の言語化', '直近の出来事について、身体の感覚・気持ち・行動を一語ずつメモしましょう。'],
 };
 const topicRules = [
   { match: /身体|体調|疲労|睡眠|コンディション|body|fatigue|sleep/i,
@@ -31,19 +40,28 @@ export function buildMentalCheckRecommendation(answers, questions = [], followup
     : null;
   const problemLabel = problemQuestion?.options?.find((o) => o?.option_key === problemKey)?.label;
   const selectedProblem = asText(problemLabel || problemKey).slice(0, 80);
-  const topic = topicRules.find((entry) => entry.match.test(selectedProblem));
+  const knownProblem = Object.prototype.hasOwnProperty.call(problemGuides, problemKey)
+    ? problemGuides[problemKey] : null;
+  const topic = knownProblem
+    ? { focus: knownProblem[0], action: knownProblem[1] }
+    : topicRules.find((entry) => entry.match.test(selectedProblem));
   const urgency = Number(asText(answerFor(answers, 'mental_v1_urgency')));
   const followupRequested = isYes(answerFor(answers, 'mental_v1_feedback_interest'));
   const supportFormat = asText(answerFor(answers, 'mental_v1_support_format'));
   const supportInterest = answerFor(answers, 'mental_v1_support_interest');
-  const wantsSupport = hasInterest(supportInterest) || /single|ongoing|個別|継続|単発/i.test(supportFormat);
-  const highIntent = followupRequested || (Number.isFinite(urgency) && urgency >= 4 && wantsSupport);
+  const interestOptions = Array.isArray(supportInterest) ? supportInterest : [supportInterest];
+  // "info"/"unknown", self-study and group learning are NOT purchase intent.
+  const coachingRequested = interestOptions.some((value) => asText(value) === 'coaching');
+  const individualSupportRequested = supportFormat === 'single' || supportFormat === 'ongoing';
+  const highIntent = followupRequested || (
+    Number.isFinite(urgency) && urgency >= 4 && (coachingRequested || individualSupportRequested)
+  );
   const role = asText(answerFor(answers, 'mental_v1_role'));
   const isParentOrCoach = /parent|coach|guardian|保護者|親|指導者|コーチ/i.test(role);
   const offerFit = highIntent && (!isParentOrCoach || followupRequested);
 
   return {
-    focus: topic?.focus || (selectedProblem && !/^other|unknown|none$/i.test(selectedProblem)
+    focus: topic?.focus || (problemLabel && !/^other$/i.test(problemKey)
       ? selectedProblem : '目標・身体・感情・行動のつながり'),
     nextAction: topic?.action || '直近の大事な場面を一つ振り返り、「最初のサイン」と「次の一手」を短く書き出しましょう。',
     primary: offerFit ? 'line' : 'toolkit',
