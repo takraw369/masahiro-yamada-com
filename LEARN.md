@@ -56,3 +56,6 @@ MASA: 見づらい・読みづらい・選びづらい・使いづらい。色�
 
 ## 2026-10-11 | MASAが選んだUI
 実画面で採用した組み合わせ：Night / Action Tiles / Soft buttons / Soft cards / Chips / Solid CTA。先に発信の入口を置き、黒い作業面と明確な主操作を好むという今回の観測。別プロダクトや全ユーザーの正解には一般化しない。選択を端末だけに閉じ込めず、Driveとコードの再現可能な案へ残す。
+
+## 2026-10-11 | 入力文字の本番カスケード
+Publishing FlowのSource QAでは16pxでも、本番の共通masa-readable.cssの`.content input`等の!importantがスマホで15.2pxへ縮小した。画面専用の入力サイズ下限も同等の優先度で保持し、Source QAだけでなく共通CSSを含む認証済み本番のcomputed styleを確認する。
