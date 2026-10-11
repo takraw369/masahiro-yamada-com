@@ -58,3 +58,40 @@ test('public catalog remains preview-only until separate human approval', async 
   const detail = await read('src/pages/library/[slug].astro');
   assert.match(detail, /item\.status === 'live' && Boolean\(item\.checkoutUrl\)/);
 });
+
+
+test('verified-email claim links only an existing unique and email-confirmed Contact', async () => {
+  const sql = await read('migrations/20261011_knowledge_shelf_verified_email_claim_v1.sql');
+  assert.match(sql, /auth\.uid\(\)/);
+  assert.match(sql, /auth\.users/);
+  assert.match(sql, /email_confirmed_at is not null/);
+  assert.match(sql, /v_matches <> 1/);
+  assert.match(sql, /v_linked_uid <> v_uid/);
+  assert.match(sql, /auth_user_id = v_uid/);
+  assert.doesNotMatch(sql, /insert into public\.contacts|insert into public\.person_entitlements/i);
+  assert.match(sql, /revoke all on function public\.knowledge_shelf_claim_verified_email_v1\(\) from public, anon/);
+  assert.match(sql, /grant execute on function public\.knowledge_shelf_claim_verified_email_v1\(\) to authenticated, service_role/);
+});
+
+test('buyer portal has passwordless verified-code login and no dashboard secret dependency', async () => {
+  const portal = await read('src/pages/library/account.astro');
+  const config = await read('src/pages/api/library/auth/config.ts');
+  for (const expected of ['auth/v1/', "'otp'", "'verify'", "'email'", 'create_user: true',
+    'knowledge_shelf_claim_verified_email_v1', '/api/library/content/', 'logout', 'sessionStorage']) {
+    assert.ok(portal.includes(expected), `missing buyer auth flow step: ${expected}`);
+  }
+  assert.match(portal, /textContent/);
+  assert.match(portal, /createTextNode|markdownAsText/);
+  assert.doesNotMatch(portal, /innerHTML|DASHBOARD_PASSWORD|service_role/);
+  assert.match(config, /SUPABASE_PUBLISHABLE_KEY/);
+  assert.doesNotMatch(config, /SUPABASE_SERVICE_ROLE|DASHBOARD_PASSWORD/);
+});
+
+test('buyer portal never leaks premium text into public static HTML or enables checkout', async () => {
+  const portal = await read('src/pages/library/account.astro');
+  const catalog = await read('src/lib/libraryCatalog.ts');
+  assert.match(portal, /PREVIEW \/ ACCESS TEST/);
+  assert.match(portal, /cache: 'no-store'/);
+  assert.doesNotMatch(portal, /body_markdown\s*:\s*['`]/);
+  assert.match(catalog, /status: 'preview'/);
+});
