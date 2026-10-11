@@ -55,3 +55,30 @@ MASA said 選んだ; the applied local Home DOM showed **night / tiles / soft bu
 Selected dark Home skins now use opaque readable widget surfaces, larger supporting text, consistent accent/field colors and 44px revenue controls. Publishing Flow reads the same validated browser preference, prioritizes one draft-opening action before the metadata, uses Japanese task shortcuts and labels, and moves phase guidance/week planning/full roadmap behind native details. Its existing field IDs, storage schema, canonical Drive links, human publication boundary and handoff payload are preserved. Its base/choice CSS is globally bounded by the route root so runtime-added material/result rows receive the same styling.
 
 Source QA: 320/375/390/430px page overflow0; primary draft CTA in the first practical viewport; active actions≥44px and all text inputs16px. Selecting MAP updated the visible summary and previously folded guide, then TOUCH was restored. Release proof is the exact remote CI and deployment receipt in Drive, not this description.
+
+## X editor adoption — 2026-10-12
+
+`/dashboard/post` reads the same validated device choice as Home and Flow. The
+editor precedes draft generation, account strategy and profile-loop helpers;
+these helpers remain available in native closed disclosures. Flow import remains
+explicit, expires after 24 hours and refuses to replace an existing draft,
+including while the composer is hidden behind its reserved-posts tab.
+
+Before the existing POST endpoints are called, a review shows the exact copy,
+active account and local scheduling time. Editing or expired scheduling makes
+that review invalid. Tests use synthetic accounts; UI QA never posts to X.
+
+Motion grammar is reused from PR #303, head
+`c577f033c7f64bb287a48f1fabcd035216ba9730`: the identical
+`src/data/motionPresetCatalog.ts` supplies `quiet-fade` (260ms) for review,
+`press` (180ms) for button response, and `success` (340ms) for completion.
+Only opacity/transform animate; no looping, typing animation or layout tween.
+Reduced-motion disables animation, transition and press translation. This
+adoption does not merge or publish the separate Motion Picker route; PR #303
+continues to own that route and its selection interface.
+
+Source QA baseline at 390px: the former editor was 6036px below page start.
+With Flow import closed, the source preview editor starts at 435px and its
+review action ends at 742px (844px viewport). Check the deployed computed
+styles as well as source preview: common Dashboard CSS can override fields.
+Physical iPhone and user impact remain separate, unverified acceptance items.

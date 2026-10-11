@@ -14,40 +14,25 @@ export default function XOperationsCenter() {
   }, []);
 
   return (
-    <section style={{ marginTop: 18 }}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+    <section className="x-operations" aria-label="編集と接続状況">
+      <div hidden={tab !== 'publish'}><XCommandCenter /></div>
+      <div className="x-operations-nav">
         <button
           type="button"
           onClick={() => setTab('publish')}
-          style={tabStyle(tab === 'publish')}
+          aria-pressed={tab === 'publish'}
         >
-          ✍️ 投稿・予約
+          編集する
         </button>
         <button
           type="button"
           onClick={() => setTab('health')}
-          style={tabStyle(tab === 'health')}
+          aria-pressed={tab === 'health'}
         >
-          🩺 X Health
+          接続と分析
         </button>
       </div>
-      <div hidden={tab !== 'publish'}><XCommandCenter /></div>
       {tab === 'health' && <XHealthPanel />}
     </section>
   );
-}
-
-function tabStyle(active: boolean): React.CSSProperties {
-  return {
-    flex: 1,
-    padding: '11px 12px',
-    borderRadius: 11,
-    border: `1px solid ${active ? 'rgba(154,109,36,.42)' : 'rgba(37,33,29,.13)'}`,
-    background: active ? 'rgba(154,109,36,.08)' : '#fff',
-    color: active ? '#9a6d24' : '#736b61',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-    fontSize: '.9rem',
-    fontWeight: 800,
-  };
 }

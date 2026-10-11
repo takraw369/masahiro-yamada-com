@@ -1,270 +1,153 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type CSSProperties } from 'react';
+import { motionPresets } from '../../data/motionPresetCatalog';
+import { LAST_X_ACCOUNT_KEY } from '../../lib/xAccountPlaybook';
+import { X_COMPOSER_MAX_CHARS as MAX_CHARS, prepareXComposeReview, isCurrentXComposeReview, type XComposeAccount, type XComposeReview } from '../../lib/xComposerReview';
 
 const CATEGORIES = [
-  {
-    id: 'brain',
-    label: '脳科学',
-    color: '#2563EB',
-    bg: 'rgba(37,99,235,0.08)',
-    border: 'rgba(37,99,235,0.24)',
-    keywords: ['前頭前野', 'ドーパミン', '神経可塑性', '集中力', 'ADHD', '記憶定着', 'ワーキングメモリ', '睡眠と脳', 'フロー状態', '認知科学'],
-  },
-  {
-    id: 'health',
-    label: '健康',
-    color: '#15803D',
-    bg: 'rgba(21,128,61,0.08)',
-    border: 'rgba(21,128,61,0.24)',
-    keywords: ['呼吸法', '自律神経', 'パフォーマンス', '食事設計', '睡眠最適化', '体のリズム', '筋肉と脳', '回復力', 'バイオハック', 'コンディション'],
-  },
-  {
-    id: 'relation',
-    label: 'リレーション',
-    color: '#BE185D',
-    bg: 'rgba(190,24,93,0.08)',
-    border: 'rgba(190,24,93,0.24)',
-    keywords: ['コーチング', '信頼構築', '心理的安全性', 'コミュニティ', '選手との関係', '傾聴力', '影響力', 'チーム設計', '共感', 'メンター'],
-  },
+  { id: 'brain', label: '脳科学', keywords: ['前頭前野', 'ドーパミン', '神経可塑性', '集中力', 'ADHD', '記憶定着', 'ワーキングメモリ', '睡眠と脳', 'フロー状態', '認知科学'] },
+  { id: 'health', label: '健康', keywords: ['呼吸法', '自律神経', 'パフォーマンス', '食事設計', '睡眠最適化', '体のリズム', '筋肉と脳', '回復力', 'バイオハック', 'コンディション'] },
+  { id: 'relation', label: 'リレーション', keywords: ['コーチング', '信頼構築', '心理的安全性', 'コミュニティ', '選手との関係', '傾聴力', '影響力', 'チーム設計', '共感', 'メンター'] },
 ] as const;
-
 type CategoryId = (typeof CATEGORIES)[number]['id'];
-
-interface XAccount {
-  id: string;
-  username: string;
-  isActive: boolean;
-}
-
-interface ScheduledPost {
-  id: string;
-  xAccountId: string;
-  text: string;
-  scheduledAt: string;
-  status: string;
-}
-
-const MAX_CHARS = 280;
+type ScheduledPost = { id: string; xAccountId: string; text: string; scheduledAt: string; status: string };
+// Reuse PR #303's canonical grammar; only user-triggered feedback moves.
+const motionStyle = Object.fromEntries(['quiet-fade', 'press', 'success'].flatMap(id => {
+  const preset = motionPresets.find(item => item.id === id)!;
+  return [[`--x-${id}-duration`, `${preset.duration}ms`], [`--x-${id}-easing`, preset.easing]];
+})) as CSSProperties;
 
 export default function XCommandCenter() {
-  const [accounts, setAccounts] = useState<XAccount[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<string>('');
+  const [accounts, setAccounts] = useState<XComposeAccount[]>([]);
+  const [accountState, setAccountState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [selectedAccount, setSelectedAccount] = useState('');
   const [activeCat, setActiveCat] = useState<CategoryId | null>(null);
   const [text, setText] = useState('');
   const [mode, setMode] = useState<'now' | 'schedule'>('now');
   const [scheduledAt, setScheduledAt] = useState('');
   const [scheduled, setScheduled] = useState<ScheduledPost[]>([]);
+  const [scheduleState, setScheduleState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [status, setStatus] = useState<'idle' | 'posting' | 'ok' | 'err'>('idle');
   const [statusMsg, setStatusMsg] = useState('');
   const [tab, setTab] = useState<'compose' | 'scheduled'>('compose');
+  const [review, setReview] = useState<XComposeReview | null>(null);
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  const draftField = useRef<HTMLTextAreaElement>(null);
+  const sending = useRef(false);
 
-  useEffect(() => {
-    fetch('/api/x-harness/x-accounts')
-      .then(r => r.json() as Promise<{ data: XAccount[] }>)
-      .then(d => {
-        const active = (d.data ?? []).filter(a => a.isActive);
-        setAccounts(active);
-        if (active.length > 0) setSelectedAccount(active[0].id);
-      })
-      .catch(() => {});
-    loadScheduled();
-  }, []);
-
-  const loadScheduled = () => {
-    fetch('/api/x-harness/posts/scheduled')
-      .then(r => r.json() as Promise<{ data: ScheduledPost[] }>)
-      .then(d => setScheduled(d.data ?? []))
-      .catch(() => {});
-  };
-
-  const insertKeyword = (kw: string) => {
-    setText(prev => prev ? `${prev} #${kw}` : `#${kw}`);
-  };
-
-  const handlePost = async () => {
-    if (!text.trim() || !selectedAccount) return;
-    setStatus('posting');
+  async function loadAccounts() {
+    setAccountState('loading');
     try {
-      if (mode === 'now') {
-        const res = await fetch('/api/x-harness/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ xAccountId: selectedAccount, text }),
-        });
-        const json = await res.json() as { success: boolean; error?: string };
-        if (json.success) {
-          setStatus('ok'); setStatusMsg('投稿しました'); setText('');
-        } else {
-          setStatus('err'); setStatusMsg(json.error ?? 'エラー');
-        }
-      } else {
-        if (!scheduledAt) { setStatus('err'); setStatusMsg('日時を選択してください'); return; }
-        const res = await fetch('/api/x-harness/posts/schedule', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ xAccountId: selectedAccount, text, scheduledAt }),
-        });
-        const json = await res.json() as { success: boolean; error?: string };
-        if (json.success) {
-          setStatus('ok'); setStatusMsg('スケジュールしました'); setText(''); loadScheduled();
-        } else {
-          setStatus('err'); setStatusMsg(json.error ?? 'エラー');
-        }
-      }
-    } catch (e) {
-      setStatus('err'); setStatusMsg(String(e));
-    }
-    setTimeout(() => setStatus('idle'), 3000);
-  };
+      const res = await fetch('/api/x-harness/x-accounts');
+      if (!res.ok) throw new Error('accounts_unavailable');
+      const data = await res.json() as { data?: XComposeAccount[] };
+      if (!Array.isArray(data.data)) throw new Error('accounts_unavailable');
+      const active = data.data.filter(a => a.isActive);
+      setAccounts(active);
+      let last: string | null = null;
+      try { last = localStorage.getItem(LAST_X_ACCOUNT_KEY); } catch {}
+      setSelectedAccount(current => active.some(a => a.id === current) ? current : (active.find(a => a.username === last)?.id || active[0]?.id || ''));
+      setAccountState('ready');
+    } catch { setAccountState('error'); }
+  }
+  async function loadScheduled() {
+    setScheduleState('loading');
+    try {
+      const res = await fetch('/api/x-harness/posts/scheduled');
+      if (!res.ok) throw new Error('scheduled_unavailable');
+      const data = await res.json() as { data?: ScheduledPost[] };
+      if (!Array.isArray(data.data)) throw new Error('scheduled_unavailable');
+      setScheduled(data.data); setScheduleState('ready');
+    } catch { setScheduleState('error'); }
+  }
+  useEffect(() => {
+    void loadAccounts(); void loadScheduled();
+    const openComposer = () => { setTab('compose'); setReview(null); };
+    window.addEventListener('masa:x-compose', openComposer);
+    return () => window.removeEventListener('masa:x-compose', openComposer);
+  }, []);
+  useEffect(() => { setReview(null); }, [text, selectedAccount, mode, scheduledAt]);
+  useEffect(() => { if (review) reviewHeading.current?.focus(); }, [review]);
 
-  const cat = CATEGORIES.find(c => c.id === activeCat);
+  const value = { text, accountId: selectedAccount, mode, scheduledAt };
   const remaining = MAX_CHARS - text.length;
-  const ink = '#25211d';
-  const muted = '#736b61';
-  const border = 'rgba(37,33,29,0.13)';
-  const surface = '#ffffff';
-  const soft = '#f8f6f2';
-  const gold = '#9a6d24';
-
-  const catPillStyle = (c: typeof CATEGORIES[number], active: boolean): React.CSSProperties => ({
-    padding: '7px 16px',
-    borderRadius: 99,
-    border: `1.5px solid ${active ? c.color : border}`,
-    background: active ? c.bg : surface,
-    color: active ? c.color : muted,
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-    fontSize: '0.88rem',
-    fontWeight: 700,
-    transition: 'all 0.15s',
-  });
-
-  const modeBtnStyle = (active: boolean): React.CSSProperties => ({
-    flex: 1,
-    padding: '9px 0',
-    borderRadius: 8,
-    border: `1.5px solid ${active ? 'rgba(154,109,36,0.42)' : border}`,
-    background: active ? 'rgba(154,109,36,0.08)' : surface,
-    color: active ? gold : muted,
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-    fontSize: '0.88rem',
-    fontWeight: 700,
-  });
-
-  const s: Record<string, React.CSSProperties> = {
-    section: { marginBottom: 28 },
-    label: { fontSize: '0.78rem', color: muted, fontWeight: 700, marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' },
-    tabRow: { display: 'flex', gap: 8, marginBottom: 24 },
-    tab: { flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${border}`, background: surface, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.92rem', fontWeight: 700, transition: 'all 0.15s' },
-    catRow: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 },
-    kwRow: { display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16, padding: '12px 14px', background: cat?.bg ?? soft, borderRadius: 10, border: `1px solid ${cat?.border ?? border}` },
-    kwChip: { padding: '4px 10px', borderRadius: 99, background: surface, border: `1px solid ${border}`, color: cat?.color ?? ink, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', transition: 'all 0.15s' },
-    publishBox: { marginBottom: 26, padding: '16px', border: '2px solid rgba(154,109,36,0.46)', borderRadius: 16, background: 'linear-gradient(180deg, #fffbf3 0%, #ffffff 100%)', boxShadow: '0 5px 18px rgba(154,109,36,0.09)' },
-    publishHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 5 },
-    publishTitle: { fontSize: '1.05rem', fontWeight: 800, lineHeight: 1.45, color: '#4f3515' },
-    publishTag: { padding: '4px 9px', borderRadius: 99, background: '#f4e6cf', color: '#79501e', fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.03em' },
-    publishHint: { color: '#735d40', margin: '0 0 14px', fontSize: '0.82rem', lineHeight: 1.6 },
-    textarea: { width: '100%', minHeight: 160, boxSizing: 'border-box', background: surface, border: '1.5px solid rgba(154,109,36,0.38)', borderRadius: 11, color: ink, fontFamily: 'inherit', fontSize: '1rem', padding: '14px', resize: 'vertical', outline: 'none', lineHeight: 1.7, boxShadow: '0 1px 2px rgba(37,33,29,0.03)' },
-    countRow: { display: 'flex', justifyContent: 'flex-end', marginTop: 6, fontSize: '0.78rem', color: remaining < 20 ? '#b91c1c' : muted },
-    modeRow: { display: 'flex', gap: 8, marginBottom: 16 },
-    dateInput: { width: '100%', background: surface, border: `1px solid ${border}`, borderRadius: 8, color: ink, fontFamily: 'inherit', fontSize: '0.9rem', padding: '9px 12px', outline: 'none', marginBottom: 14 },
-    postBtn: { width: '100%', padding: '13px 0', borderRadius: 10, background: '#b4863b', border: '1px solid #9a6d24', color: '#1f1a14', fontFamily: 'inherit', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.02em' },
-    statusOk: { marginTop: 10, padding: '10px 14px', background: 'rgba(21,128,61,0.08)', border: '1px solid rgba(21,128,61,0.2)', borderRadius: 8, color: '#166534', fontSize: '0.88rem' },
-    statusErr: { marginTop: 10, padding: '10px 14px', background: 'rgba(185,28,28,0.07)', border: '1px solid rgba(185,28,28,0.18)', borderRadius: 8, color: '#991b1b', fontSize: '0.88rem' },
-    schedCard: { background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: '14px 16px', marginBottom: 10, boxShadow: '0 1px 2px rgba(37,33,29,0.03)' },
-    schedText: { fontSize: '0.95rem', marginBottom: 8, lineHeight: 1.6, color: ink },
-    schedMeta: { fontSize: '0.78rem', color: muted },
-    acctSelect: { background: surface, border: `1px solid ${border}`, borderRadius: 8, color: ink, fontFamily: 'inherit', fontSize: '0.9rem', padding: '9px 12px', width: '100%', outline: 'none', marginBottom: 16 },
-  };
+  const cat = CATEGORIES.find(c => c.id === activeCat);
+  const canReview = Boolean(text.trim() && remaining >= 0 && selectedAccount && accountState === 'ready');
+  function showReview() {
+    try { setReview(prepareXComposeReview(value, accounts)); setStatus('idle'); setStatusMsg(''); }
+    catch (error) { setStatus('err'); setStatusMsg(error instanceof Error ? error.message : '内容を確認してください。'); }
+  }
+  async function handlePost() {
+    if (sending.current || !review) return;
+    if (!isCurrentXComposeReview(review, value, accounts)) {
+      setReview(null); setStatus('err'); setStatusMsg('内容か日時が変わりました。もう一度確認してください。'); return;
+    }
+    sending.current = true; setStatus('posting');
+    try {
+      const res = await fetch(mode === 'now' ? '/api/x-harness/posts' : '/api/x-harness/posts/schedule', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ xAccountId: review.accountId, text: review.text, ...(mode === 'schedule' ? { scheduledAt: review.scheduledAt } : {}) }),
+      });
+      const json = await res.json() as { success?: boolean; error?: string };
+      if (!res.ok || !json.success) throw new Error(json.error || '送信できませんでした。本文は保持しています。');
+      setStatus('ok'); setStatusMsg(mode === 'now' ? '投稿しました。' : '予約しました。'); setText(''); setReview(null);
+      if (mode === 'schedule') void loadScheduled();
+    } catch (error) { setStatus('err'); setStatusMsg(error instanceof Error ? error.message : '送信できませんでした。'); }
+    finally { sending.current = false; }
+  }
+  async function copyDraft() {
+    try { await navigator.clipboard.writeText(text); setStatus('ok'); setStatusMsg('本文をコピーしました。'); }
+    catch { setStatus('err'); setStatusMsg('コピーできませんでした。本文を選択してコピーしてください。'); }
+  }
 
   return (
-    <div style={{ paddingBottom: 40, color: ink }}>
-      <div style={s.tabRow}>
-        {(['compose', 'scheduled'] as const).map(t => (
-          <button key={t} style={{ ...s.tab, color: tab === t ? gold : muted, borderColor: tab === t ? 'rgba(154,109,36,0.38)' : border, background: tab === t ? 'rgba(154,109,36,0.07)' : surface }} onClick={() => setTab(t)}>
-            {t === 'compose' ? '✍️ 作成' : `📅 予約 (${scheduled.length})`}
-          </button>
-        ))}
+    <section className="x-composer" aria-label="X本文の編集" style={motionStyle}>
+      <div className="x-tabs" aria-label="本文と予約一覧">
+        <button type="button" aria-pressed={tab === 'compose'} onClick={() => setTab('compose')}>本文を編集</button>
+        <button type="button" aria-pressed={tab === 'scheduled'} onClick={() => setTab('scheduled')}>予約済み{scheduleState === 'ready' ? ` (${scheduled.length})` : ''}</button>
       </div>
-
-      {tab === 'compose' && (
-        <>
-          {accounts.length > 1 && (
-            <div style={s.section}>
-              <label style={s.label}>アカウント</label>
-              <select style={s.acctSelect} value={selectedAccount} onChange={e => setSelectedAccount(e.target.value)}>
+      <div hidden={tab !== 'compose'}>
+        <div className="x-edit-layout">
+          <div className="x-writing">
+            <div className="x-account-field">
+              <label htmlFor="x-account">届けるアカウント</label>
+              <select id="x-account" value={selectedAccount} disabled={status === 'posting' || accountState !== 'ready' || !accounts.length} onChange={e => setSelectedAccount(e.target.value)}>
+                {!accounts.length && <option value="">{accountState === 'loading' ? '接続先を確認中…' : accountState === 'error' ? '接続先を確認できません' : '送信できる接続先がありません'}</option>}
                 {accounts.map(a => <option key={a.id} value={a.id}>@{a.username}</option>)}
               </select>
+              {accountState === 'error' && <div className="x-connection-note" role="status">接続先を読み込めませんでした。<button type="button" onClick={() => void loadAccounts()}>再読み込み</button></div>}
+              {accountState === 'ready' && !accounts.length && <p className="x-muted">本文は編集できます。送信には接続先が必要です。</p>}
             </div>
-          )}
-
-          <div style={s.section}>
-            <label style={s.label}>カテゴリ</label>
-            <div style={s.catRow}>
-              {CATEGORIES.map(c => (
-                <button key={c.id} style={catPillStyle(c, activeCat === c.id)} onClick={() => setActiveCat(activeCat === c.id ? null : c.id)}>
-                  {c.label}
-                </button>
-              ))}
+            <label htmlFor="x-publish-text" className="x-body-label">投稿本文</label>
+            <textarea ref={draftField} id="x-publish-text" value={text} onChange={e => setText(e.target.value)} placeholder="今日の気づきをシェアする…" maxLength={MAX_CHARS} disabled={status === 'posting'} aria-describedby="x-character-count x-draft-note" />
+            <div className="x-count-row"><span id="x-draft-note">編集中の本文</span><span id="x-character-count" aria-live="polite">{text.length} / {MAX_CHARS}文字</span></div>
+            <div className="x-mode" aria-label="届けるタイミング">
+              <button type="button" aria-pressed={mode === 'now'} disabled={status === 'posting'} onClick={() => setMode('now')}>今届ける</button>
+              <button type="button" aria-pressed={mode === 'schedule'} disabled={status === 'posting'} onClick={() => setMode('schedule')}>日時を決める</button>
             </div>
-            {cat && (
-              <div style={s.kwRow}>
-                {cat.keywords.map(kw => (
-                  <button key={kw} style={s.kwChip} onClick={() => insertKeyword(kw)}>#{kw}</button>
-                ))}
-              </div>
-            )}
+            {mode === 'schedule' && <div className="x-date"><label htmlFor="x-scheduled-at">予約日時（この端末の時間）</label><input id="x-scheduled-at" type="datetime-local" value={scheduledAt} disabled={status === 'posting'} onChange={e => setScheduledAt(e.target.value)} /></div>}
+            {!review && <div className="x-editor-actions"><button type="button" className="x-primary" onClick={showReview} disabled={!canReview || status === 'posting'}>送信前の確認へ →</button><button type="button" onClick={() => void copyDraft()} disabled={!text || status === 'posting'}>本文をコピー</button></div>}
+            {!review && <p className="x-action-hint">次に本文・投稿先・日時を確認します。</p>}
+            {(status === 'ok' || status === 'err') && <p className={`x-status x-status-${status}`} role={status === 'err' ? 'alert' : 'status'}>{statusMsg}</p>}
           </div>
-
-          <div style={s.publishBox} aria-label="投稿対象の本文">
-            <div style={s.publishHeader}>
-              <strong style={s.publishTitle}>✍️ 実際に投稿する文章</strong>
-              <span style={s.publishTag}>投稿対象</span>
-            </div>
-            <p style={s.publishHint}>ここに入っている文章だけが投稿・予約されます。上のアイデアや素材はそのまま送信されません。</p>
-            <label htmlFor="x-publish-text" style={s.label}>投稿本文</label>
-            <textarea
-              id="x-publish-text"
-              style={s.textarea}
-              value={text}
-              onChange={e => setText(e.target.value)}
-              placeholder="今日の気づきをシェアする…"
-              maxLength={MAX_CHARS}
-            />
-            <div style={s.countRow}>{remaining}</div>
-          </div>
-
-          <div style={s.modeRow}>
-            <button style={modeBtnStyle(mode === 'now')} onClick={() => setMode('now')}>今すぐ投稿</button>
-            <button style={modeBtnStyle(mode === 'schedule')} onClick={() => setMode('schedule')}>予約投稿</button>
-          </div>
-
-          {mode === 'schedule' && (
-            <input type="datetime-local" style={s.dateInput} value={scheduledAt} onChange={e => setScheduledAt(e.target.value)} />
-          )}
-
-          <button style={s.postBtn} onClick={handlePost} disabled={status === 'posting' || !text.trim()}>
-            {status === 'posting' ? '送信中…' : mode === 'now' ? '投稿する' : '予約する'}
-          </button>
-
-          {status === 'ok' && <div style={s.statusOk}>✓ {statusMsg}</div>}
-          {status === 'err' && <div style={s.statusErr}>✗ {statusMsg}</div>}
-        </>
-      )}
-
-      {tab === 'scheduled' && (
-        <>
-          {scheduled.length === 0 && <p style={{ color: muted, fontSize: '0.95rem' }}>予約投稿なし</p>}
-          {scheduled.map(p => (
-            <div key={p.id} style={s.schedCard}>
-              <div style={s.schedText}>{p.text}</div>
-              <div style={s.schedMeta}>
-                📅 {new Date(p.scheduledAt).toLocaleString('ja-JP')} · {p.status}
-              </div>
-            </div>
-          ))}
-        </>
-      )}
-    </div>
+          {review && <section className="x-review" aria-label="送信前の確認">
+            <h2 ref={reviewHeading} tabIndex={-1}>この内容で届ける</h2>
+            <dl><div><dt>投稿先</dt><dd>@{review.username}</dd></div><div><dt>タイミング</dt><dd>{review.mode === 'now' ? '確認後、今すぐ' : new Date(review.scheduledAt).toLocaleString('ja-JP')}</dd></div></dl>
+            <div className="x-preview-text">{review.text}</div>
+            <p className="x-muted">言葉・事実・投稿先を確認してください。</p>
+            <div className="x-review-actions"><button type="button" className="x-primary" onClick={() => void handlePost()} disabled={status === 'posting'}>{status === 'posting' ? '送信中…' : review.mode === 'now' ? '確認して投稿する' : '確認して予約する'}</button><button type="button" onClick={() => { setReview(null); draftField.current?.focus(); }} disabled={status === 'posting'}>編集へ戻る</button></div>
+          </section>}
+        </div>
+        <details className="x-keywords"><summary>ハッシュタグを添える<span aria-hidden="true">＋</span></summary>
+          <div className="x-keyword-body"><div className="x-chips">{CATEGORIES.map(c => <button key={c.id} type="button" aria-pressed={activeCat === c.id} onClick={() => setActiveCat(activeCat === c.id ? null : c.id)}>{c.label}</button>)}</div>
+          {cat && <div className="x-chips">{cat.keywords.map(kw => <button key={kw} type="button" disabled={status === 'posting' || text.length + kw.length + (text ? 2 : 1) > MAX_CHARS} onClick={() => setText(prev => prev ? `${prev} #${kw}` : `#${kw}`)}>#{kw}</button>)}</div>}</div>
+        </details>
+      </div>
+      <div hidden={tab !== 'scheduled'} className="x-scheduled">
+        {scheduleState === 'loading' && <p role="status">予約一覧を読み込み中…</p>}
+        {scheduleState === 'error' && <p role="status">予約一覧を読み込めませんでした。<button type="button" onClick={() => void loadScheduled()}>再読み込み</button></p>}
+        {scheduleState === 'ready' && !scheduled.length && <p>予約した投稿は、ここに並びます。</p>}
+        {scheduled.map(p => <article key={p.id}><p>{p.text}</p><small>{new Date(p.scheduledAt).toLocaleString('ja-JP')} · {p.status}</small></article>)}
+      </div>
+    </section>
   );
 }
