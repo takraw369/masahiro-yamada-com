@@ -34,3 +34,15 @@ test('profile import warns against high-risk secrets and identifiers', () => {
   assert.match(page, /パスワード/);
   assert.match(page, /APIキー/);
 });
+
+test('iPhone preview remains within the viewport with 16px inputs', () => {
+  assert.match(page, /textarea,\.field input\{[^}]*box-sizing:border-box;font-size:16px/);
+  assert.match(page, /\.profile-page\{width:100%\}/);
+  assert.match(page, /@media\(max-width:560px\)/);
+});
+
+test('JEV errors are explained without blaming user-provided text', () => {
+  assert.match(page, /flow_runner_unavailable:'解析サービスに接続できません/);
+  assert.match(page, /profile_preview_failed:'JEVの解析処理に失敗しました/);
+  assert.match(page, /partial_jev_unavailable/);
+});

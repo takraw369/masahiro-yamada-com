@@ -78,6 +78,22 @@ Web：https://example.com`}
     .notice{margin-top:16px;padding:14px 16px;border-left:2px solid #b79c75;background:#fbfaf8}.notice.danger{border-left-color:#a86a52}.notice strong{display:block;margin-bottom:4px;color:#544637;font-size:.76rem}.notice p{color:var(--text-muted);font-size:.76rem;line-height:1.75}.actions{display:flex;align-items:center;gap:16px;margin-top:22px}.actions.split{justify-content:space-between}.primary-button,.secondary-button{min-height:46px;border-radius:0;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;font-size:.76rem;font-weight:700;letter-spacing:.04em}.primary-button{padding:0 24px;border:1px solid #8b642e;background:#9b6c2b;color:#fff}.primary-button:hover:not(:disabled){background:#80561f}.secondary-button{padding:0 18px;border:1px solid #cfc8bd;background:transparent;color:#646b72}.secondary-button:hover:not(:disabled){border-color:#b58a53;color:#493c2e}button:disabled{cursor:not-allowed;opacity:.48}.status{color:var(--text-muted);font-size:.75rem;line-height:1.55}.status.error{color:#9a4336}.status.success{color:#20704d}
     .review-copy{margin:-4px 0 20px;color:var(--text-muted);font-size:.8rem;line-height:1.7}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 22px}.field{min-width:0}.field.wide{grid-column:1/-1}.field label{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;color:#65584b;font-size:.72rem;font-weight:700}.field .meta{color:#8c847a;font:500 .58rem/1 'Cormorant Garamond',serif;letter-spacing:.08em}.field input{width:100%;min-height:44px;padding:10px 4px;border:0;border-bottom:1px solid #d7d1c8;border-radius:0;outline:none;background:transparent;color:var(--text-primary);font:400 .85rem/1.4 'Zen Kaku Gothic New',sans-serif}.field input:focus{border-bottom-color:#9b6c2b}.field[data-low-confidence="true"] input{border-bottom-color:#b56d4c}.field[data-low-confidence="true"] .meta::after{content:' · 要確認';color:#a3533b}.saved #saved-summary{color:var(--text-muted);font-size:.82rem;line-height:1.7}.delete{margin-top:18px}
     @media(max-width:760px){.profile-page{padding:34px 18px 68px}.panel{padding:20px 17px}.field-grid{grid-template-columns:1fr}.field.wide{grid-column:auto}.actions,.actions.split{align-items:stretch;flex-direction:column}.primary-button,.secondary-button{width:100%}textarea{min-height:330px}}
+    /* No outer horizontal scroll at 320px+; iOS input focus must not auto-zoom. */
+    .profile-page,.panel,.panel-head,.notice,.field-grid,.field{min-width:0;max-width:100%;box-sizing:border-box}
+    .profile-page{width:100%}
+    .panel-head>div{min-width:0}
+    .panel-head h2{overflow-wrap:anywhere}
+    textarea,.field input{display:block;width:100%;max-width:100%;box-sizing:border-box;font-size:16px}
+    .primary-button,.secondary-button{font-size:16px}
+    .status,.notice p,.review-copy,.saved #saved-summary{overflow-wrap:anywhere}
+    @media(max-width:560px){
+      .profile-page{padding:14px 0 50px}
+      .panel{padding:18px 14px}
+      .panel-head{gap:10px;flex-wrap:wrap}
+      .notice{padding:13px 12px}
+      .notice p{font-size:14px}
+      .lead{font-size:16px}
+    }
   </style>
 
   <script is:inline>
@@ -90,7 +106,49 @@ Web：https://example.com`}
     function renderFields(fields={},lowConfidenceFields=[]){if(!fieldGrid)return;fieldGrid.textContent='';const low=new Set(lowConfidenceFields);for(const [key,label,wide] of FIELD_CONFIG){const entry=fields[key]||{},wrapper=document.createElement('div');wrapper.className=`field${wide?' wide':''}`;wrapper.dataset.field=key;wrapper.dataset.lowConfidence=low.has(key)?'true':'false';const labelNode=document.createElement('label'),labelText=document.createElement('span'),meta=document.createElement('span'),input=document.createElement('input');labelNode.htmlFor=`profile-${key}`;labelText.textContent=label;meta.className='meta';const confidence=Number(entry.confidence);meta.textContent=entry.source?`${sourceLabel(entry.source)} · ${Number.isFinite(confidence)?Math.round(confidence*100):'--'}%`:'EMPTY';labelNode.append(labelText,meta);input.id=`profile-${key}`;input.name=key;input.type=key==='email'?'email':key==='website'?'url':'text';input.autocomplete='off';input.value=typeof entry.value==='string'?entry.value:'';wrapper.append(labelNode,input);fieldGrid.append(wrapper)}}
     function confirmedFields(){const fields={};for(const [key] of FIELD_CONFIG){const input=document.querySelector(`#profile-${key}`),value=input?.value?.trim();if(value)fields[key]=value}return fields}
     function refreshSavedState(){if(!savedBadge||!savedSummary||!deleteProfile)return;const saved=localStorage.getItem(STORAGE_KEY);if(!saved){savedBadge.textContent='EMPTY';savedSummary.textContent='まだ保存されていません。';deleteProfile.disabled=true;return}try{const profile=JSON.parse(saved),fieldCount=Object.keys(profile?.fields||{}).length,updated=profile?.updatedAt?new Date(profile.updatedAt).toLocaleString('ja-JP'):'日時不明';savedBadge.textContent='SAVED';savedSummary.textContent=`${fieldCount}項目を保存中 · 最終更新 ${updated}`;deleteProfile.disabled=false}catch{localStorage.removeItem(STORAGE_KEY);refreshSavedState()}}
-    async function analyzeProfile(){if(!raw||!analyze||!reviewPanel)return;const rawText=raw.value.trim();if(!rawText){setStatus(analyzeStatus,'入力文を貼ってください。','error');raw.focus();return}analyze.disabled=true;setStatus(analyzeStatus,'Jevで分類しています…');try{const response=await fetch('/api/dashboard/profile-preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rawText})}),payload=await response.json();if(!response.ok||!payload?.ok)throw new Error(payload?.error||'preview_failed');const data=payload.data;if(data?.ok===false&&data?.status==='blocked_sensitive_input'){const labels={credential:'パスワード / APIキー等',national_id:'マイナンバー',passport:'パスポート番号',financial_account:'銀行口座 / 暗証番号',payment_card:'カード情報'},blocked=(data.blockedCategories||[]).map(item=>labels[item]||item).join('、');reviewPanel.hidden=true;setStatus(analyzeStatus,`安全のため停止しました：${blocked}`,'error');return}if(!data?.ok||data?.status!=='preview_ready')throw new Error('invalid_preview');renderFields(data.fields||{},data.lowConfidenceFields||[]);reviewState.textContent=data.needsHumanReview?'REVIEW REQUIRED':'HUMAN GATE';reviewPanel.hidden=false;setStatus(analyzeStatus,`解析完了 · ${Object.keys(data.fields||{}).length}項目を検出`,'success');setStatus(saveStatus,'');reviewPanel.scrollIntoView({behavior:'smooth',block:'start'})}catch{reviewPanel.hidden=true;setStatus(analyzeStatus,'解析に失敗しました。入力内容を確認して、もう一度試してください。','error')}finally{analyze.disabled=false}}
+    async function analyzeProfile(){
+      if(!raw||!analyze||!reviewPanel)return;
+      const rawText=raw.value.trim();
+      if(!rawText){setStatus(analyzeStatus,'入力文を貼ってください。','error');raw.focus();return}
+      analyze.disabled=true;
+      setStatus(analyzeStatus,'プロフィールを解析しています…');
+      try{
+        const response=await fetch('/api/dashboard/profile-preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rawText})});
+        const payload=await response.json().catch(()=>null);
+        if(!response.ok||!payload?.ok)throw new Error(payload?.error||'server_response_invalid');
+        const data=payload.data;
+        if(data?.ok===false&&data?.status==='blocked_sensitive_input'){
+          const labels={credential:'パスワード / APIキー等',national_id:'マイナンバー',passport:'パスポート番号',financial_account:'銀行口座 / 暗証番号',payment_card:'カード情報'};
+          const blocked=(data.blockedCategories||[]).map(item=>labels[item]||item).join('、');
+          reviewPanel.hidden=true;
+          setStatus(analyzeStatus,`安全のため停止しました：${blocked}`,'error');
+          return;
+        }
+        if(!data?.ok||data?.status!=='preview_ready')throw new Error('invalid_preview');
+        renderFields(data.fields||{},data.lowConfidenceFields||[]);
+        reviewState.textContent=data.needsHumanReview?'REVIEW REQUIRED':'HUMAN GATE';
+        reviewPanel.hidden=false;
+        const count=Object.keys(data.fields||{}).length;
+        if(data.analysisMode==='partial_jev_unavailable'){
+          setStatus(analyzeStatus,`AI応答がないため、直接読み取れた${count}項目だけ表示中。抜けている情報は手入力で補足し、必ず確認してください。`,'error');
+        }else{
+          setStatus(analyzeStatus,`解析完了 · ${count}項目を検出`,'success');
+        }
+        setStatus(saveStatus,'');
+        reviewPanel.scrollIntoView({behavior:'smooth',block:'start'});
+      }catch(error){
+        reviewPanel.hidden=true;
+        const code=error instanceof Error?error.message:'unknown';
+        const messages={
+          flow_runner_unavailable:'解析サービスに接続できません（503）。管理側の復旧が必要です。',
+          profile_preview_failed:'JEVの解析処理に失敗しました（502）。入力ではなくサービス側の問題の可能性があります。',
+          workers_ai_quota_exhausted:'JEVのAI利用枠が上限に達しました。時間をおいて試してください。',
+          invalid_profile_text:'入力は1〜4000文字で指定してください。',
+          server_response_invalid:'サーバー応答を読み取れません。通信状態を確認してください。'
+        };
+        setStatus(analyzeStatus,messages[code]||'解析に失敗しました。時間をおいて再度試してください。','error');
+      }finally{analyze.disabled=false}
+    }
     raw?.addEventListener('input',updateCount);document.querySelector('#clear-raw')?.addEventListener('click',()=>{if(!raw)return;raw.value='';updateCount();raw.focus();setStatus(analyzeStatus,'')});analyze?.addEventListener('click',analyzeProfile);
     document.querySelector('#discard-preview')?.addEventListener('click',()=>{if(reviewPanel)reviewPanel.hidden=true;if(fieldGrid)fieldGrid.textContent='';setStatus(saveStatus,'');setStatus(analyzeStatus,'解析結果を破棄しました。')});
     document.querySelector('#save-profile')?.addEventListener('click',()=>{const fields=confirmedFields();if(Object.keys(fields).length===0){setStatus(saveStatus,'保存する項目がありません。','error');return}localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,updatedAt:new Date().toISOString(),fields}));setStatus(saveStatus,'確認済みプロフィールをこのブラウザに保存しました。','success');refreshSavedState()});
