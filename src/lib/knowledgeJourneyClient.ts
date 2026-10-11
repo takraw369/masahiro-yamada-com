@@ -72,6 +72,7 @@ const readAttribution = () => {
 };
 
 const assetFromPath = (path: string) => {
+  if (path === '/library/account') return null;
   const match = path.match(/^\/library\/([a-z0-9-]{2,100})\/?$/);
   return match?.[1] || null;
 };
@@ -98,6 +99,7 @@ export const getKnowledgeJourneyContext = (): JourneyContext => {
 export const trackKnowledgeJourney = async (
   event: string,
   meta: Record<string, string | number | boolean | null> = {},
+  assetSlugOverride?: string,
 ) => {
   const context = getKnowledgeJourneyContext();
   try {
@@ -105,7 +107,7 @@ export const trackKnowledgeJourney = async (
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       keepalive: true,
-      body: JSON.stringify({ ...context, event, meta }),
+      body: JSON.stringify({ ...context, assetSlug: assetSlugOverride && /^[a-z0-9-]{2,100}$/.test(assetSlugOverride) ? assetSlugOverride : context.assetSlug, event, meta }),
     });
   } catch {
     // Analytics must never block the public learning experience.
@@ -113,7 +115,7 @@ export const trackKnowledgeJourney = async (
 };
 
 export const initKnowledgeJourney = () => {
-  if (!window.location.pathname.startsWith('/library')) return;
+  if (!window.location.pathname.startsWith('/library') || window.location.pathname === '/library/account') return;
   const context = getKnowledgeJourneyContext();
   const firstEvent = context.assetSlug ? 'ks_item_view' : 'ks_shelf_view';
   void trackKnowledgeJourney(firstEvent);
