@@ -7,8 +7,8 @@ const context={window:{}};
 vm.runInNewContext(read('public/otsu4/questions.js')+';window.rows=OTSU4_QUESTIONS;',context);
 vm.runInNewContext(read('public/otsu4/tests/core.js'),context);
 const rows=context.window.rows, engine=context.window.OTSU4_TOPIC_TESTS;
-const fresh=[...Array(10)].map((_,i)=>'l'+(49+i));
-const expectedAnswers={l49:2,l50:0,l51:3,l52:2,l53:1,l54:0,l55:1,l56:3,l57:1,l58:2};
+const fresh=[...Array(11)].map((_,i)=>'l'+(49+i));
+const expectedAnswers={l49:2,l50:0,l51:3,l52:2,l53:1,l54:0,l55:1,l56:3,l57:1,l58:2,l59:1};
 test('new paper weak-point questions are legally sourced and explain every option',()=>{
  assert.equal(new Set(rows.map(q=>q.id)).size,rows.length);
  for(const id of fresh){
@@ -30,7 +30,7 @@ test('marked papers map 15 original question numbers to a dedicated adaptive tes
  assert.ok(topic);
  const paperNumbers=new Set(topic.ids.flatMap(id=>rows.find(q=>q.id===id).paperQuestions));
  assert.deepEqual(Array.from(paperNumbers).sort(),['2','10','11','15','17','22','24','25','26','27','30','32','33','35','39'].sort());
- assert.equal(topic.ids.length,26);
+ assert.equal(topic.ids.length,27);
  const s=engine.load({getItem:()=>null});
  const selected=engine.select(rows,topic,s);
  assert.equal(selected.length,10);
