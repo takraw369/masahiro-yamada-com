@@ -106,6 +106,7 @@
     if(q.choices&&!Number.isInteger(value))return;
     pending={value,correct:C.grade(q,value),choiceMarks:{...(session.choiceMarks||{})}};session.pending=pending;saveSession();feedback(q);
   }
+  const deepGuide = {c03:'command',l57:'command',c05:'classifications',l49:'classifications',l58:'classifications',c07:'mixed',c08:'retro',l46:'retro',l40:'inspection',l41:'inspection',l52:'inspection',l53:'inspection',l43:'qualification',l44:'qualification',l54:'qualification',l55:'qualification'};
   function feedback(q){
     $('choices').querySelectorAll('[data-answer]').forEach(b=>{b.disabled=true;b.classList.toggle('selected',Number(b.dataset.answer)===pending.value);b.setAttribute('aria-pressed',String(Number(b.dataset.answer)===pending.value));});
     $('choices').querySelectorAll('[data-mark]').forEach(b=>b.disabled=true);
