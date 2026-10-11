@@ -1,0 +1,39 @@
+---
+import KnowledgeReaderLayout from '../../layouts/KnowledgeReaderLayout.astro';
+---
+<KnowledgeReaderLayout title="教材の鍵を受け取る">
+ <p class="reader-version">PURCHASE → YOUR KEY</p><h1>あなたの教材へ。</h1>
+ <p id="claim-status" aria-live="polite">決済の確認を進めています。</p>
+ <section class="key-box" id="key-result" hidden><label for="purchase-key">購入者専用の鍵</label><input id="purchase-key" readonly autocomplete="off"/><p class="muted">別の端末でもこの鍵で教材を開けます。安全な場所に保管してください。</p><div class="reader-actions"><button id="copy-key" type="button">鍵をコピー</button><a class="reader-button" id="read-link">教材を開く</a></div></section>
+ <div class="reader-actions"><button id="retry-claim" type="button" hidden>もう一度確認する</button><a href="/library">棚へ戻る</a></div>
+</KnowledgeReaderLayout>
+<script>
+ const params=new URLSearchParams(location.search);const sessionId=params.get('session_id')||'';
+ history.replaceState(null,'','/library/access');
+ const status=document.getElementById('claim-status'),result=document.getElementById('key-result'),retry=document.getElementById('retry-claim');
+ let busy=false,issuedKey='';
+ async function claim(){
+  if(busy)return;busy=true;if(retry)retry.hidden=true;
+  if(!sessionId){if(status)status.textContent='決済後に表示されるページから鍵を受け取ってください。すでに鍵をお持ちなら、教材ページから開けます。';busy=false;return;}
+  try{
+   for(let attempt=0;attempt<8;attempt++){
+    const response=await fetch('/api/library/claim-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId})});
+    const data=await response.json();
+    if(response.ok&&data.ok){
+     issuedKey=data.key;const input=document.getElementById('purchase-key'),link=document.getElementById('read-link');
+     if(input instanceof HTMLInputElement)input.value=data.key;
+     if(link instanceof HTMLAnchorElement)link.href=data.readUrl;
+     if(result)result.hidden=false;if(status)status.textContent='決済を確認しました。教材の鍵を受け取れます。';return;
+    }
+    if(response.status!==202)throw new Error('claim_failed');
+    if(status)status.textContent='決済完了の通知を確認しています。ページを閉じずにお待ちください。';
+    await new Promise(resolve=>setTimeout(resolve,1500+attempt*500));
+   }
+   if(status)status.textContent='まだ決済完了を確認できません。決済待ちか、通知の反映待ちです。少し時間を置いて再確認してください。';
+  }catch{if(status)status.textContent='鍵の受け取りに接続できません。決済をやり直さず、しばらくして再確認してください。';}
+  finally{busy=false;if(retry&&!issuedKey)retry.hidden=false;}
+ }
+ retry?.addEventListener('click',claim);
+ document.getElementById('copy-key')?.addEventListener('click',async()=>{if(!issuedKey)return;try{await navigator.clipboard.writeText(issuedKey);if(status)status.textContent='鍵をコピーしました。';}catch{if(status)status.textContent='鍵の欄を選択してコピーしてください。';}});
+ claim();
+</script>

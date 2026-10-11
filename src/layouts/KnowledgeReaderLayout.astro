@@ -1,0 +1,15 @@
+---
+interface Props { title:string; }
+const {title}=Astro.props;
+Astro.response.headers.set('Cache-Control','no-store, max-age=0');
+Astro.response.headers.set('X-Robots-Tag','noindex, nofollow');
+Astro.response.headers.set('Referrer-Policy','no-referrer');
+Astro.response.headers.set('X-Content-Type-Options','nosniff');
+Astro.response.headers.set('X-Frame-Options','DENY');
+---
+<!doctype html><html lang="ja"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><meta name="referrer" content="no-referrer"/><title>{title} — Knowledge Shelf</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" rel="stylesheet"/>
+</head><body><header><a href="/library">KNOWLEDGE SHELF</a><span>MASA / ACE</span></header><main><slot/></main>
+<style is:global>
+body{margin:0;background:#0d0b08;color:#d4c5a9;font-family:'Zen Kaku Gothic New',sans-serif;line-height:1.85;font-size:16px}*{box-sizing:border-box}header{max-width:900px;margin:auto;padding:24px;display:flex;justify-content:space-between;border-bottom:1px solid #2e2822;gap:16px}header a{font-family:'Cormorant Garamond',serif;letter-spacing:.12em}header span{color:#b4a38a;font-size:13px}main{max-width:780px;margin:0 auto;padding:48px 24px 80px}h1{font-size:clamp(28px,5vw,42px);line-height:1.45;font-weight:500;margin:0 0 20px}h2,h3,h4,h5{font-weight:500;color:#c9a96e;margin:36px 0 12px}p{margin:16px 0;overflow-wrap:anywhere}a{color:#c9a96e;text-underline-offset:4px}button,input{font:inherit;font-size:16px}input{width:100%;padding:14px;background:#1a1612;color:#d4c5a9;border:1px solid #5a4d3a;min-width:0}button,.reader-button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 22px;background:#c9a96e;border:0;color:#0d0b08;cursor:pointer;text-decoration:none}button:disabled{opacity:.55;cursor:default}:focus-visible{outline:2px solid #c9a96e;outline-offset:4px}.muted{color:#b4a38a;font-size:14px}.key-box{padding:24px;border:1px solid #5a4d3a;background:#1a1612;display:grid;gap:16px}.reader-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.reader-body pre{padding:20px;overflow:auto;background:#1a1612;border:1px solid #2e2822}.reader-body p{white-space:pre-wrap}.reader-version{font-size:13px;color:#b4a38a}.reader-body{margin-top:32px}@media(max-width:480px){main{padding:32px 20px 64px}.key-box{padding:20px}.reader-actions>*{width:100%}}
+</style></body></html>

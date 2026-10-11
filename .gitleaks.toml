@@ -5,5 +5,8 @@ useDefault = true
 description = "Known non-secret public identifiers that are safe to ship"
 regexes = [
   '''sb_publishable_mv8O-7lEXnuubYLVzXIJnA_A1irQJB9''',
-  '''mental_condition_lead_v1'''
+  '''mental_condition_lead_v1''',
+  # Synthetic Checkout ID used only by knowledge-shelf-keys.test.mjs.
+  # This is a public identifier, not a Stripe credential or purchase key.
+  '''^cs_live_fixture12345678$'''
 ]

@@ -1,0 +1,36 @@
+---
+import KnowledgeReaderLayout from '../../../layouts/KnowledgeReaderLayout.astro';
+import { getSiteStorageEnv,supabaseRpc } from '../../../lib/siteStorage';
+import { accessCookieName,accessKeyPattern,renderProtectedMarkdown,sha256,slugPattern } from '../../../lib/knowledgeShelf';
+const slug=Astro.params.slug||'';
+if(!slugPattern.test(slug))return new Response('Not found',{status:404});
+const key=Astro.cookies.get(accessCookieName(slug))?.value;
+type ProtectedAsset={title:string;body_markdown:string;version:number};
+let asset:ProtectedAsset|null=null;
+let unavailable=false;
+if(key&&accessKeyPattern.test(key)){
+ try{const result=await supabaseRpc<{status:string;asset?:ProtectedAsset}>(getSiteStorageEnv(Astro.locals),'knowledge_shelf_key_content_v1',{p_slug:slug,p_key_hash:await sha256(key)});if(result.status==='ok'&&result.asset)asset=result.asset;}
+ catch{unavailable=true;Astro.response.status=503;}
+}
+---
+<KnowledgeReaderLayout title={asset?.title||'購入した教材を開く'}>
+ {asset?<><p class="reader-version">YOUR KNOWLEDGE / VERSION {asset.version}</p><h1>{asset.title}</h1><article class="reader-body" set:html={renderProtectedMarkdown(asset.body_markdown)}></article></>:<>
+ <p class="reader-version">PURCHASED ACCESS</p><h1>教材の鍵で、続きを開く。</h1>
+ <p>{unavailable?'教材の読み取りに接続できません。鍵を買い直す必要はありません。時間を置いて再度お試しください。':'購入後に受け取った専用の鍵を入力してください。'}</p>
+ <form id="unlock-form" class="key-box" data-slug={slug}><label for="reader-key">購入者専用の鍵</label><input id="reader-key" name="key" type="password" required autocomplete="off" placeholder="KS_…"/><button type="submit">この教材を開く</button><p class="muted" id="unlock-status" aria-live="polite"></p></form>
+ <p class="muted">未購入・決済待ち・返金済みの鍵では、本編を表示しません。</p>
+ </>}
+ <p><a href={`/library/${slug}`}>教材の紹介へ</a>　<a href="/library">棚へ戻る</a></p>
+</KnowledgeReaderLayout>
+<script>
+ const form=document.getElementById('unlock-form');
+ form?.addEventListener('submit',async event=>{
+  event.preventDefault();if(!(form instanceof HTMLFormElement))return;
+  const button=form.querySelector('button'),message=document.getElementById('unlock-status');
+  if(button)button.disabled=true;
+  try{const response=await fetch('/api/library/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:form.dataset.slug,key:new FormData(form).get('key')})});const data=await response.json();
+   if(!response.ok||!data.ok){if(message)message.textContent=response.status===403?'この教材の鍵を確認できません。コピーした内容や購入状態を確認してください。':'接続できません。時間を置いてお試しください。';return;}
+   location.assign(data.readUrl);
+  }catch{if(message)message.textContent='接続できません。時間を置いてお試しください。';}finally{if(button)button.disabled=false;}
+ });
+</script>

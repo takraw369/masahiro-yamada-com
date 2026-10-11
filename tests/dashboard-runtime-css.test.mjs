@@ -27,6 +27,7 @@ const dynamics = [
   ['voice.astro','voice-shell'],
   ['ace-assets.astro','asset-shell'],
   ['content-flow.astro','flow-shell'],
+  ['content-studio.astro','studio-shell'],
 ];
 
 test('dashboard page inventory is audited for runtime injected elements', async () => {

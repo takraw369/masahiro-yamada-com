@@ -1,8 +1,10 @@
 ---
 import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
-import { accessLabel, libraryItemBySlug, yen } from '../../lib/libraryCatalog';
+import { accessLabel, yen } from '../../lib/libraryCatalog';
+import { resolveShelfCatalog } from '../../lib/shelfCatalog';
+import { getSiteStorageEnv } from '../../lib/siteStorage';
 
-const item = libraryItemBySlug(Astro.params.slug);
+const item = (await resolveShelfCatalog(getSiteStorageEnv(Astro.locals))).find(item=>item.slug===Astro.params.slug);
 if (!item) return new Response('Not found', { status: 404 });
 
 const isLive = item.status === 'live' && Boolean(item.checkoutUrl);
@@ -41,6 +43,7 @@ const isMember = item.access === 'member' || item.access === 'pro';
         <>
           <a class="public-btn item-primary" href={item.checkoutUrl}>今すぐ購入する</a>
           <p class="public-muted">決済後、購入者用ページまたはダウンロード導線へ案内します。</p>
+          <a class="public-btn" href={`/library/${item.slug}/read`}>購入済みの方：鍵で教材を開く</a>
         </>
       ) : (
         <>

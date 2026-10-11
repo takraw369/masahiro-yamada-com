@@ -1,6 +1,9 @@
 ---
 import PublicPageLayout from '../layouts/PublicPageLayout.astro';
-import { accessLabel, knowledgeShelfPlan, libraryItems, yen } from '../lib/libraryCatalog';
+import { accessLabel, knowledgeShelfPlan, yen } from '../lib/libraryCatalog';
+import { resolveShelfCatalog } from '../lib/shelfCatalog';
+import { getSiteStorageEnv } from '../lib/siteStorage';
+const visibleLibraryItems=await resolveShelfCatalog(getSiteStorageEnv(Astro.locals));
 ---
 
 <PublicPageLayout
@@ -53,7 +56,7 @@ import { accessLabel, knowledgeShelfPlan, libraryItems, yen } from '../lib/libra
     </div>
 
     <div class="library-grid">
-      {libraryItems.map((item) => (
+      {visibleLibraryItems.map((item) => (
         <a class="library-card" href={`/library/${item.slug}`} aria-label={`${item.title}の詳細を見る`}>
           <div class={`library-cover cover-${item.coverNo}`}>
             <div class="library-cover-top">
