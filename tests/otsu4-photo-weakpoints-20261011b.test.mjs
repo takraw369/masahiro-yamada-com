@@ -14,7 +14,7 @@ function load() {
   vm.runInNewContext(read('public/otsu4/tests/core.js'),ctx);
   return {rows:ctx.window.rows,core:ctx.window.OTSU4_TOPIC_TESTS};
 }
-const ids=['l60','l61','l62','l63','l64','l65'];
+const ids=['l60','l61','l62','l63','l64','l65','l66','l67','l68'];
 
 test('new marked-paper questions are original, fully reasoned, sourced and uniquely identified', () => {
   const {rows,core}=load();
@@ -34,7 +34,7 @@ test('new marked-paper questions are original, fully reasoned, sourced and uniqu
     for(let answer=0;answer<4;answer++)if(answer!==q.answer)assert.equal(core.grade(q,answer),false,id);
   }
 });
-test('new focused session reuses existing questions and starts with six newly marked concepts',()=>{
+test('new focused session reuses existing questions and starts with nine newly marked concepts',()=>{
   const {rows,core}=load();
   const topic=core.topics.find(q=>q.id==='paper-weakpoints-20261011b');
   assert.ok(topic);
@@ -42,7 +42,7 @@ test('new focused session reuses existing questions and starts with six newly ma
   assert.ok(topic.ids.includes('l57') && topic.ids.includes('l55'));
   const selected=core.select(rows,topic,core.load({getItem:()=>null}));
   assert.equal(selected.length,10);
-  assert.deepEqual(Array.from(selected.slice(0,6),q=>q.id),ids);
+  assert.deepEqual(Array.from(selected.slice(0,9),q=>q.id),ids);
   assert.equal(new Set(selected.map(q=>q.concept)).size,10);
 });
 test('paper marks are not fabricated wrong answers and two confident correct attempts release the weakness',()=>{
@@ -72,4 +72,22 @@ test('guide and app are linked in tests/home without rewriting old question DB',
   for(const section of ['command','classifications','mixed','inspection','retro','qualification']){
     assert.ok(guide.includes('id="'+section+'"'));
   }
+});
+
+test('explanatory photos: command subjects and penalties are not swapped; current statutory wording is used',()=>{
+ const {rows}=load(),byId=id=>rows.find(q=>q.id===id);
+ const installation=byId('l66'),maintenance=byId('l67'),retro=byId('l68');
+ assert.equal(installation.answer,1);
+ assert.match(installation.choices[installation.answer],/1年以下の拘禁刑.*100万円以下の罰金/);
+ assert.match(installation.source.label,/第41条/);
+ assert.equal(maintenance.answer,2);
+ assert.match(maintenance.choices[maintenance.answer],/30万円以下の罰金又は拘留/);
+ assert.match(maintenance.source.label,/第44条/);
+ assert.equal(retro.answer,3);
+ assert.match(retro.choices[retro.answer],/展示場/);
+ assert.match(retro.source.label,/第34条/);
+ const guide=read('src/pages/otsu4/weakpoints/index.astro');
+ assert.match(guide,/第41条|41条/);assert.match(guide,/第44条|44条/);
+ assert.match(guide,/2025年の刑罰制度改正前/);
+ assert.match(guide,/展示場は別表第1（4）項/);
 });
