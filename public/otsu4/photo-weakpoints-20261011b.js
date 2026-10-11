@@ -174,6 +174,6 @@
 ];
   for (const q of supplement) {
     if (OTSU4_QUESTIONS.some(row => row.id === q.id)) continue;
-    OTSU4_QUESTIONS.push({...q,officialSignal:false,lectureMarked:false,paperMarked:true,paperQuestions:[],lecturePage:null});
+    OTSU4_QUESTIONS.push({...q,officialSignal:false,lectureMarked:false,paperMarked:true,freshPaperFocus:true,paperQuestions:[],lecturePage:null});
   }
 })();
