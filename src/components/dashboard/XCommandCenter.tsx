@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { motionPresets } from '../../data/motionPresetCatalog';
 import { LAST_X_ACCOUNT_KEY } from '../../lib/xAccountPlaybook';
+import { getXConnectionIssue, type XConnectionIssue } from '../../lib/xConnectionIssue';
 import { X_COMPOSER_MAX_CHARS as MAX_CHARS, prepareXComposeReview, isCurrentXComposeReview, type XComposeAccount, type XComposeReview } from '../../lib/xComposerReview';
 
 const CATEGORIES = [
@@ -19,6 +20,7 @@ const motionStyle = Object.fromEntries(['quiet-fade', 'press', 'success'].flatMa
 export default function XCommandCenter() {
   const [accounts, setAccounts] = useState<XComposeAccount[]>([]);
   const [accountState, setAccountState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [accountIssue, setAccountIssue] = useState<XConnectionIssue>(getXConnectionIssue());
   const [selectedAccount, setSelectedAccount] = useState('');
   const [activeCat, setActiveCat] = useState<CategoryId | null>(null);
   const [text, setText] = useState('');
@@ -26,6 +28,7 @@ export default function XCommandCenter() {
   const [scheduledAt, setScheduledAt] = useState('');
   const [scheduled, setScheduled] = useState<ScheduledPost[]>([]);
   const [scheduleState, setScheduleState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [scheduleIssue, setScheduleIssue] = useState<XConnectionIssue>(getXConnectionIssue());
   const [status, setStatus] = useState<'idle' | 'posting' | 'ok' | 'err'>('idle');
   const [statusMsg, setStatusMsg] = useState('');
   const [tab, setTab] = useState<'compose' | 'scheduled'>('compose');
@@ -38,8 +41,9 @@ export default function XCommandCenter() {
     setAccountState('loading');
     try {
       const res = await fetch('/api/x-harness/x-accounts');
-      if (!res.ok) throw new Error('accounts_unavailable');
-      const data = await res.json() as { data?: XComposeAccount[] };
+      const data = await res.json().catch(() => null) as { data?: XComposeAccount[] } | null;
+      if (!res.ok) { setAccountIssue(getXConnectionIssue(res.status, data)); setAccountState('error'); return; }
+      if (!data) throw new Error('accounts_unavailable');
       if (!Array.isArray(data.data)) throw new Error('accounts_unavailable');
       const active = data.data.filter(a => a.isActive);
       setAccounts(active);
@@ -47,17 +51,18 @@ export default function XCommandCenter() {
       try { last = localStorage.getItem(LAST_X_ACCOUNT_KEY); } catch {}
       setSelectedAccount(current => active.some(a => a.id === current) ? current : (active.find(a => a.username === last)?.id || active[0]?.id || ''));
       setAccountState('ready');
-    } catch { setAccountState('error'); }
+    } catch { setAccountIssue(getXConnectionIssue()); setAccountState('error'); }
   }
   async function loadScheduled() {
     setScheduleState('loading');
     try {
       const res = await fetch('/api/x-harness/posts/scheduled');
-      if (!res.ok) throw new Error('scheduled_unavailable');
-      const data = await res.json() as { data?: ScheduledPost[] };
+      const data = await res.json().catch(() => null) as { data?: ScheduledPost[] } | null;
+      if (!res.ok) { setScheduleIssue(getXConnectionIssue(res.status, data)); setScheduleState('error'); return; }
+      if (!data) throw new Error('scheduled_unavailable');
       if (!Array.isArray(data.data)) throw new Error('scheduled_unavailable');
       setScheduled(data.data); setScheduleState('ready');
-    } catch { setScheduleState('error'); }
+    } catch { setScheduleIssue(getXConnectionIssue()); setScheduleState('error'); }
   }
   useEffect(() => {
     void loadAccounts(); void loadScheduled();
@@ -115,9 +120,9 @@ export default function XCommandCenter() {
                 {!accounts.length && <option value="">{accountState === 'loading' ? '接続先を確認中…' : accountState === 'error' ? '接続先を確認できません' : '送信できる接続先がありません'}</option>}
                 {accounts.map(a => <option key={a.id} value={a.id}>@{a.username}</option>)}
               </select>
-              {accountState === 'error' && <button type="button" onClick={() => void loadAccounts()}>再読み込み</button>}
+              {accountState === 'error' && <button type="button" onClick={() => void loadAccounts()}>{accountIssue.retryLabel}</button>}
               </div>
-              {accountState === 'error' && <p className="x-muted" role="status">接続エラー。本文は編集できます。</p>}
+              {accountState === 'error' && <p className="x-muted" role="status">{accountIssue.message}</p>}
               {accountState === 'ready' && !accounts.length && <p className="x-muted">本文は編集できます。送信には接続先が必要です。</p>}
             </div>
             <label htmlFor="x-publish-text" className="x-body-label">投稿本文</label>
@@ -147,7 +152,7 @@ export default function XCommandCenter() {
       </div>
       <div hidden={tab !== 'scheduled'} className="x-scheduled">
         {scheduleState === 'loading' && <p role="status">予約一覧を読み込み中…</p>}
-        {scheduleState === 'error' && <p role="status">予約一覧を読み込めませんでした。<button type="button" onClick={() => void loadScheduled()}>再読み込み</button></p>}
+        {scheduleState === 'error' && <p role="status">予約一覧を読み込めませんでした。{scheduleIssue.message}<button type="button" onClick={() => void loadScheduled()}>{scheduleIssue.retryLabel}</button></p>}
         {scheduleState === 'ready' && !scheduled.length && <p>予約した投稿は、ここに並びます。</p>}
         {scheduled.map(p => <article key={p.id}><p>{p.text}</p><small>{new Date(p.scheduledAt).toLocaleString('ja-JP')} · {p.status}</small></article>)}
       </div>
