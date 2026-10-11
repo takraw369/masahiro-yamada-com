@@ -53,7 +53,7 @@ test('missing and unrecognized answers fail safely to generic action', () => {
   assert.equal(result.primary, 'toolkit');
   assert.match(result.nextAction, /最初のサイン/);
   const unknown = buildMentalCheckRecommendation([input('mental_v1_main_problem', 'some-new-option')], []);
-  assert.equal(unknown.focus, 'some-new-option');
+  assert.equal(unknown.focus, '目標・身体・感情・行動のつながり');
 });
 
 test('existing answer POST and consent guard run before result is displayed', () => {
@@ -65,4 +65,50 @@ test('existing answer POST and consent guard run before result is displayed', ()
   assert.match(page, /followupConsent/);
   assert.match(page, /\/js\/mental-check-routing\.js/);
   assert.match(page, /\.textContent = recommendation\./);
+});
+
+test('actual database choice keys each produce understandable focus and concrete action', () => {
+  const cases = [
+    ['pressure', '緊張'], ['mistake', 'ミス'], ['confidence', '自信'],
+    ['direction', '目標'], ['continuity', '習慣'], ['motivation', '意欲'],
+    ['relationship', '対話'], ['body', '身体'], ['verbalize', '言語化'],
+  ];
+  for (const [problem, focus] of cases) {
+    const result = buildMentalCheckRecommendation([input('mental_v1_main_problem', problem)]);
+    assert.match(result.focus, new RegExp(focus), problem);
+    assert.ok(result.nextAction.length > 20, problem);
+  }
+});
+
+test('information-seeking or undecided answers are not treated as paid coaching intent', () => {
+  for (const interest of [['info'], ['unknown'], ['diagnosis'], ['routine'], ['goal'], []]) {
+    const result = buildMentalCheckRecommendation([
+      input('mental_v1_urgency', '5'),
+      input('mental_v1_feedback_interest', 'maybe'),
+      input('mental_v1_support_format', 'self'),
+      input('mental_v1_support_interest', interest),
+    ]);
+    assert.equal(result.primary, 'toolkit', interest.join(',') || 'none');
+  }
+  assert.equal(buildMentalCheckRecommendation([
+    input('mental_v1_urgency', '5'),
+    input('mental_v1_support_format', 'group'),
+    input('mental_v1_support_interest', ['team']),
+  ]).primary, 'toolkit');
+});
+
+test('coaching interest in a multi-select or concrete individual-support request can qualify', () => {
+  const cases = [
+    [input('mental_v1_support_interest', ['info', 'coaching']), input('mental_v1_support_format', 'self')],
+    [input('mental_v1_support_interest', ['unknown']), input('mental_v1_support_format', 'ongoing')],
+  ];
+  for (const selected of cases) {
+    const result = buildMentalCheckRecommendation([input('mental_v1_urgency', '4'), ...selected]);
+    assert.equal(result.primary, 'line');
+  }
+});
+
+test('missing unknown or other problem keys cannot display raw internal key to the visitor', () => {
+  assert.equal(buildMentalCheckRecommendation([input('mental_v1_main_problem', 'other')]).focus, '目標・身体・感情・行動のつながり');
+  assert.equal(buildMentalCheckRecommendation([input('mental_v1_main_problem', 'unknown_new_key')]).focus, '目標・身体・感情・行動のつながり');
 });
