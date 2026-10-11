@@ -7,10 +7,11 @@
   const apply = () => {
     const phase = document.querySelector("#phase-label");
     const copy = document.querySelector("#mission-copy");
-    if (phase) phase.textContent = current.phase;
+    if (phase && phase.textContent !== current.phase) phase.textContent = current.phase;
     if (copy) {
       const weak = (copy.textContent.match(/弱点\d+問/) || ["弱点を優先"])[0];
-      copy.textContent = `${current.phase}：${current.topics.join("・")}。${weak}→当日範囲→鑑別→未出の順で復習。${next ? `次回${next.date.slice(5).replace("-","/")} ${next.phase}。` : "11/1本番。"}`;
+      const message = `${current.phase}：${current.topics.join("・")}。${weak}→当日範囲→鑑別→未出の順で復習。${next ? `次回${next.date.slice(5).replace("-","/")} ${next.phase}。` : "11/1本番。"}`;
+      if (copy.textContent !== message) copy.textContent = message;
     }
   };
   apply();
