@@ -32,12 +32,14 @@ function setup(seed={}){
   return {api,element,storage};
 }
 
-test('symbols have 20 unique, non-placeholder diagrams linked to an existing professional legend',()=>{
+test('all 33 symbols use individually verified reference IDs and distinct SVG drawings',()=>{
   const {api}=setup();
-  assert.equal(api.markDefs.length,20);
-  assert.equal(new Set(api.markDefs.map(m=>m.id)).size,20);
+  assert.equal(api.markDefs.length,33);
+  assert.equal(new Set(api.markDefs.map(m=>m.id)).size,33);
+  assert.equal(new Set(api.markDefs.map(m=>m.ref)).size,33);
+  assert.equal(new Set(api.markDefs.map(m=>api.svg(m))).size,33);
   const ids=api.markDefs.map(m=>m.id);
-  for(const expected of ['h-diff','h-fixed1','h-waterproof','s-surface','s-flush','r-main','r-relay','a-manual','a-bell','t-end','t-beam']){
+  for(const expected of ['h-diff','h-fixed1','h-diff-flush','h-fixedspecial','h-acid','h-waterproof','s-surface','s-flush','s-comp-flush','h-flame','r-main','r-relay','a-manual','a-bell','a-indicator','t-airpipe','t-end','t-beam','d-box-hydrant']){
     assert.ok(ids.includes(expected),expected);
   }
   for(const item of api.markDefs){
@@ -45,6 +47,11 @@ test('symbols have 20 unique, non-placeholder diagrams linked to an existing pro
     assert.ok(Object.hasOwn(api.lines,item.kind),'vector exists: '+item.id);
     assert.match(api.svg(item),/viewBox="0 0 160 130"/);
   }
+  assert.equal(api.markDefs.find(m=>m.id==='h-fixedspecial').ref,'03-a03','special fixed-temperature detector uses correct source');
+  assert.equal(api.markDefs.find(m=>m.id==='h-diff-flush').ref,'03-a02','recessed differential symbol uses correct source');
+  assert.equal(api.markDefs.find(m=>m.id==='a-indicator').ref,'04-08');
+  assert.match(api.svg(api.markDefs.find(m=>m.id==='a-indicator')),/M80 37 A33 33 0 0 1 80 103 Z/,'only the right semicircle is shaded');
+  assert.match(page,/reference-symbol/,"visible manufacturer reference appears with answer");
   assert.match(page,/Panasonic/);
   assert.match(page,/傍記・凡例/);
   assert.doesNotMatch(page,/fallbackSvg|searchNamedPhoto|commons\.wikimedia/);
@@ -76,7 +83,7 @@ test('reverse direction provides four different symbol choices and a wrong guess
   const buttons=Array.from({length:4},()=>({disabled:false,classList:{add(){}}}));
   element('choices').querySelectorAll=()=>buttons;
   api.start();
-  assert.equal(api.getDeck().length,20);
+  assert.equal(api.getDeck().length,33);
   assert.equal(element('symbol').hidden,true);
   assert.equal(element('choices').hidden,false);
   assert.match(element('choices').innerHTML,/data-index="3"/);
