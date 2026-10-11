@@ -1,0 +1,356 @@
+---
+import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
+import { libraryItems, libraryItemBySlug } from '../../lib/libraryCatalog';
+export const prerender = false;
+const candidates = libraryItems.filter((item) => item.access !== 'free');
+const requestedSlug = Astro.url.searchParams.get('asset') || '';
+const selectedSlug = candidates.some(item => item.slug === requestedSlug) ? requestedSlug : 'a3-decision-flow';
+const selectedItem = libraryItemBySlug(selectedSlug);
+---
+<PublicPageLayout title="会員用ライブラリ" eyebrow="KNOWLEDGE SHELF / MEMBER ACCESS" description="購入済みの教材を、安全に閲覧するための会員用ページです。">
+  <p slot="lead" class="public-lead">メール認証で本人を確認し、購入・会員権限がある教材だけを表示します。現在は販売前の検証中です。</p>
+
+  <section class="public-section account-status" aria-label="会員アクセス">
+    <div class="notice">
+      <strong>PREVIEW / ACCESS TEST</strong>
+      <p>この画面は購入者向け機能の確認用です。教材の有料販売はまだ始まっていません。現在の権限に応じ、非公開・未購入・公開済みを区別して表示します。</p>
+    </div>
+    <div id="status" class="status" role="status" aria-live="polite">認証サービスを確認しています…</div>
+    <div id="signed-in" class="identity" hidden>
+      <span id="identity-label">ログイン済み</span>
+      <button id="signout-button" class="simple-button" type="button">ログアウト</button>
+    </div>
+  </section>
+
+  <section id="auth-panel" class="public-section auth-panel" hidden>
+    <h2>メールで本人確認</h2>
+    <p>登録済み・購入時と同じメールアドレスをご利用ください。メールで届く一時コードを入力します。パスワードは不要です。</p>
+    <form id="email-form">
+      <label for="buyer-email">メールアドレス</label>
+      <div class="form-row">
+        <input id="buyer-email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com" />
+        <button type="submit" id="email-submit" class="public-btn">認証コードを送信</button>
+      </div>
+    </form>
+    <form id="otp-form" hidden>
+      <label for="buyer-otp">メールに届いた認証コード</label>
+      <div class="form-row">
+        <input id="buyer-otp" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6,8}" minlength="6" maxlength="8" required placeholder="6〜8桁" />
+        <button type="submit" id="otp-submit" class="public-btn">ログインして確認</button>
+      </div>
+      <p class="help">メールが届かないときは迷惑メールを確認し、必要に応じて再送信してください。</p>
+    </form>
+  </section>
+
+  <section class="public-section content-panel">
+    <h2>教材を開く</h2>
+    <label for="asset-select">教材</label>
+    <select id="asset-select" data-initial={selectedSlug}>
+      {candidates.map((item) => (
+        <option value={item.slug} selected={item.slug === selectedSlug}>{item.title} {item.status === 'preview' ? '— 制作中' : ''}</option>
+      ))}
+    </select>
+    <p class="help">制作中の教材は、購入権限を持っていても公開されるまで開けません。</p>
+    <button id="read-button" type="button" class="public-btn" disabled>本人確認後、閲覧する</button>
+    <div id="content-message" class="content-message" role="status" aria-live="polite">公開プレビューとは別に、購入済み教材だけをここに表示します。</div>
+    <article id="reader" class="reader" hidden>
+      <div class="reader-head">
+        <span id="reader-version"></span>
+        <h3 id="reader-title"></h3>
+      </div>
+      <div id="reader-body"></div>
+    </article>
+  </section>
+
+  <section class="public-section support">
+    <a class="public-btn" href={selectedItem ? `/library/${selectedItem.slug}` : '/library'}>教材の紹介に戻る</a>
+    <a class="public-btn" href="/contact">購入・閲覧について問い合わせる</a>
+  </section>
+</PublicPageLayout>
+
+<script>
+  type AuthConfig = { url: string; publishableKey: string };
+  type Session = { access_token: string; refresh_token: string; expires_at: number; email?: string };
+  const KEY = 'masa.ks.auth.session.v1';
+  const storage = (() => { try { return window.sessionStorage; } catch { return null; } })();
+  const status = document.getElementById('status')!;
+  const account = document.getElementById('signed-in')!;
+  const identity = document.getElementById('identity-label')!;
+  const authPanel = document.getElementById('auth-panel')!;
+  const emailForm = document.getElementById('email-form') as HTMLFormElement;
+  const emailInput = document.getElementById('buyer-email') as HTMLInputElement;
+  const otpForm = document.getElementById('otp-form') as HTMLFormElement;
+  const otpInput = document.getElementById('buyer-otp') as HTMLInputElement;
+  const assetSelect = document.getElementById('asset-select') as HTMLSelectElement;
+  const readButton = document.getElementById('read-button') as HTMLButtonElement;
+  const contentMessage = document.getElementById('content-message')!;
+  const reader = document.getElementById('reader')!;
+  const readerBody = document.getElementById('reader-body')!;
+  const readerTitle = document.getElementById('reader-title')!;
+  const readerVersion = document.getElementById('reader-version')!;
+  let config: AuthConfig | null = null;
+  let session: Session | null = null;
+  let pendingEmail = '';
+  let busy = false;
+
+  function feedback(text: string) { status.textContent = text; }
+  function setContentMessage(text: string) { contentMessage.textContent = text; }
+  function saveSession(next: Session | null) {
+    session = next;
+    try {
+      if (next) storage?.setItem(KEY, JSON.stringify(next)); else storage?.removeItem(KEY);
+    } catch { /* Session stays in memory if storage is disabled. */ }
+  }
+  function parseSession(): Session | null {
+    try {
+      const raw = storage?.getItem(KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (
+        typeof data.access_token !== 'string' ||
+        typeof data.refresh_token !== 'string' ||
+        typeof data.expires_at !== 'number'
+      ) return null;
+      return data as Session;
+    } catch { return null; }
+  }
+  async function postAuth(path: string, body: object, bearer?: string) {
+    if (!config) throw new Error('auth_unconfigured');
+    const response = await fetch(`${config.url}/auth/v1/${path}`, {
+      method: 'POST',
+      headers: {
+        apikey: config.publishableKey,
+        'Content-Type': 'application/json',
+        ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
+      },
+      body: JSON.stringify(body), cache: 'no-store',
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error('auth_request_failed');
+    return payload;
+  }
+  function setSessionFromAuth(payload: any, email: string) {
+    if (!payload || typeof payload.access_token !== 'string' || typeof payload.refresh_token !== 'string') {
+      throw new Error('session_missing');
+    }
+    saveSession({
+      access_token: payload.access_token,
+      refresh_token: payload.refresh_token,
+      expires_at: Date.now() + Math.max(0, Number(payload.expires_in || 3600) - 30) * 1000,
+      email,
+    });
+  }
+  async function validToken(): Promise<string | null> {
+    if (!session) return null;
+    if (session.expires_at > Date.now() + 20000) return session.access_token;
+    try {
+      const refreshed = await postAuth('token?grant_type=refresh_token', { refresh_token: session.refresh_token });
+      setSessionFromAuth(refreshed, session.email || '');
+      return session?.access_token || null;
+    } catch {
+      saveSession(null);
+      return null;
+    }
+  }
+  function showLoggedOut() {
+    account.hidden = true;
+    authPanel.hidden = false;
+    readButton.disabled = true;
+    readButton.textContent = '本人確認後、閲覧する';
+    reader.hidden = true;
+    readerBody.replaceChildren();
+  }
+  async function showLoggedIn() {
+    const token = await validToken();
+    if (!token || !config) { showLoggedOut(); feedback('メール認証が必要です。'); return; }
+    account.hidden = false;
+    authPanel.hidden = true;
+    readButton.disabled = false;
+    readButton.textContent = '購入済み教材を確認';
+    identity.textContent = session?.email ? `${session.email} でログイン中` : 'ログイン中';
+    try {
+      const claim = await fetch(`${config.url}/rest/v1/rpc/knowledge_shelf_claim_verified_email_v1`, {
+        method: 'POST',
+        headers: {
+          apikey: config.publishableKey,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: '{}', cache: 'no-store',
+      });
+      if (claim.status === 404) {
+        feedback('購入履歴の連携は準備中です。');
+        return;
+      }
+      if (!claim.ok) throw new Error('identity_claim_failed');
+      const result = await claim.json();
+      if (result.status === 'linked') {
+        feedback('メール認証済み。教材の閲覧権限を確認できます。');
+      } else if (result.status === 'unlinked') {
+        feedback('本人確認完了。購入履歴がまだ見つかりません。購入時のメールをご確認ください。');
+      } else {
+        feedback('本人確認完了。購入履歴の紐付けを確認できません。お問い合わせください。');
+      }
+    } catch {
+      feedback('本人確認は完了しました。購入履歴の照合が一時的に利用できません。');
+    }
+  }
+
+  emailForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy || !config) return;
+    pendingEmail = emailInput.value.trim().toLowerCase();
+    if (!emailInput.validity.valid || !pendingEmail) return;
+    busy = true;
+    (document.getElementById('email-submit') as HTMLButtonElement).disabled = true;
+    feedback('認証メールを送信しています…');
+    try {
+      await postAuth('otp', { email: pendingEmail, create_user: true });
+      otpForm.hidden = false;
+      feedback('認証メールを送信しました。受信したコードを入力してください。');
+      otpInput.focus();
+    } catch {
+      feedback('現在認証コードを送信できません。時間をおいて再試行してください。');
+    } finally {
+      busy = false;
+      (document.getElementById('email-submit') as HTMLButtonElement).disabled = false;
+    }
+  });
+
+  otpForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy || !config || !pendingEmail || !otpInput.validity.valid) return;
+    busy = true;
+    (document.getElementById('otp-submit') as HTMLButtonElement).disabled = true;
+    feedback('認証コードを確認しています…');
+    try {
+      const verified = await postAuth('verify', { email: pendingEmail, token: otpInput.value.trim(), type: 'email' });
+      setSessionFromAuth(verified, pendingEmail);
+      otpInput.value = '';
+      await showLoggedIn();
+      await readAsset();
+    } catch {
+      feedback('コードが無効、または期限切れです。メールをご確認ください。');
+    } finally {
+      busy = false;
+      (document.getElementById('otp-submit') as HTMLButtonElement).disabled = false;
+    }
+  });
+
+  function markdownAsText(md: string) {
+    const fragment = document.createDocumentFragment();
+    for (const line of md.split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      const heading = /^(#{1,3})\s+(.+)$/.exec(line);
+      const bullet = /^[-*]\s+(.+)$/.exec(line);
+      const el = document.createElement(heading ? `h${Math.min(heading[1].length + 2, 5)}` : bullet ? 'li' : 'p');
+      el.textContent = heading ? heading[2] : bullet ? bullet[1] : line;
+      fragment.appendChild(el);
+    }
+    return fragment;
+  }
+
+  async function readAsset() {
+    reader.hidden = true;
+    readerBody.replaceChildren();
+    if (!/^[a-z0-9-]{2,80}$/.test(assetSelect.value)) return;
+    const token = await validToken();
+    if (!token) {
+      showLoggedOut();
+      feedback('セッションの期限が切れました。もう一度メール認証してください。');
+      return;
+    }
+    readButton.disabled = true;
+    setContentMessage('購入権限を確認しています…');
+    try {
+      const response = await fetch(`/api/library/content/${encodeURIComponent(assetSelect.value)}`, {
+        headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        saveSession(null);
+        showLoggedOut();
+        setContentMessage('本人確認が切れました。ログインし直してください。');
+      } else if (response.status === 404) {
+        setContentMessage('この教材の本編はまだ非公開です。公開後にご案内します。');
+      } else if (response.status === 403) {
+        setContentMessage('この教材の閲覧権限がありません。購入済みの場合は、購入時のメールでログインしてください。');
+      } else if (!response.ok || !data.ok || !data.asset) {
+        setContentMessage('教材にアクセスできません。時間をおいて再試行してください。');
+      } else {
+        const asset = data.asset;
+        readerTitle.textContent = String(asset.title || '教材');
+        readerVersion.textContent = `VERSION ${Number(asset.version) || 1}`;
+        readerBody.appendChild(markdownAsText(String(asset.body_markdown || '')));
+        reader.hidden = false;
+        setContentMessage('購入済みの教材を表示しています。');
+      }
+    } catch {
+      setContentMessage('ネットワークを確認して再試行してください。');
+    } finally {
+      readButton.disabled = !session;
+    }
+  }
+  readButton.addEventListener('click', readAsset);
+  assetSelect.addEventListener('change', () => {
+    reader.hidden = true;
+    readerBody.replaceChildren();
+    setContentMessage('「購入済み教材を確認」を押してください。');
+    const next = new URL(window.location.href);
+    next.searchParams.set('asset', assetSelect.value);
+    window.history.replaceState(null, '', next.toString());
+  });
+  document.getElementById('signout-button')?.addEventListener('click', async () => {
+    const token = await validToken();
+    if (token) {
+      try { await postAuth('logout', {}, token); } catch { /* Always revoke local session. */ }
+    }
+    saveSession(null);
+    showLoggedOut();
+    feedback('ログアウトしました。');
+    setContentMessage('ログインして閲覧権限を確認してください。');
+  });
+
+  (async () => {
+    try {
+      const response = await fetch('/api/library/auth/config', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok || !data.ok || !data.url || !data.publishableKey) throw new Error('no_config');
+      config = { url: data.url, publishableKey: data.publishableKey };
+      session = parseSession();
+      if (session) await showLoggedIn(); else { showLoggedOut(); feedback('メール認証を行ってください。'); }
+    } catch {
+      showLoggedOut();
+      feedback('認証システムの準備中です。現在はご利用いただけません。');
+      (document.getElementById('email-submit') as HTMLButtonElement).disabled = true;
+    }
+  })();
+</script>
+
+<style>
+  .notice { border-left: 3px solid var(--gold-muted); background: var(--bg-surface); padding: 14px 18px; }
+  .notice strong { color: var(--gold-pure); font-size: .72rem; letter-spacing: .14em; }
+  .notice p { margin: 5px 0 0; font-size: .84rem; }
+  .status, .content-message { margin: 14px 0; padding: 12px 16px; border: 1px solid var(--border-default); color: var(--text-muted); background: var(--bg-surface); font-size: .85rem; }
+  .identity { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 0; flex-wrap: wrap; }
+  .simple-button { background: none; border: 0; color: var(--gold-pure); cursor: pointer; text-decoration: underline; }
+  .auth-panel label, .content-panel label { display: block; margin: 15px 0 8px; color: var(--text-primary); font-size: .85rem; }
+  .form-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+  .form-row input, .content-panel select { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-default); min-height: 48px; padding: 10px 12px; font-size: 1rem; width: 100%; }
+  #otp-form { margin-top: 24px; }
+  .help { font-size: .79rem; color: var(--text-muted); margin: 12px 0; }
+  .content-panel select { margin-bottom: 12px; }
+  .reader { margin-top: 20px; border: 1px solid var(--border-accent); background: var(--bg-surface); padding: 24px; overflow-wrap: anywhere; }
+  .reader h3 { margin: 0 0 20px; font-size: 1.35rem; }
+  .reader #reader-version { font-size: .72rem; color: var(--gold-muted); }
+  #reader-body p { white-space: pre-wrap; line-height: 1.9; margin: 0 0 16px; }
+  #reader-body h3, #reader-body h4, #reader-body h5 { color: var(--gold-pure); margin: 22px 0 10px; }
+  #reader-body li { margin-left: 18px; line-height: 1.9; }
+  .support { display: flex; gap: 10px; flex-wrap: wrap; }
+  [hidden] { display: none !important; }
+  @media (max-width: 640px) {
+    .form-row { grid-template-columns: 1fr; }
+    .form-row button { width: 100%; }
+    .reader { padding: 17px; }
+  }
+</style>
