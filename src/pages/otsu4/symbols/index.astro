@@ -1,0 +1,496 @@
+---
+---
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#28648b"><meta name="robots" content="noindex,nofollow">
+<title>乙4｜自火報シンボルマーク暗記</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;color:#173147;background:#f1f6f9}*{box-sizing:border-box}body{margin:0}main{max-width:700px;margin:0 auto;padding:16px 15px calc(70px + env(safe-area-inset-bottom))}a{color:#22668e}h1{font-size:clamp(26px,6vw,34px);margin:10px 0 8px}h2{font-size:19px;margin:9px 0}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}.pill{font-size:12px;font-weight:750;background:#e4eff6;padding:7px 10px;border-radius:99px}.intro{line-height:1.75;color:#4a6578}.panel{background:#fff;border:1px solid #d9e6ed;border-radius:19px;padding:18px;margin:14px 0;box-shadow:0 5px 24px #17324d08}.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}.controls label{display:grid;gap:6px;font-weight:750;font-size:14px}.controls select{max-width:100%;border:1px solid #b5cbd9;border-radius:11px;padding:11px;font-size:15px;color:#16384f;background:#fff}.controls label:first-child{grid-column:1/-1}.hint{color:#556d7d;font-size:13px;line-height:1.65}button{font:inherit;cursor:pointer;border-radius:12px;padding:12px 10px;border:1px solid #a7c5d9;background:#edf5fa;color:#154762;font-weight:800;min-height:47px}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #ffb44a;outline-offset:2px}.primary{background:#28648b;border-color:#28648b;color:#fff}.full{width:100%}.symbol-area{min-height:238px;display:grid;place-items:center;background:#f6fafc;border:1px solid #e2edf3;border-radius:17px;margin:14px 0;padding:16px}.symbol-area svg{display:block;width:min(100%,300px);height:205px}.symbol-area svg path,.symbol-area svg rect,.symbol-area svg circle,.symbol-area svg line,.symbol-area svg polyline{stroke:#172d3c;stroke-width:3.3;stroke-linecap:round;stroke-linejoin:round;fill:none}.symbol-area svg .solid{fill:#172d3c}.symbol-area svg text{font-weight:750;font-family:Arial,sans-serif;fill:#172d3c;font-size:37px;text-anchor:middle;dominant-baseline:middle}.subtitle{text-align:center;font-size:15px;font-weight:750;margin:0;color:#2b5f7b}.progress{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:750;color:#467188}.bar{height:7px;border-radius:20px;background:#e1ebf1;overflow:hidden;margin:11px 0}.bar>span{height:100%;display:block;background:#28648b;width:0;transition:width .2s}.answer{border:1px solid #c5dce9;background:#f4f9fc;border-radius:14px;padding:15px;margin-top:15px}.answer h2{color:#184a68}.answer p{line-height:1.75}.answer a{font-size:13px}.reference-figure{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}.reference-figure img{display:block;max-width:124px;height:66px;width:auto;object-fit:contain;background:#fff;border:1px solid #d9e6ed;border-radius:9px;padding:8px}.reference-figure span{font-size:12px;color:#456579;line-height:1.6}.grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.grade button:first-child{background:#e5f4ea;color:#145a35;border-color:#9bd5b3}.grade button:nth-child(2){background:#fff4df;color:#7a5200;border-color:#ecd19a}.grade button:nth-child(3){background:#fbecea;color:#953b35;border-color:#e5aaa5}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:15px}.choice-grid button{padding:8px;min-height:130px;background:#fff;border:2px solid #cadde8}.choice-grid button:disabled{cursor:default;opacity:1}.choice-grid button.selected{border-color:#28648b;background:#ebf5fb}.choice-grid button.correct{border-color:#29905c;background:#e9f6ed}.choice-grid svg{width:100%;height:93px;display:block}.choice-grid svg path,.choice-grid svg rect,.choice-grid svg circle,.choice-grid svg line,.choice-grid svg polyline{stroke:#172d3c;stroke-width:3.3;stroke-linecap:round;stroke-linejoin:round;fill:none}.choice-grid svg .solid{fill:#172d3c}.choice-grid svg text{font-weight:750;font-family:Arial,sans-serif;fill:#172d3c;font-size:37px;text-anchor:middle;dominant-baseline:middle}.muted{font-size:13px;color:#4e6c7b;line-height:1.8}.links{display:flex;flex-wrap:wrap;gap:12px;font-size:14px}.hidden,[hidden]{display:none!important}
+@media(max-width:360px){.controls{grid-template-columns:1fr}.controls label:first-child{grid-column:auto}.grade button{font-size:13px}.panel{padding:14px}}
+</style>
+</head>
+<body><main>
+<nav class="top"><a href="/otsu4/jikahou/">← 自火報集中コース</a><span class="pill">シンボルマーク</span></nav>
+<h1>自火報の図記号を覚える</h1>
+<p class="intro">図面にある33種類のマークを見て、<b>名称・役割・見分けるポイント</b>を答える。逆向きの「名前から記号を選ぶ」練習もできるよ。</p>
+<section class="panel" aria-label="暗記モード設定">
+<div class="controls">
+<label>暗記する範囲
+<select id="category">
+<option value="all">全種類を混ぜる</option>
+<option value="detector">感知器の記号</option>
+<option value="receiver">受信機・中継器</option>
+<option value="alarm">発信機・ベル・表示灯</option>
+<option value="terminal">分布型・終端・分離型</option>
+<option value="other">機器収容箱・移報器</option>
+</select></label>
+<label>出題の向き
+<select id="direction"><option value="symbol">図記号 → 名称</option><option value="reverse">名称 → 図記号を4択</option></select></label>
+<label>復習の範囲
+<select id="study-mode"><option value="priority">△・×・未出を優先（10問）</option><option value="weak">△・×だけ復習</option><option value="all">選択範囲をすべて</option></select></label>
+</div>
+<p class="hint">○は次回の出題を減らし、△・×は優先して再登場。記録はこのブラウザに保存されます。</p>
+<button class="primary full" id="start">この条件で開始する ↻</button>
+</section>
+<section class="panel" id="study" aria-label="シンボルマーク暗記カード">
+<div class="progress"><span id="counter"></span><span id="stats"></span></div>
+<div class="bar"><span id="bar"></span></div>
+<p id="question" class="subtitle">この記号は何を表す？</p>
+<div id="symbol" class="symbol-area"></div>
+<div id="choices" class="choice-grid" hidden></div>
+<button class="primary full" id="reveal" hidden>名称・用途を見る →</button>
+<div id="answer" class="answer" hidden>
+<h2 id="answer-title"></h2>
+<p id="answer-use"></p>
+<p id="answer-hint" class="muted"></p>
+<div class="reference-figure"><img id="reference-symbol" alt="出典に掲載された図記号の原図" width="124" height="66" loading="lazy"><span>原図（Panasonic掲載の<br>電気設備工事標準図の抜粋）</span></div>
+<a id="source" href="https://www2.panasonic.biz/jp/basics/electric/electricity/symbols/fire-alarm/" target="_blank" rel="noopener noreferrer">原図・出典を確認 ↗</a>
+<p id="verdict" class="muted" aria-live="polite"></p>
+<div class="grade">
+<button data-grade="ok">○ 覚えた</button>
+<button data-grade="unsure">△ あやしい</button>
+<button data-grade="miss">× もう一度</button>
+</div>
+</div>
+<div id="complete" hidden>
+<h2>今回の暗記が終わった！</h2>
+<p id="complete-note"></p>
+<button class="primary full" id="again">次の10問を学ぶ ↻</button>
+</div>
+</section>
+<p class="muted">図記号は国土交通省官庁営繕部の電気設備工事標準図からPanasonicが公開している33種の原図を参照し、学習用の線画として再描画したもの。実際の設計図では傍記・凡例で級別や種別を確認してください。<b>教材の写真鑑別とは別の練習</b>です。シンボルは見た目が似るため、公式の原図も確認してね。</p>
+<div class="links"><a href="/otsu4/jikahou/">自火報の構成・設置基準へ →</a><a href="/otsu4/kambetsu/">器具の実物写真鑑別へ →</a><a href="https://www2.panasonic.biz/jp/basics/electric/electricity/symbols/fire-alarm/" target="_blank" rel="noopener noreferrer">図記号の原典一覧 ↗</a></div>
+</main>
+<script is:inline>
+// Reconstructed simple vector symbols for active recall, not copied bitmap images.
+// Source: Panasonic electrical-plan symbols quoting government standard drawings.
+// The reference ID maps to the corresponding original symbol PNG on the linked page.
+const markDefs=[
+  {
+    "id": "h-diff",
+    "cat": "detector",
+    "title": "差動式スポット型感知器（2種）",
+    "use": "周囲の温度が急に上がったときに作動する熱感知器。",
+    "hint": "半円の上端に短い横線を重ねる。定温式の単純な半円と比べて確認。",
+    "kind": "semi",
+    "ref": "03-a01"
+  },
+  {
+    "id": "h-fixed1",
+    "cat": "detector",
+    "title": "定温式スポット型感知器（1種）",
+    "use": "一定の温度に達すると作動する熱感知器。",
+    "hint": "水平な上辺と下向きの半円。差動式との差を見比べる。",
+    "kind": "semiPlain",
+    "ref": "03-01"
+  },
+  {
+    "id": "h-diff-flush",
+    "cat": "detector",
+    "title": "差動式スポット型感知器（2種・埋込形）",
+    "use": "天井に埋め込んで設置する差動式熱感知器。",
+    "hint": "差動式の半円に、埋込を示す上部の線を重ねる。",
+    "kind": "semiRecessed",
+    "ref": "03-a02"
+  },
+  {
+    "id": "h-waterproof",
+    "cat": "detector",
+    "title": "定温式スポット型感知器（1種・防水形）",
+    "use": "湿気・水滴に対応する構造の定温式熱感知器。",
+    "hint": "半円に中央の縦線。防水の仕様は凡例も確認。",
+    "kind": "semiVertical",
+    "ref": "03-02"
+  },
+  {
+    "id": "h-fixedspecial",
+    "cat": "detector",
+    "title": "定温式スポット型感知器（特種）",
+    "use": "所定の温度に達すると作動する特種の定温式熱感知器。",
+    "hint": "半円の右下に小さな円が添えられる。埋込形とは別の記号！",
+    "kind": "semiSpecial",
+    "ref": "03-a03"
+  },
+  {
+    "id": "h-acid",
+    "cat": "detector",
+    "title": "定温式スポット型感知器（1種・耐酸形）",
+    "use": "腐食性ガスなどへの対策をした定温式熱感知器。",
+    "hint": "半円の中に縦線が2本。防水形の縦線1本と区別。",
+    "kind": "semiAcid",
+    "ref": "03-03"
+  },
+  {
+    "id": "h-exproof",
+    "cat": "detector",
+    "title": "定温式スポット型感知器（1種・防爆形）",
+    "use": "爆発危険場所向けの防爆構造を持つ定温式熱感知器。",
+    "hint": "半円にEXを傍記。",
+    "kind": "semiEx",
+    "ref": "04-a01"
+  },
+  {
+    "id": "a-manual-out",
+    "cat": "alarm",
+    "title": "P型発信機（屋外用）",
+    "use": "屋外環境に適した手動の火災発信機。",
+    "hint": "Pの入った円に三角形の屋根を加える。",
+    "kind": "roofP",
+    "ref": "04-01"
+  },
+  {
+    "id": "s-surface",
+    "cat": "detector",
+    "title": "煙感知器（2種・露出形）",
+    "use": "煙を検出して火災信号を送る感知器。",
+    "hint": "正方形の中にS。露出形の基本形。",
+    "kind": "smokeSquare",
+    "ref": "04-a02"
+  },
+  {
+    "id": "a-bell",
+    "cat": "alarm",
+    "title": "警報ベル（地区音響装置）",
+    "use": "ベルの音で建物内の人に火災を知らせる。",
+    "hint": "円の中にB。",
+    "kind": "circB",
+    "ref": "04-02"
+  },
+  {
+    "id": "s-flush",
+    "cat": "detector",
+    "title": "煙感知器（2種・埋込形）",
+    "use": "天井面などに埋め込む煙感知器。",
+    "hint": "S入りの四角の上に半円形のアーチ。",
+    "kind": "smokeArch",
+    "ref": "04-a03"
+  },
+  {
+    "id": "a-bell-out",
+    "cat": "alarm",
+    "title": "警報ベル（屋外用）",
+    "use": "屋外環境に対応した地区音響装置。",
+    "hint": "B入りの円に三角形の屋根。",
+    "kind": "roofB",
+    "ref": "04-03"
+  },
+  {
+    "id": "s-box",
+    "cat": "detector",
+    "title": "煙感知器（2種・点検ボックス付）",
+    "use": "点検用のボックスを備えた煙感知器。",
+    "hint": "S入りの四角の上部に水平の追加線。",
+    "kind": "smokeBox",
+    "ref": "04-a04"
+  },
+  {
+    "id": "r-main",
+    "cat": "receiver",
+    "title": "受信機",
+    "use": "感知器・発信機から信号を受け、火災や警戒区域を表示する。",
+    "hint": "横長の四角にX形の対角線と中央横線。",
+    "kind": "boxCross",
+    "ref": "04-04"
+  },
+  {
+    "id": "s-comp",
+    "cat": "detector",
+    "title": "煙複合式スポット型感知器（露出形）",
+    "use": "異なる感度の条件を組み合わせて煙を検出する。",
+    "hint": "Sの入った四角の上側に二重線。",
+    "kind": "smokeBand",
+    "ref": "04-a05"
+  },
+  {
+    "id": "r-combined",
+    "cat": "receiver",
+    "title": "複合盤",
+    "use": "火災受信機・ガス漏れ警報・連動制御などを一体にした盤。",
+    "hint": "複数の区画・交差線・三角形を横に連結した記号。",
+    "kind": "boxMulti",
+    "ref": "04-05"
+  },
+  {
+    "id": "s-comp-flush",
+    "cat": "detector",
+    "title": "煙複合式スポット型感知器（埋込形）",
+    "use": "埋込形の複合式煙感知器。",
+    "hint": "Sの四角に二重線と半円アーチを併記。",
+    "kind": "smokeBandArch",
+    "ref": "04-a06"
+  },
+  {
+    "id": "t-beam",
+    "cat": "terminal",
+    "title": "光電式分離型感知器（送光部・受光部）",
+    "use": "送光部と受光部の間の光の減衰を検知する。",
+    "hint": "S入りの二つの四角を光路の矢印で結ぶ。",
+    "kind": "beam",
+    "ref": "04-a07"
+  },
+  {
+    "id": "r-secondary",
+    "cat": "receiver",
+    "title": "副受信機",
+    "use": "離れた場所で受信機の火災情報を確認する。",
+    "hint": "四角を縦1本・横1本で4分割。",
+    "kind": "boxGrid",
+    "ref": "04-06"
+  },
+  {
+    "id": "h-flame",
+    "cat": "detector",
+    "title": "炎感知器",
+    "use": "炎からの紫外線・赤外線などを検知する感知器。",
+    "hint": "円の内側に三角形状の光・炎のマーク。",
+    "kind": "flame",
+    "ref": "04-a08"
+  },
+  {
+    "id": "r-relay",
+    "cat": "receiver",
+    "title": "中継器",
+    "use": "感知器等の信号を受信機へ中継する。",
+    "hint": "縦長の四角の上段を小さく2分割。",
+    "kind": "boxTop",
+    "ref": "04-07"
+  },
+  {
+    "id": "t-end",
+    "cat": "terminal",
+    "title": "終端抵抗器",
+    "use": "感知器回路の終端に設け、断線監視に使う。",
+    "hint": "ギリシャ文字Ω（オーム）で示す。",
+    "kind": "omega",
+    "ref": "04-a09"
+  },
+  {
+    "id": "a-indicator",
+    "cat": "alarm",
+    "title": "表示灯",
+    "use": "発信機の設置位置などを示す常時点灯の赤い灯。",
+    "hint": "円の右半分だけ黒く塗る。全面黒丸ではない。",
+    "kind": "halfBlack",
+    "ref": "04-08"
+  },
+  {
+    "id": "t-airpipe",
+    "cat": "terminal",
+    "title": "差動式分布型感知器（空気管式）",
+    "use": "空気管内の圧力変化により広い範囲の急な温度上昇を検知する。",
+    "hint": "配管の線と貫通位置の小さな線で表す。",
+    "kind": "airPipe",
+    "ref": "04-a10"
+  },
+  {
+    "id": "d-hydrant",
+    "cat": "other",
+    "title": "移報器（消火栓）",
+    "use": "消火栓設備との信号連携を行う機器。",
+    "hint": "四角のRと消火栓側を表す添字・線。",
+    "kind": "relayHydrant",
+    "ref": "04-09"
+  },
+  {
+    "id": "t-thermocouple",
+    "cat": "terminal",
+    "title": "差動式分布型感知器（熱電対式）",
+    "use": "複数の熱電対が温度上昇を捉える差動式分布型。",
+    "hint": "長い横線の中央に黒い短い矩形。",
+    "kind": "thermocouple",
+    "ref": "04-a11"
+  },
+  {
+    "id": "d-transfer",
+    "cat": "other",
+    "title": "移報器",
+    "use": "他の設備へ信号を移す機器。",
+    "hint": "四角のRに添字・接続線。",
+    "kind": "relayTransfer",
+    "ref": "04-10"
+  },
+  {
+    "id": "t-detector",
+    "cat": "terminal",
+    "title": "差動式分布型感知器の検出部",
+    "use": "分布型感知器からの信号を検出・判定する部分。",
+    "hint": "正方形の中にX。",
+    "kind": "detectorBox",
+    "ref": "04-a12"
+  },
+  {
+    "id": "d-box",
+    "cat": "other",
+    "title": "機器収容箱",
+    "use": "発信機・ベルなどの機器を収める箱。",
+    "hint": "横長の空の四角。",
+    "kind": "boxEmpty",
+    "ref": "04-11"
+  },
+  {
+    "id": "t-tester",
+    "cat": "terminal",
+    "title": "差動スポット試験器",
+    "use": "差動式スポット型感知器の作動を試験する器具。",
+    "hint": "四角の中にT。",
+    "kind": "tester",
+    "ref": "04-a13"
+  },
+  {
+    "id": "d-box-out",
+    "cat": "other",
+    "title": "機器収容箱（屋外用）",
+    "use": "屋外の発信機・ベルなどを収納する機器箱。",
+    "hint": "横長の四角に三角屋根を描く。",
+    "kind": "boxRoof",
+    "ref": "04-12"
+  },
+  {
+    "id": "a-manual",
+    "cat": "alarm",
+    "title": "P型発信機",
+    "use": "人が押しボタンを押して火災を知らせる。",
+    "hint": "一重円の中にP。",
+    "kind": "circP",
+    "ref": "04-a14"
+  },
+  {
+    "id": "d-box-hydrant",
+    "cat": "other",
+    "title": "機器収容箱（屋内消火栓箱組込）",
+    "use": "屋内消火栓箱の中に発信機などを組み込む場合。",
+    "hint": "黒い外枠の内側に白い四角い抜き。",
+    "kind": "boxHydrant",
+    "ref": "04-13"
+  }
+];
+const root=$=>document.getElementById($);
+const KEY='otsu4-symbol-cards-v1';
+let memory={};
+try{const candidate=JSON.parse(localStorage.getItem(KEY)||'{}');if(candidate&&typeof candidate==='object'&&!Array.isArray(candidate))memory=candidate;}catch{}
+const nameSet={detector:'感知器',receiver:'受信機・中継器',alarm:'発信機・警報器',terminal:'分布型・終端',other:'機器収容箱・移報器'};
+const lines={
+  "semi": "<path d=\"M43 61H117A37 37 0 0 1 43 61\"/><path d=\"M43 66H117\"/>",
+  "semiPlain": "<path d=\"M43 61H117A37 37 0 0 1 43 61\"/>",
+  "semiRecessed": "<path d=\"M43 61H117A37 37 0 0 1 43 61\"/><path d=\"M34 58H126 M34 67H126\"/>",
+  "semiVertical": "<path d=\"M43 61H117A37 37 0 0 1 43 61\"/><path d=\"M80 61V98\"/>",
+  "semiSpecial": "<path d=\"M43 61H117A37 37 0 0 1 43 61\"/><circle cx=\"129\" cy=\"99\" r=\"6\"/>",
+  "semiAcid": "<path d=\"M43 61H117A37 37 0 0 1 43 61\"/><path d=\"M74 61V99 M86 61V99\"/>",
+  "semiEx": "<path d=\"M25 61H99A37 37 0 0 1 25 61\"/><text x=\"130\" y=\"81\" style=\"font-size:22px\">EX</text>",
+  "smokeSquare": "<rect x=\"58\" y=\"45\" width=\"44\" height=\"48\"/><text x=\"80\" y=\"71\">S</text>",
+  "smokeArch": "<rect x=\"58\" y=\"50\" width=\"44\" height=\"44\"/><path d=\"M50 50A30 22 0 0 1 110 50\"/><text x=\"80\" y=\"73\">S</text>",
+  "smokeBox": "<rect x=\"58\" y=\"50\" width=\"44\" height=\"44\"/><path d=\"M53 44H107\"/><text x=\"80\" y=\"73\">S</text>",
+  "smokeBand": "<rect x=\"58\" y=\"45\" width=\"44\" height=\"49\"/><path d=\"M58 52H102 M58 58H102\"/><text x=\"80\" y=\"77\" style=\"font-size:30px\">S</text>",
+  "smokeBandArch": "<rect x=\"58\" y=\"51\" width=\"44\" height=\"43\"/><path d=\"M50 50A30 22 0 0 1 110 50 M58 58H102 M58 64H102\"/><text x=\"80\" y=\"81\" style=\"font-size:28px\">S</text>",
+  "boxCross": "<rect x=\"35\" y=\"50\" width=\"90\" height=\"42\"/><path d=\"M35 50L125 92 M125 50L35 92 M35 71H125\"/>",
+  "boxMulti": "<rect x=\"12\" y=\"51\" width=\"136\" height=\"41\"/><path d=\"M12 51L49 92 M49 51L12 92 M12 71H49 M49 51V92 M49 51L85 92 M85 51L49 92 M85 51V92 M85 92L106 51L127 92 M127 51V92 M127 51L148 92 M148 51L127 92 M127 71H148\"/>",
+  "boxGrid": "<rect x=\"42\" y=\"50\" width=\"76\" height=\"43\"/><path d=\"M80 50V93 M42 71.5H118\"/>",
+  "boxTop": "<rect x=\"56\" y=\"45\" width=\"48\" height=\"54\"/><path d=\"M56 61H104 M80 45V61\"/>",
+  "circP": "<circle cx=\"80\" cy=\"70\" r=\"33\"/><text x=\"80\" y=\"73\">P</text>",
+  "roofP": "<circle cx=\"80\" cy=\"76\" r=\"29\"/><path d=\"M38 57L80 24L122 57\"/><text x=\"80\" y=\"79\">P</text>",
+  "circB": "<circle cx=\"80\" cy=\"70\" r=\"33\"/><text x=\"80\" y=\"73\">B</text>",
+  "roofB": "<circle cx=\"80\" cy=\"76\" r=\"29\"/><path d=\"M38 57L80 24L122 57\"/><text x=\"80\" y=\"79\">B</text>",
+  "halfBlack": "<circle cx=\"80\" cy=\"70\" r=\"33\" style=\"fill:#fff\"/><path d=\"M80 37 A33 33 0 0 1 80 103 Z\" style=\"fill:#172d3c;stroke:none\"/><circle cx=\"80\" cy=\"70\" r=\"33\" style=\"fill:none\"/><path d=\"M80 37V103\"/>",
+  "omega": "<text x=\"80\" y=\"80\" style=\"font-size:77px\">Ω</text>",
+  "beam": "<rect x=\"13\" y=\"53\" width=\"39\" height=\"43\"/><text x=\"32.5\" y=\"76\" style=\"font-size:29px\">S</text><rect x=\"108\" y=\"53\" width=\"39\" height=\"43\"/><text x=\"127.5\" y=\"76\" style=\"font-size:29px\">S</text><path d=\"M57 65H103 M95 59L103 65L95 71 M103 84H57 M65 78L57 84L65 90\"/>",
+  "flame": "<circle cx=\"80\" cy=\"70\" r=\"33\"/><path d=\"M56 90L80 41L104 90 M80 41L92 62 M80 41L69 64\"/>",
+  "airPipe": "<path d=\"M18 68H60V56H104V68H142 M60 77V68 M104 77V68\"/>",
+  "relayHydrant": "<rect x=\"43\" y=\"50\" width=\"43\" height=\"43\"/><text x=\"64.5\" y=\"74\" style=\"font-size:31px\">R</text><path d=\"M86 72H121 M121 59V85 M126 59V85\"/>",
+  "thermocouple": "<path d=\"M15 69H145\"/><rect x=\"65\" y=\"57\" width=\"30\" height=\"24\" style=\"fill:#172d3c\"/>",
+  "relayTransfer": "<rect x=\"43\" y=\"50\" width=\"43\" height=\"43\"/><text x=\"64.5\" y=\"74\" style=\"font-size:31px\">R</text><path d=\"M86 72H126\"/><text x=\"136\" y=\"73\" style=\"font-size:21px\">G</text>",
+  "detectorBox": "<rect x=\"53\" y=\"45\" width=\"54\" height=\"54\"/><path d=\"M53 45L107 99 M107 45L53 99\"/>",
+  "boxEmpty": "<rect x=\"40\" y=\"52\" width=\"80\" height=\"42\"/>",
+  "tester": "<rect x=\"54\" y=\"49\" width=\"52\" height=\"46\"/><text x=\"80\" y=\"75\">T</text>",
+  "boxRoof": "<rect x=\"39\" y=\"60\" width=\"82\" height=\"40\"/><path d=\"M32 60L80 35L128 60\"/>",
+  "boxHydrant": "<rect x=\"39\" y=\"47\" width=\"82\" height=\"52\" style=\"fill:#172d3c\"/><rect x=\"52\" y=\"63\" width=\"56\" height=\"23\" style=\"fill:#fff;stroke:none\"/>"
+};
+function svg(mark){return '<svg viewBox="0 0 160 130" role="img" aria-label="出題中の図記号" xmlns="http://www.w3.org/2000/svg">'+lines[mark.kind]+'</svg>';}
+function samplePool(){const cat=root('category').value;return markDefs.filter(x=>cat==='all'||x.cat===cat);}
+function history(item){return memory[item.id]||{attempts:0,streak:0,last:'',lastSeen:0};}
+function rank(item){
+  const x=history(item),elapsed=x.lastSeen?Math.min(12,(Date.now()-x.lastSeen)/(24*60*60*1000)):0;
+  return (x.last==='miss'?14:x.last==='unsure'?9:0)+(!x.attempts?7:0)+(x.streak>=2?-8:0)+elapsed+Math.random()*3;
+}
+function buildDeck(){
+  const mode=root('study-mode').value;
+  const pool=samplePool().filter(item=>mode!=='weak'||['miss','unsure'].includes(history(item).last));
+  pool.sort((a,b)=>rank(b)-rank(a));
+  return pool.slice(0,mode==='all'?pool.length:10);
+}
+let deck=[],index=0,back=false,repeated=new Set(),choiceResult=null,options=[];
+function shuffle(a){return [...a].sort(()=>Math.random()-.5);}
+function opt(item){
+  const pool=markDefs.filter(x=>x.id!==item.id&&x.cat===item.cat);
+  const others=shuffle(pool.length>=3?pool:markDefs.filter(x=>x.id!==item.id)).slice(0,3);
+  return shuffle([item,...others]);
+}
+function showCard(){
+  const card=deck[index];
+  root('answer').hidden=true;root('reveal').hidden=true;root('choices').hidden=true;root('complete').hidden=true;back=false;choiceResult=null;
+  root('bar').style.width=deck.length?(100*index/deck.length)+'%':'0%';
+  root('counter').textContent=card?(index+1)+' / '+deck.length:'今回のカード終了';
+  root('stats').textContent=card?nameSet[card.cat]:(deck.length?'次回も△・×を優先':'復習対象なし');
+  if(!card){
+    root('symbol').hidden=true;root('question').hidden=true;
+    root('complete').hidden=false;
+    root('complete-note').textContent=deck.length?'○のカードは出現を減らし、△・×を優先します。':'この範囲に該当カードがありません。範囲かモードを変えてね。';
+    return;
+  }
+  root('question').hidden=false;
+  const reverse=root('direction').value==='reverse';
+  root('symbol').hidden=reverse;
+  if(reverse){
+    root('question').textContent='「'+card.title+'」に当たる図記号はどれ？';
+    options=opt(card);
+    root('choices').hidden=false;
+    root('choices').innerHTML=options.map((c,i)=>'<button type="button" data-index="'+i+'" aria-label="図記号 '+(i+1)+'">'+svg(c)+'<span>'+String.fromCharCode(65+i)+'</span></button>').join('');
+    root('choices').querySelectorAll('button').forEach(b=>b.onclick=()=>choose(Number(b.dataset.index)));
+  }else{
+    root('question').textContent='この記号の名称と役割は？';
+    root('symbol').innerHTML=svg(card);
+    root('reveal').hidden=false;
+  }
+}
+function reveal(){
+  if(back||!deck[index])return;
+  back=true;
+  const card=deck[index];
+  root('reveal').hidden=true;root('answer').hidden=false;
+  root('answer-title').textContent=card.title;
+  root('answer-use').textContent=card.use;
+  root('answer-hint').textContent='見分け方：'+card.hint;
+  const url='https://www2.panasonic.biz/jp/basics/electric/electricity/img/15/'+card.ref+'.png';
+  root('source').href=url;
+  root('reference-symbol').src=url;
+  root('reference-symbol').alt=card.title+'の原図';
+  root('source').textContent='対応する原図 '+card.ref+' を確認 ↗';
+  root('verdict').textContent=choiceResult===null?'思い出せたか、○・△・×で記録しよう。':choiceResult?'正解！ あやしければ△で記録してもOK。':'不正解。正しい形と見分け方を確認して×で復習しよう。';
+}
+function choose(i){
+  if(back||!deck[index])return;
+  choiceResult=options[i].id===deck[index].id;
+  root('choices').querySelectorAll('button').forEach((b,j)=>{b.disabled=true;if(options[j].id===deck[index].id)b.classList.add('correct');if(i===j)b.classList.add('selected');});
+  reveal();
+}
+function grade(value){
+  if(!back||!deck[index]||!['ok','unsure','miss'].includes(value))return;
+  const card=deck[index],x=history(card);
+  // A wrong 4-choice guess must not be registered as mastered, even if ○ was tapped.
+  if(choiceResult===false&&value==='ok')value='miss';
+  memory[card.id]={attempts:x.attempts+1,streak:value==='ok'?x.streak+1:0,last:value,lastSeen:Date.now()};
+  try{localStorage.setItem(KEY,JSON.stringify(memory));}catch{}
+  if(value!=='ok'&&!repeated.has(card.id)){
+    deck.splice(Math.min(deck.length,index+3),0,card);
+    repeated.add(card.id);
+  }
+  index++;showCard();
+}
+function start(){deck=buildDeck();index=0;repeated=new Set();showCard();}
+root('start').addEventListener('click',start);
+root('again').addEventListener('click',start);
+root('reveal').addEventListener('click',reveal);
+document.querySelectorAll('[data-grade]').forEach(b=>b.addEventListener('click',()=>grade(b.dataset.grade)));
+start();
+</script></body></html>

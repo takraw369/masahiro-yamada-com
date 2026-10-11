@@ -30,6 +30,27 @@ import PublicPageLayout from '../layouts/PublicPageLayout.astro';
     <p class="public-callout">お支払い・キャンセル、サイト不具合、取材・企業連携、個人情報・法務など、記録を残して対応したい内容はこちらへ。</p>
 
     <form id="contact-form" class="contact-form" novalidate>
+      <div class="profile-reuse" aria-label="JEVプロフィールから入力">
+        <button type="button" id="profile-reuse-open" class="profile-reuse-open">保存済みプロフィールから入力する</button>
+        <p class="profile-reuse-help">同じ端末・ブラウザのJEV Profileで保存した情報を使えます。自動入力・自動送信はしません。</p>
+        <div id="profile-reuse-preview" class="profile-reuse-preview" hidden>
+          <p class="profile-reuse-title">入力する項目を選んで確認</p>
+          <label class="profile-reuse-choice">
+            <input id="profile-reuse-name" type="checkbox" />
+            <span>お名前：<strong id="profile-reuse-name-value"></strong></span>
+          </label>
+          <label class="profile-reuse-choice">
+            <input id="profile-reuse-email" type="checkbox" />
+            <span>メール：<strong id="profile-reuse-email-value"></strong></span>
+          </label>
+          <p class="profile-reuse-help">すでに入力されている項目は上書きしません。入力後も変更できます。送信は別操作です。</p>
+          <div class="profile-reuse-actions">
+            <button id="profile-reuse-apply" type="button">選択した項目を入力欄へ反映</button>
+            <button id="profile-reuse-cancel" type="button">キャンセル</button>
+          </div>
+        </div>
+        <p id="profile-reuse-status" class="profile-reuse-status" role="status" aria-live="polite"></p>
+      </div>
       <div class="field">
         <label for="category">お問い合わせ種別 <span>必須</span></label>
         <select id="category" name="category" required>
@@ -91,6 +112,18 @@ import PublicPageLayout from '../layouts/PublicPageLayout.astro';
 
 <style>
   .route-card { display: flex; flex-direction: column; align-items: flex-start; }
+  .profile-reuse{border:1px solid var(--border-default);padding:17px;background:var(--bg-void);min-width:0}
+  .profile-reuse-open,.profile-reuse-actions button{min-height:44px;padding:10px 16px;border:1px solid var(--border-accent);background:transparent;color:var(--text-primary);cursor:pointer;font-size:16px;text-align:left}
+  .profile-reuse-open:focus-visible,.profile-reuse-actions button:focus-visible{outline:2px solid var(--gold-pure);outline-offset:2px}
+  .profile-reuse-help,.profile-reuse-status{margin:8px 0 0;color:var(--text-muted);font-size:.83rem;line-height:1.65;overflow-wrap:anywhere}
+  .profile-reuse-title{margin:0;color:var(--text-primary);font-weight:700}
+  .profile-reuse-preview{display:grid;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border-default)}
+  .profile-reuse-preview[hidden]{display:none}
+  .profile-reuse-choice{display:flex;align-items:flex-start;gap:10px;min-width:0;font-size:.9rem;overflow-wrap:anywhere}
+  .profile-reuse-choice input{width:18px;height:18px;flex:none;margin-top:4px}
+  .profile-reuse-choice strong{font-weight:600;overflow-wrap:anywhere}
+  .profile-reuse-actions{display:flex;flex-wrap:wrap;gap:10px}
+  .profile-reuse-status:empty{display:none}
   .route-card h2 { margin-top: 0; }
   .route-card .public-btn { margin-top: auto; }
   .route-no { margin: 0 0 12px; color: var(--gold-dim); font-family: 'Cormorant Garamond', serif; letter-spacing: .18em; }
@@ -123,8 +156,98 @@ import PublicPageLayout from '../layouts/PublicPageLayout.astro';
 </style>
 
 <script>
+  import { PROFILE_STORAGE_KEY, parseProfileForContact } from '../lib/profileReuse.mjs';
+
   const form = document.getElementById('contact-form');
   const statusEl = document.getElementById('form-status');
+
+  // LocalStorage is accessed only after the person clicks "use saved profile".
+  // No profile data is sent to the server by this feature.
+  const reuseOpen = document.getElementById('profile-reuse-open');
+  const reusePreview = document.getElementById('profile-reuse-preview');
+  const reuseStatus = document.getElementById('profile-reuse-status');
+  const reuseName = document.getElementById('profile-reuse-name');
+  const reuseEmail = document.getElementById('profile-reuse-email');
+  const reuseNameValue = document.getElementById('profile-reuse-name-value');
+  const reuseEmailValue = document.getElementById('profile-reuse-email-value');
+  const formName = document.getElementById('name');
+  const formEmail = document.getElementById('email');
+
+  function closeProfilePreview() {
+    if (reusePreview) reusePreview.hidden = true;
+    if (reuseNameValue) reuseNameValue.textContent = '';
+    if (reuseEmailValue) reuseEmailValue.textContent = '';
+    if (reuseName instanceof HTMLInputElement) reuseName.checked = false;
+    if (reuseEmail instanceof HTMLInputElement) reuseEmail.checked = false;
+  }
+
+  reuseOpen?.addEventListener('click', () => {
+    closeProfilePreview();
+    let saved = null;
+    try {
+      saved = parseProfileForContact(window.localStorage.getItem(PROFILE_STORAGE_KEY));
+    } catch {
+      // Storage can be unavailable in private browsing or locked-down browsers.
+    }
+    if (!saved || !(formName instanceof HTMLInputElement) || !(formEmail instanceof HTMLInputElement)
+      || !(reuseName instanceof HTMLInputElement) || !(reuseEmail instanceof HTMLInputElement)
+      || !reusePreview || !reuseNameValue || !reuseEmailValue) {
+      if (reuseStatus) reuseStatus.textContent = 'このブラウザに利用できるプロフィールがありません。通常のフォーム入力は使えます。';
+      return;
+    }
+
+    reuseNameValue.textContent = saved.name || '未登録';
+    reuseEmailValue.textContent = saved.email || '未登録';
+    reuseName.disabled = !saved.name || Boolean(formName.value.trim());
+    reuseEmail.disabled = !saved.email || Boolean(formEmail.value.trim());
+    reuseName.checked = false;
+    reuseEmail.checked = false;
+    reusePreview.hidden = false;
+    if (reuseStatus) reuseStatus.textContent = reuseName.disabled && reuseEmail.disabled
+      ? '利用可能な項目はありません。入力済み欄は上書きしません。'
+      : '反映したい項目にチェックを付けてください。';
+  });
+
+  document.getElementById('profile-reuse-cancel')?.addEventListener('click', () => {
+    closeProfilePreview();
+    if (reuseStatus) reuseStatus.textContent = '反映せず閉じました。';
+  });
+
+  document.getElementById('profile-reuse-apply')?.addEventListener('click', () => {
+    if (!(formName instanceof HTMLInputElement) || !(formEmail instanceof HTMLInputElement)
+      || !(reuseName instanceof HTMLInputElement) || !(reuseEmail instanceof HTMLInputElement)
+      || !reusePreview || reusePreview.hidden) return;
+
+    // Recheck at confirmation time: a profile deleted in another tab must not be reused.
+    let saved = null;
+    try {
+      saved = parseProfileForContact(window.localStorage.getItem(PROFILE_STORAGE_KEY));
+    } catch {
+      // Local storage is optional.
+    }
+    if (!saved) {
+      closeProfilePreview();
+      if (reuseStatus) reuseStatus.textContent = 'プロフィールが見つかりません。保存内容を確認してください。';
+      return;
+    }
+    let updated = 0;
+    if (reuseName.checked && !reuseName.disabled && !formName.value.trim()
+      && saved.name && saved.name === reuseNameValue?.textContent) {
+      formName.value = saved.name;
+      formName.dispatchEvent(new Event('input', { bubbles: true }));
+      updated += 1;
+    }
+    if (reuseEmail.checked && !reuseEmail.disabled && !formEmail.value.trim()
+      && saved.email && saved.email === reuseEmailValue?.textContent) {
+      formEmail.value = saved.email;
+      formEmail.dispatchEvent(new Event('input', { bubbles: true }));
+      updated += 1;
+    }
+    closeProfilePreview();
+    if (reuseStatus) reuseStatus.textContent = updated
+      ? `${updated}項目を入力欄へ反映しました。内容をご確認ください。送信はまだしていません。`
+      : '項目は変更していません。必要な項目を選択し、入力済み欄は空にしてからお試しください。';
+  });
 
   if (form instanceof HTMLFormElement && statusEl) {
     form.addEventListener('submit', async (event) => {

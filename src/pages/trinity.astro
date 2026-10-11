@@ -15,7 +15,7 @@ import TrinityPrologue from '../components/TrinityPrologue.astro';
   <meta property="og:title" content="Trinity Diagnosis | ACE METHOD" />
   <meta property="og:description" content="MBTI × 数秘術 × エニアグラム — 3体系の交差があなたの認知構造を立体的に解き明かす" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://masahiro-yamada.com/trinity" />
+  <meta property="og:url" content="https://masahiroyamada.com/trinity" />
   <meta property="og:site_name" content="ACE METHOD | 山田昌寛" />
 
   <meta name="twitter:card" content="summary_large_image" />
@@ -211,7 +211,7 @@ import TrinityPrologue from '../components/TrinityPrologue.astro';
     const RESULT_CODE_RE = /([A-Z]{4}-\d+-\d+-\d+-\d+)/;
     const params = new URLSearchParams(window.location.search);
 
-    function lineMessageUrl(message) {
+    function lineMessageUrl(message: string) {
       return `https://line.me/R/oaMessage/${LINE_ID}/?${encodeURIComponent(message)}`;
     }
 
@@ -242,7 +242,7 @@ import TrinityPrologue from '../components/TrinityPrologue.astro';
       path: window.location.pathname,
     };
 
-    function track(eventName, extra = {}) {
+    function track(eventName: string, extra: Record<string, unknown> = {}) {
       fetch(FUNNEL_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

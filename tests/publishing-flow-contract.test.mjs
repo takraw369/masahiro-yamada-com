@@ -64,6 +64,7 @@ function renderPost(savedHandoff, clock = now) {
     get value() { return this._value || ''; }
     set value(value) { this._value = value; }
     getAttribute() { return '今日の気づき'; }
+    getClientRects() { return [{}]; }
     dispatchEvent(event) { events.push(event); }
     focus() {}
     scrollIntoView() {}
@@ -143,4 +144,73 @@ test('Publishing Flow hands a draft scaffold to X only after explicit user actio
   assert.match(post, /new CustomEvent\('masa:x-compose'/);
   assert.doesNotMatch(post, /\bfetch\s*\(/);
   assert.doesNotMatch(post, /\/api\/x-harness\//);
+});
+
+test('Flow handoff never overwrites an existing Composer draft', () => {
+  const view = renderPost(handoff);
+  view.textarea.value = '書きかけの投稿';
+  view.element('handoff-to-composer').click();
+  assert.equal(view.textarea.value, '書きかけの投稿');
+  assert.match(view.element('handoff-status').textContent, /投稿欄に下書き/);
+  assert.equal(view.events.length, 0);
+});
+
+function renderFlow({ saved, legacy, denied = false } = {}) {
+  const nodes = new Map();
+  const links = [{ addEventListener(type, fn) { this[type] = fn; } }];
+  const storage = new Map();
+  if (saved !== undefined) storage.set('masa-publishing-flow-v2', JSON.stringify(saved));
+  if (legacy !== undefined) storage.set('masa-content-flow-v1', JSON.stringify(legacy));
+  const script = flow.match(/<script is:inline>([\s\S]*?)<\/script>/)[1];
+  vm.runInNewContext(script, {
+    Date,
+    localStorage: {
+      getItem: (key) => { if (denied) throw new Error('storage denied'); return storage.get(key); },
+      setItem: (key, value) => { if (denied) throw new Error('quota exceeded'); storage.set(key, value); },
+    },
+    document: {
+      getElementById: (id) => {
+        if (!nodes.has(id)) nodes.set(id, { hidden: true, addEventListener() {}, querySelectorAll: () => [] });
+        return nodes.get(id);
+      },
+      querySelectorAll: (selector) => selector === '[data-handoff="post"]' ? links : [],
+      querySelector: () => null,
+    },
+  });
+  return { nodes, storage, links };
+}
+
+test('Legacy materials migrate without rewriting or removing the legacy record', () => {
+  const legacy = { question: '古い問い', materials: [{ text: '残したい素材', phase: 'MAP', theme: 'AI' }] };
+  const view = renderFlow({ legacy });
+  assert.equal(view.nodes.get('weekly-question').value, legacy.question);
+  assert.match(view.nodes.get('material-list').innerHTML, /残したい素材/);
+  view.links[0].click({ preventDefault() {} });
+  assert.equal(JSON.parse(view.storage.get('masa-publishing-handoff-v1')).question, legacy.question);
+  assert.deepEqual(JSON.parse(view.storage.get('masa-content-flow-v1')), legacy);
+});
+
+test('Corrupt lists are contained and unavailable storage blocks a stale handoff', () => {
+  const corrupt = renderFlow({ saved: { materials: [null, 7, { text: '有効な素材' }], results: {}, question: 42 } });
+  assert.equal(corrupt.nodes.get('weekly-question').value, '');
+  assert.match(corrupt.nodes.get('material-list').innerHTML, /有効な素材/);
+  assert.match(corrupt.nodes.get('result-list').innerHTML, /まだ学びなし/);
+  const denied = renderFlow({ denied: true });
+  let prevented = false;
+  denied.links[0].click({ preventDefault() { prevented = true; } });
+  assert.equal(prevented, true);
+  assert.equal(denied.nodes.get('flow-storage-status').hidden, false);
+  assert.match(denied.nodes.get('flow-storage-status').textContent, /保存できません/);
+});
+
+test('Recovered Flow preserves current-master revenue, relationship and X Health surfaces', () => {
+  assert.match(dashboard, /RevenueMission client:only="react"/);
+  assert.match(dashboard, /Relationship OS/);
+  assert.match(dashboard, /Chat Sweep/);
+  assert.match(post, /XOperationsCenter client:only="react"/);
+  const runtime = readFile(new URL('../public/assets/dashboard-runtime/content-flow.css', import.meta.url), 'utf8');
+  return runtime.then(css => {
+    assert.match(css, /\.results article/);
+    assert.match(css, /@scope \(\.flow-shell\)/);
+  });
 });

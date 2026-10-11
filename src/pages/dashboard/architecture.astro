@@ -1,0 +1,122 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { architectureExplorerData, canonicalSystems } from '../../data/architectureExplorer';
+
+const architectureJson = JSON.stringify(architectureExplorerData).replace(/</g, '\\u003c');
+---
+
+<DashboardLayout title="Architecture Explorer" fullHeight={true} eyebrow="MASA OS · SYSTEM MAP">
+  <link rel="stylesheet" href="/styles/architecture-explorer.css" />
+
+  <div class="architecture-app">
+    <header class="arch-header">
+      <div>
+        <p class="arch-eyebrow">SYSTEM ARCHITECTURE · INVESTIGATION MAP</p>
+        <div class="arch-title-row">
+          <h1>全体像を、迷子にならず辿れる地図にする。</h1>
+          <span class="arch-count">{architectureExplorerData.nodes.length} nodes · {architectureExplorerData.edges.length} edges</span>
+        </div>
+        <p class="arch-subtitle">Convex / Modal / R2 / Project / Chat / Model — 実装確認前の仮説と、依頼文で確認済みの事実を分離して表示。</p>
+      </div>
+      <div class="arch-header-actions">
+        <a class="arch-link" href="/dashboard/graph">Brain Graph</a>
+        <button id="arch-zoom-out" class="arch-control" type="button" aria-label="縮小">−</button>
+        <button id="arch-zoom-in" class="arch-control" type="button" aria-label="拡大">＋</button>
+        <button id="arch-fit" class="arch-control" type="button">全体表示</button>
+        <button id="arch-reset" class="arch-control" type="button">Reset</button>
+      </div>
+    </header>
+
+    <div class="arch-workspace">
+      <aside class="arch-sidebar">
+        <section class="arch-source-card">
+          <div class="arch-source-head">
+            <span id="arch-source-badge" class="arch-source-badge">TARGET REPO NOT CONNECTED</span>
+            <span class="arch-date">{architectureExplorerData.generatedAt}</span>
+          </div>
+          <p>{architectureExplorerData.sourceState.summary}</p>
+          <details>
+            <summary>今回の探索結果</summary>
+            <p>{architectureExplorerData.sourceState.connectedRepoFinding}</p>
+          </details>
+        </section>
+
+        <section class="canonical-card" aria-label="Current MASA canonical architecture">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">PRIMARY NOW</p>
+              <h2>現行MASA OSの正本</h2>
+            </div>
+            <span class="verified-pill">VERIFIED ROLE</span>
+          </div>
+          <div class="canonical-list">
+            {canonicalSystems.map((system) => (
+              <div class="canonical-row">
+                <strong>{system.label}</strong>
+                <small>{system.role}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <label class="arch-search">
+          <span>FIND SYSTEM / CONCEPT</span>
+          <input id="arch-search" type="search" placeholder="Project, R2, Modal, model…" autocomplete="off" />
+        </label>
+
+        <section>
+          <p class="section-kicker">FLOW</p>
+          <div id="arch-route-filters" class="stack-list"></div>
+        </section>
+
+        <section>
+          <p class="section-kicker">LAYER</p>
+          <div id="arch-kind-filters" class="chip-row"></div>
+        </section>
+
+        <section>
+          <p class="section-kicker">EVIDENCE</p>
+          <div id="arch-status-filters" class="chip-row"></div>
+        </section>
+
+        <section class="arch-legend">
+          <div><i class="evidence-dot confirmed"></i><span>依頼文で明示</span></div>
+          <div><i class="evidence-dot inferred"></i><span>構造上の仮説</span></div>
+          <div><i class="evidence-dot unknown"></i><span>対象Repoで要確認</span></div>
+        </section>
+      </aside>
+
+      <main id="arch-viewport" class="arch-viewport" aria-label="Interactive architecture canvas">
+        <div class="arch-canvas-hint">Drag to pan · wheel / pinch to zoom · click a node · Esc closes detail</div>
+        <svg id="arch-map" role="img" aria-label="Target application architecture investigation map">
+          <defs>
+            <marker id="arch-arrow" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L10,5 L0,10 z"></path>
+            </marker>
+          </defs>
+          <g id="arch-world"></g>
+        </svg>
+
+        <button id="arch-detail-scrim" class="arch-detail-scrim" type="button" aria-label="詳細を閉じる" hidden></button>
+        <aside id="arch-detail" class="arch-detail" aria-live="polite" aria-hidden="true">
+          <div class="arch-detail-head">
+            <div>
+              <p id="arch-detail-status" class="arch-detail-status"></p>
+              <h2 id="arch-detail-title"></h2>
+            </div>
+            <button id="arch-detail-close" class="arch-icon-button" type="button" aria-label="閉じる">×</button>
+          </div>
+          <p id="arch-detail-meta" class="arch-detail-meta"></p>
+          <p id="arch-detail-body" class="arch-detail-body"></p>
+          <h3>CODEで確認する場所</h3>
+          <ul id="arch-detail-verify"></ul>
+          <h3>なぜ重要か</h3>
+          <p id="arch-detail-why" class="arch-detail-body"></p>
+        </aside>
+      </main>
+    </div>
+
+    <script id="architecture-explorer-data" type="application/json" is:inline set:html={architectureJson}></script>
+    <script is:inline src="/scripts/architecture-explorer.js"></script>
+  </div>
+</DashboardLayout>

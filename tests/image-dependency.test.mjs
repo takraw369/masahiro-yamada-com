@@ -14,8 +14,8 @@ for (const [name, entry] of [
 ]) {
   test(`${name} decodes AVIF with patched sharp/libheif`, async () => {
     const sharp = createRequire(entry)('sharp');
-    assert.equal(sharp.versions.sharp, '0.35.4');
-    assert.equal(sharp.versions.heif, '1.23.2');
+    assert.equal(sharp.versions.sharp, '0.35.5');
+    assert.equal(sharp.versions.heif, '1.23.5');
     const encoded = await sharp({ create: {
       width: 2, height: 2, channels: 3, background: { r: 32, g: 64, b: 128 },
     } }).avif({ lossless: true }).toBuffer();

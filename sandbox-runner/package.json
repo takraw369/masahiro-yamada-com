@@ -1,0 +1,14 @@
+{
+  "name": "masa-sandbox-runner",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260901.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.129.0"
+  }
+}

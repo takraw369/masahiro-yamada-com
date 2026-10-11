@@ -1,0 +1,349 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../lib/siteStorage';
+
+type LinkRow = {
+  id: string;
+  slug: string;
+  publication_id: string | null;
+  asset_id: string | null;
+  source_channel: string;
+  source_url: string | null;
+  placement: string | null;
+  cta_stage: string | null;
+  destination_type: string | null;
+  destination_url: string;
+  campaign_ref: string | null;
+  status: 'active' | 'paused' | 'archived';
+  human_clicks: number;
+  bot_clicks: number;
+  last_clicked_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type PublicationRow = {
+  id: string;
+  asset_id: string;
+  title: string;
+  status: string;
+  draft_ref: string | null;
+  published_url: string | null;
+  published_at: string | null;
+  impressions: number | null;
+  engagements: number | null;
+  clicks: number | null;
+  line_registrations: number | null;
+  purchases: number | null;
+  revenue_yen: number | null;
+  views: number | null;
+  likes: number | null;
+  comments: number | null;
+  last_metric_at: string | null;
+  observed_at: string | null;
+};
+
+type AttributionRow = {
+  link_id: string;
+  slug: string;
+  publication_id: string | null;
+  asset_id: string | null;
+  title: string | null;
+  placement: string | null;
+  cta_stage: string | null;
+  destination_type: string | null;
+  campaign_ref: string | null;
+  human_clicks: number;
+  consented_contacts: number;
+  line_engaged_contacts: number;
+  first_touch_paid_customers: number;
+  first_touch_paid_purchases: number;
+  first_touch_revenue_yen: number;
+  last_clicked_at: string | null;
+  published_url: string | null;
+  published_at: string | null;
+};
+
+let links: LinkRow[] = [];
+let publications: PublicationRow[] = [];
+let attribution: AttributionRow[] = [];
+let loadError: string | null = null;
+
+try {
+  const env = getSiteStorageEnv(Astro.locals);
+  const ownerKey = await getDashboardOwnerKey(env);
+  [links, publications, attribution] = await Promise.all([
+    supabaseRpc<LinkRow[]>(env, 'masa_tracked_link_list_v1', { p_owner_key: ownerKey, p_limit: 200 }),
+    supabaseRpc<PublicationRow[]>(env, 'masa_note_publication_list_v1', { p_owner_key: ownerKey, p_limit: 200 }),
+    supabaseRpc<AttributionRow[]>(env, 'masa_note_attribution_summary_v1', { p_owner_key: ownerKey, p_limit: 200 }),
+  ]);
+} catch (error) {
+  console.error('note_harness_unavailable', error instanceof Error ? error.message.slice(0, 240) : 'unknown');
+  loadError = 'note_harness_unavailable';
+}
+
+const sum = (key: keyof AttributionRow) =>
+  attribution.reduce((total, row) => total + Number(row[key] || 0), 0);
+const campaignRows = [...new Map(attribution.filter((row) => row.campaign_ref).map((row) => [row.campaign_ref, row])).values()];
+const campaignSum = (key: keyof AttributionRow) =>
+  campaignRows.reduce((total, row) => total + Number(row[key] || 0), 0);
+const totalClicks = sum('human_clicks');
+const totalLeads = campaignSum('consented_contacts');
+const totalLine = campaignSum('line_engaged_contacts');
+const totalPaid = campaignSum('first_touch_paid_customers');
+const totalRevenue = campaignSum('first_touch_revenue_yen');
+const money = (value: number) =>
+  new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }).format(value || 0);
+const fmt = (value: string | null) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat('ja-JP', {
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Tokyo',
+      }).format(date);
+};
+---
+
+<DashboardLayout title="Note Harness" eyebrow="PUBLISH / LEARN">
+  <main class="note-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">NOTE HARNESS / OWNED ATTRIBUTION</p>
+        <h1>noteを、書き捨てずに“売れる本棚”へつなぐ。</h1>
+        <p>下書き → 公開URL → 記事内CTA → Library / LINE / Quest → 学習・購入までを同じContent / Publication / Linkで追います。</p>
+      </div>
+      <a href="/library" target="_blank" rel="noopener noreferrer">Libraryを見る ↗</a>
+    </header>
+
+    {loadError ? (
+      <section class="panel error">
+        <strong>Note Harnessを利用できません</strong>
+        <p>接続・権限・migrationを確認してください。データ取得に失敗したため、計測値と保存フォームを表示していません。</p>
+      </section>
+    ) : (
+      <>
+        <section class="score-grid" aria-label="Note Harness summary">
+          <article><span>NOTE</span><strong>{publications.length}</strong><small>登録済み公開記事</small></article>
+          <article><span>CLICK</span><strong>{totalClicks}</strong><small>bot / preview / 不明を除外</small></article>
+          <article><span>CONSENT</span><strong>{totalLeads}</strong><small>同意登録</small></article>
+          <article><span>LINE ENGAGED</span><strong>{totalLine}</strong><small>後続LINE行動</small></article>
+          <article><span>PAID</span><strong>{totalPaid}</strong><small>first-touch顧客</small></article>
+          <article><span>ASSISTED ¥</span><strong class="money">{money(totalRevenue)}</strong><small>直接CVとは別</small></article>
+        </section>
+
+        <section class="two-col">
+          <article class="panel">
+            <div class="panel-head"><div><span>LINK CONTROL</span><h2>追跡URLを作る / 止める</h2></div><small>/go/&lt;slug&gt;</small></div>
+            <form id="link-form" class="form-grid">
+              <input type="hidden" name="assetId" />
+              <input type="hidden" name="sourceChannel" value="note" />
+              <input type="hidden" name="sourceUrl" />
+              <input type="hidden" name="destinationType" />
+              <input type="hidden" name="campaignRef" />
+              <label>Slug<input name="slug" required pattern="[a-z0-9][a-z0-9-]{1,79}" placeholder="note-focus-end" /></label>
+              <label>行き先URL<input name="destinationUrl" required type="url" placeholder="https://masahiroyamada.com/library/..." /></label>
+              <label>Publication ID<select name="publicationId"><option value="">未接続</option>{publications.map((p) => <option value={p.id}>{p.title || p.asset_id}</option>)}</select></label>
+              <label>Placement<input name="placement" placeholder="article_end" /></label>
+              <label>CTA Stage<input name="ctaStage" placeholder="entry / quest / offer" /></label>
+              <label>Status<select name="status"><option value="active">ACTIVE</option><option value="paused">PAUSED</option><option value="archived">ARCHIVED</option></select></label>
+              <button type="submit">保存</button><output id="link-result" aria-live="polite"></output>
+            </form>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span>PUBLICATION</span><h2>公開noteを正本へ戻す</h2></div><small>Human publish後</small></div>
+            <form id="publication-form" class="form-grid">
+              <label>Asset ID<input name="assetId" required placeholder="Cxxx / asset id" /></label>
+              <label>note公開URL<input name="publishedUrl" required type="url" placeholder="https://note.com/..." /></label>
+              <label>Draft URL<input name="draftRef" type="url" placeholder="下書きreceipt URL（任意）" /></label>
+              <label>CTA<input name="cta" placeholder="この記事の主CTA" /></label>
+              <button type="submit">公開URLを登録</button><output id="publication-result" aria-live="polite"></output>
+            </form>
+          </article>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head"><div><span>STORED LINKS</span><h2>保存済みリンク</h2></div><small>編集後にPAUSED / ARCHIVEDを保存</small></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>追跡URL</th><th>行き先</th><th>Status</th><th>Click</th><th>操作</th></tr></thead>
+            <tbody>{links.map((link) => <tr>
+              <td><code>https://masahiroyamada.com/go/{link.slug}</code><small>{link.placement || '—'} · {link.campaign_ref || '—'}</small></td>
+              <td>{link.destination_url}</td><td>{link.status.toUpperCase()}</td><td>{link.human_clicks}</td>
+              <td><button type="button" data-edit-link={JSON.stringify({ slug: link.slug, destinationUrl: link.destination_url, publicationId: link.publication_id, assetId: link.asset_id, sourceChannel: link.source_channel, sourceUrl: link.source_url, placement: link.placement, ctaStage: link.cta_stage, destinationType: link.destination_type, campaignRef: link.campaign_ref, status: link.status })}>編集</button></td>
+            </tr>)}</tbody>
+          </table></div>
+          {!links.length && <p class="empty">保存済みリンクはありません。</p>}
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><div><span>NOTE SIGNAL INPUT</span><h2>note内の反応を学習へ戻す</h2></div><small>公式Dashboard値を手動入力可能</small></div>
+          <form id="metrics-form" class="metrics-grid">
+            <label>記事<select name="publicationId" required><option value="">選択</option>{publications.map((p) => <option value={p.id}>{p.title || p.asset_id}</option>)}</select></label>
+            <label>Impression<input name="impressions" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>PV<input name="views" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>スキ<input name="likes" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>Comment<input name="comments" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>Share<input name="shares" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label>Save<input name="saves" type="number" min="0" step="1" inputmode="numeric" /></label>
+            <label class="wide">流入元メモ / JSON<textarea name="rawMetrics" rows="3" placeholder='{"referrers":{"note内":120,"X":30,"Google":15}}'></textarea></label>
+            <button type="submit">Signalを保存</button><output id="metrics-result" aria-live="polite"></output>
+          </form>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head"><div><span>ATTRIBUTION</span><h2>どのnote・どのCTAが、人を次へ動かしたか</h2></div><small>direct + first-touch assisted</small></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>記事 / Link</th><th>Placement</th><th>Click</th><th>同意</th><th>LINE後続</th><th>Paid顧客</th><th>Paid件数</th><th>Assisted売上</th><th>最終Click</th></tr></thead>
+              <tbody>{attribution.map((row) => <tr>
+                <td><strong>{row.title || row.asset_id || row.slug}</strong><small>{row.slug} · {row.campaign_ref || '—'}</small></td>
+                <td>{row.placement || '—'}<small>{row.cta_stage || row.destination_type || ''}</small></td>
+                <td>{row.human_clicks}</td><td>{row.consented_contacts}</td><td>{row.line_engaged_contacts}</td>
+                <td>{row.first_touch_paid_customers}</td><td>{row.first_touch_paid_purchases}</td><td>{money(row.first_touch_revenue_yen)}</td><td>{fmt(row.last_clicked_at)}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>
+          {!attribution.length && <p class="empty">実記事を1本つなぐと、ここに導線別の結果が出ます。</p>}
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head"><div><span>NOTE SIGNAL</span><h2>note内の反応 × Owned側の行動</h2></div><small>native metrics</small></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>記事</th><th>Impression</th><th>PV</th><th>スキ</th><th>Comment</th><th>Owned Click</th><th>更新</th></tr></thead>
+              <tbody>{publications.map((row) => <tr>
+                <td><strong>{row.title || row.asset_id}</strong>{row.published_url ? <a href={row.published_url} target="_blank" rel="noopener noreferrer">note ↗</a> : null}</td>
+                <td>{row.impressions ?? '—'}</td><td>{row.views ?? '—'}</td><td>{row.likes ?? '—'}</td><td>{row.comments ?? '—'}</td><td>{row.clicks ?? 0}</td><td>{fmt(row.observed_at)}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel rule">
+          <span>READING RULE</span>
+          <p><strong>CLICK</strong> はbot・preview・不明なアクセスを除いた直接計測クリックです。User-Agent等による分類で、本人の厳密な証明ではありません。<strong>CONSENT</strong> はKnowledge Journeyから本人同意でContactへ接続した登録。<strong>LINE ENGAGED</strong> はそのContactの同意後のLINE channel eventが記録された人数で、友だち追加完了そのものではありません。<strong>FIRST-TOUCH ASSISTED売上</strong> はこのcampaignがsource_campaignになった同意済みContactのpaid購入で、first-touch寄与として扱い、直接CVとは断定しません。Click以外はcampaign単位で、同一campaignのリンク行には同じ結果が表示されます。上部合計ではcampaignの重複を除きます。集計対象は取得した最大200リンクです。</p>
+        </section>
+      </>
+    )}
+  </main>
+
+  <script>
+    type PostResult = {
+      ok?: boolean;
+      error?: string;
+      trackUrl?: string;
+      [key: string]: unknown;
+    };
+
+    const post = async (url: string, body: Record<string, unknown>): Promise<PostResult> => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json().catch(() => ({})) as PostResult;
+      if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+      return data;
+    };
+
+    const wireForm = (
+      formId: string,
+      outputId: string,
+      endpoint: string,
+      map: (formData: FormData) => Record<string, unknown>,
+    ) => {
+      const form = document.getElementById(formId);
+      const output = document.getElementById(outputId);
+      if (!(form instanceof HTMLFormElement) || !(output instanceof HTMLOutputElement)) return;
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        output.value = '保存中…';
+        const formData = new FormData(form);
+        try {
+          const result = await post(endpoint, map(formData));
+          output.value = result.trackUrl ? `保存 ✓ ${result.trackUrl}` : '保存 ✓';
+          if (result.trackUrl && navigator.clipboard) {
+            await navigator.clipboard.writeText(result.trackUrl).catch(() => {});
+          }
+          window.location.reload();
+        } catch (error) {
+          output.value = `失敗: ${error instanceof Error ? error.message : 'unknown'}`;
+        }
+      });
+    };
+
+    document.querySelectorAll<HTMLButtonElement>('[data-edit-link]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const form = document.getElementById('link-form');
+        if (!(form instanceof HTMLFormElement)) return;
+        const values = JSON.parse(button.dataset.editLink || '{}') as Record<string, string | null>;
+        for (const [name, value] of Object.entries(values)) {
+          const input = form.elements.namedItem(name);
+          if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) input.value = value || '';
+        }
+        form.scrollIntoView({ block: 'center' });
+        (form.elements.namedItem('status') as HTMLSelectElement).focus();
+      });
+    });
+
+    const numberOrNull = (formData: FormData, key: string): number | null => {
+      const raw = String(formData.get(key) ?? '').trim();
+      if (!raw) return null;
+      const parsed = Number(raw);
+      if (!Number.isSafeInteger(parsed) || parsed < 0) throw new Error(`invalid_${key}`);
+      return parsed;
+    };
+
+    const parseRawMetrics = (formData: FormData): Record<string, unknown> => {
+      const raw = String(formData.get('rawMetrics') ?? '').trim();
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as unknown;
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('rawMetricsはJSON objectで入力');
+      return parsed as Record<string, unknown>;
+    };
+
+    wireForm('link-form', 'link-result', '/api/dashboard/note-harness-links', (formData) => ({
+      slug: formData.get('slug'),
+      destinationUrl: formData.get('destinationUrl'),
+      publicationId: formData.get('publicationId') || null,
+      assetId: formData.get('assetId') || null,
+      sourceUrl: formData.get('sourceUrl') || null,
+      destinationType: formData.get('destinationType') || null,
+      campaignRef: formData.get('campaignRef') || null,
+      placement: formData.get('placement') || null,
+      ctaStage: formData.get('ctaStage') || null,
+      status: formData.get('status') || 'active',
+      sourceChannel: formData.get('sourceChannel') || 'note',
+    }));
+
+    wireForm('publication-form', 'publication-result', '/api/dashboard/note-publications', (formData) => ({
+      action: 'register',
+      assetId: formData.get('assetId'),
+      publishedUrl: formData.get('publishedUrl'),
+      draftRef: formData.get('draftRef') || null,
+      cta: formData.get('cta') || null,
+    }));
+
+    wireForm('metrics-form', 'metrics-result', '/api/dashboard/note-publications', (formData) => ({
+      action: 'metrics',
+      publicationId: formData.get('publicationId'),
+      impressions: numberOrNull(formData, 'impressions'),
+      views: numberOrNull(formData, 'views'),
+      likes: numberOrNull(formData, 'likes'),
+      comments: numberOrNull(formData, 'comments'),
+      shares: numberOrNull(formData, 'shares'),
+      saves: numberOrNull(formData, 'saves'),
+      rawMetrics: parseRawMetrics(formData),
+    }));
+  </script>
+</DashboardLayout>
+
+<style>
+  .note-shell{display:grid;gap:14px}.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.hero h1{font-size:clamp(1.55rem,3vw,2.25rem);line-height:1.25;margin:.2rem 0 .5rem}.hero p{max-width:850px;color:#626b75;font-size:.86rem}.hero>a{white-space:nowrap;color:#8b5b2c;text-decoration:none;border:1px solid #d8d4cd;padding:10px 13px;background:#fff}.eyebrow,.panel-head span,.rule>span{color:#8b5b2c;font-size:.66rem;letter-spacing:.16em;font-weight:700}.panel,.score-grid article{background:#fff;border:1px solid #d8d4cd}.score-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.score-grid article{padding:15px}.score-grid span{display:block;color:#8b929a;font-size:.61rem;letter-spacing:.1em}.score-grid strong{display:block;font:600 1.8rem/1.15 'Cormorant Garamond',serif;color:#754a16;margin:4px 0}.score-grid strong.money{font-size:1.35rem}.score-grid small{color:#8b929a;font-size:.62rem}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.panel-head h2{font-size:1rem;margin-top:3px}.panel-head small{color:#8b929a;font-size:.65rem}.form-grid,.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.form-grid label,.metrics-grid label{display:grid;gap:4px;color:#626b75;font-size:.68rem}.form-grid input,.form-grid select,.metrics-grid input,.metrics-grid select,.metrics-grid textarea{width:100%;min-height:42px;border:1px solid #d8d4cd;background:#fbfaf8;padding:8px 10px;color:#17191c}.metrics-grid textarea{resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.metrics-grid .wide{grid-column:span 4}.form-grid button,.metrics-grid button{min-height:42px;border:1px solid #a56c22;background:#a56c22;color:#fff;cursor:pointer}.form-grid output,.metrics-grid output{display:flex;align-items:center;color:#138a55;font-size:.67rem;overflow-wrap:anywhere}.table-panel{overflow:hidden}.table-wrap{overflow:auto}table{width:100%;min-width:900px;border-collapse:collapse;font-size:.69rem}th{text-align:left;color:#8b929a;font-weight:500;padding:8px;border-bottom:1px solid #d8d4cd}td{padding:10px 8px;border-bottom:1px solid #ece8e1;vertical-align:top;color:#505964}td strong{display:block;color:#24282d}td small{display:block;color:#8b929a;margin-top:2px;font-size:.59rem}td a{display:inline-block;margin-top:3px;color:#8b5b2c;font-size:.61rem}.rule{color:#626b75;font-size:.72rem;line-height:1.75}.rule p{margin-top:6px}.rule strong{color:#754a16}.empty{color:#8b929a;font-size:.72rem}.error{border-color:#d8a79b;color:#7c4032}.error p{margin:6px 0}.error small{color:#8b929a}@media(max-width:1050px){.score-grid{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}.metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics-grid .wide{grid-column:span 2}}@media(max-width:620px){.hero{flex-direction:column}.score-grid{grid-template-columns:repeat(2,1fr)}.form-grid,.metrics-grid{grid-template-columns:1fr}.metrics-grid .wide{grid-column:span 1}}
+</style>

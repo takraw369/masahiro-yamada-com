@@ -159,7 +159,12 @@ export default function XCommandCenter() {
     catRow: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 },
     kwRow: { display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16, padding: '12px 14px', background: cat?.bg ?? soft, borderRadius: 10, border: `1px solid ${cat?.border ?? border}` },
     kwChip: { padding: '4px 10px', borderRadius: 99, background: surface, border: `1px solid ${border}`, color: cat?.color ?? ink, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', transition: 'all 0.15s' },
-    textarea: { width: '100%', minHeight: 140, background: surface, border: `1px solid ${border}`, borderRadius: 12, color: ink, fontFamily: 'inherit', fontSize: '1rem', padding: '14px', resize: 'vertical', outline: 'none', lineHeight: 1.7, boxShadow: '0 1px 2px rgba(37,33,29,0.03)' },
+    publishBox: { marginBottom: 26, padding: '16px', border: '2px solid rgba(154,109,36,0.46)', borderRadius: 16, background: 'linear-gradient(180deg, #fffbf3 0%, #ffffff 100%)', boxShadow: '0 5px 18px rgba(154,109,36,0.09)' },
+    publishHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 5 },
+    publishTitle: { fontSize: '1.05rem', fontWeight: 800, lineHeight: 1.45, color: '#4f3515' },
+    publishTag: { padding: '4px 9px', borderRadius: 99, background: '#f4e6cf', color: '#79501e', fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.03em' },
+    publishHint: { color: '#735d40', margin: '0 0 14px', fontSize: '0.82rem', lineHeight: 1.6 },
+    textarea: { width: '100%', minHeight: 160, boxSizing: 'border-box', background: surface, border: '1.5px solid rgba(154,109,36,0.38)', borderRadius: 11, color: ink, fontFamily: 'inherit', fontSize: '1rem', padding: '14px', resize: 'vertical', outline: 'none', lineHeight: 1.7, boxShadow: '0 1px 2px rgba(37,33,29,0.03)' },
     countRow: { display: 'flex', justifyContent: 'flex-end', marginTop: 6, fontSize: '0.78rem', color: remaining < 20 ? '#b91c1c' : muted },
     modeRow: { display: 'flex', gap: 8, marginBottom: 16 },
     dateInput: { width: '100%', background: surface, border: `1px solid ${border}`, borderRadius: 8, color: ink, fontFamily: 'inherit', fontSize: '0.9rem', padding: '9px 12px', outline: 'none', marginBottom: 14 },
@@ -211,9 +216,15 @@ export default function XCommandCenter() {
             )}
           </div>
 
-          <div style={s.section}>
-            <label style={s.label}>本文</label>
+          <div style={s.publishBox} aria-label="投稿対象の本文">
+            <div style={s.publishHeader}>
+              <strong style={s.publishTitle}>✍️ 実際に投稿する文章</strong>
+              <span style={s.publishTag}>投稿対象</span>
+            </div>
+            <p style={s.publishHint}>ここに入っている文章だけが投稿・予約されます。上のアイデアや素材はそのまま送信されません。</p>
+            <label htmlFor="x-publish-text" style={s.label}>投稿本文</label>
             <textarea
+              id="x-publish-text"
               style={s.textarea}
               value={text}
               onChange={e => setText(e.target.value)}

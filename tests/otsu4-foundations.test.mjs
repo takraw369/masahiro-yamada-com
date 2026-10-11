@@ -33,3 +33,13 @@ test('the foundational route stays separate from practice and links back to it',
   assert.match(practice, /href="\/otsu4\/learn\/"/);
   assert.match(practice, /data-start="mock"/);
 });
+
+
+test('practice feedback connects each answer to prioritized related concepts', () => {
+  const app = readFileSync(new URL('../public/otsu4/app.js', import.meta.url), 'utf8');
+  assert.match(app, /RELATED_CONCEPT_GROUPS/);
+  assert.match(app, /次につなぐ関連論点/);
+  assert.match(app, /weak\(item\)/);
+  assert.match(app, /attempts\(item\) === 0/);
+  assert.match(app, /choiceExplanations\(q, row\) \+ relatedConcepts\(q\)/);
+});

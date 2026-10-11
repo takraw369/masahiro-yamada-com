@@ -4,7 +4,7 @@ import CopyOsReference from '../../components/dashboard/CopyOsReference.astro';
 import SocialAccountPlaybook from '../../components/dashboard/SocialAccountPlaybook';
 import PostDraftShelf from '../../components/dashboard/PostDraftShelf';
 import XProfileLoopBuilder from '../../components/dashboard/XProfileLoopBuilder';
-import XCommandCenter from '../../components/dashboard/XCommandCenter';
+import XOperationsCenter from '../../components/dashboard/XOperationsCenter';
 import '../../styles/masa-readable.css';
 ---
 <DashboardLayout title="X Post">
@@ -31,7 +31,7 @@ import '../../styles/masa-readable.css';
   <XProfileLoopBuilder client:load />
   <PostDraftShelf client:load />
   <CopyOsReference surface="X" />
-  <XCommandCenter client:only="react" />
+  <XOperationsCenter client:only="react" />
 </DashboardLayout>
 
 <script>
@@ -41,7 +41,7 @@ import '../../styles/masa-readable.css';
 
   function handoffToComposer(detail: ComposeDetail, remaining = 15) {
     const textarea = Array.from(document.querySelectorAll('textarea')).find((node) =>
-      node.getAttribute('placeholder')?.includes('今日の気づき')
+      node.getAttribute('placeholder')?.includes('今日の気づき') && node.getClientRects().length > 0
     ) as HTMLTextAreaElement | undefined;
 
     if (!textarea) {
@@ -112,6 +112,11 @@ import '../../styles/masa-readable.css';
     button?.addEventListener('click', () => {
       // Recheck on click: this page may have remained open past the expiry.
       if (!updateAvailability()) return;
+      const composer = Array.from(document.querySelectorAll('textarea')).find(node => node.getAttribute('placeholder')?.includes('今日の気づき'));
+      if (composer?.value.trim() && composer.value !== scaffold) {
+        text('handoff-status', '投稿欄に下書きがあります。先にコピーして残し、投稿欄を空にしてから取り込んでください。');
+        return;
+      }
       window.dispatchEvent(new CustomEvent('masa:x-compose', { detail: { text: scaffold } }));
     });
   }
@@ -126,7 +131,7 @@ import '../../styles/masa-readable.css';
   .publishing-handoff{margin-bottom:18px;padding:16px;border:1px solid #d8d1c6;border-left:4px solid #a56c22;background:linear-gradient(135deg,#fff 70%,#f5eee4);box-shadow:0 12px 34px rgba(42,35,27,.04)}
   .handoff-head,.handoff-actions{display:flex;align-items:center;justify-content:space-between;gap:16px}.handoff-head span,.handoff-grid span{display:block;color:#8b5b2c;font-size:.66rem;letter-spacing:.1em;font-weight:800}.handoff-head strong{display:block;margin-top:3px;font-size:1rem}.handoff-head a{font-size:.76rem;font-weight:800;text-decoration:none}
   .handoff-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}.handoff-grid>div{padding:10px;border:1px solid #e2ddd5;background:rgba(255,255,255,.8)}.handoff-grid strong{display:block;margin-top:4px;font-size:.76rem;line-height:1.45}
-  .handoff-actions{margin-top:12px}.handoff-actions p{color:#69727c;font-size:.78rem}.handoff-actions button{min-height:40px;padding:0 12px;border:0;background:#20242a;color:#fff;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer}
+  .handoff-actions{margin-top:12px}.handoff-actions p{color:#69727c;font-size:.78rem}.handoff-actions button{min-height:44px;padding:0 12px;border:0;background:#20242a;color:#fff;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer}
   .handoff-actions button:disabled{background:#69727c;cursor:not-allowed}#handoff-status{margin:10px 0 0;color:#69727c;font-size:.78rem;line-height:1.6}
   @media(max-width:780px){.handoff-grid{grid-template-columns:repeat(2,1fr)}.handoff-actions{align-items:stretch;flex-direction:column}.handoff-actions button{width:100%}}
   @media(max-width:520px){.handoff-head{align-items:flex-start;flex-direction:column}.handoff-grid{grid-template-columns:1fr}}

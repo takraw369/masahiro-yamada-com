@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { readPlaygroundCapture } from '../../lib/playgroundCapture';
 
 type IntelligenceItem = {
   id: string;
@@ -85,10 +86,25 @@ export default function PrivatePlayground() {
   const [reaction, setReaction] = useState('all');
   const [showCapture, setShowCapture] = useState(false);
   const [capture, setCapture] = useState<CaptureState>(EMPTY_CAPTURE);
+  const [capturing, setCapturing] = useState(false);
+  const [captureNotice, setCaptureNotice] = useState('');
+  const captureInFlight = useRef(false);
+  const captureTitle = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const shared = readPlaygroundCapture(window.location.href);
+    if (shared) {
+      setCapture({ ...EMPTY_CAPTURE, ...shared.fields });
+      setCaptureNotice(shared.warning);
+      setShowCapture(true);
+      window.history.replaceState(window.history.state, '', shared.cleanPath);
+    }
     void load();
   }, []);
+
+  useEffect(() => {
+    if (showCapture) captureTitle.current?.focus();
+  }, [showCapture]);
 
   async function readResponse(res: Response): Promise<IntelligenceResponse> {
     return await res.json().catch(() => ({ ok: false, error: `HTTP ${res.status}` }));
@@ -150,6 +166,9 @@ export default function PrivatePlayground() {
 
   async function createCapture(event: React.FormEvent) {
     event.preventDefault();
+    if (captureInFlight.current) return;
+    captureInFlight.current = true;
+    setCapturing(true);
     setError('');
     try {
       const lenses = [
@@ -165,9 +184,13 @@ export default function PrivatePlayground() {
       if (!res.ok || !data.ok || !data.item) throw new Error(data.error || `HTTP ${res.status}`);
       setItems((rows) => [data.item!, ...rows]);
       setCapture(EMPTY_CAPTURE);
+      setCaptureNotice('');
       setShowCapture(false);
     } catch (value) {
       setError(value instanceof Error ? value.message : String(value));
+    } finally {
+      captureInFlight.current = false;
+      setCapturing(false);
     }
   }
 
@@ -239,17 +262,18 @@ export default function PrivatePlayground() {
 
       {showCapture && (
         <form className="pp-capture" onSubmit={createCapture}>
-          <input required value={capture.title} onChange={(e) => setCapture({ ...capture, title: e.target.value })} placeholder="何を拾った？" />
-          <input value={capture.url} onChange={(e) => setCapture({ ...capture, url: e.target.value })} placeholder="URL（任意）" type="url" />
-          <select value={capture.collectionType} onChange={(e) => setCapture({ ...capture, collectionType: e.target.value })}>
+          <p className="pp-capture-note">共有した内容を確認して保存。外への公開は別の承認です。{captureNotice && <span role="status"> {captureNotice}</span>}</p>
+          <input ref={captureTitle} aria-label="タイトル" required maxLength={240} value={capture.title} onChange={(e) => setCapture({ ...capture, title: e.target.value })} placeholder="何を拾った？" />
+          <input aria-label="参照URL" maxLength={2048} value={capture.url} onChange={(e) => setCapture({ ...capture, url: e.target.value })} placeholder="URL（任意）" type="url" />
+          <select aria-label="素材の種類" value={capture.collectionType} onChange={(e) => setCapture({ ...capture, collectionType: e.target.value })}>
             {COLLECTION_TYPES.map((value) => <option key={value}>{value}</option>)}
           </select>
-          <select value={capture.topic} onChange={(e) => setCapture({ ...capture, topic: e.target.value })}>
+          <select aria-label="テーマ" value={capture.topic} onChange={(e) => setCapture({ ...capture, topic: e.target.value })}>
             {TOPICS.map((value) => <option key={value}>{value}</option>)}
           </select>
-          <textarea value={capture.excerpt} onChange={(e) => setCapture({ ...capture, excerpt: e.target.value })} placeholder="要点 / 体験 / 気づき" />
-          <textarea value={capture.whyItMatters} onChange={(e) => setCapture({ ...capture, whyItMatters: e.target.value })} placeholder="なぜ気になった？" />
-          <button type="submit">PRIVATE FEEDへ</button>
+          <textarea aria-label="要点・体験・気づき" maxLength={4000} value={capture.excerpt} onChange={(e) => setCapture({ ...capture, excerpt: e.target.value })} placeholder="要点 / 体験 / 気づき" />
+          <textarea aria-label="気になった理由" value={capture.whyItMatters} onChange={(e) => setCapture({ ...capture, whyItMatters: e.target.value })} placeholder="なぜ気になった？" />
+          <button type="submit" disabled={capturing}>{capturing ? '保存中…' : 'PRIVATE FEEDへ'}</button>
         </form>
       )}
 
@@ -312,7 +336,7 @@ export default function PrivatePlayground() {
       )}
 
       <style>{`
-        .pp-shell{max-width:920px;margin:0 auto;padding-bottom:84px;color:#20252b}.pp-hero{display:flex;justify-content:space-between;gap:28px;align-items:flex-end;margin-bottom:18px}.pp-kicker{font-size:.74rem;font-weight:900;letter-spacing:.1em;color:#8b5b2c}.pp-hero h1{font-size:clamp(1.9rem,5vw,3.2rem);line-height:1.15;margin:7px 0 10px}.pp-hero p{max-width:700px;color:#59636e;line-height:1.8}.pp-hero-actions{display:flex;gap:8px;flex-wrap:wrap}.pp-hero-actions button,.pp-hero-actions a,.pp-toolbar button{min-height:42px;display:inline-flex;align-items:center;padding:0 13px;border:1px solid #d2cbc1;background:#fff;color:#5a5043;text-decoration:none;font:inherit;font-size:.84rem;cursor:pointer}.pp-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.pp-metrics button{border:1px solid #ddd7ce;background:#fff;padding:12px 14px;display:flex;align-items:baseline;justify-content:space-between;cursor:pointer;color:#20252b}.pp-metrics button.active{border-color:#9e7443;background:#fff8ed}.pp-metrics b{font-size:1.45rem}.pp-metrics span{font-size:.72rem;font-weight:900;color:#756c61}.pp-capture{display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:8px;padding:14px;margin-bottom:14px;background:#fff;border:1px solid #d8d1c8}.pp-capture input,.pp-capture select,.pp-capture textarea,.pp-toolbar input,.pp-toolbar select{min-height:44px;border:1px solid #d5cec5;background:#fff;padding:9px 11px;font:inherit;color:#20252b}.pp-capture textarea{grid-column:span 2;min-height:88px;resize:vertical}.pp-capture button{grid-column:1/-1;min-height:44px;border:1px solid #c7a46d;background:#f6ead8;color:#704817;font:inherit;font-weight:900;cursor:pointer}.pp-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) 220px auto;gap:8px;margin-bottom:14px}.pp-error{padding:12px 14px;margin-bottom:12px;border:1px solid #ddb8b0;background:#fff4f1;color:#914d45}.pp-feed{display:grid;gap:12px}.pp-card{background:#fff;border:1px solid #d9d3ca;padding:18px;box-shadow:0 3px 14px rgba(45,38,30,.035)}.pp-tags{display:flex;flex-wrap:wrap;gap:6px}.pp-tags span{font-size:.72rem;padding:4px 7px;border:1px solid #ddd7cf;background:#fbfaf8;color:#656d75}.pp-tags .state-release{border-color:#c7a46d;background:#fff5e5;color:#7a4d18}.pp-card h2{font-size:1.12rem;line-height:1.55;margin:10px 0 0}.pp-why,.pp-body{font-size:.92rem;line-height:1.8;margin-top:10px;color:#59636e}.pp-why{padding:10px 11px;border-left:3px solid #c7a46d;background:#fbf7f0;color:#343a40}.pp-why b{font-size:.74rem;color:#8b5b2c;margin-right:6px}.pp-draft{margin-top:12px;padding:13px;border:1px solid #d8c29e;border-left:4px solid #b4863b;background:#fffaf2}.pp-draft>span{font-size:.72rem;font-weight:900;letter-spacing:.08em;color:#8b5b2c}.pp-draft p{white-space:pre-wrap;font-size:.92rem;line-height:1.78;margin-top:6px}.pp-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:.74rem;color:#717982}.pp-meta a{color:#82571f}.pp-reactions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:14px;padding-top:12px;border-top:1px solid #ece7e0}.pp-reactions button,.pp-waterways button{min-height:39px;border:1px solid #d5cec5;background:#fff;color:#59636e;font:inherit;font-size:.8rem;font-weight:800;cursor:pointer}.pp-reactions button.selected{border-color:#91816d;background:#f3efe9;color:#3d352d}.pp-reactions button.release{border-color:#c7a46d;color:#744b18}.pp-reactions button.release.selected{background:#f7e8cf}.pp-reactions button.drop{color:#8e615e}.pp-reactions button:disabled{opacity:.5}.pp-waterways{display:grid;grid-template-columns:1fr auto auto auto;gap:7px;align-items:center;margin-top:10px;padding:11px;border:1px solid #ddd2c2;background:#fbf8f2}.pp-waterways div{display:grid;gap:3px}.pp-waterways b{font-size:.74rem;letter-spacing:.08em;color:#7a5324}.pp-waterways span{font-size:.76rem;color:#6b7278;line-height:1.5}.pp-waterways button{padding:0 10px}.pp-empty{padding:34px;text-align:center;color:#737b83;border:1px dashed #d8d1c8;background:rgba(255,255,255,.5)}@media(max-width:760px){.pp-hero{align-items:flex-start;flex-direction:column}.pp-hero-actions{width:100%}.pp-hero-actions>*{flex:1;justify-content:center}.pp-metrics{grid-template-columns:repeat(2,1fr)}.pp-capture{grid-template-columns:1fr 1fr}.pp-capture textarea{grid-column:1/-1}.pp-toolbar{grid-template-columns:1fr 1fr}.pp-toolbar button{grid-column:1/-1;justify-content:center}.pp-waterways{grid-template-columns:1fr 1fr 1fr 1fr}.pp-waterways div{grid-column:1/-1}}@media(max-width:520px){.pp-capture,.pp-toolbar{grid-template-columns:1fr}.pp-capture textarea{grid-column:auto}.pp-reactions{grid-template-columns:repeat(2,1fr)}.pp-waterways{grid-template-columns:repeat(3,1fr)}.pp-card{padding:15px}}
+        .pp-shell{max-width:920px;margin:0 auto;padding-bottom:84px;color:#20252b}.pp-hero{display:flex;justify-content:space-between;gap:28px;align-items:flex-end;margin-bottom:18px}.pp-kicker{font-size:.74rem;font-weight:900;letter-spacing:.1em;color:#8b5b2c}.pp-hero h1{font-size:clamp(1.9rem,5vw,3.2rem);line-height:1.15;margin:7px 0 10px}.pp-hero p{max-width:700px;color:#59636e;line-height:1.8}.pp-hero-actions{display:flex;gap:8px;flex-wrap:wrap}.pp-hero-actions button,.pp-hero-actions a,.pp-toolbar button{min-height:42px;display:inline-flex;align-items:center;padding:0 13px;border:1px solid #d2cbc1;background:#fff;color:#5a5043;text-decoration:none;font:inherit;font-size:.84rem;cursor:pointer}.pp-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.pp-metrics button{border:1px solid #ddd7ce;background:#fff;padding:12px 14px;display:flex;align-items:baseline;justify-content:space-between;cursor:pointer;color:#20252b}.pp-metrics button.active{border-color:#9e7443;background:#fff8ed}.pp-metrics b{font-size:1.45rem}.pp-metrics span{font-size:.72rem;font-weight:900;color:#756c61}.pp-capture{display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:8px;padding:14px;margin-bottom:14px;background:#fff;border:1px solid #d8d1c8}.pp-capture-note{grid-column:1/-1;font-size:.84rem;line-height:1.6;margin:0;color:#59636e}.pp-capture input,.pp-capture select,.pp-capture textarea,.pp-toolbar input,.pp-toolbar select{min-height:44px;border:1px solid #d5cec5;background:#fff;padding:9px 11px;font:inherit;color:#20252b}.pp-capture textarea{grid-column:span 2;min-height:88px;resize:vertical}.pp-capture button{grid-column:1/-1;min-height:44px;border:1px solid #c7a46d;background:#f6ead8;color:#704817;font:inherit;font-weight:900;cursor:pointer}.pp-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) 220px auto;gap:8px;margin-bottom:14px}.pp-error{padding:12px 14px;margin-bottom:12px;border:1px solid #ddb8b0;background:#fff4f1;color:#914d45}.pp-feed{display:grid;gap:12px}.pp-card{background:#fff;border:1px solid #d9d3ca;padding:18px;box-shadow:0 3px 14px rgba(45,38,30,.035)}.pp-tags{display:flex;flex-wrap:wrap;gap:6px}.pp-tags span{font-size:.72rem;padding:4px 7px;border:1px solid #ddd7cf;background:#fbfaf8;color:#656d75}.pp-tags .state-release{border-color:#c7a46d;background:#fff5e5;color:#7a4d18}.pp-card h2{font-size:1.12rem;line-height:1.55;margin:10px 0 0}.pp-why,.pp-body{font-size:.92rem;line-height:1.8;margin-top:10px;color:#59636e}.pp-why{padding:10px 11px;border-left:3px solid #c7a46d;background:#fbf7f0;color:#343a40}.pp-why b{font-size:.74rem;color:#8b5b2c;margin-right:6px}.pp-draft{margin-top:12px;padding:13px;border:1px solid #d8c29e;border-left:4px solid #b4863b;background:#fffaf2}.pp-draft>span{font-size:.72rem;font-weight:900;letter-spacing:.08em;color:#8b5b2c}.pp-draft p{white-space:pre-wrap;font-size:.92rem;line-height:1.78;margin-top:6px}.pp-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:.74rem;color:#717982}.pp-meta a{color:#82571f}.pp-reactions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:14px;padding-top:12px;border-top:1px solid #ece7e0}.pp-reactions button,.pp-waterways button{min-height:39px;border:1px solid #d5cec5;background:#fff;color:#59636e;font:inherit;font-size:.8rem;font-weight:800;cursor:pointer}.pp-reactions button.selected{border-color:#91816d;background:#f3efe9;color:#3d352d}.pp-reactions button.release{border-color:#c7a46d;color:#744b18}.pp-reactions button.release.selected{background:#f7e8cf}.pp-reactions button.drop{color:#8e615e}.pp-reactions button:disabled{opacity:.5}.pp-waterways{display:grid;grid-template-columns:1fr auto auto auto;gap:7px;align-items:center;margin-top:10px;padding:11px;border:1px solid #ddd2c2;background:#fbf8f2}.pp-waterways div{display:grid;gap:3px}.pp-waterways b{font-size:.74rem;letter-spacing:.08em;color:#7a5324}.pp-waterways span{font-size:.76rem;color:#6b7278;line-height:1.5}.pp-waterways button{padding:0 10px}.pp-empty{padding:34px;text-align:center;color:#737b83;border:1px dashed #d8d1c8;background:rgba(255,255,255,.5)}@media(max-width:760px){.pp-hero{align-items:flex-start;flex-direction:column}.pp-hero-actions{width:100%}.pp-hero-actions>*{flex:1;justify-content:center}.pp-metrics{grid-template-columns:repeat(2,1fr)}.pp-capture{grid-template-columns:1fr 1fr}.pp-capture textarea{grid-column:1/-1}.pp-toolbar{grid-template-columns:1fr 1fr}.pp-toolbar button{grid-column:1/-1;justify-content:center}.pp-waterways{grid-template-columns:1fr 1fr 1fr 1fr}.pp-waterways div{grid-column:1/-1}}@media(max-width:520px){.pp-capture,.pp-toolbar{grid-template-columns:1fr}.pp-capture textarea{grid-column:auto}.pp-reactions{grid-template-columns:repeat(2,1fr)}.pp-waterways{grid-template-columns:repeat(3,1fr)}.pp-card{padding:15px}}
       `}</style>
     </div>
   );
