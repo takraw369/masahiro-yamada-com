@@ -82,3 +82,9 @@ With Flow import closed, the source preview editor starts at 435px and its
 review action ends at 742px (844px viewport). Check the deployed computed
 styles as well as source preview: common Dashboard CSS can override fields.
 Physical iPhone and user impact remain separate, unverified acceptance items.
+
+Production follow-up: connection-read failure adds a retry action. Keep retry
+beside the account selector so this state does not push the next action below
+the first 844px viewport at 320px. Verify this error state separately from
+synthetic connected-account fixtures. Do not interpret an API failure as zero
+accounts, or claim that UI work repaired the backend connection.

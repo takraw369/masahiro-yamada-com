@@ -33,7 +33,7 @@
 .x-workspace :is(.x-editor-actions,.x-review-actions) .x-primary{flex:1}
 .x-workspace .x-primary{background:var(--x-accent);color:var(--x-primary-ink);border-color:var(--x-accent);min-height:48px}
 .x-workspace :is(.x-muted,.x-action-hint){font-size:13px;color:var(--x-muted);margin-top:8px}
-.x-workspace .x-connection-note{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--x-muted);margin-top:8px}
+.x-workspace .x-account-controls{display:flex;align-items:center;gap:8px}.x-workspace .x-account-controls select{flex:1;width:0}.x-workspace .x-account-controls button{flex:none}
 .x-workspace .x-status{margin-top:12px;padding:12px;border:1px solid var(--x-line);font-size:14px}.x-workspace .x-status-err{border-left:4px solid #cf7c6d}.x-workspace .x-status-ok{border-left:4px solid #79a98b}
 .x-workspace .x-review{border:1px solid var(--x-accent);border-radius:10px;padding:18px;background:var(--x-bg)}
 .x-workspace .x-review h2{font-size:21px;font-weight:600;line-height:1.5;scroll-margin-top:90px}
