@@ -39,7 +39,7 @@ Web：https://example.com`}
 
       <div id="privacy-note" class="notice">
         <strong>データ最小化</strong>
-        <p>メール・電話・郵便番号・生年月日・URLはコードで抽出し、Jevの意味判定には送らない。氏名・住所・職業・所属など、意味判断が必要な候補だけをJevで分類する。入力原文はこの機能の保存データには残さない。</p>
+        <p>メール・電話・郵便番号・生年月日・URLと、ラベルが明確な氏名・住所・職業・所属などはコードで抽出する。曖昧な文章の候補だけJevで分類する。入力原文はこの機能の保存データには残さない。</p>
       </div>
       <div id="danger-note" class="notice danger">
         <strong>ここには入れない</strong>
@@ -54,7 +54,7 @@ Web：https://example.com`}
         <div><p class="step">02 / REVIEW</p><h2 id="review-title">確認してから反映</h2></div>
         <span id="review-state" class="tag">HUMAN GATE</span>
       </div>
-      <p class="review-copy">AIの結果は自動保存しない。誤りを直し、不要な項目を空にしてから確定する。</p>
+      <p class="review-copy">解析結果は自動保存しない。誤りを直し、不要な項目を空にしてから確定する。</p>
       <div id="field-grid" class="field-grid"></div>
       <div class="actions split"><button id="save-profile" class="primary-button" type="button">この内容を反映</button><button id="discard-preview" class="secondary-button" type="button">解析結果を破棄</button></div>
       <p id="save-status" class="status" role="status" aria-live="polite"></p>
@@ -94,6 +94,25 @@ Web：https://example.com`}
       .notice p{font-size:14px}
       .lead{font-size:16px}
     }
+    /* Profile-import only: constrain the browser scroll root and dashboard chrome. */
+    :global(html),:global(body){width:100%;max-width:100%;overflow-x:clip}
+    :global(.app),:global(.main),:global(.topbar){min-width:0;max-width:100%}
+    :global(.topbar .page-meta){min-width:0;overflow:hidden}
+    :global(.topbar .top-actions){flex-shrink:0}
+    .profile-page{min-width:0;max-width:100%;overflow-x:clip}
+    /* REVIEW fields are created by inline JS at runtime, so Astro-scoped
+       ".field label" selectors do not apply without :global(). */
+    .field-grid :global(.field){min-width:0;max-width:100%}
+    .field-grid :global(.field.wide){grid-column:1/-1}
+    .field-grid :global(.field label){display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;margin:0 0 8px;color:#65584b;font-size:14px;font-weight:700;line-height:1.5}
+    .field-grid :global(.field label span:first-child){min-width:0;overflow-wrap:anywhere}
+    .field-grid :global(.field .meta){margin-left:auto;color:#777167;font-size:12px;line-height:1.5;letter-spacing:.02em;white-space:nowrap}
+    .field-grid :global(.field input){display:block;width:100%;max-width:100%;min-width:0;min-height:48px;padding:10px 8px;border:1px solid #cfc8bd;border-radius:3px;outline:none;background:#fff;color:var(--text-primary);font-size:16px !important;line-height:1.5}
+    .field-grid :global(.field input:focus){border-color:#9b6c2b;box-shadow:0 0 0 2px rgba(165,108,34,.16)}
+    .field-grid :global(.field[data-low-confidence="true"] input){border-color:#b56d4c}
+    .field-grid :global(.field[data-low-confidence="true"] .meta::after){content:' · 要確認';color:#a3533b}
+    .profile-page textarea{font-size:16px !important}
+    @media(max-width:760px){.field-grid :global(.field.wide){grid-column:auto}}
   </style>
 
   <script is:inline>
