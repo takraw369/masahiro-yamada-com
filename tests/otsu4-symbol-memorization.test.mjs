@@ -51,7 +51,7 @@ test('all 33 symbols use individually verified reference IDs and distinct SVG dr
   assert.equal(api.markDefs.find(m=>m.id==='h-diff-flush').ref,'03-a02','recessed differential symbol uses correct source');
   assert.equal(api.markDefs.find(m=>m.id==='a-indicator').ref,'04-08');
   assert.match(api.svg(api.markDefs.find(m=>m.id==='a-indicator')),/M80 37 A33 33 0 0 1 80 103 Z/,'only the right semicircle is shaded');
-  assert.match(page,/reference-symbol/,'visible manufacturer's original reference appears with answer');
+  assert.match(page,/reference-symbol/,"visible manufacturer reference appears with answer");
   assert.match(page,/Panasonic/);
   assert.match(page,/傍記・凡例/);
   assert.doesNotMatch(page,/fallbackSvg|searchNamedPhoto|commons\.wikimedia/);
