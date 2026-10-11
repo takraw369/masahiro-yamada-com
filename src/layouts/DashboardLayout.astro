@@ -9,9 +9,10 @@ export interface Props {
   fullHeight?: boolean;
   focusMode?: boolean;
   eyebrow?: string;
+  previewMode?: boolean;
 }
 
-const { title, fullHeight = false, focusMode = false, eyebrow = 'MASA OS' } = Astro.props;
+const { title, fullHeight = false, focusMode = false, eyebrow = 'MASA OS', previewMode = false } = Astro.props;
 const pathname = Astro.url.pathname;
 const runtimeStylePages = new Set([
   'tasks', 'evidence', 'choice-lab', 'board', 'graph', 'design-lab',
@@ -259,10 +260,10 @@ const commandItems = [
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
     </style>
   </head>
-  <body class:list={[{ 'focus-mode': focusMode }]}>
+  <body class:list={[{ 'focus-mode': focusMode, 'home-preview-mode': previewMode }]}>
     <a class="skip-link" href="#main-content">本文へ移動</a>
 
-    <div class="app">
+    <div class="app" inert={previewMode}>
       <aside class="sidebar">
         <div class="brand"><div class="brand-title">MASA OS</div><div class="brand-sub">Daily Command Center</div></div>
         <nav class="nav" aria-label="Dashboard ナビゲーション">

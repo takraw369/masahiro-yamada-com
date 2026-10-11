@@ -94,25 +94,16 @@ test('structural choices really rearrange production home regions while the base
   assert.match(styles,/grid-template-columns:repeat\(12,minmax\(0,1fr\)\)/);
   for (const layout of layoutIds) assert.ok(styles.includes('data-home-layout="'+layout+'"'));
   for (const group of ['buttons','cards','navigation','cta']) assert.ok(styles.includes('data-home-'+group+'='));
-  assert.match(styles,/@media\(max-width:1159px\)/);
+  assert.match(styles,/@container home-composition \(max-width:859px\)/);
   assert.match(styles,/@media\(max-width:620px\)/);
   assert.match(styles,/\.home-quick-nav\[hidden\]\{display:none!important\}/);
   assert.match(home,/home-style-preview-rail/);
   assert.match(home,/design-templates\?style=/);
 });
 
-test('all six structures keep independent order and phone-first guardrails',async()=>{
-  const css=await read('src/styles/dashboard-home-presets.css');
-  const expectOrder=[
-    ['journey','flow'],['tiles','output'],['editorial','flow'],['split','revenue'],['studio','output'],
-  ];
-  for(const [layout,region] of expectOrder) {
-    assert.ok(css.includes('data-home-layout="'+layout+'"'),layout);
-    assert.ok(css.includes('home-unit--'+region),region);
-  }
-  assert.match(css,/\.home-unit--revenue\{order:-1\}/);
-  assert.match(css,/\.home-unit--output\{order:1\}/);
-  assert.match(css,/\.widget-cell\.span-2/);
-  assert.match(css,/@media\(max-width:1159px\)/);
-  assert.match(css,/@media\(max-width:620px\)/);
+test('actual home and inline preview share surfaces and match reading order to selected composition',async()=>{
+  const [home,preview,css]=await Promise.all([read('src/pages/dashboard/index.astro'),read('src/components/dashboard/HomeDesignPreview.tsx'),read('src/styles/dashboard-home-presets.css')]);
+  for(const ui of [home,preview])for(const component of ['DashboardCockpit','RevenueMission','HomeFlowMap','HomeOutputDoors'])assert.ok(ui.includes(component));
+  assert.match(home,/homeRegionOrder/);assert.match(home,/appendChild/);assert.match(preview,/homeRegionOrder/);assert.match(preview,/<div inert>/);
+  assert.match(css,/@container home-composition/);assert.doesNotMatch(css,/[;{]\s*order\s*:/);
 });

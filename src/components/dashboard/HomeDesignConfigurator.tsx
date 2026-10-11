@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { homeDesignPresets, isHomeDesignPreset, HOME_PRESET_STORAGE_KEY } from '../../data/homeDesignPresets';
+import { homeDesignPresets, isHomeDesignPreset } from '../../data/homeDesignPresets';
 import {
   DEFAULT_HOME_DESIGN, HOME_DESIGN_FAVORITES_KEY,
   homeComponentPresets, homeLayoutPresets, describeHomeDesign, isHomeDesignConfig, loadHomeDesign,
   resetHomeDesign, writeHomeDesign, type HomeDesignConfig,
 } from '../../data/homeDesignCombinations';
 import '../../styles/dashboard-design-studio.css';
+import HomeDesignPreview from './HomeDesignPreview';
 
 type Favorite = { id:string; name:string; config:HomeDesignConfig };
 const maxFavorites = 12;
+const layoutNames:Record<string,string> = {focus:'一つに集中',split:'行動と収益',journey:'流れから選ぶ',tiles:'すぐに届ける',editorial:'考えを編む',studio:'全体を見渡す'};
+const styleNames:Record<string,string> = {dawn:'朝の余白',night:'夜の集中',ocean:'澄んだ流れ',glass:'軽やかな層',editorial:'紙とインク',quest:'前へ進む'};
+const partNames:Record<string,Record<string,string>>={buttons:{sharp:'まっすぐ',soft:'やわらか',pill:'丸く'},cards:{outline:'輪郭で分ける',soft:'面でまとめる',float:'奥行きで分ける'},navigation:{tabs:'横に並べる',chips:'小さくまとめる',dock:'手元に集める'},cta:{solid:'はっきり',outline:'控えめに',minimal:'言葉と矢印'}};
+const panels = [{id:'layout',name:'構成'},{id:'style',name:'見た目'},{id:'parts',name:'部品'}] as const;
+type Panel = (typeof panels)[number]['id'];
 const componentGroups = [
   { key:'buttons', label:'BUTTON', title:'ボタンの輪郭', hint:'タップの気持ちよさを選ぶ。' },
   { key:'cards', label:'CARD', title:'カードの情報整理', hint:'境界と奥行きのつけ方を選ぶ。' },
@@ -31,6 +37,9 @@ function readFavorites():Favorite[] {
 }
 
 export default function HomeDesignConfigurator() {
+  const [panel,setPanel] = useState<Panel>('layout');
+  const [frameSize,setFrameSize] = useState<'fit'|'phone'>('phone');
+  const [previewChoice,setPreviewChoice] = useState<HomeDesignConfig>(DEFAULT_HOME_DESIGN);
   const [choice,setChoice] = useState<HomeDesignConfig>(DEFAULT_HOME_DESIGN);
   const [applied,setApplied] = useState<HomeDesignConfig|null>(null);
   const [favorites,setFavorites] = useState<Favorite[]>([]);
@@ -65,7 +74,6 @@ export default function HomeDesignConfigurator() {
     if (!storageReady) return;
     try {
       writeHomeDesign(localStorage,choice);
-      localStorage.removeItem(HOME_PRESET_STORAGE_KEY);
       setApplied(choice);
       setStatus('ホームに適用しました。この端末で確認できます。');
     } catch {
@@ -76,6 +84,7 @@ export default function HomeDesignConfigurator() {
     try {
       resetHomeDesign(localStorage);
       setApplied(null);
+      setChoice(DEFAULT_HOME_DESIGN);
       setStatus('標準のDashboardに戻しました。これまでの保存デザイン案は残しています。');
     } catch {
       setStatus('設定を戻せませんでした。保存領域を確認してください。');
@@ -101,106 +110,88 @@ export default function HomeDesignConfigurator() {
     } catch { setStatus('デザイン案を削除できませんでした。'); }
   }
 
+  useEffect(()=>{
+    const timer=window.setTimeout(()=>setPreviewChoice(choice),150);
+    return ()=>window.clearTimeout(timer);
+  },[choice]);
+  const previewUrl='/dashboard?design-preview='+encodeURIComponent(JSON.stringify(previewChoice));
+  const selectionName=styleNames[choice.style]+' · '+layoutNames[choice.layout];
+
   return <div className="design-studio" id="home-design-studio">
-    <header className="studio-header">
-      <p className="overline">MASA DESIGN INTELLIGENCE · DESIGN STUDIO</p>
-      <h1>見て、選んで、<em>組み合わせる。</em></h1>
-      <p>好きなスタイルだけでなく、情報の構成・配置とボタンなどのパーツを選べる。サムネイルをタップして比較し、よければホームへ適用。</p>
-      <nav className="studio-jumps" aria-label="デザイン選択の各セクション">
-        <a href="#studio-style">01 STYLE</a><a href="#studio-layout">02 LAYOUT</a><a href="#studio-parts">03 COMPONENTS</a><a href="#studio-preview">04 PREVIEW</a>
-      </nav>
+    <header className="studio-header studio-header-v3">
+      <div><p className="overline">DESIGN STUDIO</p><h1>自分の動きに、<br/><em>合う画面を。</em></h1></div>
+      <p>まず配置を選ぶ。見た目と部品はあとから。<br/>画面を見ながら、しっくりくる形を探そう。</p>
     </header>
-
-    <section id="studio-style" className="studio-section" aria-labelledby="style-title">
-      <div className="section-heading"><div><span className="overline">01 / STYLE</span><h2 id="style-title">色・空気感・質感</h2></div><p>元サイトの画像を転載せず、MASA向けのオリジナル見本から選ぶ。</p></div>
-      <div className="style-grid">
-        {homeDesignPresets.map(preset=><button key={preset.id} type="button" className="style-option"
-            aria-pressed={choice.style===preset.id} onClick={()=>update('style',preset.id)}>
-          <span className="thumb"><img src={`/assets/dashboard-style-presets/${preset.id}.svg`} alt={`${preset.name} デザインのサンプル`} width={720} height={440} loading="lazy"/></span>
-          <span className="option-body"><span className="option-top"><strong>{preset.name}</strong><b>{choice.style===preset.id?'✓ 選択中':'選ぶ'}</b></span><small>{preset.subtitle}</small></span>
-        </button>)}
-      </div>
-    </section>
-
-    <section id="studio-layout" className="studio-section" aria-labelledby="layout-title">
-      <div className="section-heading"><div><span className="overline">02 / LAYOUT</span><h2 id="layout-title">構成・配置・情報の順番</h2></div><p>ここは色違いではない。実際のホーム内の4つの大きなセクションを配置し直す。</p></div>
-      <div className="layout-grid">
-        {homeLayoutPresets.map(preset=><button key={preset.id} type="button" className="layout-option" aria-pressed={choice.layout===preset.id} onClick={()=>update('layout',preset.id)}>
-          <img src={`/assets/dashboard-layout-presets/${preset.id}.svg`} alt={`${preset.name} の配置図`} width={720} height={440} loading="lazy"/>
-          <span className="option-body"><span className="option-top"><strong>{preset.name}</strong><b>{choice.layout===preset.id?'✓ 選択中':'選ぶ'}</b></span><small>{preset.description}</small></span>
-        </button>)}
-      </div>
-    </section>
-
-    <section id="studio-parts" className="studio-section" aria-labelledby="parts-title">
-      <div className="section-heading"><div><span className="overline">03 / COMPONENTS</span><h2 id="parts-title">ボタン・カード・ナビ・CTA</h2></div><p>パーツも独立に選択。4カテゴリー × 3種類。</p></div>
-      <div className="part-groups">
-        {componentGroups.map(group=><section key={group.key} className="part-group" aria-label={group.title}>
-          <div className="part-title"><span>{group.label}</span><h3>{group.title}</h3><small>{group.hint}</small></div>
-          <div className="part-grid">
-            {homeComponentPresets[group.key].map(preset=><button key={preset.id} type="button" className="part-option"
-              aria-pressed={choice[group.key]===preset.id}
-              onClick={()=>update(group.key,preset.id)}>
-              <span className={`part-specimen part-${group.key} part-${preset.id}`} aria-hidden="true">
-                {group.key==='cards' ? <span className="sample-card"><i></i><b></b><em></em></span>
-                  :group.key==='navigation' ? <span className="sample-nav"><i>Home</i><i>Quest</i><i>Flow</i></span>
-                  :<span className="sample-button">次へ <i>→</i></span>}
-              </span>
-              <span className="option-body"><span className="option-top"><strong>{preset.name}</strong><b>{choice[group.key]===preset.id?'✓':'＋'}</b></span><small>{preset.description}</small></span>
+    <div className="studio-workbench">
+      <div className="studio-picker" id="studio-choices">
+        <div className="studio-tabs" role="tablist" aria-label="デザインを選ぶ順番">
+          {panels.map((item,index)=><button type="button" key={item.id} id={'tab-'+item.id} role="tab" aria-selected={panel===item.id} aria-controls={'studio-'+item.id} tabIndex={panel===item.id?0:-1}
+            onClick={()=>setPanel(item.id)} onKeyDown={event=>{
+              const keys=['ArrowRight','ArrowLeft','Home','End']; if(!keys.includes(event.key))return;
+              event.preventDefault();
+              const next=event.key==='Home'?0:event.key==='End'?2:(index+(event.key==='ArrowRight'?1:2))%3;
+              setPanel(panels[next].id);document.getElementById('tab-'+panels[next].id)?.focus();
+            }}><span>0{index+1}</span>{item.name}</button>)}
+        </div>
+        <section id="studio-layout" className="studio-panel" role="tabpanel" aria-labelledby="tab-layout" hidden={panel!=='layout'}>
+          <div className="picker-heading"><h2>何から始めたい？</h2><p>最初に見るものと、次へ進む順番が変わります。</p></div>
+          <div className="layout-grid">
+            {homeLayoutPresets.map(preset=><button key={preset.id} type="button" className="layout-option" aria-pressed={choice.layout===preset.id} onClick={()=>update('layout',preset.id)}>
+              <img src={`/assets/dashboard-layout-presets/${preset.id}.svg`} alt="" width={720} height={440}/>
+              <span className="option-body"><span className="option-top"><strong>{layoutNames[preset.id]}</strong><b>{choice.layout===preset.id?'✓':'＋'}</b></span><small>{preset.description}</small></span>
             </button>)}
           </div>
-        </section>)}
+        </section>
+        <section id="studio-style" className="studio-panel" role="tabpanel" aria-labelledby="tab-style" hidden={panel!=='style'}>
+          <div className="picker-heading"><h2>どんな空気で使いたい？</h2><p>選んだ配置を保ったまま、色と質感を比べます。</p></div>
+          <div className="style-grid">
+            {homeDesignPresets.map(preset=><button key={preset.id} type="button" className="style-option" aria-pressed={choice.style===preset.id} onClick={()=>update('style',preset.id)}>
+              <span className="thumb"><img src={`/assets/dashboard-style-presets/${preset.id}.svg`} alt="" width={720} height={440}/></span>
+              <span className="option-body"><span className="option-top"><strong>{styleNames[preset.id]}</strong><b>{choice.style===preset.id?'✓':'＋'}</b></span><small>{preset.subtitle}</small></span>
+            </button>)}
+          </div>
+        </section>
+        <section id="studio-parts" className="studio-panel" role="tabpanel" aria-labelledby="tab-parts" hidden={panel!=='parts'}>
+          <div className="picker-heading"><h2>触り心地を整える。</h2><p>よく使う操作だけ、形と強さを選びます。</p></div>
+          <div className="part-groups">
+            {componentGroups.map(group=><section key={group.key} className="part-group" aria-label={group.title}>
+              <div className="part-title"><h3>{group.title}</h3></div>
+              <div className="part-grid">{homeComponentPresets[group.key].map(preset=><button key={preset.id} type="button" className="part-option" aria-pressed={choice[group.key]===preset.id} onClick={()=>update(group.key,preset.id)}>
+                <span className={`part-specimen part-${group.key} part-${preset.id}`} aria-hidden="true">
+                  {group.key==='cards'?<span className="sample-card"><i/><b/><em/></span>:group.key==='navigation'?<span className="sample-nav"><i>今日</i><i>残す</i><i>届ける</i></span>:<span className="sample-button">進める <i>→</i></span>}
+                </span><span className="option-body"><strong>{partNames[group.key][preset.id]}</strong><small>{preset.description}</small><b>{choice[group.key]===preset.id?'✓ 選択中':'選ぶ'}</b></span>
+              </button>)}</div>
+            </section>)}
+          </div>
+        </section>
+        <div className="picker-current"><span>いま選んでいる画面</span><strong>{selectionName}</strong><small>{JSON.stringify(applied)===JSON.stringify(choice)?'ホームに適用中':'プレビュー中 · ホームへは未適用'}</small></div>
       </div>
-    </section>
-
-    <section id="studio-preview" className="studio-section" aria-labelledby="preview-title">
-      <div className="section-heading"><div><span className="overline">04 / LIVE PREVIEW</span><h2 id="preview-title">組み合わせて確認</h2></div><p>見本データによるプレビュー。適用前に色・構成・パーツをまとめて比較。</p></div>
-      <div className="preview-stage" data-style={choice.style} data-layout={choice.layout} data-buttons={choice.buttons} data-cards={choice.cards} data-navigation={choice.navigation} data-cta={choice.cta}>
-        <header className="demo-header"><strong>MASA OS</strong><small>DESIGN PREVIEW</small></header>
-        <nav className="demo-nav" aria-label="プレビュー専用ナビ"><span>Today</span><span>Capture</span><span>Output</span><span>Review</span></nav>
-        <div className="demo-layout">
-          <section className="demo-block demo-focus">
-            <span className="demo-caption">FOCUS / TODAY</span><h3>今日の一歩を、自分で選ぶ。</h3>
-            <p>判断を整理し、今必要なことに集中する。</p>
-            <span className="demo-button">次の一手へ <span>→</span></span>
-            <div className="demo-line-bars"><i/><i/><i/></div>
-          </section>
-          <section className="demo-block demo-offer"><span className="demo-caption">OFFER / REVENUE</span><h3>届ける価値を、形に。</h3><p>Offer → 決済 → 顧客化</p><div className="demo-line-bars"><i/><i/></div></section>
-          <section className="demo-block demo-flow"><span className="demo-caption">FLOW / JOURNEY</span><h3>残す → 考える → 届ける</h3><p>学びを次の行動へつなぐ。</p></section>
-          <section className="demo-block demo-output"><span className="demo-caption">OUTPUT / ACTION</span><h3>外へ流す。</h3><p>X · LINE · ACE</p><span className="demo-link">今のアウトプットを見る →</span></section>
+      <section className="studio-live" id="studio-preview" aria-labelledby="preview-title">
+        <div className="live-toolbar"><div><span className="live-dot" aria-hidden="true"/><h2 id="preview-title">実際のホームで確認</h2></div>
+          <div className="preview-size" role="group" aria-label="プレビューの画面幅"><button type="button" aria-pressed={frameSize==='phone'} onClick={()=>setFrameSize('phone')}>スマホ</button><button type="button" aria-pressed={frameSize==='fit'} onClick={()=>setFrameSize('fit')}>広く見る</button></div>
         </div>
-      </div>
-      <div className="studio-actions">
-        <div className="current-design">
-          <span className="overline">CURRENT MIX</span>
-          <h3>{describeHomeDesign(choice)}</h3>
-          <p>ボタン：{choice.buttons} / カード：{choice.cards} / ナビ：{choice.navigation} / CTA：{choice.cta}</p>
-          <p className="applied-note">{applied?'この端末に適用中：'+describeHomeDesign(applied):'現在は標準デザインを表示中。'}</p>
+        <div className="actual-preview" data-size={frameSize} data-style={choice.style} data-layout={choice.layout} data-buttons={choice.buttons} data-cards={choice.cards} data-navigation={choice.navigation} data-cta={choice.cta}>
+          <div className="preview-viewport" role="region" aria-label="選んだ構成のホーム（閲覧用）" tabIndex={0}><HomeDesignPreview config={previewChoice}/></div>
         </div>
-        <div className="action-buttons">
-          <button type="button" className="primary-action" onClick={apply} disabled={!storageReady || !hydrated}>この組み合わせをホームに適用</button>
-          <a className="secondary-action" href="/dashboard">ホームを確認 ↗</a>
-          <button type="button" className="secondary-action" onClick={reset} disabled={!storageReady || !hydrated}>標準デザインに戻す</button>
+        <div className="preview-note"><span>ホームと同じ部品。中の画面は閲覧用です。</span><a href={previewUrl} target="_blank" rel="noreferrer">別画面で大きく見る ↗</a></div>
+        <div className="studio-apply-bar"><div><strong>{selectionName}</strong><p>{applied?'適用中：'+styleNames[applied.style]+' · '+layoutNames[applied.layout]:'ホームは標準デザインです。'}</p></div>
+          <button type="button" className="primary-action" onClick={apply} disabled={!storageReady||!hydrated}>この画面をホームに使う <span>→</span></button>
         </div>
+        <div className="studio-secondary"><a href="/dashboard">ホームを開く ↗</a><button type="button" onClick={reset} disabled={!storageReady||!hydrated}>標準に戻す</button></div>
+        <p className="studio-status" role="status" aria-live="polite">{status}</p>
+      </section>
+    </div>
+    <nav className="studio-mobile-jumps" aria-label="選択と結果を行き来する">
+      <a href="#studio-choices">構成を選ぶ ↓</a><a href="#studio-preview">選んだ画面を見る ↑</a>
+    </nav>
+    <details className="studio-saved" id="studio-favorites">
+      <summary><span>気に入った組み合わせを残す</span><span>{favorites.length} / 12 <b aria-hidden="true">＋</b></span></summary>
+      <div className="saved-content"><p>保存はこのブラウザだけ。ホームへの適用とは別です。</p>
+        <div className="favorite-creator"><label htmlFor="design-favorite-name">案の名前</label><input id="design-favorite-name" type="text" maxLength={48} value={favoriteName} onChange={event=>setFavoriteName(event.target.value)} placeholder="例：朝に集中する画面"/>
+          <button type="button" onClick={saveFavorite} disabled={!storageReady||!hydrated}>この組み合わせを保存</button></div>
+        {favorites.length>0?<div className="favorite-list">{favorites.map(item=><article key={item.id} className="favorite-item"><div><strong>{item.name}</strong><small>{describeHomeDesign(item.config)}</small></div><div><button type="button" onClick={()=>{setChoice(item.config);setStatus('保存案を読み込みました。ホームへは未適用です。');document.getElementById('studio-preview')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}}>読み込む</button><button type="button" className="remove" onClick={()=>deleteFavorite(item.id)} aria-label={`${item.name}を削除`}>削除</button></div></article>)}</div>:<p className="empty-favorites">まだ保存した案はありません。</p>}
       </div>
-      <p className="studio-status" role="status" aria-live="polite">{status}</p>
-    </section>
-
-    <section className="studio-section" aria-labelledby="favorites-title">
-      <div className="section-heading"><div><span className="overline">05 / SAVE FOR REUSE</span><h2 id="favorites-title">お気に入りの組み合わせ</h2></div><p>保存と適用は別。端末内に最大12案。あとで再選択できる。</p></div>
-      <div className="favorite-creator">
-        <label htmlFor="design-favorite-name">案の名前（任意）</label>
-        <input id="design-favorite-name" type="text" maxLength={48} value={favoriteName} onChange={event=>setFavoriteName(event.target.value)} placeholder="例：ACEトップ用・静かな構成" />
-        <button type="button" onClick={saveFavorite} disabled={!storageReady || !hydrated}>この組み合わせを保存</button>
-      </div>
-      {favorites.length>0 ? <div className="favorite-list">{favorites.map(item=><article key={item.id} className="favorite-item"><div><strong>{item.name}</strong><small>{describeHomeDesign(item.config)}</small></div><div><button type="button" onClick={()=>{setChoice(item.config);setStatus('保存案をプレビューに読み込みました。ホームには未適用です。');document.getElementById('studio-preview')?.scrollIntoView({behavior:'smooth',block:'start'});}}>読み込む</button><button type="button" className="remove" onClick={()=>deleteFavorite(item.id)} aria-label={`${item.name}を削除`}>削除</button></div></article>)}</div>
-      : <p className="empty-favorites">まだ保存した案はありません。気に入った組み合わせを残しておけます。</p>}
-    </section>
-
-    <footer className="studio-foot">
-      <a href="/dashboard/design-lab">25の好み選択（既存Design Lab） ↗</a>
-      <a href="/dashboard/visual-structures">図解20型（Visual Structures） ↗</a>
-      <p>このページは非公開Dashboard内。設定は今のブラウザだけに保存。現段階ではホームの大きな区画と表示パーツの変更で、他サービス・決済・データの内容は変更しません。</p>
-    </footer>
+    </details>
+    <footer className="studio-foot"><a href="/dashboard/design-lab">好みの選択を続ける ↗</a><a href="/dashboard/visual-structures">図解の構成を選ぶ ↗</a><p>この段階ではホームの大きな区画と導線を比較します。各機能の細かな操作画面は、実際に使った感想をもとに次の段階で整えます。</p></footer>
   </div>;
 }

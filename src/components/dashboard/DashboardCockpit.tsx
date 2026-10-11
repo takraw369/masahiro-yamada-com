@@ -93,7 +93,7 @@ const isOverdue = (task: TaskItem) => {
   return Number.isFinite(due) && due < Date.now();
 };
 
-export default function DashboardCockpit() {
+export default function DashboardCockpit({readOnly=false}:{readOnly?:boolean}={}) {
   const [layout, setLayout] = useState<LayoutState>(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -112,9 +112,9 @@ export default function DashboardCockpit() {
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || readOnly) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
-  }, [layout, hydrated]);
+  }, [layout, hydrated, readOnly]);
 
   const load = async () => {
     setLoading(true);
@@ -184,7 +184,7 @@ export default function DashboardCockpit() {
 
   const submitInput = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if (readOnly || !text || sending) return;
     setSending(true);
     setInputStatus('保存中…');
     try {

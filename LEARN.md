@@ -50,3 +50,6 @@ When the same class of learning appears twice:
 - Corrected: treat executable project configuration as authoritative when repository documentation claims a different framework/runtime state.
 - Cause: documentation can remain correct in spirit while technical version details become stale.
 - Rule: before acting on framework, deploy, domain, storage, or runtime claims in docs, verify them against current executable config and fix confirmed stale docs.
+
+## 2026-10-11 | UI選定の摩擦
+MASA: 見づらい・読みづらい・選びづらい・使いづらい。色のバリエーションを増やす前に、実際の情報の順序と選択結果の見え方を直す。構成→見た目→部品の順に比較し、読み順と配置を一致させる。スマホで選択肢と結果を往復する導線を用意し、採用は実物のKEEP / REFINE / DROPで判断する。デザインの効果や人気は未観測のまま断定しない。

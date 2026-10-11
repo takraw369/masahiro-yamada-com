@@ -50,7 +50,9 @@ test('dashboard mobile prioritizes action before explanation', async () => {
   const layout = await readFile(new URL('../src/layouts/DashboardLayout.astro', import.meta.url), 'utf8');
   const standard = await readFile(new URL('../docs/dashboard-mobile-ui-standard.md', import.meta.url), 'utf8');
 
-  assert.match(page, /@media\(max-width:620px\)\{\.dash-head\{display:none\}/);
+  assert.match(page, /dashboard-home-content\.css/);
+  const homeCss=await readFile(new URL('../src/styles/dashboard-home-content.css',import.meta.url),'utf8');
+  assert.match(homeCss, /@container home-composition \(max-width:620px\)\{#dashboard-home-shell \.dash-head\{display:none\}/);
   assert.match(component, /\.cockpit-title\{display:none\}/);
   assert.match(component, /\{editing \? '完了' : '配置'\}/);
   assert.match(layout, /\.page-title \{ display: none; \}/);

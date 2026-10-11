@@ -111,3 +111,21 @@ export function describeHomeDesign(config:HomeDesignConfig):string {
   const layout = homeLayoutPresets.find(item => item.id === config.layout)?.name ?? config.layout;
   return `${style} / ${layout}`;
 }
+
+// URL previews are transient selections, never a saved preference or an auth bypass.
+export function parseHomeDesignPreview(raw:string|null):HomeDesignConfig|null {
+  if (!raw || raw.length > 1000) return null;
+  return parseHomeDesign(raw);
+}
+
+export type HomeRegion = 'cockpit'|'revenue'|'flow'|'output';
+export function homeRegionOrder(layout:HomeLayoutId, phone:boolean):HomeRegion[] {
+  switch (layout) {
+    case 'split': return phone ? ['revenue','cockpit','flow','output'] : ['cockpit','revenue','flow','output'];
+    case 'journey': return ['flow','cockpit','revenue','output'];
+    case 'tiles': return ['output','cockpit','revenue','flow'];
+    case 'editorial': return ['flow','output','cockpit','revenue'];
+    case 'studio': return phone ? ['cockpit','output','flow','revenue'] : ['cockpit','revenue','flow','output'];
+    default: return ['cockpit','revenue','flow','output'];
+  }
+}
