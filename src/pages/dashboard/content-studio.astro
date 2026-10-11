@@ -23,7 +23,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     <div class="studio-two"><label>読者が今日試す一手<input name="practice" maxlength="1000" placeholder="3分・1回・1つ、から始められる行動"/></label><label>予定価格（円）<input name="priceYen" type="number" min="0" max="1000000" step="1" value="0" required/></label></div>
     <div class="studio-editor-actions"><button class="studio-primary" id="make-outline" type="button">この核から構成を作る</button><button class="studio-secondary" id="copy-ai-brief" type="button">洗練用のAI指示をコピー</button></div>
     <label>教材の原稿<textarea id="product-body" name="body" rows="16" maxlength="100000" placeholder="見出し・説明・実践・振り返りを編集。構成を作るとここへ入ります。"></textarea></label>
-    <div class="studio-editor-actions"><button class="studio-primary" type="submit">教材の下書きを保存</button><button class="studio-secondary" id="download-draft" type="button">原稿を書き出す</button></div>
+    <div class="studio-editor-actions"><button class="studio-primary" type="submit">教材の下書きを保存</button><button class="studio-secondary" id="download-draft" type="button">原稿を書き出す</button><button class="studio-secondary" id="new-product" type="button">新しい教材を作る</button></div>
     <p class="studio-note">保存先は制作中の教材です。保存だけでは販売・公開されません。</p>
    </form><aside class="studio-reader"><div class="studio-reader-label">READING PREVIEW</div><h3 id="preview-title">読む人の画面</h3><div id="body-preview"><p>原稿を整えると、ここで読み心地を確認できます。</p></div></aside></div>
   </section>
@@ -44,6 +44,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
  const safeUrl=(url:unknown)=>{try{return typeof url==='string'&&new URL(url).protocol==='https:';}catch{return false;}};
  const status=(text:string)=>{const e=byId('studio-status');if(e)e.textContent=text;};
  function choose(asset:Asset){
+  if(bodyInput.value.trim()&&asset.id!==selected?.id){status('原稿と出典を保持しています。別の教材を作る場合は、保存・書き出しの後に「新しい教材を作る」を選んでください。');return;}
   selected=asset;const panel=byId('selected-source');if(panel){panel.replaceChildren(node('strong',asset.id+' / '+asset.title),node('p',asset.target||'読者はこれから選ぶ'));
    if(safeUrl(asset.source_url)){const link=node('a','元資料を開いて確認する ↗') as HTMLAnchorElement;link.href=asset.source_url!;link.target='_blank';link.rel='noopener noreferrer';panel.append(link);}if(asset.rights)panel.append(node('p',asset.rights,'studio-note'));}
   if(!dirty&&!bodyInput.value){setValue('title',asset.title.replace(/^(?:C\d+｜|READY｜|EXAMPLE｜|SEED｜)/,'').replace(/\s*[0-9]{4}-[0-9]{2}-[0-9]{2}$/,''));setValue('audience',asset.target||'');setValue('slug','asset-'+asset.id.toLowerCase().replace(/_/g,'-'));}
@@ -71,6 +72,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
  });
  byId('copy-ai-brief')?.addEventListener('click',async()=>{const prompt=`次の元資料に基づいて教材を洗練してください。対象：${value('audience')}。持ち帰る変化：${value('summary')}。元資料：${selected?.source_url||'下記の核'}。核：${value('core')}。現稿：${bodyInput.value}。事実と提案を分け、未確認の本人経験・科学的効果・成果を創作せず、説明→具体例→実践→振り返りを整えてください。購入者用の本文だけを作り、内部編集メモは含めないでください。`;try{await navigator.clipboard.writeText(prompt);status('洗練用の指示をコピーしました。');}catch{status('コピーできません。ブラウザのクリップボード権限を確認してください。');}});
  byId('download-draft')?.addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([bodyInput.value],{type:'text/markdown;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download=(value('slug')||'knowledge-draft')+'.md';link.click();URL.revokeObjectURL(url);});
+ byId('new-product')?.addEventListener('click',()=>{if(dirty){status('いまの原稿を先に保存または書き出してください。原稿は保持しています。');return;}form.reset();selected=null;currentSlug='';currentVersion=null;const panel=byId('selected-source');if(panel)panel.textContent='まず上から素材を選んでください。';preview();drawSources();status('新しい教材の制作を始められます。');});
  form.addEventListener('input',()=>{dirty=true;preview();});
  form.addEventListener('submit',async event=>{event.preventDefault();const button=form.querySelector('button[type="submit"]') as HTMLButtonElement;button.disabled=true;try{const slug=value('slug'),response=await fetch('/api/dashboard/content-studio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,title:value('title'),summary:value('summary'),body:bodyInput.value,priceYen:Number(value('priceYen')),sourceAssetId:selected?.id||null,expectedVersion:slug===currentSlug?currentVersion:null})});const result=await response.json();if(!response.ok||!result.ok){status(result.error==='version_conflict'?'別の更新があります。原稿を書き出してから最新の保存内容を確認してください。':result.error==='live_product_update_requires_release'?'公開中の教材は、この下書き保存では書き換えません。別の下書きとして整えてから更新します。':'保存に接続できません。原稿はこの画面に保持しています。');return;}currentSlug=slug;currentVersion=result.data.version;dirty=false;await refresh();status('教材の下書きを保存しました。販売や公開はまだ行っていません。');}catch{status('保存に接続できません。原稿を書き出して保管できます。');}finally{button.disabled=false;}});
  window.addEventListener('beforeunload',event=>{if(dirty)event.preventDefault();});refresh();

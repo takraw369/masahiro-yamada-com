@@ -62,3 +62,6 @@ Publishing FlowのSource QAでは16pxでも、本番の共通masa-readable.css�
 
 ## 2026-10-12 | X編集の入口と動き
 390pxの本番で本文欄がページ先頭から6036px下にあり、戦略・素材・プロフィール補助が主操作を押し下げていた。編集を先頭へ置き、補助は必要時に開く。PR303の動き資産は確認・押下・完了の意味がある箇所に使い、入力中の面や説明を常時動かさない。画面を美しくする前に、本文と次の操作へ辿り着ける実測位置を確認する。
+# Purchase access versus creator access
+
+For Knowledge Shelf, the purchase key belongs to customer material delivery. Creator discovery and editing use the existing Dashboard session without a second product key. Preserve private source visibility while keeping this distinction clear in the UI.
