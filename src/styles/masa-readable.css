@@ -501,6 +501,10 @@ select {
     --masa-font-body: 1rem;
   }
 
+  /* Match the Dashboard control rule above so its 0.95rem cannot win. */
+  .content input,
+  .content textarea,
+  .content select,
   input,
   textarea,
   select {
