@@ -110,11 +110,14 @@ export default function XCommandCenter() {
           <div className="x-writing">
             <div className="x-account-field">
               <label htmlFor="x-account">届けるアカウント</label>
+              <div className="x-account-controls">
               <select id="x-account" value={selectedAccount} disabled={status === 'posting' || accountState !== 'ready' || !accounts.length} onChange={e => setSelectedAccount(e.target.value)}>
                 {!accounts.length && <option value="">{accountState === 'loading' ? '接続先を確認中…' : accountState === 'error' ? '接続先を確認できません' : '送信できる接続先がありません'}</option>}
                 {accounts.map(a => <option key={a.id} value={a.id}>@{a.username}</option>)}
               </select>
-              {accountState === 'error' && <div className="x-connection-note" role="status">接続先を読み込めませんでした。<button type="button" onClick={() => void loadAccounts()}>再読み込み</button></div>}
+              {accountState === 'error' && <button type="button" onClick={() => void loadAccounts()}>再読み込み</button>}
+              </div>
+              {accountState === 'error' && <p className="x-muted" role="status">接続エラー。本文は編集できます。</p>}
               {accountState === 'ready' && !accounts.length && <p className="x-muted">本文は編集できます。送信には接続先が必要です。</p>}
             </div>
             <label htmlFor="x-publish-text" className="x-body-label">投稿本文</label>
