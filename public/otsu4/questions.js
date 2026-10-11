@@ -417,6 +417,8 @@ const OTSU4_QUESTIONS = (() => {
       "33"
     ]
   };
+  // Marks at the printed QUESTION NUMBER denote missed/uncertain paper practice, not a correct option.
+  const paperQuestionMarks = {'2':'○','10':'○','11':'○','15':'○','17':'○','22':'○','24':'△','25':'○','26':'○','27':'△','30':'○','32':'○','33':'△','35':'○','39':'○'};
   // Retain the original question IDs and progress history; never silently recategorize old records.
   return questions.map((item) => ({
     ...item,
@@ -424,6 +426,7 @@ const OTSU4_QUESTIONS = (() => {
     lectureMarked:markedIds.has(item.id),
     paperMarked: Boolean(paperWeaknesses[item.id]),
     paperQuestions: paperWeaknesses[item.id] || [],
+    paperMarkLabels: (paperWeaknesses[item.id] || []).map(num => `問${num}${paperQuestionMarks[num] || '印あり'}`),
     lecturePage:markedPages[item.id] || null,
     ...(markedIds.has(item.id) ? { source:{label:'e-Gov｜消防法施行令（講習写真に基づく独自作問）',url:'https://laws.e-gov.go.jp/law/336CO0000000037'}} : {}),
     ...(OTSU4_AUTUMN_LAW_SOURCES[item.id] ? {source: OTSU4_AUTUMN_LAW_SOURCES[item.id]} : {}),
