@@ -55,6 +55,20 @@
       return { ok: false, message: "端末への保存に失敗しました。ブラウザの保存設定を確認してください。" };
     }
   }
+  function importBatch(payload) {
+    const sessions = Array.isArray(payload) ? payload : [payload];
+    if (!sessions.length || sessions.length > 20 || !sessions.every(valid)) {
+      return { ok: false, message: "記録形式を確認してください。" };
+    }
+    let added = 0;
+    for (const session of sessions) {
+      const result = importSession(session);
+      if (!result.ok) return result;
+      if (result.added) added += 1;
+    }
+    return { ok: true, added: added > 0,
+      message: added ? added + "回分の取り込みが完了しました。" : "すべて取り込み済みです。" };
+  }
   function summary() {
     const sessions = getSessions();
     const items = sessions.flatMap((s) => s.items);
@@ -99,7 +113,7 @@
     function attempt(value) {
       try {
         const data = JSON.parse(value);
-        const result = importSession(data);
+        const result = importBatch(data);
         show(result.message);
         renderHistory();
       } catch { show("JSONが読み取れません。入力を確認してください。"); }
@@ -126,7 +140,7 @@
     const button = document.getElementById("chat-import-submit");
     if (button) button.addEventListener("click", () => attempt(document.getElementById("chat-import-json").value.trim()));
   }
-  window.Otsu4ChatPractice = { importSession, summary };
+  window.Otsu4ChatPractice = { importSession, importBatch, summary };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { renderHome(); renderImport(); });
   else { renderHome(); renderImport(); }
 })();
