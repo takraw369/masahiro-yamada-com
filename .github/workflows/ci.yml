@@ -38,6 +38,7 @@ jobs:
         run: npm test
 
       - name: Guard new Supabase public schema grants
+        if: github.event_name == 'pull_request'
         env:
           MIGRATION_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           MIGRATION_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
