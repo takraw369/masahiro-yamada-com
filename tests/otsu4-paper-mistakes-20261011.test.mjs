@@ -28,7 +28,7 @@ test('new paper weak-point questions are legally sourced and explain every optio
 test('marked papers map 15 original question numbers to a dedicated adaptive test',()=>{
  const topic=engine.topics.find(t=>t.id==='paper-mistakes-20261011');
  assert.ok(topic);
- const paperNumbers=new Set(topic.ids.flatMap(id=>rows.find(q=>q.id===id).paperQuestions));
+ const paperNumbers=new Set(topic.ids.flatMap(id=>rows.find(q=>q.id===id).paperQuestions.filter(num=>/^\d+$/.test(num))));
  assert.deepEqual(Array.from(paperNumbers).sort(),['2','10','11','15','17','22','24','25','26','27','30','32','33','35','39'].sort());
  assert.equal(topic.ids.length,27);
  const s=engine.load({getItem:()=>null});
@@ -55,7 +55,8 @@ test('historical law topics and marks are retained',()=>{
  assert.deepEqual(Array.from(original.ids),['l46','l47','l48']);
  assert.equal(engine.topics.find(t=>t.id==='photo-law-20261010').ids.length,8);
  const old=rows.find(q=>q.id==='c01');
- assert.ok(old&&!old.paperMarked);
+ assert.ok(old&&!old.paperQuestions.some(num=>/^\d+$/.test(num)), 'not marked on previous sheet');
+ assert.ok(old.paperQuestions.includes('20261012-No.4-Q41'), 'marked on the new sheet');
  const law=engine.topics.find(t=>t.id==='law-all');
  const all=engine.select(rows,law,engine.load({getItem:()=>null}),'smart',Date.now(),'all');
  assert.ok(fresh.every(id=>all.some(q=>q.id===id)));
