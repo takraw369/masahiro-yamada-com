@@ -221,7 +221,8 @@ test('Otsu4 law-only 10 question test is separately reachable and preserves shar
   const weakOnly={...state,wrong:{...state.wrong,...Object.fromEntries(pool.filter(q=>q.category==='law-common').slice(0,9).map(q=>[q.id,1]))}};
   const weakPicks=C.select(rows,topic,weakOnly,'weak');
   assert.ok(weakPicks.length>=5,'usable weak-only session with just common-law mistakes');
-  assert.ok(weakPicks.every(q=>q.category==='law-common'));
+  assert.ok(weakPicks.every(q=>C.weak(q,weakOnly)), 'weak mode must contain only wrong or paper-marked law problems');
+  assert.ok(weakPicks.some(q=>q.category==='law-common'), 'explicit common-law mistakes remain eligible');
   const [home,landing,listing]=await Promise.all([
     readFile(new URL('../src/pages/otsu4/index.astro',import.meta.url),'utf8'),
     readFile(new URL('../src/pages/otsu4/hourei/index.astro',import.meta.url),'utf8'),
