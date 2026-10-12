@@ -28,16 +28,16 @@ function setup(seed={}){
       setItem:(key,value)=>storage.set(key,value)
     }
   };
-  const api=vm.runInNewContext(script+'\n({markDefs,lines,svg,buildDeck,history,rank,showCard,grade,start,reveal,choose,getDeck:()=>deck,getIndex:()=>index,getOptions:()=>options,getMemory:()=>memory})',ctx);
+  const api=vm.runInNewContext(script+'\n({markDefs,lines,originalImage,originalUrl,buildDeck,history,rank,showCard,grade,start,reveal,choose,getDeck:()=>deck,getIndex:()=>index,getOptions:()=>options,getMemory:()=>memory})',ctx);
   return {api,element,storage};
 }
 
-test('all 33 symbols use individually verified reference IDs and distinct SVG drawings',()=>{
+test('all 33 symbols use unique verified original drawings in both quiz directions',()=>{
   const {api}=setup();
   assert.equal(api.markDefs.length,33);
   assert.equal(new Set(api.markDefs.map(m=>m.id)).size,33);
   assert.equal(new Set(api.markDefs.map(m=>m.ref)).size,33);
-  assert.equal(new Set(api.markDefs.map(m=>api.svg(m))).size,33);
+  assert.equal(new Set(api.markDefs.map(m=>api.originalUrl(m))).size,33);
   const ids=api.markDefs.map(m=>m.id);
   for(const expected of ['h-diff','h-fixed1','h-diff-flush','h-fixedspecial','h-acid','h-waterproof','s-surface','s-flush','s-comp-flush','h-flame','r-main','r-relay','a-manual','a-bell','a-indicator','t-airpipe','t-end','t-beam','d-box-hydrant']){
     assert.ok(ids.includes(expected),expected);
@@ -45,15 +45,21 @@ test('all 33 symbols use individually verified reference IDs and distinct SVG dr
   for(const item of api.markDefs){
     assert.ok(item.title&&item.use&&item.hint&&item.ref);
     assert.ok(Object.hasOwn(api.lines,item.kind),'vector exists: '+item.id);
-    assert.match(api.svg(item),/viewBox="0 0 160 130"/);
+    const question=api.originalImage(item,'question');
+    const choice=api.originalImage(item,'choice');
+    assert.ok(question.includes(api.originalUrl(item)));
+    assert.ok(choice.includes(api.originalUrl(item)));
+    assert.match(question, /class="original-symbol"/);
+    assert.match(choice, /class="original-choice"/);
+    assert.doesNotMatch(question+choice, new RegExp(item.title));
   }
   assert.equal(api.markDefs.find(m=>m.id==='h-fixedspecial').ref,'03-a03','special fixed-temperature detector uses correct source');
   assert.equal(api.markDefs.find(m=>m.id==='h-diff-flush').ref,'03-a02','recessed differential symbol uses correct source');
   assert.equal(api.markDefs.find(m=>m.id==='a-indicator').ref,'04-08');
-  assert.match(api.svg(api.markDefs.find(m=>m.id==='a-indicator')),/M80 37 A33 33 0 0 1 80 103 Z/,'only the right semicircle is shaded');
+  assert.match(api.originalUrl(api.markDefs.find(m=>m.id==='a-indicator')), /04-08\.png$/, 'indicator uses the verified original, not a solid black circle');
   assert.match(page,/reference-symbol/,"visible manufacturer reference appears with answer");
   assert.match(page,/Panasonic/);
-  assert.match(page,/傍記・凡例/);
+  assert.match(page,/凡例や傍記/);
   assert.doesNotMatch(page,/fallbackSvg|searchNamedPhoto|commons\.wikimedia/);
 });
 
@@ -63,7 +69,9 @@ test('symbol-to-name questions hide answer until flip and persist the same symbo
   const item=api.getDeck()[0];
   assert.equal(element('answer').hidden,true);
   assert.equal(element('reveal').hidden,false);
-  assert.match(element('symbol').innerHTML,/<svg/);
+  assert.match(element('symbol').innerHTML,/<img class="original-symbol"/);
+  assert.match(element('symbol').innerHTML,new RegExp(item.ref+'\\.png'));
+  assert.doesNotMatch(element('symbol').innerHTML,/<svg/);
   api.reveal();
   assert.equal(element('answer').hidden,false);
   assert.equal(element('answer-title').textContent,item.title);
@@ -81,12 +89,14 @@ test('reverse direction provides four different symbol choices and a wrong guess
   element('direction').value='reverse';
   element('study-mode').value='all';
   const buttons=Array.from({length:4},()=>({disabled:false,classList:{add(){}}}));
-  element('choices').querySelectorAll=()=>buttons;
+  element('choices').querySelectorAll=selector=>selector==='button'?buttons:[];
   api.start();
   assert.equal(api.getDeck().length,33);
   assert.equal(element('symbol').hidden,true);
   assert.equal(element('choices').hidden,false);
   assert.match(element('choices').innerHTML,/data-index="3"/);
+  assert.equal((element('choices').innerHTML.match(/class="original-choice"/g)||[]).length,4);
+  assert.doesNotMatch(element('choices').innerHTML,/<svg/);
   const current=api.getDeck()[0];
   const wrong=api.getOptions().findIndex(o=>o.id!==current.id);
   assert.ok(wrong>=0);
