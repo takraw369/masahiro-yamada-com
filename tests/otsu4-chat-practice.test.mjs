@@ -78,3 +78,33 @@ test("one-tap batch import stores multiple distinct sessions and avoids duplicat
   assert.equal(api.summary().sessions, 2);
   assert.equal(api.importBatch([{ ...second, id: "../bad" }]).ok, false);
 });
+
+test("correct but uncertain answers stay correct and become repeat candidates", () => {
+  const { api, values } = sandbox();
+  const uncertain = {
+    version: 1, id: "chat-20261013-set04-20", date: "2026-10-13",
+    items: [
+      { topic: "準地下街の両面積条件", correct: true, review: true, relatedQuestionIds: ["l21"] },
+      { topic: "立入検査", correct: false, review: false, relatedQuestionIds: ["c15"] }
+    ]
+  };
+  assert.equal(api.importSession(uncertain).ok, true);
+  const state = JSON.parse(values.get("otsu4-study-state-v1"));
+  assert.equal(state.ratings.l21, "repeat");
+  assert.equal(state.ratings.c15, "repeat");
+  const progress = api.summary();
+  assert.equal(progress.correct, 1);
+  assert.equal(progress.weak.length, 1);
+  assert.equal(progress.review.length, 1);
+  assert.equal(progress.review[0][0], "準地下街の両面積条件");
+  assert.equal(api.importSession(uncertain).added, false);
+});
+
+test("rejects a non-boolean uncertainty flag", () => {
+  const { api, values } = sandbox();
+  assert.equal(api.importSession({
+    ...session, id: "chat-invalid-flag",
+    items: [{ topic: "法令", correct: true, review: "yes" }]
+  }).ok, false);
+  assert.equal(values.size, 0);
+});
