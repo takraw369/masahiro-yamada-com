@@ -1,4 +1,5 @@
 ---
+import KnowledgeActionPanel from './KnowledgeActionPanel.astro';
 const reviewItems = [
   { source: 'CHAT · 2026-09-12', state: 'Insight', dot: 'insight', title: '採点から抜け出すと、天才性が始まる', body: '教育を「正解へ寄せる行為」ではなく、本人の資質を惹き出す環境設計として捉え直す。', meta: 'ACE · 教育 · 4 backlinks' },
   { source: 'MEMO · 2026-09-09', state: 'Seed', dot: '', title: 'フロー＝名詞ではなく動詞', body: '状態の名前として固定するより、流れ続ける行為として定義すると既存のFLOW構想が一本につながる。', meta: 'FLOW · Philosophy · 7 backlinks' },
@@ -12,6 +13,7 @@ const reviewItems = [
     <nav class="ko-nav" aria-label="Knowledge OS">
       <button class="active" type="button" data-view="today">Today <small>4</small></button>
       <button type="button" data-view="inbox">Inbox <small id="inbox-count">12</small></button>
+      <button type="button" data-view="action">知識から実践</button>
       <button type="button" data-view="journal">Journal</button>
       <button type="button" data-view="reader">Read <small>6</small></button>
       <button type="button" data-view="review">Review <small>3</small></button>
@@ -30,6 +32,7 @@ const reviewItems = [
     </header>
 
     <div class="ko-canvas">
+      <section class="ko-view" data-panel="action"><KnowledgeActionPanel /></section>
       <section class="ko-view active" data-panel="today">
         <p class="ko-eyebrow">Sunday · Today</p>
         <h1 class="ko-title">What deserves attention?</h1>
@@ -95,7 +98,7 @@ const reviewItems = [
       <section class="ko-view" data-panel="publish"><p class="ko-eyebrow">Output</p><h1 class="ko-title">Publish</h1><p class="ko-sub">CanonicalやInsightをX / note / LINE /教材へ変換する出口。投稿管理ではなく、資産の再利用View。</p></section>
     </div>
 
-    <nav class="ko-bottom"><button class="active" type="button" data-view="today">Today</button><button type="button" data-open-capture>Capture</button><button type="button" data-view="reader">Read</button><button type="button" data-view="review">Review</button></nav>
+    <nav class="ko-bottom"><button class="active" type="button" data-view="today">Today</button><button type="button" data-view="action">実践</button><button type="button" data-view="reader">Read</button><button type="button" data-view="review">Review</button></nav>
   </main>
 
   <aside class="ko-context">

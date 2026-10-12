@@ -1,0 +1,126 @@
+<div id="knowledge-action" class="ka">
+  <p class="ko-eyebrow">Source → Knowledge → Practice → Feedback</p>
+  <h1 class="ko-title">知識を、次の実践へ。</h1>
+  <p class="ko-sub">原則・出典・未確認事項を見て選び、教材やQuestの候補へ組み合わせる。</p>
+  <form id="ka-filters" class="ka-filters">
+    <label>テーマ<input name="query" type="search" placeholder="集中、習慣、経験…" /></label>
+    <label>適用先<select name="project"><option value="">すべて</option><option>ACE</option><option>SLF</option><option>Athlete Quest</option><option>MASA_OS</option></select></label>
+    <label>対象者<input name="target" type="search" placeholder="競技者、指導者…" /></label>
+    <label>用途・次の行動<input name="use" type="search" placeholder="教材、記録、Quest…" /></label>
+  </form>
+  <p id="ka-status" role="status">実データを読み込んでいます…</p>
+  <div class="ka-workbar">
+    <span id="ka-selected">0件選択</span>
+    <label>活用先<select id="ka-destination"><option>ACE</option><option>SLF</option><option>Athlete Quest</option></select></label>
+    <button id="ka-propose" type="button" disabled>実践候補を作成・登録</button>
+  </div>
+  <label>ACEの実践結果を知識へ戻す（JSON）<input id="ka-feedback-import" type="file" accept="application/json,.json" /></label>
+  <div id="ka-list" class="ka-list"></div>
+  <section id="ka-detail" class="ka-detail" hidden aria-label="知識の詳細"></section>
+  <section id="ka-proposal" class="ka-proposal" hidden aria-label="実践候補">
+    <p id="ka-proposal-status" class="ka-badge">AI活用候補 · 非公開 · Training / Reflection</p>
+    <h2 id="ka-proposal-title"></h2>
+    <p id="ka-instruction"></p><ol id="ka-steps"></ol><h3>振り返り</h3><ul id="ka-questions"></ul>
+    <div class="ka-buttons"><button id="ka-export" type="button">ACEへ渡すJSONを保存</button><a href="https://ace.sunlovesflow.com/compiler" target="_blank" rel="noopener noreferrer">ACEのQuest作成を開く ↗</a></div>
+    <p>ACEの「知識から実践」でJSONを読み込み、Questを作成します。原本への参照も引き継ぎます。</p>
+    <label>修正案・実践結果<textarea id="ka-note" maxlength="5000" placeholder="何を試した？何が起きた？次回は何を変える？"></textarea></label>
+    <div class="ka-buttons"><button data-ka-action="review" type="button">内容確認済みを記録</button><button data-ka-action="hold" type="button">保留</button><button data-ka-action="reject" type="button">却下</button><button data-ka-action="revise" type="button">修正を記録</button><button data-ka-action="execute" type="button">実践開始を記録</button><button data-ka-action="outcome" type="button">結果を知識へ戻す</button></div>
+    <p id="ka-receipt" role="status"></p>
+  </section>
+  <details class="ka-history"><summary>保存した判断・実践結果</summary><div id="ka-history"></div></details>
+</div>
+<script>
+  import { filterLibrary, parsePracticeFeedback } from '../../lib/knowledgeAction.mjs';
+  const root = document.getElementById('knowledge-action');
+  const byId = (id: string) => document.getElementById(id)!;
+  const status = byId('ka-status');
+  const list = byId('ka-list');
+  const form = byId('ka-filters') as HTMLFormElement;
+  const selected = new Set<string>();
+  let data: any = { items: [], edges: [], events: [] };
+  let proposal: any = null;
+  let pendingRequest: any = null;
+  let busy = false;
+  const labels: Record<string, string> = { propose:'候補登録', review:'人間が内容確認', hold:'保留', reject:'却下', revise:'修正依頼', execute:'実践開始', outcome:'実践結果' };
+  function el(tag: string, value = '', cls = '') { const n = document.createElement(tag); n.textContent = value; n.className = cls; return n; }
+  function sourceLink(title: string, url: string) { const a = el('a', title) as HTMLAnchorElement; a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; return a; }
+  function refreshSelection() {
+    byId('ka-selected').textContent = `${selected.size}件選択（最大12件）`;
+    (byId('ka-propose') as HTMLButtonElement).disabled = busy || selected.size === 0;
+  }
+  function render() {
+    list.replaceChildren(); const filters = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    const items = filterLibrary(data.items, filters);
+    status.textContent = `${items.length} / ${data.items.length}件 · 出典と実践候補を確認して選択`;
+    if (!items.length) list.append(el('p', '条件に一致する資産がありません。絞り込みを減らしてください。'));
+    items.forEach((item: any) => {
+      const card = el('article', '', 'ka-card');
+      const label = el('label', '', 'ka-select'); const box = document.createElement('input'); box.type = 'checkbox'; box.checked = selected.has(item.id); box.setAttribute('aria-label', `${item.title}を選択`);
+      box.addEventListener('change', () => { if (box.checked && selected.size >= 12) { box.checked = false; status.textContent = '一度に選べる資産は12件です。'; return; } box.checked ? selected.add(item.id) : selected.delete(item.id); refreshSelection(); });
+      label.append(box, el('span', item.assetId)); card.append(label);
+      card.append(el('p', item.reviewStatus === 'human_reviewed' ? '人間確認済み · 非公開' : 'AI評価候補 · 非公開', 'ka-badge'), el('h2', item.title), el('p', item.summary));
+      card.append(el('small', `${item.projects.join(' / ')} · ${item.target}`));
+      const button = el('button', '原則・根拠・関連を見る') as HTMLButtonElement; button.type = 'button'; button.addEventListener('click', () => detail(item)); card.append(button); list.append(card);
+    }); refreshSelection();
+    const history = byId('ka-history'); history.replaceChildren();
+    (data.events || []).forEach((event: any) => { const a = event.metadata?.action; history.append(el('p', `${labels[a] || a || '記録'} · ${event.created_at || ''} · ${event.body || ''}`)); });
+    if (!data.events?.length) history.append(el('p', '保存された判断・結果はまだありません。'));
+  }
+  function detail(item: any) {
+    const panel = byId('ka-detail'); panel.replaceChildren(el('h2', item.title)); panel.hidden = false;
+    for (const [label, key] of [['原則','coreConcept'],['原本に記載された根拠（独立検証前）','evidence'],['解釈','interpretation'],['仮説','hypothesis'],['権利・未処理事項','rights'],['活用準備','readiness'],['次の行動','nextAction'],['元の正本・関連参照','originalRefs']] as const) { panel.append(el('h3', label), el('p', item[key] || '未登録')); }
+    panel.append(el('h3', '意味単位の抽出候補'));
+    item.atomicUnits.forEach((unit: any) => panel.append(el('p', `${unit.type} · AI抽出候補：${unit.text}`)));
+    panel.append(sourceLink('Knowledge Factoryの元行を開く ↗', item.canonicalUrl), el('h3', '関連（直接の接続）'));
+    const edges = data.edges.filter((e: any) => e.from_node_id === item.id || e.to_node_id === item.id);
+    edges.slice(0, 8).forEach((edge: any) => { const other = data.items.find((n: any) => n.id === (edge.from_node_id === item.id ? edge.to_node_id : edge.from_node_id)); const row = el('div', '', 'ka-edge'); row.append(el('p', `${edge.edge_status === 'canonical' ? '確定' : '未確定候補'} · ${edge.relation} · 確信度 ${edge.confidence} · ${other?.title || ''}`), el('small', edge.reason || '')); panel.append(row); });
+    if (!edges.length) panel.append(el('p', '直接の関係は未登録です。'));
+    const close = el('button', '詳細を閉じる') as HTMLButtonElement; close.type = 'button'; close.onclick = () => { panel.hidden = true; }; panel.append(close); panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  async function load() {
+    try { const r = await fetch('/api/dashboard/knowledge-action', { credentials:'same-origin' }); const p = await r.json(); if (!r.ok || !p.ok) throw new Error(); data = p.data; render(); }
+    catch { status.textContent = '読み込めませんでした。接続またはログインを確認し、再読み込みしてください。'; const b = el('button','再読み込み') as HTMLButtonElement; b.onclick = load; list.replaceChildren(b); }
+  }
+  async function post(action: string) {
+    if (busy) return;
+    const note = (byId('ka-note') as HTMLTextAreaElement).value.trim();
+    if (['revise','outcome'].includes(action) && !note) { byId('ka-receipt').textContent = '修正案または実践結果を入力してください。'; return; }
+    const next = { action, nodeIds: action === 'propose' ? [...selected] : proposal.sources.map((s: any) => s.nodeId), destination:(byId('ka-destination') as HTMLSelectElement).value, note, proposalId: action === 'propose' ? undefined : proposal.proposalId };
+    if (!pendingRequest || JSON.stringify({...pendingRequest,eventId:undefined}) !== JSON.stringify(next)) pendingRequest = { ...next, eventId: crypto.randomUUID() };
+    busy = true; refreshSelection(); root?.querySelectorAll<HTMLButtonElement>('[data-ka-action]').forEach((b) => b.disabled = true); status.textContent = '保存しています…';
+    try {
+      const r = await fetch('/api/dashboard/knowledge-action', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(pendingRequest) }); const p = await r.json(); if (!r.ok || !p.ok) throw new Error();
+      if (p.data.proposal) { proposal = p.data.proposal; showProposal(); }
+      if (action === 'review' && proposal) { proposal.reviewStatus = 'human_reviewed'; byId('ka-proposal-status').textContent = '人間が内容確認済み · 非公開 · Training / Reflection'; }
+      byId('ka-receipt').textContent = `${labels[action]}を保存しました。記録ID: ${p.data.receipt.feedbackId || p.data.receipt.id || pendingRequest.eventId}`;
+      pendingRequest = null; await load();
+    } catch { status.textContent = '保存できませんでした。同じ操作で再試行できます。'; }
+    finally { busy = false; refreshSelection(); root?.querySelectorAll<HTMLButtonElement>('[data-ka-action]').forEach((b) => b.disabled = false); }
+  }
+  function showProposal() {
+    byId('ka-proposal-status').textContent = 'AI活用候補 · 非公開 · Training / Reflection';
+    byId('ka-proposal').hidden = false; byId('ka-proposal-title').textContent = proposal.title; byId('ka-instruction').textContent = proposal.practice.instruction;
+    byId('ka-steps').replaceChildren(...proposal.practice.steps.map((s: string) => el('li', s)));
+    byId('ka-questions').replaceChildren(...proposal.practice.reflectionQuestions.map((s: string) => el('li', s)));
+    byId('ka-proposal').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  byId('ka-propose').addEventListener('click', () => post('propose'));
+  root?.querySelectorAll<HTMLButtonElement>('[data-ka-action]').forEach((b) => b.addEventListener('click', () => proposal && post(b.dataset.kaAction!)));
+  byId('ka-export').addEventListener('click', () => { if (!proposal) return; const url = URL.createObjectURL(new Blob([JSON.stringify(proposal,null,2)], {type:'application/json'})); const a = document.createElement('a'); a.href = url; a.download = `${proposal.proposalId}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url),1000); });
+  byId('ka-feedback-import').addEventListener('change', async (event) => {
+    const input = event.target as HTMLInputElement; const file = input.files?.[0]; if (!file) return;
+    try {
+      if (file.size > 32000) throw new Error();
+      const body = parsePracticeFeedback(JSON.parse(await file.text()), data.items);
+      const r = await fetch('/api/dashboard/knowledge-action', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const p = await r.json(); if (!r.ok || !p.ok) throw new Error(); await load(); status.textContent = `ACE実践結果を保存しました。記録ID: ${p.data.receipt.feedbackId}`;
+    } catch { status.textContent = '取り込めませんでした。知識から作ったQuestの実践結果JSONと接続を確認してください。'; }
+    finally { input.value = ''; }
+  });
+  form.addEventListener('submit', (e) => e.preventDefault()); form.addEventListener('input', render); form.addEventListener('change', render);
+  if (location.hash === '#action') document.querySelector<HTMLButtonElement>('[data-view="action"]')?.click();
+  load();
+</script>
+<style>
+  .ka{max-width:960px;color:#302b24}.ka-filters{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}.ka label{font-size:.8rem;display:grid;gap:6px}.ka input,.ka select,.ka textarea{font:inherit;font-size:16px;min-height:44px;border:1px solid #c6bba8;border-radius:8px;padding:10px;background:#fff;color:#302b24;min-width:0;width:100%;box-sizing:border-box}.ka textarea{min-height:110px}.ka button,.ka-buttons a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:10px 14px;border:1px solid #b8a889;border-radius:8px;background:#fff8eb;color:#593b10;font:inherit;font-size:.8rem;text-decoration:none;cursor:pointer}.ka button:disabled{opacity:.5;cursor:default}.ka-workbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:16px 0;position:sticky;top:0;background:#f5f2ec;z-index:2}.ka-workbar label{flex:1}.ka-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ka-card,.ka-detail,.ka-proposal,.ka-history{padding:18px;border:1px solid #d2c7b4;border-radius:12px;background:#fffdf8;overflow-wrap:anywhere}.ka-card h2{font-size:1rem;line-height:1.5}.ka-card p,.ka-detail p,.ka-proposal p,.ka-proposal li{font-size:.85rem;line-height:1.8;white-space:pre-wrap}.ka-card small{display:block;font-size:.7rem;color:#685e50;margin-bottom:12px}.ka-select{display:flex!important;align-items:center}.ka-select input{width:24px;min-height:24px}.ka-badge{font-size:.7rem!important;color:#6b4e80;background:#f1eafb;border-radius:6px;padding:4px 8px;display:inline-block}.ka-detail,.ka-proposal,.ka-history{margin-top:16px}.ka h3{font-size:.85rem;margin-top:18px}.ka-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.ka-edge{border-left:3px solid #d0b4db;padding-left:12px;margin:12px 0}.ka :focus-visible{outline:3px solid #6b4e80;outline-offset:3px}#ka-status{font-size:.8rem;line-height:1.6}@media(max-width:600px){.ka-list,.ka-filters{grid-template-columns:1fr}.ka-workbar{position:static}.ka-card{padding:14px}}
+</style>
