@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const context={window:{}};
-vm.runInNewContext(readFileSync(new URL('../public/otsu4/questions.js',import.meta.url),'utf8')+';window.rows=OTSU4_QUESTIONS;',context);
+vm.runInNewContext(readFileSync(new URL('../public/otsu4/questions.js',import.meta.url),'utf8')+'\n'+readFileSync(new URL('../public/otsu4/photo-weakpoints-20261011b.js',import.meta.url),'utf8')+';window.rows=OTSU4_QUESTIONS;',context);
 vm.runInNewContext(readFileSync(new URL('../public/otsu4/tests/core.js',import.meta.url),'utf8'),context);
 const C=context.window.OTSU4_TOPIC_TESTS,rows=context.window.rows;
 const storage=()=>{const data=new Map();return {getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)};};
