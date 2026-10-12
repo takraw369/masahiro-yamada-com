@@ -63,3 +63,18 @@ test("does not fabricate completed app attempts when importing all-correct chat 
   assert.equal(data.attempts, undefined);
   assert.deepEqual(Object.keys(data.ratings), []);
 });
+
+test("one-tap batch import stores multiple distinct sessions and avoids duplicates", () => {
+  const { api, values } = sandbox();
+  const second = {
+    version: 1, id: "chat-20261013-law20-01", date: "2026-10-13",
+    items: [{ topic: "消防用水", correct: false, relatedQuestionIds: ["l25","l58"] }]
+  };
+  assert.equal(api.importBatch([session, second]).added, true);
+  assert.equal(api.summary().sessions, 2);
+  assert.equal(api.summary().total, 3);
+  assert.equal(JSON.parse(values.get("otsu4-study-state-v1")).ratings.l25, "repeat");
+  assert.equal(api.importBatch([session, second]).added, false);
+  assert.equal(api.summary().sessions, 2);
+  assert.equal(api.importBatch([{ ...second, id: "../bad" }]).ok, false);
+});
