@@ -18,6 +18,7 @@
     session.items.every((item) =>
       item && typeof item.topic === "string" && item.topic.length <= 100 &&
       typeof item.correct === "boolean" &&
+      (!Object.prototype.hasOwnProperty.call(item, "review") || typeof item.review === "boolean") &&
       (!item.relatedQuestionIds || (Array.isArray(item.relatedQuestionIds) &&
         item.relatedQuestionIds.length <= 10 &&
         item.relatedQuestionIds.every((id) => /^[a-z]\d{2}$/.test(id))))
@@ -35,7 +36,7 @@
     const record = {
       version: 1, id: session.id, date: session.date,
       items: session.items.map((item) => ({
-        topic: item.topic, correct: item.correct,
+        topic: item.topic, correct: item.correct, review: item.review === true,
         category: typeof item.category === "string" ? item.category.slice(0, 40) : "",
         relatedQuestionIds: Array.isArray(item.relatedQuestionIds) ? item.relatedQuestionIds : []
       }))
@@ -45,12 +46,12 @@
     const study = read(STUDY_KEY, {});
     study.ratings ||= {};
     for (const item of record.items) {
-      if (!item.correct) for (const id of item.relatedQuestionIds) study.ratings[id] = "repeat";
+      if (!item.correct || item.review) for (const id of item.relatedQuestionIds) study.ratings[id] = "repeat";
     }
     try {
       localStorage.setItem(STUDY_KEY, JSON.stringify(study));
       localStorage.setItem(KEY, JSON.stringify({ version: 1, sessions: [...sessions, record] }));
-      return { ok: true, added: true, message: "取り込み完了。間違えた論点をアプリの弱点復習にも反映しました。" };
+      return { ok: true, added: true, message: "取り込み完了。間違い・迷いのあった論点をアプリの復習候補にも反映しました。" };
     } catch {
       return { ok: false, message: "端末への保存に失敗しました。ブラウザの保存設定を確認してください。" };
     }
@@ -74,8 +75,12 @@
     const items = sessions.flatMap((s) => s.items);
     const correct = items.filter((item) => item.correct).length;
     const weak = new Map();
+    const review = new Map();
     for (const item of items.filter((item) => !item.correct)) weak.set(item.topic, (weak.get(item.topic) || 0) + 1);
-    return { sessions: sessions.length, total: items.length, correct, weak: [...weak].sort((a,b) => b[1]-a[1]) };
+    for (const item of items.filter((item) => item.review)) review.set(item.topic, (review.get(item.topic) || 0) + 1);
+    return { sessions: sessions.length, total: items.length, correct,
+      weak: [...weak].sort((a,b) => b[1]-a[1]),
+      review: [...review].sort((a,b) => b[1]-a[1]) };
   }
   function renderHome() {
     const home = document.getElementById("view-home");
@@ -104,7 +109,11 @@
     const link = document.createElement("a");
     link.href = "/otsu4/chat-import/";
     link.textContent = "チャット学習の履歴を見る →";
-    panel.append(heading, stats, weak, link);
+    const review = document.createElement("p");
+    review.textContent = data.review.length
+      ? "△迷った： " + data.review.slice(0, 3).map(([name,count]) => name + "（" + count + "回）").join("、")
+      : "";
+    panel.append(heading, stats, weak, review, link);
   }
   function renderImport() {
     const output = document.getElementById("chat-import-result");
@@ -129,6 +138,11 @@
       for (const [topic,count] of result.weak) {
         const p = document.createElement("p");
         p.textContent = "要復習：" + topic + "（誤答" + count + "回）";
+        info.append(p);
+      }
+      for (const [topic,count] of result.review) {
+        const p = document.createElement("p");
+        p.textContent = "△迷った：" + topic + "（" + count + "回）";
         info.append(p);
       }
     }
