@@ -91,3 +91,29 @@ Do not create a second investment domain. `masa-automation/workflows/25_investme
 - automated thesis-impact proposals
 - conditional alerts
 - optional read-only broker portfolio sync
+
+
+## Market Network — 2026-10-12
+
+The Japan-only company relationship research surface is integrated into the existing
+`/dashboard/investment` after Tenbagger Signal Lab. This is **not** a second
+investment app or an automatic trade signal.
+
+- Source: https://github.com/mattyamonaca/JP_Market_Vis
+- Data: published JP Market Vis M4/M5 JSON; the browser reads it **only after
+  explicit user interaction** (do not load ~43 MB expanded JSON on dashboard open).
+- Integrity: reject M4/M5 with mismatched `dataset_id`; show generated date and
+  source version, and display an external site fallback on network errors.
+- Features: company/code search, category filtering, company-centered 1-hop
+  relationship map, verified/unverified distinction, lazy evidence-shard loading,
+  per-browser company watch list.
+- Limitations: no historic snapshots for comparable month-over-month edge changes,
+  no financial scoring, no automatic candidate promotion, no Supabase replication
+  and no automatic investment orders. Relation count is *not* evidence of revenue growth.
+- User action: verify relevant EDINET/IR primary documents and reference dates
+  before promoting an observation to a research thesis.
+- License: software uses Apache-2.0; included public datasets may carry separate
+  terms from EDINET, IR sources and Wikidata. Do not assume blanket relicensing.
+- Next phase: derive stable time-series snapshots from terms-compliant sources,
+  track first/last observation separately from event dates, and correlate changes
+  with financial disclosures only after reproducible validation.
