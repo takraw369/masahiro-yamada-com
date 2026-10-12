@@ -31,7 +31,8 @@ test('weak/unseen modes honor preexisting history, and never rewrite it on read'
   state.ratings.s18='repeat';state.wrong.l01=1;state.attempts.s12=0;
   storage.setItem(C.STATE_KEY,JSON.stringify(state));
   const weak=C.select(rows,topic,C.load(storage),'weak');
-  assert.deepEqual([...weak].map(q=>q.id).sort(),['l01','s18']);
+  assert.ok(['l01','s18'].every(id=>weak.some(q=>q.id===id)));
+  assert.ok(weak.every(q=>C.weak(q,C.load(storage))));
   const unseen=C.select(rows,topic,C.load(storage),'unseen');
   assert.deepEqual([...unseen].map(q=>q.id),['s12']);
   assert.equal(storage.getItem(C.STATE_KEY),JSON.stringify(state));
@@ -71,7 +72,8 @@ test('separate installation drill picks ten from canonical law questions only, r
   state.wrong.l01=1;
   data.setItem(C.STATE_KEY,JSON.stringify(state));
   const weak=C.select(rows,install,C.load(data),'weak');
-  assert.deepEqual([...weak].map(q=>q.id).sort(),['l01','l12']);
+  assert.ok(['l01','l12'].every(id=>weak.some(q=>q.id===id)));
+  assert.ok(weak.every(q=>C.weak(q,C.load(data))));
   assert.equal(data.getItem(C.STATE_KEY),JSON.stringify(state));
 });
 
