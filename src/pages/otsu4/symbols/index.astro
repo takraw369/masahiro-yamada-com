@@ -412,7 +412,7 @@ function originalImage(mark,which){
   const alt=which==='choice'?'選択肢の図記号':'出題中の図記号';
   const cls=which==='choice'?'original-choice':'original-symbol';
   // No title or source identifier is exposed in question-mode alt text.
-  return '<img class="'+cls+'" src="'+originalUrl(mark)+'" alt="'+alt+'" loading="eager" decoding="async" referrerpolicy="no-referrer">';
+  return '<img class="'+cls+'" src="'+originalUrl(mark)+'" alt="'+alt+'" loading="eager" decoding="async">';
 }
 function attachImageFallback(node){
   node.querySelectorAll('img').forEach(img=>{
