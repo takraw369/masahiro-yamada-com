@@ -17,7 +17,7 @@ test('oversized body without content-length and duplicate sources fail before st
 });
 test('outcome imports retain stable source and proposal identity for idempotent replay',()=>{
  const file={schema:'masa-knowledge-action-feedback/v1',eventId:'ace-log01',proposalId:'event01',sourceNodeIds:[id],reflection:{outcome:'1行を書いた',learning:'短い方が書けた',nextAction:'明日も試す'},occurredAt:'2026-10-12T00:00:00Z'};
- const record=parsePracticeFeedback(file,[{id}]);assert.equal(record.eventId,'ace-log01');assert.equal(record.proposalId,'event01');assert.match(record.note,/実践結果：1行を書いた/);assert.throws(()=>parsePracticeFeedback({...file,sourceNodeIds:['invalid']},[{id}]));assert.throws(()=>parsePracticeFeedback({...file,reflection:{...file.reflection,outcome:''}},[{id}]));
+ const record=parsePracticeFeedback(file,[{id}]);assert.equal(record.eventId,'ace-log01');assert.equal(record.proposalId,'event01');assert.equal(record.occurredAt,file.occurredAt);assert.deepEqual(record.reflection,file.reflection);assert.match(record.note,/実践結果：1行を書いた/);assert.throws(()=>parsePracticeFeedback({...file,sourceNodeIds:['invalid']},[{id}]));assert.throws(()=>parsePracticeFeedback({...file,reflection:{...file.reflection,outcome:''}},[{id}]));assert.throws(()=>parsePracticeFeedback({...file,reflection:{...file.reflection,outcome:'x'.repeat(1501)}},[{id}]));assert.throws(()=>parsePracticeFeedback({...file,occurredAt:'invalid'},[{id}]));
 });
 test('empty outcome and malformed body are rejected, storage failure never reports saved',async(t)=>{
  assert.equal((await POST(context({action:'outcome',eventId:'event03',nodeIds:[id],note:''}))).status,400);
@@ -25,4 +25,7 @@ test('empty outcome and malformed body are rejected, storage failure never repor
 });
 test('library response is uncached and never exposes raw unrelated metadata',async(t)=>{
  t.mock.method(globalThis,'fetch',async()=>Response.json({...raw,items:raw.items.map(n=>({...n,metadata:{...n.metadata,secret:'unrelated'}}))}));const r=await GET({locals:{},request:new Request('https://dashboard.example.test/api/dashboard/knowledge-action')});const p=await r.json();assert.match(r.headers.get('Cache-Control'),/no-store/);assert.equal(JSON.stringify(p).includes('unrelated'),false);
+});
+test('idempotency conflict is reported as409 instead of a retryable storage failure',async(t)=>{
+ t.mock.method(globalThis,'fetch',async()=>new Response('event_id_conflict',{status:409}));const r=await POST(context({action:'review',eventId:'event01',nodeIds:[id]}));assert.equal(r.status,409);assert.equal((await r.json()).error,'invalid_or_conflicting_action');
 });

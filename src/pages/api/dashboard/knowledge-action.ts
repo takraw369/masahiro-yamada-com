@@ -23,6 +23,8 @@ export const POST = async ({ request, locals }: APIContext) => {
     validateSelection(body.nodeIds);
     if (typeof body.eventId !== 'string' || !/^[a-zA-Z0-9_-]{1,120}$/.test(body.eventId)) throw new Error();
     if (body.proposalId !== undefined && (typeof body.proposalId !== 'string' || !/^[a-zA-Z0-9_-]{1,120}$/.test(body.proposalId))) throw new Error();
+    if (body.occurredAt !== undefined && (typeof body.occurredAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(body.occurredAt) || !Number.isFinite(Date.parse(body.occurredAt)))) throw new Error();
+    if (body.reflection !== undefined && (!body.reflection || typeof body.reflection !== 'object' || Array.isArray(body.reflection) || ['outcome','learning','nextAction'].some((k) => typeof body.reflection[k] !== 'string' || body.reflection[k].length > 1500))) throw new Error();
     if (body.action !== 'propose' && !REVIEW_ACTIONS.includes(body.action)) throw new Error();
     if (typeof body.note !== 'undefined' && (typeof body.note !== 'string' || body.note.length > 5000)) throw new Error();
     if (['revise', 'outcome'].includes(body.action) && !body.note?.trim()) throw new Error();
@@ -30,6 +32,8 @@ export const POST = async ({ request, locals }: APIContext) => {
   try {
     const env = getSiteStorageEnv(locals); const ownerKey = await getDashboardOwnerKey(env);
     let payload: Record<string, unknown> = { note: body.note?.trim() || '', proposalId: body.proposalId || null, visibility: 'private', reviewStatus: body.action === 'review' ? 'human_reviewed' : 'ai_candidate' };
+    if (body.occurredAt) payload.occurredAt = body.occurredAt;
+    if (body.reflection) payload.reflection = body.reflection;
     if (body.action === 'propose') {
       const raw = await supabaseRpc(env, 'masa_knowledge_action_library_v1', { p_owner_key: ownerKey, p_query: null, p_limit: 100 });
       payload = buildPracticeProposal(normalizeLibrary(raw).items, body.nodeIds, body.destination, body.eventId);
@@ -37,7 +41,7 @@ export const POST = async ({ request, locals }: APIContext) => {
     const receipt = await supabaseRpc(env, 'masa_knowledge_action_record_v1', { p_owner_key: ownerKey, p_event_id: body.eventId, p_action: body.action, p_node_ids: body.nodeIds, p_payload: payload });
     return jsonResponse({ ok: true, data: { receipt, proposal: body.action === 'propose' ? payload : null } }, 201);
   } catch (error) {
-    if (/invalid_|source_unavailable|event_conflict/.test(String(error))) return jsonResponse({ ok: false, error: 'invalid_or_conflicting_action' }, 409);
+    if (/invalid_|source_unavailable|event_(?:id_)?conflict/.test(String(error))) return jsonResponse({ ok: false, error: 'invalid_or_conflicting_action' }, 409);
     return jsonResponse({ ok: false, error: 'knowledge_action_save_unavailable' }, 503);
   }
 };

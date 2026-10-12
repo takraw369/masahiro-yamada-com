@@ -39,7 +39,8 @@ export function parsePracticeFeedback(value, items) {
   if (ids.some((id) => !items.some((i) => i.id === id))) throw new Error('source_unavailable');
   for (const key of ['outcome','learning','nextAction']) if (typeof value.reflection[key] !== 'string' || value.reflection[key].length > 1500) throw new Error('invalid_feedback');
   if (!value.reflection.outcome.trim()) throw new Error('outcome_required');
-  return { action:'outcome', eventId:value.eventId, proposalId:value.proposalId, nodeIds:ids, note:`実践結果：${value.reflection.outcome.trim()}\n学び：${value.reflection.learning.trim()}\n次の行動：${value.reflection.nextAction.trim()}` };
+  if (typeof value.occurredAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value.occurredAt) || !Number.isFinite(Date.parse(value.occurredAt))) throw new Error('invalid_occurred_at');
+  return { action:'outcome', eventId:value.eventId, proposalId:value.proposalId, nodeIds:ids, occurredAt:value.occurredAt, reflection:value.reflection, note:`実践結果：${value.reflection.outcome.trim()}\n学び：${value.reflection.learning.trim()}\n次の行動：${value.reflection.nextAction.trim()}` };
 }
 export function buildPracticeProposal(items, nodeIds, destination, proposalId) {
   validateSelection(nodeIds);

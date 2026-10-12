@@ -63,7 +63,15 @@
       const button = el('button', '原則・根拠・関連を見る') as HTMLButtonElement; button.type = 'button'; button.addEventListener('click', () => detail(item)); card.append(button); list.append(card);
     }); refreshSelection();
     const history = byId('ka-history'); history.replaceChildren();
-    (data.events || []).forEach((event: any) => { const a = event.metadata?.action; history.append(el('p', `${labels[a] || a || '記録'} · ${event.created_at || ''} · ${event.body || ''}`)); });
+    (data.events || []).forEach((event: any) => {
+      const a = event.metadata?.action;
+      history.append(el('p', `${labels[a] || a || '記録'} · ${event.metadata?.occurredAt || event.created_at || ''} · ${event.body || ''}`));
+      const saved = event.metadata?.commandPayload;
+      if (a === 'propose' && saved?.schema === 'masa-knowledge-action/v1') {
+        const button = el('button', `保存済み候補を開く：${saved.title}`) as HTMLButtonElement;
+        button.type = 'button'; button.onclick = () => { proposal = saved; showProposal(); }; history.append(button);
+      }
+    });
     if (!data.events?.length) history.append(el('p', '保存された判断・結果はまだありません。'));
   }
   function detail(item: any) {
@@ -121,6 +129,6 @@
   if (location.hash === '#action') document.querySelector<HTMLButtonElement>('[data-view="action"]')?.click();
   load();
 </script>
-<style>
+<style is:global>
   .ka{max-width:960px;color:#302b24}.ka-filters{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}.ka label{font-size:.8rem;display:grid;gap:6px}.ka input,.ka select,.ka textarea{font:inherit;font-size:16px;min-height:44px;border:1px solid #c6bba8;border-radius:8px;padding:10px;background:#fff;color:#302b24;min-width:0;width:100%;box-sizing:border-box}.ka textarea{min-height:110px}.ka button,.ka-buttons a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;padding:10px 14px;border:1px solid #b8a889;border-radius:8px;background:#fff8eb;color:#593b10;font:inherit;font-size:.8rem;text-decoration:none;cursor:pointer}.ka button:disabled{opacity:.5;cursor:default}.ka-workbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:16px 0;position:sticky;top:0;background:#f5f2ec;z-index:2}.ka-workbar label{flex:1}.ka-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ka-card,.ka-detail,.ka-proposal,.ka-history{padding:18px;border:1px solid #d2c7b4;border-radius:12px;background:#fffdf8;overflow-wrap:anywhere}.ka-card h2{font-size:1rem;line-height:1.5}.ka-card p,.ka-detail p,.ka-proposal p,.ka-proposal li{font-size:.85rem;line-height:1.8;white-space:pre-wrap}.ka-card small{display:block;font-size:.7rem;color:#685e50;margin-bottom:12px}.ka-select{display:flex!important;align-items:center}.ka-select input{width:24px;min-height:24px}.ka-badge{font-size:.7rem!important;color:#6b4e80;background:#f1eafb;border-radius:6px;padding:4px 8px;display:inline-block}.ka-detail,.ka-proposal,.ka-history{margin-top:16px}.ka h3{font-size:.85rem;margin-top:18px}.ka-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.ka-edge{border-left:3px solid #d0b4db;padding-left:12px;margin:12px 0}.ka :focus-visible{outline:3px solid #6b4e80;outline-offset:3px}#ka-status{font-size:.8rem;line-height:1.6}@media(max-width:600px){.ka-list,.ka-filters{grid-template-columns:1fr}.ka-workbar{position:static}.ka-card{padding:14px}}
 </style>
