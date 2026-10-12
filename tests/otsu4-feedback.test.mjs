@@ -419,3 +419,21 @@ test('Otsu4 catalog standalone law card has a single responsive block border on 
   assert.match(css, /\.cards\s*\{grid-template-columns:\s*1fr/,'mobile grid must be one column');
   assert.match(page, /\/otsu4\/tests\/styles\.css\?v=4/,'new style URL busts stale iPhone cache');
 });
+
+test('paper Q34/Q35 concepts receive a dedicated 8-question law review without reusing photo text', async () => {
+  const source = await readFile(new URL('../public/otsu4/questions.js', import.meta.url), 'utf8');
+  const bank = vm.runInNewContext(source + '\nOTSU4_QUESTIONS');
+  const focus = bank.filter(q => q.focusReview);
+  const expected = ['l43','l44','l45','l61','l62','l63','l64','l65'];
+  assert.deepEqual([...focus.map(q => q.id)].sort(), [...expected].sort());
+  assert.ok(focus.every(q => q.category === 'law-common' && q.paperMarked));
+  assert.ok(focus.every(q => ['34','35'].includes(q.focusOrigin)));
+  assert.ok(focus.every(q => q.choiceNotes.length === 4 && q.source.url.includes('https://')));
+  const topics = await readFile(new URL('../public/otsu4/tests/core.js', import.meta.url), 'utf8');
+  assert.match(topics, /paper-34-35-focus/);
+  assert.match(topics, /focusReview\?120/);
+  const home = await readFile(new URL('../src/pages/otsu4/index.astro', import.meta.url), 'utf8');
+  assert.match(home, /topic=paper-34-35-focus/);
+  const app = await readFile(new URL('../public/otsu4/app.js', import.meta.url), 'utf8');
+  assert.match(app, /q\.focusReview \? 130/);
+});

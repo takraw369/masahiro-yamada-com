@@ -34,7 +34,7 @@
   const saveSession = () => session ? localStorage.setItem(SESSION, JSON.stringify(session)) : localStorage.removeItem(SESSION);
   const subject = (q) => CATEGORIES[q.category].subject;
   const attempts = (q) => state.attempts[q.id] || 0;
-  const weak = (q) => (state.wrong[q.id] || 0) > 0 || ["weak", "repeat"].includes(state.ratings[q.id]);
+  const weak = (q) => (state.wrong[q.id] || 0) > 0 || ["weak", "repeat"].includes(state.ratings[q.id]) || (q.focusReview && !mastered(q));
   const mastered = (q) => (state.streak[q.id] || 0) >= 2 || state.ratings[q.id] === "mastered";
   const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const normalize = (s) => String(s || "").normalize("NFKC").replace(/[\s・。、,，.]/g, "").toLowerCase();
@@ -51,7 +51,7 @@
     return rate === null ? 65 + Math.round(30 * (1 - coverage)) : Math.round((1 - rate) * 70 + (1 - coverage) * 30);
   }
   function score(q, preferred = null) {
-    let points = (attempts(q) === 0 ? 100 : 0) + (weak(q) ? 120 : 0) + (q.officialSignal ? 25 : 0) + (q.lectureMarked ? 35 : 0);
+    let points = (attempts(q) === 0 ? 100 : 0) + (weak(q) ? 120 : 0) + (q.officialSignal ? 25 : 0) + (q.lectureMarked ? 35 : 0) + (q.focusReview ? 130 : 0);
     points += risk(subject(q)) * .5 + (preferred === subject(q) ? 45 : 0);
     if (mastered(q) && !weak(q)) points -= 90;
     const last = [...state.history].reverse().find((row) => row.id === q.id);
@@ -162,8 +162,8 @@
     $("#quiz-counter").textContent = `${session.index+1} / ${session.ids.length}`;
     $("#quiz-progress-bar").style.width = `${session.index/session.ids.length*100}%`;
     $("#question-category").textContent = CATEGORIES[q.category].label;
-    $("#question-priority").textContent = q.lectureMarked ? "★ 講習マーク" : q.category === "practical" ? "記述" : q.officialSignal ? "公式公開論点" : "基礎・応用";
-    $("#why-now").textContent = q.lectureMarked ? `講習写真 ${q.lecturePage ? q.lecturePage + "頁・" : ""}重要マークの復習。誤答と△は優先して再出題。` : weak(q) ? "前に迷った論点を回収" : attempts(q) === 0 ? "乙4の未出を確認" : q.officialSignal ? "公開問題の論点を別角度で確認" : "本番比率と科目別リスクから選択";
+    $("#question-priority").textContent = q.focusReview ? "★ 写真問34・35の重点弱点" : q.lectureMarked ? "★ 講習マーク" : q.category === "practical" ? "記述" : q.officialSignal ? "公式公開論点" : "基礎・応用";
+    $("#why-now").textContent = q.focusReview ? `写真の問${q.focusOrigin || "34・35"}で弱いと指定。検定と資格独占の違いを条件を変えて確認。` : q.lectureMarked ? `講習写真 ${q.lecturePage ? q.lecturePage + "頁・" : ""}重要マークの復習。誤答と△は優先して再出題。` : weak(q) ? "前に迷った論点を回収" : attempts(q) === 0 ? "乙4の未出を確認" : q.officialSignal ? "公開問題の論点を別角度で確認" : "本番比率と科目別リスクから選択";
     $("#question-text").textContent = q.question;
     $("#choices").hidden = q.category === "practical";
     $("#write-answer").hidden = q.category !== "practical";

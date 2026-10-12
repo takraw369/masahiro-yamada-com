@@ -4,6 +4,7 @@
   const STATE_KEY = 'otsu4-study-state-v1';
   const SESSION_KEY = 'otsu4-topic-test-session-v1';
   const topics = [
+    {id:'paper-34-35-focus', label:'★ 問34・35｜検定と消防設備士の独占業務', ids:['l43','l44','l45','l61','l62','l63','l64','l65'], note:'10/13自己申告の重点弱点。消防法施行令37条と36条の2を見分ける。毎回の答え・△を端末内の既存学習履歴に蓄積し、似た選択肢を区別する8問。'},
     {id:'paper-mistakes-20261011', label:'○△ 紙プリントの間違い復習', ids:["c02","c03","c22","c23","c24","c26","c27","c28","l39","l40","l41","l42","l43","l44","l46","l48","l49","l50","l51","l52","l53","l54","l55","l56","l57","l58","l59"], note:'10/11の原紙9枚で問題番号に○・△等を付けた設問を優先。元問2・10・11・15・17・22・24・25・26・27・30・32・33・35・39に対応。既存問題を再利用し、未収録論点だけ独自の変形問題を追加。紙の選択肢の印は正解として採用せず、現在の法令に基づいて採点。10問ずつ出題。' },
     {id:'photo-law-reviewed-20261011', label:'原紙の注意点｜遡及・検査・資格3問', ids:["l46","l47","l48"], note:'10/11に令34・35・36条の2と突合。用途の限定／消防長の指定／資格が必要な工事部分の除外を確認する3問。'},
     {id:'photo-law-20261010', label:'写真教材｜点検・届出・検定・整備8問', ids:["l38","l39","l40","l41","l42","l43","l44","l45"], note:'10/10プリント問27・29・31・34・35・38・39から再構成した8問。届出の名義・対象設備・有資格者点検・報告周期・検定・軽微な整備。原題の丸暗記ではなく条件を変えて出題。'},
@@ -42,13 +43,13 @@
     if (!Array.isArray(state.history)) state.history=[];
     return state;
   }
-  const weak = (q,s) => (s.wrong[q.id]||0)>0 || ['weak','repeat'].includes(s.ratings[q.id]) || (q.paperMarked && (s.streak[q.id]||0)<2 && s.ratings[q.id]!=='mastered');
+  const weak = (q,s) => (s.wrong[q.id]||0)>0 || ['weak','repeat'].includes(s.ratings[q.id]) || (q.focusReview && (s.streak[q.id]||0)<2 && s.ratings[q.id]!=='mastered') || (q.paperMarked && (s.streak[q.id]||0)<2 && s.ratings[q.id]!=='mastered');
   const subject = q => q.category.startsWith('law-') ? 'law' : q.category;
   const normalize = v => String(v||'').normalize('NFKC').replace(/[\s・。、,，.]/g,'').toLowerCase();
   const grade = (q,value) => q.category==='practical' ? q.accepted.some(v=>normalize(v)===normalize(value)) : Number(value)===q.answer;
   function matches(q,topic) { return topic.marked ? Boolean(q.lectureMarked) : topic.category ? q.category===topic.category : topic.ids ? topic.ids.includes(q.id) : Boolean(topic.quota?.[q.category]); }
   function priority(q,s,now) {
-    let n=(weak(q,s)?120:0)+((s.attempts[q.id]||0)===0?100:0)+(q.officialSignal?25:0)+(q.lectureMarked?35:0)+(q.paperMarked?45:0);
+    let n=(weak(q,s)?120:0)+((s.attempts[q.id]||0)===0?100:0)+(q.officialSignal?25:0)+(q.lectureMarked?35:0)+(q.paperMarked?45:0)+(q.focusReview?120:0);
     if ((s.streak[q.id]||0)>=2 && !weak(q,s)) n-=90;
     const last=[...s.history].reverse().find(r=>r.id===q.id);
     if(last && now-last.at<2*60*60*1000) n-=100;
