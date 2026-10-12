@@ -37,6 +37,13 @@ jobs:
       - name: Security regression tests
         run: npm test
 
+      - name: Guard new Supabase public schema grants
+        if: github.event_name == 'pull_request'
+        env:
+          MIGRATION_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MIGRATION_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/check-supabase-migration-acls.mjs
+
       - name: Typecheck release delta
         env:
           TYPECHECK_BASE_SHA: ${{ github.event.pull_request.base.sha }}
