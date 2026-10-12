@@ -61,7 +61,7 @@ test('paper marks are review hints, not fabricated wrong answers, and clear afte
   assert.equal(engine.weak(q,s),true);
   s=engine.record(storage,q,true,'ok','',200);
   assert.equal(engine.weak(q,s),false);
-  assert.equal(s.wrong[q.id],undefined);
+  assert.equal(s.wrong[q.id],0); // two confident answers clear wrong counter
 });
 
 test('previous sheet identifiers and law question IDs are unchanged',()=>{
