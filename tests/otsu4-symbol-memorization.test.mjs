@@ -89,7 +89,7 @@ test('reverse direction provides four different symbol choices and a wrong guess
   element('direction').value='reverse';
   element('study-mode').value='all';
   const buttons=Array.from({length:4},()=>({disabled:false,classList:{add(){}}}));
-  element('choices').querySelectorAll=()=>buttons;
+  element('choices').querySelectorAll=selector=>selector==='button'?buttons:[];
   api.start();
   assert.equal(api.getDeck().length,33);
   assert.equal(element('symbol').hidden,true);
