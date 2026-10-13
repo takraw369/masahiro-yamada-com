@@ -1,6 +1,7 @@
 import type { APIContext } from 'astro';
 import { getSiteStorageEnv } from '../../../../lib/siteStorage';
 import { getLiveBusy, getTransitEstimate, slotIsFree, stationForArea, type BookingConnections, type PublicArea } from '../../../../lib/smartBookingIntegrations';
+import { evaluateTravelAroundAppointment } from '../../../../lib/smartBookingAdjacentEvents';
 
 /**
  * Owner-authenticated by existing /api/dashboard middleware.
@@ -24,8 +25,10 @@ export const POST = async ({ request, locals }: APIContext) => {
   const end = typeof body.end === 'string' ? body.end : '';
   const from = typeof body.fromArea === 'string' ? body.fromArea : '';
   const to = typeof body.toArea === 'string' ? body.toArea : '';
+  const venueArea = typeof body.venueArea === 'string' ? body.venueArea : '';
   const hasRoute = Boolean(from || to);
-  if (!start || !end || (hasRoute && (!stationForArea(from) || !stationForArea(to)))) {
+  if (!start || !end || (hasRoute && (!stationForArea(from) || !stationForArea(to)))
+    || (venueArea && !stationForArea(venueArea))) {
     return respond({ ok: false, reason: 'invalid_fields' }, 400);
   }
   const env = getSiteStorageEnv(locals) as unknown as BookingConnections;
@@ -38,12 +41,19 @@ export const POST = async ({ request, locals }: APIContext) => {
     } catch {
       // No travel information is not zero travel: keep route verification pending.
     }
+    let ownerTravel = null;
+    if (venueArea) {
+      try { ownerTravel = await evaluateTravelAroundAppointment(env, start, end, venueArea as PublicArea); }
+      catch { /* Missing detail-read scope or route API -> owner travel not verified. */ }
+    }
     return respond({
-      ok: true, free, allCalendarsChecked: true, calendarCount: snapshot.calendarCount,
+      ok: true, free, allCalendarsChecked: true, calendarCount: snapshot.calendarCount, ownerTravel,
       checkedAt: snapshot.checkedAt, transit: trip,
       venueVerified: false, bookable: false, required: [
         ...(!free ? ['日程が重複しています'] : []),
-        ...(hasRoute && trip === null ? ['移動時間の実測待ち'] : []),
+        ...(hasRoute && trip === null ? ['クライアント側の移動時間が未確認'] : []),
+        ...(venueArea && (!ownerTravel || ownerTravel.feasible === null) ? ['MASAの前後予定からの移動時間が未検証'] : []),
+        ...(ownerTravel?.feasible === false ? ['MASAの前後予定との移動時間不足'] : []),
         '会場・オンライン個室の利用条件と空席を確定',
         '決済と仮押さえの確認',
       ],
