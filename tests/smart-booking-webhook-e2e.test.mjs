@@ -5,7 +5,7 @@ const { POST } = await import('../src/pages/api/booking/stripe-webhook.ts');
 
 const secret = 'whsec_test_only_123';
 const id = '550e8400-e29b-41d4-a716-446655440000';
-const requestKey = '69d9062d-9c4e-4f04-93a5-8d204f59bd77';
+const requestKey = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 const start = new Date(Date.now() + 48 * 3600000).toISOString();
 const end = new Date(Date.parse(start) + 90 * 60000).toISOString();
 const record = {
