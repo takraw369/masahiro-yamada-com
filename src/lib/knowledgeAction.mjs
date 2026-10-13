@@ -24,7 +24,7 @@ export function normalizeLibrary(raw) {
 }
 export function filterLibrary(items, { query = '', project = '', target = '', use = '' } = {}) {
   const q = text(query, 240).toLocaleLowerCase();
-  return items.filter((i) => (!q || [i.title, i.summary, i.coreConcept, i.domain, i.target, i.assetId].join(' ').toLocaleLowerCase().includes(q))
+  return items.filter((i) => (!q || [i.title, i.summary, i.coreConcept, i.domain, i.target, i.assetId, ...(i.atomicUnits || []).map((unit) => text(unit?.text))].join(' ').toLocaleLowerCase().includes(q))
     && (!project || i.projects.some((p) => p.includes(project))) && (!target || i.target.includes(target))
     && (!use || [i.readiness, i.nextAction, JSON.stringify(i.practice)].join(' ').includes(use)));
 }
