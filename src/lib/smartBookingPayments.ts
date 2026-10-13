@@ -128,8 +128,8 @@ export async function createVerifiedStripeCheckout(
     client_reference_id: bookingId,
     'metadata[booking_id]': bookingId,
     'metadata[booking_request_key]': requestKey,
-    success_url: 'https://masahiroyamada.com/booking/result?session_id={CHECKOUT_SESSION_ID}',
-    cancel_url: 'https://masahiroyamada.com/booking/result?cancelled=1',
+    success_url: 'https://masahiroyamada.com/booking?payment=pending',
+    cancel_url: 'https://masahiroyamada.com/booking?cancelled=1',
     expires_at: String(expiry),
   });
   const res = await stripeFetch(env, '/v1/checkout/sessions', http, {
