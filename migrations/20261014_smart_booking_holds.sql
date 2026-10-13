@@ -26,7 +26,7 @@ create table if not exists public.ace_booking_holds (
   constraint ace_booking_no_overlap exclude using gist (
     resource_key with =,
     tstzrange(start_at - interval '20 minutes', end_at + interval '20 minutes', '[)') with &&
-  ) where (state in ('held','checkout_started','paid','confirmed','needs_review','refund_required'))
+  ) where (state in ('held','checkout_started','paid','confirmed','needs_review'))
 );
 
 alter table public.ace_booking_holds enable row level security;
