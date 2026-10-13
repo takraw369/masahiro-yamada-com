@@ -1,0 +1,382 @@
+---
+const canonical = 'https://docs.google.com/document/d/1IuWnSYQG8CPYR2AqxVxQwaOmTEky56Dp37CKd57ag5w/edit';
+---
+
+<section id="storyboard" class="sb-shell" aria-labelledby="sb-title">
+  <header class="sb-header">
+    <div>
+      <p class="sb-kicker">T07 · SINGLE-BOARD ANIMATION OS / SB-v1.1</p>
+      <h2 id="sb-title">Storyboard <span>Control</span></h2>
+      <p>テーマを指定 → コマ別に演出調整 → 色分け絵コンテと動画のプロンプトを作成。生成AIへの外部送信や課金は行いません。</p>
+    </div>
+    <a href={canonical} target="_blank" rel="noopener noreferrer">制作ルールの正本 ↗</a>
+  </header>
+
+  <div class="sb-stage" aria-label="Storyboard制作手順">
+    <span>01 テーマ</span><b>→</b><span>02 Shot編集</span><b>→</b><span>03 Prompt</span><b>→</b><span>04 制作・検証</span>
+  </div>
+
+  <div class="sb-controls">
+    <div class="sb-field sb-full">
+      <label for="sb-theme">テーマ / 見せたい変化</label>
+      <input id="sb-theme" maxlength="240" value="迷いから自信へ" placeholder="例：迷いから自信へ" />
+    </div>
+    <div class="sb-field">
+      <label for="sb-seconds">尺</label>
+      <select id="sb-seconds"><option value="10">10秒</option><option value="15" selected>15秒</option><option value="30">30秒</option></select>
+    </div>
+    <div class="sb-field">
+      <label for="sb-ratio">画面比率</label>
+      <select id="sb-ratio"><option value="9:16" selected>9:16（縦型）</option><option value="16:9">16:9（横型）</option><option value="1:1">1:1</option></select>
+    </div>
+    <div class="sb-field">
+      <label for="sb-count">コマ数</label>
+      <select id="sb-count"><option value="4">4コマ</option><option value="6">6コマ</option><option value="8" selected>8コマ</option><option value="12">12コマ</option></select>
+    </div>
+    <div class="sb-field">
+      <label for="sb-backend">動画向け出力</label>
+      <select id="sb-backend"><option value="Seedance">Seedance（汎用Prompt）</option><option value="Kling">Kling（汎用Prompt）</option><option value="Runway">Runway（汎用Prompt）</option><option value="LTX">LTX（汎用Prompt）</option><option value="その他">汎用</option></select>
+    </div>
+    <div class="sb-field">
+      <label for="sb-character">人物 / キャラクター（固定）</label>
+      <input id="sb-character" maxlength="500" value="成人男性1名、短い黒髪、ダークグレーのジャケット、黒いインナー、パンツ、スニーカー" />
+    </div>
+    <div class="sb-field">
+      <label for="sb-world">場所 / 世界（固定）</label>
+      <input id="sb-world" maxlength="500" value="雨上がりの静かな都市の路地、濡れた舗道、早朝" />
+    </div>
+    <div class="sb-field">
+      <label for="sb-lock">LOCK / 変えないもの</label>
+      <input id="sb-lock" maxlength="500" value="顔・髪型・衣装・体格・路地の位置関係・小物なし・登場人物1名" />
+    </div>
+    <div class="sb-field">
+      <label for="sb-audio">音・声（任意）</label>
+      <input id="sb-audio" maxlength="500" value="雨上がりの街の環境音、呼気、足音。音楽・セリフなし" />
+    </div>
+    <div class="sb-field sb-full">
+      <label for="sb-direction">演出の追加指定 / FACS・IPA（任意）</label>
+      <textarea id="sb-direction" rows="2" maxlength="1400" placeholder="例：静かな映画トーン。S03でAU43（目を閉じる）。台詞を付けるならIPAを添える。">静かな映画トーン。誇張した笑顔や急なカメラ移動なし。FACSは必要なショットだけ使用。</textarea>
+    </div>
+  </div>
+
+  <div class="sb-toolbar">
+    <button id="sb-sample" type="button">「迷いから自信へ」の完成例を読み込む</button>
+    <button id="sb-rebuild" type="button">指定した尺・コマ数で再構成</button>
+    <p>この画面の下書きはこの端末内に保存。画像・動画の生成そのものはまだ行いません。</p>
+  </div>
+
+  <div class="sb-legend" aria-label="色分け注釈の凡例">
+    <span><i class="sb-black"></i> 黒 · Scene</span>
+    <span><i class="sb-red"></i> 赤 · Body</span>
+    <span><i class="sb-blue"></i> 青 · Camera</span>
+    <span><i class="sb-green"></i> 緑 · Framing</span>
+    <span><i class="sb-orange"></i> 橙 · Lighting</span>
+    <span><i class="sb-purple"></i> 紫 · Emotion / Voice</span>
+  </div>
+
+  <div class="sb-section-head">
+    <div><p class="sb-kicker">SHOT EDITOR</p><h3>コマごとの演出を編集</h3></div>
+    <span id="sb-timing">8コマ · 15秒</span>
+  </div>
+  <p class="sb-help">各コマは開いて編集できます。色付きの文字は演出の区分で、完成映像に重ねる注釈ではありません。</p>
+  <div id="sb-shots" class="sb-shots" aria-label="編集可能なショット一覧"></div>
+
+  <div class="sb-section-head">
+    <div><p class="sb-kicker">COPY / HANDOFF</p><h3>制作プロンプト</h3></div>
+    <div class="sb-small-actions">
+      <button id="sb-download" type="button">構成JSONを保存</button>
+      <button id="sb-reset" type="button">初期状態に戻す</button>
+    </div>
+  </div>
+  <div class="sb-output-grid">
+    <div class="sb-output">
+      <div class="sb-output-head"><h4>絵コンテ画像用</h4><button id="sb-copy-image" type="button">コピー</button></div>
+      <label for="sb-image-prompt" class="sb-screen-label">画像AIへ渡すプロンプト</label>
+      <textarea id="sb-image-prompt" rows="12" readonly></textarea>
+    </div>
+    <div class="sb-output">
+      <div class="sb-output-head"><h4>動画AI用</h4><button id="sb-copy-video" type="button">コピー</button></div>
+      <label for="sb-video-prompt" class="sb-screen-label">動画AIへ渡すプロンプト</label>
+      <textarea id="sb-video-prompt" rows="12" readonly></textarea>
+    </div>
+  </div>
+  <p id="sb-status" class="sb-status" role="status" aria-live="polite"></p>
+  <p class="sb-footnote">生成結果の画像・動画やDrive正本への保存、外部AIへの送信はこの画面では未接続。FACSとIPAも文字による演出補助であり、モデルが正確に解釈する保証はありません。画像生成後は、矢印や色文字が最終動画に混入していないかを確認してください。</p>
+</section>
+
+<script>
+  type ShotField = 'scene' | 'body' | 'camera' | 'framing' | 'lighting' | 'emotion';
+  type Shot = { title: string; scene: string; body: string; camera: string; framing: string; lighting: string; emotion: string };
+  type Settings = { theme: string; seconds: string; ratio: string; count: string; backend: string; character: string; world: string; lock: string; audio: string; direction: string };
+  type Saved = { version: number; settings: Settings; shots: Shot[] };
+  const root = document.getElementById('storyboard');
+  const storageKey = 'masa.storyboard-control.v1';
+  const sample: Shot[] = [
+    { title: '迷い', scene: '雨上がりの路地で猫背になって立ち止まる', body: '肩を内へ、重心は少し後ろ、視線は下', camera: '後方3/4ミディアムワイド、静止', framing: '人物をやや下寄せに配置', lighting: '冷たく薄暗い早朝', emotion: '迷い・停滞' },
+    { title: 'ためらい', scene: '踏み出せない靴先と緊張した指', body: '足が止まり、小さな体重移動', camera: 'ローアングル、靴先のクローズアップ', framing: '靴と手元、背景はぼかす', lighting: '低照度・冷たい光', emotion: '進みたいが進めない' },
+    { title: '内省', scene: '横顔のクローズアップで目を閉じ、息を吐く', body: '呼気とともに肩が少し緩む。FACS: AU43 / AU25（任意）', camera: '横顔へごくゆっくりプッシュイン', framing: '顔から胸上まで', lighting: '頬へわずかに柔らかい光', emotion: '静かに内側を見つめる' },
+    { title: '切り替え', scene: '息を吸い、自然に背骨が伸びる', body: '重心を足裏中央へ戻し、胸郭が少し開く', camera: '正面ミディアム、静止', framing: '上半身を中心に', lighting: '少し明るくなる', emotion: '小さな決断' },
+    { title: '意志', scene: 'ゆっくり顔を上げ前方を見る', body: '首と視線が起きる、背筋が整う', camera: '穏やかなプッシュイン', framing: '目の高さを中央付近に置く', lighting: '柔らかい前方光', emotion: '意志が生まれる' },
+    { title: '一歩', scene: '小さいが確かな一歩を踏み出す', body: '一歩前進し体幹を安定させる', camera: '低めから短く追従する', framing: '膝上〜全身', lighting: '濡れた路面に朝光が反射', emotion: '実行・自信の芽' },
+    { title: '安定', scene: '自然に歩き続ける', body: '肩が柔らかく開き、姿勢が安定する', camera: '側面から滑らかに並走', framing: 'ミディアム', lighting: '自然な輪郭光', emotion: '自分の軸に戻る' },
+    { title: '自信', scene: '少し正面を向き落ち着いて止まる。末尾0.5秒ホールド', body: '背筋が立ち、顎は水平。FACS: AU12を弱く（任意）', camera: '安定したミディアムクローズアップ', framing: '顔と胸上を中心に', lighting: '柔らかい朝日', emotion: '誇張しない静かな確信' },
+  ];
+  const fieldDefs: Array<{ key: ShotField; label: string; css: string }> = [
+    { key: 'scene', label: 'BLACK · Scene', css: 'black' },
+    { key: 'body', label: 'RED · Body', css: 'red' },
+    { key: 'camera', label: 'BLUE · Camera', css: 'blue' },
+    { key: 'framing', label: 'GREEN · Framing', css: 'green' },
+    { key: 'lighting', label: 'ORANGE · Lighting', css: 'orange' },
+    { key: 'emotion', label: 'PURPLE · Emotion / Voice', css: 'purple' },
+  ];
+  const ids: Record<keyof Settings, string> = {
+    theme: 'sb-theme', seconds: 'sb-seconds', ratio: 'sb-ratio', count: 'sb-count',
+    backend: 'sb-backend', character: 'sb-character', world: 'sb-world',
+    lock: 'sb-lock', audio: 'sb-audio', direction: 'sb-direction',
+  };
+  const getEl = (id: string) => root?.querySelector('#' + id) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+  const status = (text: string) => { const element = root?.querySelector('#sb-status'); if (element) element.textContent = text; };
+  const defaults: Settings = Object.fromEntries(Object.entries(ids).map(([key, id]) => [key, getEl(id)?.value || ''])) as unknown as Settings;
+  let shots: Shot[] = sample.map((shot) => ({ ...shot }));
+  const safe = (v: unknown, max = 1200) => typeof v === 'string' ? v.slice(0, max) : '';
+  function settings(): Settings {
+    return Object.fromEntries(Object.entries(ids).map(([key, id]) => [key, getEl(id)?.value.trim() || ''])) as unknown as Settings;
+  }
+  function restoreSettings(v: Settings) {
+    for (const [key, id] of Object.entries(ids)) {
+      const field = getEl(id);
+      if (!field) continue;
+      const next = safe(v[key as keyof Settings], 1400);
+      if (field instanceof HTMLSelectElement) {
+        if (Array.from(field.options).some((opt) => opt.value === next)) field.value = next;
+      } else field.value = next;
+    }
+  }
+  function boundaries(seconds: number, count: number) {
+    if (seconds === 15 && count === 8) return [0, 1.8, 3.4, 5.2, 7, 8.8, 10.8, 13, 15];
+    return Array.from({ length: count + 1 }, (_, i) => Math.round(seconds * i / count * 10) / 10);
+  }
+  function rebuilt(count: number): Shot[] {
+    return Array.from({ length: count }, (_, i) => {
+      const index = Math.min(7, Math.floor((i + 0.5) * 8 / count));
+      const selected = sample[index];
+      return { ...selected, title: selected.title };
+    });
+  }
+  function renderShots() {
+    const host = root?.querySelector('#sb-shots') as HTMLElement;
+    if (!host) return;
+    host.replaceChildren();
+    const s = settings();
+    const time = boundaries(Number(s.seconds), shots.length);
+    const timing = root?.querySelector('#sb-timing');
+    if (timing) timing.textContent = shots.length + 'コマ · ' + s.seconds + '秒';
+    shots.forEach((shot, i) => {
+      const card = document.createElement('details');
+      card.className = 'sb-shot';
+      if (i === 0) card.open = true;
+      const summary = document.createElement('summary');
+      const number = document.createElement('strong');
+      number.textContent = 'S' + String(i + 1).padStart(2, '0') + ' · ' + shot.title;
+      const clock = document.createElement('span');
+      clock.textContent = time[i].toFixed(1) + '–' + time[i + 1].toFixed(1) + 's';
+      summary.append(number, clock);
+      card.append(summary);
+      const editors = document.createElement('div');
+      editors.className = 'sb-shot-editors';
+      const titleWrap = document.createElement('label');
+      titleWrap.textContent = 'Shot名';
+      const titleInput = document.createElement('input');
+      titleInput.value = shot.title;
+      titleInput.maxLength = 80;
+      titleInput.addEventListener('input', () => {
+        shot.title = titleInput.value;
+        number.textContent = 'S' + String(i + 1).padStart(2, '0') + ' · ' + shot.title;
+        sync();
+      });
+      titleWrap.append(titleInput);
+      editors.append(titleWrap);
+      fieldDefs.forEach(({ key, label, css }) => {
+        const wrap = document.createElement('label');
+        wrap.className = 'sb-annotation sb-' + css;
+        const heading = document.createElement('span');
+        heading.textContent = label;
+        const textarea = document.createElement('textarea');
+        textarea.rows = 2;
+        textarea.maxLength = 750;
+        textarea.value = shot[key];
+        textarea.addEventListener('input', () => { shot[key] = textarea.value; sync(); });
+        wrap.append(heading, textarea);
+        editors.append(wrap);
+      });
+      card.append(editors);
+      host.append(card);
+    });
+  }
+  function timeline(s: Settings) {
+    const times = boundaries(Number(s.seconds), shots.length);
+    return shots.map((shot, i) => [
+      'S' + String(i + 1).padStart(2, '0') + ' ' + times[i].toFixed(1) + '–' + times[i + 1].toFixed(1) + 's | ' + shot.title,
+      'BLACK Scene: ' + shot.scene, 'RED Body: ' + shot.body,
+      'BLUE Camera: ' + shot.camera, 'GREEN Framing: ' + shot.framing,
+      'ORANGE Lighting: ' + shot.lighting, 'PURPLE Emotion/Voice: ' + shot.emotion,
+    ].join('\n')).join('\n\n');
+  }
+  function generateOutputs() {
+    const s = settings();
+    const shared = [
+      'Theme: ' + (s.theme || '主題を補完してください'),
+      'Character / locked subject: ' + s.character,
+      'World / fixed location: ' + s.world,
+      'Lock: ' + s.lock,
+      'Direction / optional FACS or IPA: ' + s.direction,
+      'Audio: ' + s.audio,
+      'Time-coded shot table:',
+      timeline(s),
+    ].join('\n');
+    getEl('sb-image-prompt').value = [
+      'Create ONE professional cinematic storyboard CONTACT SHEET (not a final film).',
+      'Aspect ratio: ' + s.ratio + '. Exactly ' + shots.length + ' numbered panels covering ' + s.seconds + ' seconds.',
+      'Visual base: neutral monochrome pencil/charcoal sketches. Put all directorial direction in SMALL COLOR-CODED annotation arrows and notes outside the drawn world.',
+      'Legend with text labels: BLACK=Scene/Subject, RED=Body Movement, BLUE=Camera Movement, GREEN=Framing/Composition, ORANGE=Lighting, PURPLE=Emotion/Voice/FACS/IPA.',
+      'Use consistent character face, outfit, proportions, props and environment geography in every panel. Include S01...S' + String(shots.length).padStart(2,'0') + ' and exact time ranges. The notes are filming instructions, not objects in the scene.',
+      shared,
+      'No extra subjects, limbs, props, logos or decorative poster typography. Optimize readability of the eight/selected panels rather than filling space with prose.',
+    ].join('\n\n');
+    getEl('sb-video-prompt').value = [
+      'VIDEO PRODUCTION PROMPT — ' + s.backend + ' (general-language adapter, provider-specific timing and input restrictions must be checked).',
+      'Animate the reference storyboard as a ' + s.seconds + '-second ' + s.ratio + ' cinematic video. Follow every shot in sequence and honor the listed timings.',
+      'The storyboard is a visual canon. Its arrows, color labels, handwritten notes, panel borders and timecodes must NEVER appear in the final film.',
+      'Keep acting restrained, believable and grounded. Make camera moves physically possible. Follow appearance and environment locks. No morphing, flicker, extra people/limbs/props, abrupt transitions or unrequested text/subtitles. Do not add voice or music unless requested.',
+      shared,
+      'If the video model cannot produce the full multi-shot timeline accurately, animate each shot separately with consistent references, then edit to the specified timecode boundaries.',
+      'Review identity, body movement, camera, lighting, expression, audio, annotation leakage and final narrative clarity before publication.',
+    ].join('\n\n');
+  }
+  function persist() {
+    try { localStorage.setItem(storageKey, JSON.stringify({ version: 1, settings: settings(), shots } satisfies Saved)); }
+    catch { status('端末への自動保存が利用できません。必要なら構成JSONを保存してください。'); }
+  }
+  function sync() { generateOutputs(); persist(); }
+  function resetToSample() {
+    restoreSettings(defaults);
+    shots = sample.map((shot) => ({ ...shot }));
+    renderShots();
+    sync();
+    status('「迷いから自信へ」の8コマを読み込みました。');
+  }
+  function rebuildShots() {
+    shots = rebuilt(Number(settings().count));
+    renderShots();
+    sync();
+    status('コマ割りを再構成しました。既存のShot編集は初期案に置き換わります。');
+  }
+  async function copy(field: string) {
+    const area = getEl(field) as HTMLTextAreaElement;
+    try {
+      await navigator.clipboard.writeText(area.value);
+      status('Promptをコピーしました。外部AIへ送る場合はそのサービスの条件を確認してください。');
+    } catch {
+      area.focus(); area.select();
+      const ok = document.execCommand('copy');
+      status(ok ? 'Promptをコピーしました。' : '自動コピーできませんでした。テキストを選択してコピーしてください。');
+    }
+  }
+  function downloadDraft() {
+    const pack: Saved & { canonical: string; status: string } = {
+      version: 1, settings: settings(), shots, canonical: 'PJT-039-A / SB-v1.1',
+      status: 'LOCAL_DRAFT_NOT_GENERATED',
+    };
+    const blob = new Blob([JSON.stringify(pack, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'masa-storyboard-draft.json';
+    document.body.append(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    status('構成JSONを書き出しました。Driveに自動保存したものではありません。');
+  }
+  for (const id of Object.values(ids)) getEl(id)?.addEventListener('input', sync);
+  for (const id of ['sb-seconds', 'sb-ratio', 'sb-count', 'sb-backend']) getEl(id)?.addEventListener('change', () => {
+    if (id === 'sb-count' && Number(settings().count) !== shots.length) {
+      status('コマ数を変更しました。「指定した尺・コマ数で再構成」でShot表へ反映してください。');
+    }
+    sync();
+  });
+  (root?.querySelector('#sb-sample') as HTMLButtonElement)?.addEventListener('click', resetToSample);
+  (root?.querySelector('#sb-rebuild') as HTMLButtonElement)?.addEventListener('click', rebuildShots);
+  (root?.querySelector('#sb-reset') as HTMLButtonElement)?.addEventListener('click', () => {
+    try { localStorage.removeItem(storageKey); } catch { /* storage can be disabled */ }
+    resetToSample();
+  });
+  (root?.querySelector('#sb-download') as HTMLButtonElement)?.addEventListener('click', downloadDraft);
+  (root?.querySelector('#sb-copy-image') as HTMLButtonElement)?.addEventListener('click', () => copy('sb-image-prompt'));
+  (root?.querySelector('#sb-copy-video') as HTMLButtonElement)?.addEventListener('click', () => copy('sb-video-prompt'));
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const value: Saved = JSON.parse(raw);
+      if (value?.version === 1 && value.settings && [4, 6, 8, 12].includes(value.shots?.length)) {
+        restoreSettings(value.settings);
+        const valid = value.shots.every((shot) => shot && fieldDefs.every(({ key }) => typeof shot[key] === 'string' && shot[key].length <= 750));
+        if (valid) shots = value.shots.map((shot) => ({ ...shot, title: safe(shot.title, 80) }));
+      }
+    }
+  } catch { status('前回の下書きを復元できなかったため初期例を使います。'); }
+  renderShots();
+  generateOutputs();
+</script>
+
+<style>
+  .sb-shell { display: grid; gap: 18px; padding: clamp(18px,3vw,30px); border: 1px solid #d8d4cd; background: #fff; color: #29323c; }
+  .sb-header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+  .sb-kicker { margin: 0 0 5px; color: #a56c22; font-size: .68rem; font-weight: 800; letter-spacing: .1em; }
+  .sb-header h2 { font-size: clamp(1.5rem,3vw,2.4rem); letter-spacing: -.04em; margin: 0 0 9px; }
+  .sb-header h2 span { color: #a56c22; }
+  .sb-header p:last-child { max-width: 780px; color: #586574; font-size: .85rem; line-height: 1.65; }
+  .sb-header a { color: #795019; font-size: .8rem; text-decoration: underline; text-underline-offset: 3px; }
+  .sb-stage { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; padding: 10px 12px; background: #faf7f2; color: #605a52; font-size: .76rem; }
+  .sb-stage b { color: #c38d51; }
+  .sb-controls { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .sb-field { display: grid; gap: 6px; min-width: 0; }
+  .sb-field.sb-full { grid-column: 1 / -1; }
+  .sb-field label { color: #48525d; font-size: .77rem; font-weight: 700; }
+  .sb-field input, .sb-field select, .sb-field textarea, .sb-annotation textarea, .sb-shot-editors input { width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid #cfd4da; border-radius: 5px; background: #fff; color: #25303d; font: inherit; font-size: .88rem; }
+  .sb-field textarea { resize: vertical; line-height: 1.6; }
+  .sb-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+  .sb-toolbar p { color: #66727c; font-size: .75rem; flex: 1 1 230px; margin: 0; }
+  button { min-height: 44px; padding: 9px 12px; border: 1px solid #c2c7cd; background: #fff; color: #414b55; font: inherit; font-size: .8rem; cursor: pointer; border-radius: 5px; }
+  button:hover { border-color: #ae793d; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #f4ab4c; outline-offset: 2px; }
+  #sb-rebuild, #sb-copy-image, #sb-copy-video { background: #9b6727; border-color: #9b6727; color: #fff; font-weight: 700; }
+  .sb-legend { display: flex; gap: 10px; flex-wrap: wrap; padding: 12px; border: 1px solid #e8e0d7; border-radius: 6px; font-size: .75rem; }
+  .sb-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sb-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+  .sb-black { background: #404750; } .sb-red { background: #b93333; } .sb-blue { background: #276fb6; }
+  .sb-green { background: #27824e; } .sb-orange { background: #e17d14; } .sb-purple { background: #8a4eb7; }
+  .sb-section-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; border-top: 1px solid #e5e1da; padding-top: 16px; }
+  .sb-section-head h3 { margin: 0; font-size: 1.18rem; }
+  #sb-timing { font-size: .8rem; color: #697684; font-variant-numeric: tabular-nums; }
+  .sb-help, .sb-footnote { color: #65707a; font-size: .77rem; line-height: 1.7; margin: 0; }
+  .sb-shots { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .sb-shot { border: 1px solid #d6d4cf; border-radius: 6px; overflow: hidden; }
+  .sb-shot summary { display: flex; justify-content: space-between; gap: 9px; align-items: center; padding: 14px; cursor: pointer; list-style-position: inside; background: #faf9f7; }
+  .sb-shot summary strong { font-size: .83rem; }
+  .sb-shot summary span { flex: none; font-size: .74rem; color: #6a7580; font-variant-numeric: tabular-nums; }
+  .sb-shot-editors { display: grid; gap: 10px; padding: 14px; }
+  .sb-shot-editors label { display: grid; gap: 5px; font-size: .77rem; font-weight: 700; }
+  .sb-annotation span { border-left: 3px solid currentColor; padding-left: 7px; }
+  .sb-annotation.sb-black { background: none; color: #38414b; } .sb-annotation.sb-red { background: none; color: #ad3030; }
+  .sb-annotation.sb-blue { background: none; color: #286da8; } .sb-annotation.sb-green { background: none; color: #257d48; }
+  .sb-annotation.sb-orange { background: none; color: #af6310; } .sb-annotation.sb-purple { background: none; color: #8744a5; }
+  .sb-annotation textarea { color: #29323c; font-weight: 400; line-height: 1.5; resize: vertical; }
+  .sb-small-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sb-output-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .sb-output { display: grid; min-width: 0; gap: 9px; border: 1px solid #d9d6ce; border-radius: 6px; padding: 12px; }
+  .sb-output-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .sb-output h4 { margin: 0; font-size: .87rem; }
+  .sb-output textarea { width: 100%; min-width: 0; border: 1px solid #d1d5d9; border-radius: 4px; background: #f8f8f7; color: #37414a; padding: 12px; font: 12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; resize: vertical; }
+  .sb-screen-label { font-size: .7rem; color: #66727e; }
+  .sb-status { min-height: 1.4em; margin: 0; color: #835921; font-size: .8rem; }
+  @media (max-width: 780px) { .sb-shots,.sb-output-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 540px) { .sb-controls { grid-template-columns: 1fr; } .sb-shell { padding: 14px; } .sb-section-head { align-items: start; } }
+</style>
