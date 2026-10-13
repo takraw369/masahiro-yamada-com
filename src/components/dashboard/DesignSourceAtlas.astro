@@ -13,15 +13,17 @@ const groups = [
       { name: 'Preline UI', url: 'https://preline.co/', tag: 'App / Marketing', priority: '実務画面', use: '運営ダッシュボード・情報の密度とレスポンシブ配置。' },
       { name: 'Launch UI', url: 'https://www.launchuicomponents.com/', tag: 'Landing', priority: 'LP候補', use: '提供価値→信頼材料→申込CTAの順番。' },
       { name: 'Tailwind Plus', url: 'https://tailwindcss.com/plus/ui-blocks', tag: 'Premium', priority: '構造研究', use: '洗練された画面構造を観察。コードは有償ライセンス。' },
+      { name: 'BoardUI', url: 'https://www.boardui.com/', docs: 'https://www.boardui.com/mcp', tag: 'Dashboard / React', priority: 'FLOW Board候補', use: '指標カード・データ表・カレンダー。無料MITのみを候補にし、React 19 / Tailwind v4と既存Astro構成を検証。Proは購入前に利用しない。', recipe: 'FLOW Boardの指標一覧またはMASA Dashboardの1区画で、既存データと権限制御を維持したまま比較する。' },
     ]
   },
   {
     id: 'parts', name: '操作パーツ・入力', description: 'そのまま使う前に、使いやすさ・権利・React/Astro互換性を評価。', expanded: false,
     sites: [
-      { name: 'Arc UI', url: 'https://uiarc.dev/', tag: 'React / Blocks', priority: '最初に比較', use: 'カード・画面ブロック・AI向け実装手順。Free/Proの条件を分けて検証。' },
+      { name: 'Arc UI', url: 'https://uiarc.dev/', docs: 'https://uiarc.dev/docs/ai', tag: 'React / Blocks', priority: '既存候補を強化', use: '選択・確認・進捗パターン。FreeはMIT、Proは別ライセンス。既存検討との重複登録はしない。', recipe: '乙4の回答モード選択かFLOW Boardの取消確認を1部品だけ独立試作し、誤操作やreduced-motionを検証する。' },
       { name: '21st.dev', url: 'https://21st.dev/', tag: 'Community UI', priority: '最初に比較', use: '操作パターンとAI用サンプル。個々の作者のライセンスを照合。' },
       { name: 'Origin UI / coss', url: 'https://coss.com/origin/', tag: 'Form / Input', priority: '乙4に最適', use: '選択肢・入力・検索・並べ替え。学習者の誤タップ防止。' },
       { name: 'HyperUI', url: 'https://www.hyperui.dev/', tag: 'Tailwind', priority: '軽量実装', use: 'ナビ・フォーム・カード。依存を増やさず小さく再構築。' },
+      { name: 'Bencho', url: 'https://bencho.dev/', tag: 'Micro-interaction', priority: '学習UX候補', use: 'Checklist・Step Player・Voice Note・Reorderなどを観察。個別コンポーネントのソースと利用条件を確認。', recipe: '乙4の学習ステップやACE Questチェックリストに合う操作を1つ選び、タップ44pxと状態保存を検証する。' },
     ]
   },
   {
@@ -31,9 +33,33 @@ const groups = [
       { name: 'Aceternity UI', url: 'https://ui.aceternity.com/', tag: 'Motion / Hero', priority: '世界観', use: 'ACE/SLFの入口。モバイル負荷・reduced motionに注意。' },
       { name: 'React Bits', url: 'https://reactbits.dev/', tag: 'React Motion', priority: '要ライセンス確認', use: 'トランジション・反応演出。再利用前に配布条件を個別確認。' },
       { name: 'UI Layouts', url: 'https://www.ui-layouts.com/', tag: 'Motion / Layout', priority: '比較候補', use: '軽いカード・背景・配置の動き。情報理解が改善するか検証。' },
+      { name: '23rd', url: 'https://23rd.dev/', docs: 'https://23rd.dev/docs/getting-started', tag: 'React / Svelte Motion', priority: 'LPのみ優先', use: 'ShaderやTypewriterなど。モバイル負荷・視認性・reduced-motionを確認。既存Astroには軽量な1演出のみ候補。', recipe: 'SLF / ACEのファーストビューで背景演出1つをプレビュー比較する。視認性・LCP・FPSの悪化があれば不採用にする。' },
+    ]
+  },
+  {
+    id: 'agent', name: 'AI・エージェント操作', description: '思考の説明ではなく進捗・承認・エラー・差分を明確に見せる。', expanded: false,
+    sites: [
+      { name: 'Beautiful UI', url: 'https://www.beautifului.dev/', docs: 'https://github.com/ithmz/beautiful-ui', tag: 'AI / Human approval', priority: 'Agent OS候補', use: 'Approval Card・Task Rows・Streaming Text等。MITの公開パターンから1つずつ選び、機密や内部思考を表示しない。', recipe: 'Agent OSでツール実行前の承認カードまたは処理進捗を1画面に試作。権限境界と監査ログを変更しない。' },
+    ]
+  },
+  {
+    id: 'audio-cli', name: '音声・ターミナル', description: 'ブラウザ向け部品とCLI向け部品は混同せず、対応環境で使う。', expanded: false,
+    sites: [
+      { name: 'audiocn', url: 'https://www.audiocn.dev/', docs: 'https://www.audiocn.dev/docs/installation', tag: 'Audio / React', priority: '音声教材候補', use: '波形・録音レベル・プレイヤー・ミキサー。shadcn方式。音声入力や録音許可は別実装で安全に扱う。', recipe: 'ACEの音声教材プレイヤーで波形またはレベルメーター1つを試作し、音声なし・許可拒否・スマホ操作を検証する。' },
+      { name: 'termcn', url: 'https://www.termcn.dev/', docs: 'https://www.termcn.dev/docs', tag: 'Terminal / Ink', priority: 'CLI専用候補', use: 'Ink / OpenTUI向けのターミナル部品。Astroのブラウザ画面へ直接導入しない。', recipe: 'MASA Agent OSのCLI実行状態を表示する小さなターミナル試作を作り、既存Web Dashboardからは独立させる。' },
     ]
   },
 ];
+const totalSources = groups.reduce((sum, group) => sum + group.sites.length, 0);
+const promptFor = (site) => [
+  'MASA DESIGN INTELLIGENCE / UI Pattern Vault のルールで、次の参考を「最小1コンポーネント」で評価してください。',
+  '参考: ' + site.name + ' ' + site.url,
+  '目的: ' + (site.recipe ?? site.use),
+  '資料: ' + (site.docs ?? site.url),
+  '手順: 既存の正本・該当実装をfresh-read → 重複確認 → ライセンスと依存を確認 → 非本番試作 → 比較 → KEEP / REFINE / DROP。',
+  '必須: 外部Proコード・画像の無断取得禁止。既存の認証・保存・データ機能を維持。320/375/390/430px、操作領域44px、入力16px、キーボード、reduced-motionを検証。',
+  '成果物: 差分、動作証跡、ライセンス・依存判定、合格時の次の一手。公開・支払・SNS投稿は実行しない。',
+].join('\n');
 ---
 
 <section class="ds-atlas" id="source-atlas" aria-labelledby="ds-atlas-title">
@@ -41,29 +67,77 @@ const groups = [
     <div>
       <p class="ds-atlas-kicker">06 / SOURCE ATLAS · RESEARCH</p>
       <h2 id="ds-atlas-title">世界のUIを、<em>自分たちの構成へ。</em></h2>
-      <p>公開ライブラリを13件分類。配色だけでなく、<strong>画面構成・入力・動き</strong>からTTPできる原理を探す。リンクは外部の公式サイトへ移動します。</p>
+      <p>公開ライブラリを{totalSources}件分類。配色だけでなく、<strong>画面構成・入力・動き</strong>からTTPできる原理を探す。リンクは外部の公式サイトへ移動します。</p>
     </div>
     <a href="https://docs.google.com/document/d/1Zzyj7SmCCKfxelVevjunbp-jaantlSDIMgXayu2JIsM/edit" target="_blank" rel="noopener noreferrer">Research 正本 ↗</a>
   </div>
+  <div class="ds-atlas-tools">
+    <label for="ds-atlas-search">参考サイトを用途で探す</label>
+    <input id="ds-atlas-search" type="search" autocomplete="off" placeholder="例：音声、乙4、AI、ダッシュボード" />
+    <p id="ds-atlas-result" role="status" aria-live="polite">{totalSources}件の参考</p>
+  </div>
   <div class="ds-atlas-groups">
     {groups.map(group => (
-      <details class="ds-atlas-group" open={group.expanded}>
+      <details class="ds-atlas-group" data-initial-open={group.expanded ? 'true' : 'false'} open={group.expanded}>
         <summary><span class="ds-atlas-chevron" aria-hidden="true">›</span><span><strong>{group.name}</strong><small>{group.description}</small></span><span class="ds-atlas-count">{group.sites.length} sources</span></summary>
         <div class="ds-atlas-grid">
           {group.sites.map(site => (
-            <article class="ds-atlas-card">
+            <article class="ds-atlas-card" data-source-card data-search={([site.name, site.tag, site.use, site.priority, site.recipe ?? ''].join(' ')).toLocaleLowerCase()}>
               <div class="ds-atlas-meta"><span>{site.tag}</span><span>{site.priority}</span></div>
               <h3>{site.name}</h3>
               <p>{site.use}</p>
-              <a href={site.url} target="_blank" rel="noopener noreferrer" aria-label={site.name + 'の公式サイトを開く'}>公式サイトで見る <span aria-hidden="true">↗</span></a>
+              <div class="ds-atlas-actions">
+                <a href={site.url} target="_blank" rel="noopener noreferrer" aria-label={site.name + 'の公式サイトを開く'}>公式サイト ↗</a>
+                {site.docs && <a href={site.docs} target="_blank" rel="noopener noreferrer" aria-label={site.name + 'の資料を見る'}>導入資料 ↗</a>}
+                <button type="button" data-copy-prompt data-prompt={promptFor(site)} aria-label={site.name + 'の実装依頼文をコピー'}>依頼文をコピー</button>
+              </div>
             </article>
           ))}
         </div>
       </details>
     ))}
   </div>
+  <p id="ds-atlas-copy-status" class="ds-atlas-copy-status" role="status" aria-live="polite"></p>
   <div class="ds-atlas-method">
     <strong>使い方：</strong> 参考を選ぶ → 構造・操作を分解 → 独自に再設計 → このDesign Studioで比較 → iPhoneで検証 → KEEP / REFINE / DROP
   </div>
-  <p class="ds-atlas-disclaimer">このカタログは研究用リンク集です。外部サイトの画像・コードは取得していません。各コンポーネントの権利、React/Astro互換性、アクセシビリティを確認してから実装します。既存の8参考サイトとDesign Labの記録は維持します。</p>
+  <p class="ds-atlas-disclaimer">このカタログは研究と制作依頼をつなぐ入口です。外部サイトの画像・コードは取得していません。各コンポーネントの権利、React/Astro互換性、アクセシビリティを確認してから実装します。既存の8参考サイトとDesign Labの記録は維持します。</p>
 </section>
+
+<script>
+  const atlas = document.querySelector('#source-atlas');
+  if (atlas) {
+    const field = atlas.querySelector('#ds-atlas-search');
+    const cards = [...atlas.querySelectorAll('[data-source-card]')];
+    const sections = [...atlas.querySelectorAll('.ds-atlas-group')];
+    const count = atlas.querySelector('#ds-atlas-result');
+    const status = atlas.querySelector('#ds-atlas-copy-status');
+    field?.addEventListener('input', () => {
+      const query = field.value.trim().toLocaleLowerCase();
+      let visible = 0;
+      for (const card of cards) {
+        const match = (card.dataset.search ?? '').includes(query);
+        card.hidden = !match;
+        if (match) visible++;
+      }
+      for (const section of sections) {
+        const hasMatch = [...section.querySelectorAll('[data-source-card]')].some(card => !card.hidden);
+        section.hidden = !hasMatch;
+        section.open = query ? hasMatch : section.dataset.initialOpen === 'true';
+      }
+      if (count) count.textContent = query ? `${visible}件ヒット` : `${visible}件の参考`;
+    });
+    atlas.addEventListener('click', async event => {
+      if (!(event.target instanceof Element)) return;
+      const button = event.target.closest('[data-copy-prompt]');
+      if (!(button instanceof HTMLButtonElement)) return;
+      try {
+        if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+        await navigator.clipboard.writeText(button.dataset.prompt ?? '');
+        if (status) status.textContent = '実装依頼文をコピーしました。AI開発ツールに貼って使えます。';
+      } catch {
+        if (status) status.textContent = 'コピーできませんでした。HTTPS環境・クリップボード許可を確認してください。';
+      }
+    });
+  }
+</script>
