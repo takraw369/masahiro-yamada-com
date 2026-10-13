@@ -15,6 +15,7 @@ export interface BookingPaymentEnv extends BookingConnections {
   BOOKING_PAYMENT_WEBHOOK_READY?: string;
   BOOKING_PUBLIC_ENABLED?: string;
   BOOKING_ONLINE_VENUE_CONFIRMED?: string;
+  BOOKING_ONLINE_VENUE_AREA?: string;
   BOOKING_TURNSTILE_SECRET?: string;
   BOOKING_CONFIRM_CALENDAR_ID?: string;
 }
@@ -38,8 +39,10 @@ export function bookingEnabled(env: BookingPaymentEnv): boolean {
   return env.BOOKING_PUBLIC_ENABLED === 'true'
     && env.BOOKING_PAYMENT_WEBHOOK_READY === 'true'
     && env.BOOKING_ONLINE_VENUE_CONFIRMED === 'true'
+    && ['kunitachi','tachikawa','shinjuku','yokohama'].includes(env.BOOKING_ONLINE_VENUE_AREA || '')
     && Boolean(env.BOOKING_TURNSTILE_SECRET && env.BOOKING_GOOGLE_CALENDAR_IDS
       && env.BOOKING_GOOGLE_REFRESH_TOKEN && env.BOOKING_GOOGLE_CLIENT_ID && env.BOOKING_GOOGLE_CLIENT_SECRET
+      && env.BOOKING_MAPS_ROUTES_KEY
       && env.BOOKING_SUPABASE_SERVICE_KEY && env.SUPABASE_URL
       && env.BOOKING_STRIPE_SECRET_KEY && env.BOOKING_STRIPE_ACCOUNT_ID
       && env.BOOKING_STRIPE_PRICE_ID && env.BOOKING_STRIPE_WEBHOOK_SECRET
