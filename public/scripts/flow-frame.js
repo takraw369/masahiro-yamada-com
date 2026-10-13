@@ -419,7 +419,8 @@
         other.classList.toggle('active', active);
         other.setAttribute('aria-pressed', String(active));
       }
-      queueRender();
+      // A direct user action should repaint immediately, even when requestAnimationFrame is throttled.
+      render();
     });
   }
   fileEl.addEventListener('change', () => loadFile(fileEl.files && fileEl.files[0]));
