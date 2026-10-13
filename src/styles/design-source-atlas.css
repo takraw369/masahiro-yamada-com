@@ -29,3 +29,18 @@
 .ds-atlas a:focus-visible,.ds-atlas summary:focus-visible{outline:3px solid #386eb8;outline-offset:2px}
 @media(max-width:600px){.ds-atlas{padding:18px 12px;margin:30px auto}.ds-atlas-heading{flex-direction:column}.ds-atlas-heading>a{align-self:flex-start}.ds-atlas-grid{grid-template-columns:1fr;padding:0 10px 10px}.ds-atlas-group>summary{padding:12px 10px;gap:7px}.ds-atlas-count{font-size:.58rem}}
 @media(prefers-reduced-motion:reduce){.ds-atlas-chevron{transition:none}}
+
+
+/* Research Atlas: purpose search and copyable implementation briefs */
+.ds-atlas-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 16px;margin-bottom:18px;align-items:center}
+.ds-atlas-tools label{grid-column:1 / -1;font-size:.8rem;font-weight:800;color:#4d5962}
+.ds-atlas-tools input{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #c3c6c7;border-radius:3px;background:#fff;color:#253039;font-size:16px}
+.ds-atlas-tools p{color:#6d5437;font-size:.76rem;white-space:nowrap}
+.ds-atlas [hidden]{display:none!important}
+.ds-atlas-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px 14px}
+.ds-atlas-actions a,.ds-atlas-actions button{min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:#79501e;font-size:.75rem;font-weight:800}
+.ds-atlas-actions button{padding:7px 11px;border:1px solid #a8967d;border-radius:3px;background:#fff8ed;cursor:pointer}
+.ds-atlas-actions button:hover{background:#eee4d4}
+.ds-atlas-copy-status{min-height:1.2em;margin:12px 0 0;color:#47644a;font-size:.75rem}
+.ds-atlas-actions button:focus-visible,.ds-atlas-tools input:focus-visible{outline:3px solid #386eb8;outline-offset:2px}
+@media(max-width:600px){.ds-atlas-tools{grid-template-columns:1fr}.ds-atlas-tools p{margin:0}.ds-atlas-actions{gap:4px 10px}}
