@@ -32,6 +32,8 @@ export default function SmartBookingPlanner() {
   const [error, setError] = useState('');
   const [verifying, setVerifying] = useState('');
   const [checked, setChecked] = useState<Record<string, string>>({});
+  const [exceptions, setExceptions] = useState<Array<{ id:string; state:string; start_at:string; failure_reason:string|null }>>([]);
+  const [reviewStatus, setReviewStatus] = useState('例外管理データを確認中…');
 
   async function refresh() {
     setBusy(true);
@@ -90,6 +92,12 @@ export default function SmartBookingPlanner() {
     } finally { setVerifying(''); }
   }
   useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    fetch('/api/dashboard/booking/exceptions',{cache:'no-store'})
+      .then(async response => { const data=await response.json(); if(!response.ok || !data.ok || !Array.isArray(data.items)) throw new Error('unavailable');
+        setExceptions(data.items); setReviewStatus(data.items.length ? '要対応の予約があります' : '未処理の予約例外はありません'); })
+      .catch(() => setReviewStatus('例外台帳は未接続です。DBマイグレーションと権限を確認してください。'));
+  }, []);
   const result = useMemo(() => suggestBookingCandidates({
     events, sync, mode, clientArea, now: asOf, days: 14, maxResults: 30,
     allCalendarsVerified: false,
@@ -136,6 +144,15 @@ export default function SmartBookingPlanner() {
           ? 'カレンダー同期が古い・期間不足のため、候補枠を停止しました。Googleカレンダーを再確認してください。'
           : '予定データの検証に失敗したため、安全のため候補枠を停止しました。'}
       </div>}
+      <section style={{ padding:18, margin:'16px 0 24px', border:'1px solid var(--border-default)', background:'var(--bg-surface)' }}>
+        <h2 style={{ margin:0, fontSize:17 }}>入金済み・要調整の予約</h2>
+        <p role="status" style={{color:'var(--text-muted)',fontSize:13,marginTop:8}}>{reviewStatus}</p>
+        {exceptions.map(item => <div key={item.id} style={{marginTop:10,paddingTop:9,borderTop:'1px solid var(--border-default)',fontSize:13}}>
+          <strong>{item.state === 'refund_required' ? '返金判断が必要' : item.state === 'needs_review' ? '日程・会場の調整が必要' : '支払い済み・確定処理待ち'}</strong>
+          <span style={{marginLeft:8}}>{formatter.format(new Date(item.start_at))}</span>
+          <div style={{color:'var(--text-muted)',fontSize:12}}>記録ID: {item.id} {item.failure_reason ? '／理由: '+item.failure_reason : ''}</div>
+        </div>)}
+      </section>
       <h2 style={{ fontSize: 18, marginBottom: 14 }}>検討用の候補枠（公開・確約なし）</h2>
       {!busy && !error && !result.reason && result.candidates.length === 0 && <p>指定条件では候補がありません。</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(285px,1fr))', gap: 12 }}>
