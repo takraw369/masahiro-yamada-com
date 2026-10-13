@@ -231,7 +231,20 @@
     ctx.fill();
     ctx.fillStyle = colors.ink;
     ctx.font = '700 ' + 21 * scale + 'px ' + fontFamily;
-    ctx.fillText(cta || 'SUN LOVES FLOW', edge, h * .971, w * .80);
+    const sourceUrl = read('ff-source-url');
+    let sourceLabel = '';
+    if (sourceUrl) {
+      try { sourceLabel = new URL(sourceUrl).hostname.replace(/^www\./, ''); }
+      catch { sourceLabel = ''; }
+    }
+    ctx.fillText(cta || 'SUN LOVES FLOW', edge, h * .971, sourceLabel ? w * .57 : w * .80);
+    if (sourceLabel) {
+      ctx.font = '500 ' + 15 * scale + 'px ' + fontFamily;
+      ctx.fillStyle = colors.muted;
+      ctx.textAlign = 'right';
+      ctx.fillText(sourceLabel, w - edge, h * .971, w * .28);
+      ctx.textAlign = 'left';
+    }
     return canvas;
   }
 
