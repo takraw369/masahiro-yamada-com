@@ -27,7 +27,9 @@ test('CTA events use the final rendered destinations, never a guessed conversion
   assert.match(page, /mental_check_toolkit_click/);
   assert.match(page, /keepalive: true/);
   assert.match(page, /\.catch\(\(\) => \{\}\)/);
-  assert.doesNotMatch(page, /fetch\('\/api\/funnel\/mental-check'[\s\S]*?JSON\.stringify\(\{[^}]*answers/);
+  const beaconBody = page.indexOf('body: JSON.stringify({ sessionKey, event: eventName })');
+  assert.ok(beaconBody > 0);
+  assert.doesNotMatch(page.slice(beaconBody, page.indexOf('keepalive: true', beaconBody)), /answers|email|contactRoute|followupConsent/);
 });
 
 test('click endpoint rejects cross-origin, invalid requests and unverified sessions', () => {
