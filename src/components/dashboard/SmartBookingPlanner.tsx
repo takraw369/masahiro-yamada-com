@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  CLIENT_AREAS,
+  CLIENT_AREAS, LOCATION_CHOICES,
   suggestBookingCandidates,
   type CalendarBusyEvent, type CalendarSync, type ClientArea, type SessionMode,
 } from '../../lib/smartBooking';
@@ -30,6 +30,8 @@ export default function SmartBookingPlanner() {
   const [asOf, setAsOf] = useState(new Date().toISOString());
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
+  const [verifying, setVerifying] = useState('');
+  const [checked, setChecked] = useState<Record<string, string>>({});
 
   async function refresh() {
     setBusy(true);
@@ -51,6 +53,35 @@ export default function SmartBookingPlanner() {
     } finally {
       setBusy(false);
     }
+  }
+  async function liveCheck(start: string, end: string, locationId: string) {
+    const key = start + locationId;
+    setVerifying(key);
+    setChecked(prev => ({ ...prev, [key]: '照合中…' }));
+    const venue = LOCATION_CHOICES.find(x => x.id === locationId);
+    const route = mode !== 'online' && clientArea !== 'other' && venue?.area !== 'other';
+    try {
+      const response = await fetch('/api/dashboard/booking/verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          start, end,
+          fromArea: route ? clientArea : undefined,
+          toArea: route ? venue?.area : undefined,
+        }),
+        cache: 'no-store',
+      });
+      const result = await response.json() as {
+        ok?: boolean; free?: boolean; calendarCount?: number; transit?: { durationMinutes: number } | null;
+      };
+      const message = !response.ok || !result.ok ? '確認不可：連携設定・権限の確認が必要'
+        : !result.free ? '予定が重複：この枠は使えません'
+        : 'Google Calendar ' + (result.calendarCount || 0) + '件を照合：時間上は候補'
+          + (result.transit ? '／駅間の公共交通 ' + result.transit.durationMinutes + '分（参考）' : '')
+          + '。会場未確認のため予約確約不可';
+      setChecked(prev => ({ ...prev, [key]: message }));
+    } catch {
+      setChecked(prev => ({ ...prev, [key]: '照合に失敗しました。予約不可' }));
+    } finally { setVerifying(''); }
   }
   useEffect(() => { void refresh(); }, []);
   const result = useMemo(() => suggestBookingCandidates({
@@ -112,6 +143,14 @@ export default function SmartBookingPlanner() {
             <p style={{ fontSize: 12, marginTop: 10, color: 'var(--text-muted)' }}>
               {item.estimatedTravelMinutes === null ? '移動時間：未確認' : '移動時間（確認済入力）：' + item.estimatedTravelMinutes + '分'}
             </p>
+            <button type="button" disabled={Boolean(verifying)} onClick={() => void liveCheck(item.startsAt, item.endsAt, item.locationId)}
+              style={{ ...buttonStyle, marginTop: 12, background: 'var(--text-primary)', fontSize: 12, width: '100%' }}>
+              {verifying === item.startsAt + item.locationId ? '照合中…' : 'Google Calendar・移動を実測照合'}
+            </button>
+            {checked[item.startsAt + item.locationId] && <p role="status"
+              style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 12 }}>
+              {checked[item.startsAt + item.locationId]}
+            </p>}
             <details style={{ fontSize: 12, marginTop: 8 }}>
               <summary style={{ cursor: 'pointer' }}>必要な確認 ({item.checks.length})</summary>
               <ul style={{ paddingLeft: 18, marginTop: 6 }}>{item.checks.map(check => <li key={check}>{check}</li>)}</ul>
