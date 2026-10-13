@@ -28,7 +28,7 @@ test('stale observation never silently turns into a trend',()=>{
   const result=summarizePrices(stale,now);
   assert.equal(result.oneMonthPct,null);
   assert.equal(result.threeMonthsPct,null);
-  assert.match(result.reason,'古い');
+  assert.match(result.reason,/古い/);
 });
 
 test('missing SPY benchmark leaves relative ranking unknown',()=>{
