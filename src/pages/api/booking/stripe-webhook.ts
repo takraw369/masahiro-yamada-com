@@ -42,6 +42,13 @@ export const POST = async ({ request, locals }: APIContext) => {
     if (paid.state !== 'paid' && paid.state !== 'needs_review') {
       return reply({ ok: false, reason: 'payment_state_unexpected' }, 503);
     }
+    if (!payment.customerEmail) {
+      await bookingDb(env, 'ace_booking_review_v1', {
+        p_booking_id: booking.id, p_reason: 'customer_email_missing',
+      });
+      console.error('booking_missing_email_requires_manual_attention');
+      return reply({ ok: true, needsReview: true });
+    }
     let event = await findBookingEvent(env, booking.id);
     if (!event) {
       const checked = await getLiveBusy(
