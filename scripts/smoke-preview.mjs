@@ -49,13 +49,13 @@ try {
   // Revenue entrance (Issue #215): verify actual rendered Worker HTML, not only source text.
   // The isolated preview has no production Supabase/LINE access; never POST a lead here.
   const landingHtml = await (await previewFetch(base)).text();
-  assert.match(landingHtml, /href="\\/mental-check"/, 'homepage must expose the real questionnaire');
+  assert.ok(landingHtml.includes('href="/mental-check"'), 'homepage must expose the real questionnaire');
   const checkHtml = await (await previewFetch(base + '/mental-check')).text();
   assert.match(checkHtml, /id="mental-form"/, 'questionnaire must render');
-  assert.match(checkHtml, /\\/api\\/questionnaire\\/mental/, 'questionnaire API contract must remain wired');
+  assert.ok(checkHtml.includes('/api/questionnaire/mental'), 'questionnaire API contract must remain wired');
   assert.match(checkHtml, /id="success-card"/, 'post-submission next-step panel must render');
-  assert.match(checkHtml, /https:\\/\\/lin\\.ee\\/pcAHpTBy/, 'existing LINE CTA must remain present');
-  assert.match(checkHtml, /\\/library\\/entry-toolkit/, 'low-intent preview CTA must remain present');
+  assert.ok(checkHtml.includes('https://lin.ee/pcAHpTBy'), 'existing LINE CTA must remain present');
+  assert.ok(checkHtml.includes('/library/entry-toolkit'), 'low-intent preview CTA must remain present');
   const toolkitHtml = await (await previewFetch(base + '/library/entry-toolkit')).text();
   assert.match(toolkitHtml, /PREVIEW|先行案内|公開準備中/, 'toolkit must not be misrepresented as a delivered free Quest');
 
