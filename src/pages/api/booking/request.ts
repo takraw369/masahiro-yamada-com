@@ -1,6 +1,7 @@
 import type { APIContext } from 'astro';
 import { getSiteStorageEnv } from '../../../lib/siteStorage';
-import { getLiveBusy, slotIsFree } from '../../../lib/smartBookingIntegrations';
+import { getLiveBusy, slotIsFree, type PublicArea } from '../../../lib/smartBookingIntegrations';
+import { evaluateTravelAroundAppointment } from '../../../lib/smartBookingAdjacentEvents';
 import {
   bookingEnabled, bookingDb, createVerifiedStripeCheckout, readBooking, validJstSession,
   verifyHuman, type BookingPaymentEnv,
@@ -42,6 +43,8 @@ export const POST = async ({ request, locals }: APIContext) => {
       new Date(Date.parse(start) - 20 * 60000).toISOString(),
       new Date(Date.parse(end) + 20 * 60000).toISOString());
     if (!slotIsFree(snap.busy, start, end, 20)) return json({ ok: false, error: 'slot_no_longer_available' }, 409);
+    const transit = await evaluateTravelAroundAppointment(env, start, end, env.BOOKING_ONLINE_VENUE_AREA as PublicArea);
+    if (!transit.complete || transit.feasible !== true) return json({ ok: false, error: 'travel_not_verified' }, 409);
 
     const hold = await bookingDb<{ id?: string; state?: string; error?: string }>(env, 'ace_booking_hold_create_v1', {
       p_request_key: requestKey, p_start_at: start, p_end_at: end,
