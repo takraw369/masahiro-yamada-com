@@ -71,9 +71,10 @@ async function readRepo(config: (typeof ISSUE_REPOS)[number], token: string): Pr
   const successfulSections = [rawIssues, rawPulls, rawRuns].filter((item) => item !== null).length;
   if (!successfulSections) return base;
 
-  const issues = (rawIssues || []).map((item) => normalizeIssue(item, config.slug)).filter(Boolean);
-  const runs = (rawRuns || []).map((item) => normalizeRun(item, config.slug)).filter(Boolean);
-  const pulls = (rawPulls || []).map((item) => normalizePull(item, config.slug, runs)).filter(Boolean);
+  const nonNull = <T>(item: T | null): item is T => item !== null;
+  const issues = (rawIssues || []).map((item: any) => normalizeIssue(item, config.slug)).filter(nonNull);
+  const runs = (rawRuns || []).map((item: any) => normalizeRun(item, config.slug)).filter(nonNull);
+  const pulls = (rawPulls || []).map((item: any) => normalizePull(item, config.slug, runs)).filter(nonNull);
   return {
     ...base,
     access: successfulSections === 3 ? 'connected' : 'partial',
