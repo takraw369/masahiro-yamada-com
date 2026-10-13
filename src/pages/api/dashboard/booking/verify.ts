@@ -24,7 +24,8 @@ export const POST = async ({ request, locals }: APIContext) => {
   const end = typeof body.end === 'string' ? body.end : '';
   const from = typeof body.fromArea === 'string' ? body.fromArea : '';
   const to = typeof body.toArea === 'string' ? body.toArea : '';
-  if (!stationForArea(from) || !stationForArea(to) || !start || !end) {
+  const hasRoute = Boolean(from || to);
+  if (!start || !end || (hasRoute && (!stationForArea(from) || !stationForArea(to)))) {
     return respond({ ok: false, reason: 'invalid_fields' }, 400);
   }
   const env = getSiteStorageEnv(locals) as BookingConnections;
@@ -33,7 +34,7 @@ export const POST = async ({ request, locals }: APIContext) => {
     const free = slotIsFree(snapshot.busy, start, end, 20);
     let trip: Awaited<ReturnType<typeof getTransitEstimate>> = null;
     try {
-      trip = await getTransitEstimate(env, from as PublicArea, to as PublicArea, start);
+      if (hasRoute) trip = await getTransitEstimate(env, from as PublicArea, to as PublicArea, start);
     } catch {
       // No travel information is not zero travel: keep route verification pending.
     }
@@ -42,7 +43,7 @@ export const POST = async ({ request, locals }: APIContext) => {
       checkedAt: snapshot.checkedAt, transit: trip,
       venueVerified: false, bookable: false, required: [
         ...(!free ? ['日程が重複しています'] : []),
-        ...(trip === null ? ['移動時間の実測待ち'] : []),
+        ...(hasRoute && trip === null ? ['移動時間の実測待ち'] : []),
         '会場・オンライン個室の利用条件と空席を確定',
         '決済と仮押さえの確認',
       ],
