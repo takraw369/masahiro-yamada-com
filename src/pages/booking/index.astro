@@ -59,10 +59,11 @@ const cancelled = Astro.url.searchParams.has('cancelled');
               <option value="other">その他・オンラインのみ</option>
             </select>
           </label>
-          <label><input type="checkbox" id="booking-consent" required/> 予約とオンライン会議のためのメール通知、および利用規約・プライバシー取扱いに同意する</label>
+          <label><input type="checkbox" id="booking-consent" required/> 予約・オンライン会議・案内メールのための情報利用に同意し、<a href="/legal/terms" target="_blank" rel="noopener">利用規約</a>と<a href="/legal/privacy" target="_blank" rel="noopener">個人情報の取扱い</a>を確認しました</label>
           <div class="cf-turnstile" data-sitekey={siteKey}></div>
           <button type="submit" id="booking-submit" disabled>決済画面に進む</button>
         </form>
+        <p class="note">お支払い前に<a href="/legal/refund" target="_blank" rel="noopener">キャンセル・返金規約</a>と<a href="/legal/tokushoho" target="_blank" rel="noopener">特商法表示</a>をご確認ください。</p>
         <p class="note">選択時点では予約は確定しません。お支払い直前に予定を再照合します。予期せぬ重複や会場条件の不一致がある場合、予約不可となることがあります。</p>
       </div>
     ) : (
