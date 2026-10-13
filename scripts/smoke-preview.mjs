@@ -90,6 +90,19 @@ try {
   }
   const csrf = await previewFetch(base + '/api/x-harness/posts', { method: 'POST', headers: { Origin: 'https://other.example.test' } });
   assert.equal(csrf.status, 403);
+  // Same-origin conversion telemetry must reject outside traffic before touching production storage.
+  const badOrigin = await previewFetch(base + '/api/funnel/mental-check', {
+    method: 'POST',
+    headers: { Origin: 'https://external.example', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event: 'mental_check_line_click', sessionKey: '00000000-0000-0000-0000-000000000000' }),
+  });
+  assert.equal(badOrigin.status, 403, 'cross-origin mental-check beacon must be rejected');
+  const invalidConversion = await previewFetch(base + '/api/funnel/mental-check', {
+    method: 'POST',
+    headers: { Origin: base, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event: 'not_real', sessionKey: '00000000-0000-0000-0000-000000000000' }),
+  });
+  assert.equal(invalidConversion.status, 400, 'only known CTA events may be accepted');
   await smokeLineObservability(base, fixture);
   await smokeNoteHarness(base, noteFixture, fixture);
   console.log('Worker preview smoke passed: public pages, auth bootstrap and private boundaries.');
