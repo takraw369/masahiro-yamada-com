@@ -67,16 +67,22 @@ export default function SmartBookingPlanner() {
           start, end,
           fromArea: route ? clientArea : undefined,
           toArea: route ? venue?.area : undefined,
+          venueArea: mode !== 'online' && venue?.area !== 'other' ? venue?.area : undefined,
         }),
         cache: 'no-store',
       });
       const result = await response.json() as {
         ok?: boolean; free?: boolean; calendarCount?: number; transit?: { durationMinutes: number } | null;
+        ownerTravel?: { feasible: boolean | null; priorTransitMinutes: number | null;
+          nextTransitMinutes: number | null; reasons: string[] } | null;
       };
       const message = !response.ok || !result.ok ? '確認不可：連携設定・権限の確認が必要'
         : !result.free ? '予定が重複：この枠は使えません'
         : 'Google Calendar ' + (result.calendarCount || 0) + '件を照合：時間上は候補'
-          + (result.transit ? '／駅間の公共交通 ' + result.transit.durationMinutes + '分（参考）' : '')
+          + (result.transit ? '／顧客→会場の駅間移動 ' + result.transit.durationMinutes + '分（参考）' : '')
+          + (result.ownerTravel?.feasible === false ? '／MASAの前後移動に時間不足' : '')
+          + (result.ownerTravel?.feasible === null ? '／MASAの前後移動は未確認' : '')
+          + (result.ownerTravel?.feasible === true ? '／MASAの前後移動は概算上可能' : '')
           + '。会場未確認のため予約確約不可';
       setChecked(prev => ({ ...prev, [key]: message }));
     } catch {
