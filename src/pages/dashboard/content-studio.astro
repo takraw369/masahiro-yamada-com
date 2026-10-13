@@ -100,7 +100,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     'Project: takraw369/masa-automation / GitHub PR #234（未統合ならfeature branchで検証）',
     'Human Gate: 事実、本人の意図、権利、字幕、ブランド、最終公開。公開・有料API・大量GPU処理は必ず明示承認。',
   ];
-  try{await navigator.clipboard.writeText(lines.join('\\n'));status('選択素材に紐づくT1動画試作指示をコピーしました。Codexへ貼って制作できます。動画そのものはまだ生成されていません。');}
+  try{await navigator.clipboard.writeText(lines.join('\n'));status('選択素材に紐づくT1動画試作指示をコピーしました。Codexへ貼って制作できます。動画そのものはまだ生成されていません。');}
   catch{status('指示をコピーできませんでした。ブラウザのクリップボード権限を確認してください。');}
  });
  byId('download-draft')?.addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([bodyInput.value],{type:'text/markdown;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download=(value('slug')||'knowledge-draft')+'.md';link.click();URL.revokeObjectURL(url);});
