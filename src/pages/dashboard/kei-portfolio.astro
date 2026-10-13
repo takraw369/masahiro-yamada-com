@@ -1,0 +1,259 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { aiCommandSources } from '../../data/aiCommandLibrary';
+
+// Human-facing, curated view. Operational truth remains in Drive's 07_AI_COMMANDS
+// and project-specific canonicals. "Ready" describes a requestable workflow,
+// never guarantees external permission, automatic execution, or production deploy.
+type CapabilityStatus = 'ready' | 'gated' | 'building';
+type Capability = { id:string; title:string; description:string; command:string; status:CapabilityStatus };
+type Group = { id:string; label:string; english:string; intro:string; items:Capability[] };
+const groups:Group[] = [
+  { id:'research', label:'調査・検証', english:'RESEARCH', intro:'根拠と反証から、判断できる情報へ。', items:[
+    {id:'verify',title:'主張を検証する',description:'一次資料・最新研究・数字を照合。事実と仮説を分ける。',command:'これ検証して。一次情報まで辿り、支持・反証・未確定を分けて。',status:'ready'},
+    {id:'compare',title:'歴史・制度を比較',description:'過去の類似事例、構造、現在への示唆を整理。',command:'歴史的に比較して。相違点と今に活かせる原理まで。',status:'ready'},
+    {id:'redteam',title:'盲点を探す',description:'失敗条件・代替仮説・機会損失を分析。',command:'反証して。盲点と最大の失敗リスク、第一推奨を示して。',status:'ready'},
+  ]},
+  { id:'knowledge', label:'知識・資産化', english:'KNOWLEDGE', intro:'会話や資料を、あとで使える資産へ。', items:[
+    {id:'assetize',title:'Driveに資産化',description:'既存正本を探し、重複せず差分統合する。',command:'これ資産化して。既存のDrive正本を確認し、重複なく統合・検証して。',status:'ready'},
+    {id:'searchdrive',title:'過去資料を発掘',description:'テーマからDriveの関連資料を横断検索。',command:'このテーマの資料を全部探して。現在の正本と旧版を区別して。',status:'ready'},
+    {id:'map',title:'Knowledge Mapへ接続',description:'既存概念と関連を整理。DBへの自動反映は都度確認。',command:'関連概念をつないで。Drive正本と現在のKnowledge実装を先に照合して。',status:'gated'},
+  ]},
+  { id:'creative', label:'発信・クリエイティブ', english:'CREATE', intro:'1つの原石から、伝わる形を何度も生む。', items:[
+    {id:'post',title:'X・noteに展開',description:'MASA視点、Hook、行動への導線まで編集。',command:'これをX投稿とnote記事へ展開して。事実とMASAの実体験を混同しないで。',status:'ready'},
+    {id:'visual',title:'画像・図解・資料を作る',description:'インスタ用の構造、図解、PDF、プレゼンへ。',command:'これを分かりやすく図解・資料化して。目的に合う媒体を選んで。',status:'ready'},
+    {id:'publish',title:'SNSの自動配信',description:'投稿案から予約・公開の一貫処理は接続と公開承認が必要。',command:'SNS配信の現在状態を確認して、公開承認が必要な箇所を示して。',status:'gated'},
+  ]},
+  { id:'business', label:'商品・収益設計', english:'BUSINESS', intro:'知識を顧客価値と売上につなげる。', items:[
+    {id:'offer',title:'最小商品にする',description:'ターゲット、提供価値、価格、MVPを組み立てる。',command:'これ商品になる？ 最小商品・価格・顧客成果・検証手順まで決めて。',status:'ready'},
+    {id:'funnel',title:'販売導線を設計',description:'SNS→信頼→体験→商品→継続の流れ。',command:'収益化ルートを作って。既存のACE・SLFの商品と重複させずに。',status:'ready'},
+    {id:'checkout',title:'決済・自動販売につなぐ',description:'StripeやEntitlementの接続・実商品E2Eは要検証。',command:'Commerce Agentの現在状態を確認し、商品から決済までの最短ルートを検証して。',status:'gated'},
+  ]},
+  { id:'builder', label:'Web・アプリ開発', english:'BUILD', intro:'自然言語を、コードと触れる仕組みに。', items:[
+    {id:'github',title:'GitHubの進行確認',description:'Issue・PR・実装・テストの現状を調べる。',command:'GitHub見て。現状、止まっているGate、次に進める1件を整理して。',status:'ready'},
+    {id:'brief',title:'実装仕様にする',description:'要件、UI、テスト、受入条件までCodex用に具体化。',command:'Codexに渡す指示書作って。既存Repoを先に確認し、最小変更・検証条件まで。',status:'ready'},
+    {id:'deploy',title:'本番まで開発・公開',description:'コード変更は可能。CI・権限・Human Gate・実機QAを通して公開。',command:'この機能を実装して。テスト、PR、デプロイGateまで確認し、未完は明示して。',status:'gated'},
+  ]},
+  { id:'automation', label:'日常・自動化', english:'OPERATE', intro:'予定・連絡・繰り返し作業を軽くする。', items:[
+    {id:'gmail',title:'重要メールを整理',description:'Gmail検索、要対応抽出、返信下書き。送信は明示依頼。',command:'重要メールを見て。返信が必要なものと次の一手を整理して。',status:'ready'},
+    {id:'calendar',title:'予定・優先順位を整える',description:'CalendarとTaskを確認し、今日の3つに絞る。',command:'朝会。予定とTASK_BOARDの正本を読んで、今日の3つを決めて。',status:'ready'},
+    {id:'watch',title:'定期チェック・通知',description:'指定日時や条件でチェック。外部Runnerの稼働とは区別。',command:'このテーマを定期確認して、意味のある変更があった時だけ教えて。',status:'ready'},
+  ]},
+  { id:'education', label:'学習・教育', english:'LEARN', intro:'理解→実践→検証→成長を設計する。', items:[
+    {id:'quiz',title:'弱点に合わせた問題集',description:'消防設備士乙4などの類題・解説・重点復習。',command:'弱点だけ出して。本質的な覚え方と、ひっかけ対策まで。',status:'ready'},
+    {id:'ace',title:'ACE教材へ変換',description:'身体知・脳科学・哲学を体験ワークと教材へ。',command:'これACEに接続して。本人の体験→問い→実践まで教材化して。',status:'ready'},
+    {id:'factory',title:'教材化Dashboardへ連携',description:'教材レビュー・保存・自動派生を統合する仕組みは開発中。',command:'ACE Material Factoryの正本と現在の実装状態を確認し、次の最小実装を進めて。',status:'building'},
+  ]},
+  { id:'agent', label:'AIチーム・Skills', english:'AGENT OS', intro:'慧の能力そのものを改善・再利用する。', items:[
+    {id:'ttp',title:'外部ツールを取り込む',description:'OSS・Skillの価値、ライセンス、既存OSとの差分を検証。',command:'これTTPして。現在のMASA Agent OSと重複を確認し、価値のある差分だけ検証・統合して。',status:'ready'},
+    {id:'skill',title:'成功パターンをSkill化',description:'作業方法を再利用可能なルール・手順へ。',command:'これSkillにして。既存Skillへの統合を優先し、検証可能な手順にして。',status:'ready'},
+    {id:'orchestrate',title:'複数AIの役割を選ぶ',description:'Chief / Research / Editor / Designer / Builderを使い分ける。',command:'適任に任せて。Purposeから必要最小限の役割とツールを選び、成果まで進めて。',status:'ready'},
+  ]},
+];
+const allCapabilities=groups.flatMap(group=>group.items);
+const labels:Record<CapabilityStatus,string>={ready:'今頼める',gated:'接続・承認確認',building:'開発中'};
+const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lIrFjZIc7-CeROPtio/edit';
+---
+
+<DashboardLayout title="慧ポートフォリオ" eyebrow="KEI CAPABILITY LIBRARY">
+  <div class="kei-shell">
+    <header class="kei-hero">
+      <div>
+        <p class="kei-kicker">KEI × MASA · CAPABILITY LIBRARY</p>
+        <h1>慧に、何を任せられる？</h1>
+        <p class="kei-lead">できることを覚える必要はない。目的から探し、選んで、依頼文を持っていく。実装済みと承認待ちを混同しない、MASA専用の能力地図。</p>
+        <div class="kei-hero-actions">
+          <a href="/dashboard/ai-commands">AI Commandsで詳しく選ぶ ↗</a>
+          <a href={sourceDoc} target="_blank" rel="noopener noreferrer">Driveのポートフォリオ ↗</a>
+        </div>
+      </div>
+      <div class="kei-total"><b>{groups.length}</b><span>領域</span><b>{allCapabilities.length}</b><span>用途</span></div>
+    </header>
+
+    <div class="kei-flow" aria-label="操作の流れ"><span>探す</span><i>→</i><span>選ぶ</span><i>→</i><span>依頼文コピー</span><i>→</i><span>慧に渡す</span></div>
+
+    <section class="kei-compose" aria-labelledby="kei-compose-title">
+      <div class="kei-compose-head">
+        <div><p class="kei-kicker">SELECTED CAPABILITY</p><h2 id="kei-compose-title">まず、やりたいことを選ぶ。</h2></div>
+        <span id="kei-selected-state">未選択</span>
+      </div>
+      <p id="kei-selected-description" class="kei-composer-note">下のカードから選ぶと、依頼文がここに入る。</p>
+      <label for="kei-target">対象・素材・やりたいこと（任意）</label>
+      <textarea id="kei-target" rows="2" placeholder="例：さっきの脳科学の会話をACE教材にしたい"></textarea>
+      <label for="kei-output">慧への依頼文</label>
+      <textarea id="kei-output" rows="3" readonly aria-live="polite" placeholder="カードを選ぶと完成します"></textarea>
+      <div class="kei-compose-actions">
+        <button type="button" id="kei-copy" disabled>依頼文をコピー</button>
+        <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">ChatGPTを開く ↗</a>
+        <span id="kei-copy-state" role="status" aria-live="polite">外部操作はコピーしただけでは実行されない。</span>
+      </div>
+    </section>
+
+    <section class="kei-browser" aria-labelledby="kei-browser-title">
+      <div class="kei-browser-title">
+        <div><p class="kei-kicker">EXPLORE CAPABILITIES</p><h2 id="kei-browser-title">目的から探す</h2></div>
+        <p><strong id="kei-count">{allCapabilities.length}</strong> 件表示</p>
+      </div>
+      <label class="kei-search" for="kei-search"><span>⌕</span><input id="kei-search" type="search" placeholder="例：Drive、動画、商品、論文、アプリ…" autocomplete="off"/></label>
+      <div class="kei-filters" aria-label="領域フィルター">
+        <button type="button" data-kei-filter="all" aria-pressed="true">すべて</button>
+        {groups.map(group=><button type="button" data-kei-filter={group.id} aria-pressed="false">{group.label}</button>)}
+      </div>
+      <div class="kei-status-note" aria-label="状態の見方"><span>● 今頼める</span><span>○ 接続・承認確認</span><span>◇ 開発中</span></div>
+      {groups.map(group=>(
+        <section class="kei-group" data-kei-group={group.id} aria-labelledby={`kei-title-${group.id}`}>
+          <div class="kei-group-heading"><div><small>{group.english}</small><h3 id={`kei-title-${group.id}`}>{group.label}</h3><p>{group.intro}</p></div></div>
+          <div class="kei-grid">
+            {group.items.map(item=>(
+              <article class="kei-card" data-kei-card data-group={group.id} data-search={`${item.title} ${item.description} ${item.command} ${group.label}`.toLowerCase()}>
+                <div class="kei-card-top"><span class:list={['kei-status',item.status]}>{labels[item.status]}</span></div>
+                <h4>{item.title}</h4>
+                <p>{item.description}</p>
+                <button type="button" data-kei-select data-kei-command={item.command} data-kei-name={item.title} data-kei-description={item.description}>これを頼む →</button>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+      <p id="kei-empty" class="kei-empty" hidden>該当する用途がないよ。言い方を変えるか、すべて表示してみて。</p>
+    </section>
+
+    <footer class="kei-foot">
+      <p>この画面はDrive正本・07_AI_COMMANDSからの案内用View。状態は2026-10-13時点の分類であり、実行時は接続権限・GitHub・本番Gateを再確認する。</p>
+      <a href={aiCommandSources.registry} target="_blank" rel="noopener noreferrer">コマンド正本を見る ↗</a>
+    </footer>
+  </div>
+</DashboardLayout>
+
+<script>
+  let currentCommand='';
+  let activeGroup='all';
+  const target=document.querySelector<HTMLTextAreaElement>('#kei-target');
+  const output=document.querySelector<HTMLTextAreaElement>('#kei-output');
+  const copy=document.querySelector<HTMLButtonElement>('#kei-copy');
+  const selected=document.querySelector<HTMLElement>('#kei-selected-state');
+  const description=document.querySelector<HTMLElement>('#kei-selected-description');
+  const notice=document.querySelector<HTMLElement>('#kei-copy-state');
+  const search=document.querySelector<HTMLInputElement>('#kei-search');
+  const count=document.querySelector<HTMLElement>('#kei-count');
+  const empty=document.querySelector<HTMLElement>('#kei-empty');
+  const cards=Array.from(document.querySelectorAll<HTMLElement>('[data-kei-card]'));
+  const groups=Array.from(document.querySelectorAll<HTMLElement>('[data-kei-group]'));
+  const filters=Array.from(document.querySelectorAll<HTMLButtonElement>('[data-kei-filter]'));
+
+  function refreshCommand(){
+    if(!output) return;
+    const extra=target?.value.trim() ?? '';
+    output.value=currentCommand ? [currentCommand,extra ? `対象・目的：${extra}` : ''].filter(Boolean).join('\n') : '';
+    if(copy) copy.disabled=!currentCommand;
+  }
+  function refreshList(){
+    const query=(search?.value??'').trim().toLocaleLowerCase('ja-JP');
+    let shown=0;
+    for(const card of cards){
+      const categoryOK=activeGroup==='all'||card.dataset.group===activeGroup;
+      const text=card.dataset.search||'';
+      const visible=categoryOK&&(!query||text.includes(query));
+      card.hidden=!visible;
+      if(visible) shown++;
+    }
+    for(const group of groups){
+      group.hidden=!Array.from(group.querySelectorAll<HTMLElement>('[data-kei-card]')).some(card=>!card.hidden);
+    }
+    if(count) count.textContent=String(shown);
+    if(empty) empty.hidden=shown>0;
+  }
+  for(const button of document.querySelectorAll<HTMLButtonElement>('[data-kei-select]')){
+    button.addEventListener('click',()=>{
+      currentCommand=button.dataset.keiCommand||'';
+      if(selected) selected.textContent=button.dataset.keiName||'選択中';
+      if(description) description.textContent=button.dataset.keiDescription||'';
+      if(notice) notice.textContent='依頼内容を確認して、コピーして慧に渡せる。';
+      refreshCommand();
+      document.querySelector('#kei-compose-title')?.scrollIntoView({behavior:'smooth',block:'start'});
+      output?.focus();
+    });
+  }
+  target?.addEventListener('input',refreshCommand);
+  for(const filter of filters){
+    filter.addEventListener('click',()=>{
+      activeGroup=filter.dataset.keiFilter||'all';
+      for(const sibling of filters)sibling.setAttribute('aria-pressed',String(sibling===filter));
+      refreshList();
+    });
+  }
+  search?.addEventListener('input',refreshList);
+  copy?.addEventListener('click',async()=>{
+    if(!output?.value)return;
+    try{
+      await navigator.clipboard.writeText(output.value);
+      if(notice) notice.textContent='コピーしたよ。ChatGPTに貼り付けて依頼してね。';
+    }catch{
+      output.select();
+      if(notice) notice.textContent='コピーできなかった。選択された依頼文を手動でコピーしてね。';
+    }
+  });
+</script>
+
+<style>
+  .kei-shell{max-width:1180px;margin:auto;min-width:0;color:#263039}
+  .kei-kicker{font-size:.7rem;font-weight:700;letter-spacing:.14em;color:#9b6e31}
+  .kei-hero{display:flex;justify-content:space-between;gap:22px;align-items:center;padding:24px 0 30px;border-bottom:1px solid #dad5cc}
+  .kei-hero h1{font-size:clamp(1.8rem,4.3vw,3rem);line-height:1.3;letter-spacing:-.035em;margin:7px 0 12px}
+  .kei-lead{max-width:670px;font-size:.95rem;line-height:1.85;color:#4e5963}
+  .kei-hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .kei-hero-actions a,.kei-compose-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;border:1px solid #d7c4a8;background:#fff;color:#76511e;text-decoration:none;font-size:.82rem;font-weight:700}
+  .kei-total{display:grid;grid-template-columns:auto auto;gap:5px 10px;align-items:baseline;padding:17px 20px;border:1px solid #e0d8c9;background:#fcfaf6;flex-shrink:0}
+  .kei-total b{font-size:2rem;color:#a76b24}.kei-total span{font-size:.75rem;color:#6f7780}
+  .kei-flow{display:flex;flex-wrap:wrap;gap:11px;align-items:center;padding:17px 0;color:#6d7176;font-size:.78rem;font-weight:700}
+  .kei-flow i{color:#c3a47a;font-style:normal}
+  .kei-compose{padding:22px;border:1px solid #d7c5aa;background:#fffdf9;box-shadow:0 6px 22px rgba(52,40,21,.045)}
+  .kei-compose-head,.kei-browser-title{display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .kei-compose h2,.kei-browser h2{font-size:1.28rem;margin:6px 0}
+  #kei-selected-state{font-size:.72rem;background:#f4e8d6;color:#714918;padding:7px 10px}
+  .kei-composer-note{margin:10px 0 18px;color:#6a7279;font-size:.86rem}
+  .kei-compose label{display:block;font-size:.79rem;font-weight:700;margin:13px 0 7px}
+  .kei-compose textarea{width:100%;max-width:100%;padding:12px;border:1px solid #d5d0c9;background:#fff;color:#25313c;font:inherit;font-size:.88rem;line-height:1.6;resize:vertical;border-radius:0}
+  .kei-compose textarea:focus,.kei-search:focus-within{outline:2px solid #b9915b;outline-offset:2px}
+  .kei-compose textarea[readonly]{background:#f8f7f4}
+  .kei-compose-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px}
+  #kei-copy{min-height:46px;padding:9px 17px;background:#915f22;color:white;border:1px solid #915f22;font:inherit;font-size:.84rem;font-weight:700;cursor:pointer}
+  #kei-copy:disabled{opacity:.4;cursor:not-allowed}
+  #kei-copy-state{font-size:.72rem;color:#67717c;flex:1 1 230px}
+  .kei-browser{margin-top:32px}
+  .kei-browser-title p{font-size:.78rem;color:#6f777d}
+  .kei-search{display:flex;align-items:center;gap:8px;padding:0 13px;min-height:51px;border:1px solid #d4cec4;background:#fff;margin:15px 0 12px}
+  .kei-search span{font-size:1.3rem;color:#98692b}
+  .kei-search input{font:inherit;font-size:.88rem;flex:1;min-width:0;border:0;background:transparent;outline:none;color:#25313c}
+  .kei-filters{display:flex;gap:7px;flex-wrap:wrap}
+  .kei-filters button{min-height:42px;padding:9px 11px;border:1px solid #d6d1ca;background:#fff;color:#59636c;cursor:pointer;font:inherit;font-size:.78rem}
+  .kei-filters button[aria-pressed="true"]{background:#2e3540;border-color:#2e3540;color:#fff}
+  .kei-status-note{display:flex;flex-wrap:wrap;gap:14px;margin:15px 0 24px;font-size:.72rem;color:#69727a}
+  .kei-group{margin:25px 0 31px}.kei-group-heading{margin-bottom:12px}
+  .kei-group-heading small{color:#a67430;letter-spacing:.14em;font-weight:700}
+  .kei-group-heading h3{font-size:1.22rem;margin:3px 0}
+  .kei-group-heading p{color:#68717a;font-size:.82rem}
+  .kei-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .kei-card{display:flex;flex-direction:column;min-width:0;gap:10px;padding:17px;background:#fff;border:1px solid #ddd9d2}
+  .kei-status{display:inline-block;padding:4px 9px;font-size:.69rem;background:#ecf4ee;color:#276347}
+  .kei-status.gated{background:#f8f0df;color:#855d1f}.kei-status.building{background:#eeeef3;color:#595b76}
+  .kei-card h4{font-size:1rem;color:#293038;line-height:1.45}
+  .kei-card p{color:#606b76;font-size:.82rem;line-height:1.7;flex:1}
+  .kei-card button{min-height:44px;text-align:left;padding:9px 0;background:none;border:0;border-top:1px solid #ece5db;font:inherit;font-size:.82rem;font-weight:700;color:#85591c;cursor:pointer}
+  .kei-card button:hover{text-decoration:underline}
+  .kei-empty{padding:25px;text-align:center;background:#fff}
+  .kei-foot{border-top:1px solid #dfdbd3;padding:20px 0 10px;display:flex;justify-content:space-between;gap:18px;align-items:flex-start;color:#737980;font-size:.72rem;line-height:1.7}
+  .kei-foot a{color:#835a25;flex-shrink:0}
+  [hidden]{display:none!important}
+  @media(max-width:860px){.kei-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:580px){
+    .kei-hero{align-items:stretch;flex-direction:column;padding-top:10px}
+    .kei-total{align-self:start}.kei-compose{padding:15px}
+    .kei-grid{grid-template-columns:1fr}
+    .kei-compose-head{align-items:flex-start;flex-direction:column}
+    .kei-compose-actions a{flex:1}.kei-compose-actions #kei-copy{flex:1}
+    .kei-foot{display:block}.kei-foot a{display:block;margin-top:10px}
+    .kei-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.kei-filters button{min-width:0}
+  }
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
