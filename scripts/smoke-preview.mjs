@@ -40,12 +40,25 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
   assert.ok(ready, logs || 'Worker preview did not answer the readiness probe within the bounded startup window.');
-  for (const path of ['/', '/contact', '/faq', '/tips', '/library', '/gate', '/dashboard/login']) {
+  for (const path of ['/', '/contact', '/faq', '/tips', '/library', '/gate', '/mental-check', '/trinity', '/library/entry-toolkit', '/dashboard/login']) {
     const res = await previewFetch(base + path);
     assert.equal(res.status, 200, path);
     assert.match(res.headers.get('content-type'), /text\/html/, path);
     assert.ok((await res.text()).includes('<html'), path);
   }
+  // Revenue entrance (Issue #215): verify actual rendered Worker HTML, not only source text.
+  // The isolated preview has no production Supabase/LINE access; never POST a lead here.
+  const landingHtml = await (await previewFetch(base)).text();
+  assert.ok(landingHtml.includes('href="/mental-check"'), 'homepage must expose the real questionnaire');
+  const checkHtml = await (await previewFetch(base + '/mental-check')).text();
+  assert.match(checkHtml, /id="mental-form"/, 'questionnaire must render');
+  assert.ok(checkHtml.includes('/api/questionnaire/mental'), 'questionnaire API contract must remain wired');
+  assert.match(checkHtml, /id="success-card"/, 'post-submission next-step panel must render');
+  assert.ok(checkHtml.includes('https://lin.ee/pcAHpTBy'), 'existing LINE CTA must remain present');
+  assert.ok(checkHtml.includes('/library/entry-toolkit'), 'low-intent preview CTA must remain present');
+  const toolkitHtml = await (await previewFetch(base + '/library/entry-toolkit')).text();
+  assert.match(toolkitHtml, /PREVIEW|先行案内|公開準備中/, 'toolkit must not be misrepresented as a delivered free Quest');
+
   // Public runtime CSS must bypass Dashboard auth and actually reach the browser.
   for (const path of ['/assets/dashboard-runtime/tasks.css', '/assets/dashboard-runtime/graph.css']) {
     const res = await previewFetch(base + path, { redirect: 'manual' });
