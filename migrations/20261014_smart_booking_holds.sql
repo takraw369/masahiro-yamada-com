@@ -106,8 +106,14 @@ begin
     then return jsonb_build_object('error','payment_id_mismatch'); end if;
   if row.state in ('confirmed','paid','needs_review','refund_required')
     then return jsonb_build_object('id',row.id,'state',row.state); end if;
-  if row.state not in ('held','checkout_started')
-    then return jsonb_build_object('error','payment_for_expired_hold'); end if;
+  if row.state not in ('held','checkout_started') then
+    -- Money arrived after the reservation was released. Keep evidence and
+    -- block overlapping re-sales until human refund/repair review completes.
+    update public.ace_booking_holds
+       set state='refund_required',stripe_payment_intent_id=p_payment_intent_id,
+           failure_reason='payment_for_expired_hold',updated_at=now() where id=p_booking_id;
+    return jsonb_build_object('id',row.id,'state','refund_required');
+  end if;
   update public.ace_booking_holds set state='paid',stripe_payment_intent_id=p_payment_intent_id,updated_at=now()
     where id=p_booking_id;
   return jsonb_build_object('id',row.id,'state','paid');
