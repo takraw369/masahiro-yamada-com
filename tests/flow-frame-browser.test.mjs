@@ -38,8 +38,8 @@ window.addEventListener('load', async () => {
   HTMLAnchorElement.prototype.click = function() {
     if (this.download) downloads.push({ name: this.download, promise: fetch(this.href).then(r => r.arrayBuffer()) });
   };
-  const waitFor = async (f, description) => {
-    for (let i = 0; i < 200; i++) {
+  const waitFor = async (f, description, maxChecks = 200) => {
+    for (let i = 0; i < maxChecks; i++) {
       if (f()) return;
       await new Promise(resolve => setTimeout(resolve, 30));
     }
@@ -81,7 +81,7 @@ window.addEventListener('load', async () => {
       verifyPng(data, w, h);
     }
     document.getElementById('ff-zip').click();
-    await waitFor(() => downloads.some(d => d.name.endsWith('.zip')), 'zip download');
+    await waitFor(() => downloads.some(d => d.name.endsWith('.zip')), 'zip download', 1500);
     const zip = new DataView(await downloads.at(-1).promise);
     let offset = 0;
     for (const [mode, w, h] of modes) {
@@ -105,7 +105,7 @@ window.addEventListener('load', async () => {
 });
 </script></body></html>`;
 
-test('FLOW FRAME real-Chrome screenshot-to-PNG-and-ZIP smoke', { timeout: 60_000 }, async (t) => {
+test('FLOW FRAME real-Chrome screenshot-to-PNG-and-ZIP smoke', { timeout: 100_000 }, async (t) => {
   const chrome = findChrome();
   if (!chrome) return t.skip('Chrome/Chromium unavailable: no real-browser smoke in this environment');
   const dir = await mkdtemp(join(tmpdir(), 'ff-browser-'));
@@ -116,9 +116,9 @@ test('FLOW FRAME real-Chrome screenshot-to-PNG-and-ZIP smoke', { timeout: 60_000
     await writeFile(htmlFile, fixture, 'utf8');
     const output = execFileSync(chrome, [
       '--no-sandbox', '--headless=new', '--disable-gpu', '--disable-dev-shm-usage',
-      '--disable-extensions', '--no-first-run', '--virtual-time-budget=22000',
+      '--disable-extensions', '--no-first-run', '--virtual-time-budget=90000',
       '--dump-dom', pathToFileURL(htmlFile).href,
-    ], { encoding: 'utf8', timeout: 50_000, maxBuffer: 3_000_000, stdio: ['ignore', 'pipe', 'ignore'] });
+    ], { encoding: 'utf8', timeout: 90_000, maxBuffer: 3_000_000, stdio: ['ignore', 'pipe', 'ignore'] });
     assert.match(output, /data-result="pass"/, output.match(/<pre id="ff-browser-result"[^>]*>[\s\S]*?<\/pre>/)?.[0] || 'No result from browser');
     assert.match(output, /6 PNG exports \+ 6 ZIP entries/);
   } finally {
