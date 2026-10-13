@@ -1,0 +1,270 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="GitHub Issues" eyebrow="EXECUTE / DELIVERY">
+  <main class="issues-shell">
+    <header class="head">
+      <div>
+        <p class="eyebrow">MASA OS · EXECUTION RECEIPTS</p>
+        <h1>GitHub Workboard</h1>
+        <p>何が残り、何が動き、どこだけ自分の判断が必要か。GitHubの実記録を見る読み取り専用ビュー。</p>
+      </div>
+      <div class="head-actions">
+        <a href="/dashboard/tasks" class="subtle-link">Task Flow ↗</a>
+        <button type="button" id="reload" class="refresh">更新する ↻</button>
+      </div>
+    </header>
+
+    <div class="source-note" role="note">GitHub = Issue・PR・CIの正本 / MASA_TASK_BOARD = Taskの正本。ここでGitHubの状態を変更しません。表示範囲は直近のIssue最大100件・PR最大60件／リポジトリです。</div>
+
+    <section class="repo-grid" id="repos" aria-label="Repository status">
+      <div class="repo-card pending"><strong>リポジトリ情報を読み込み中…</strong></div>
+    </section>
+
+    <section class="work-area" aria-labelledby="work-title">
+      <div class="work-head">
+        <div><span class="eyebrow">WORK TO REVIEW</span><h2 id="work-title">現在地を確認する</h2></div>
+        <small id="freshness" aria-live="polite">最新データを確認中</small>
+      </div>
+      <div class="toolbar">
+        <div class="tabs" role="group" aria-label="表示する作業の種類">
+          <button type="button" class="tab active" data-mode="open" aria-pressed="true">未完了Issue</button>
+          <button type="button" class="tab" data-mode="prs" aria-pressed="false">PR・CI</button>
+          <button type="button" class="tab" data-mode="gates" aria-pressed="false">承認ラベル</button>
+          <button type="button" class="tab" data-mode="closed" aria-pressed="false">完了・終了</button>
+        </div>
+        <div class="fields">
+          <label>対象
+            <select id="repo-filter">
+              <option value="all">全リポジトリ</option>
+              <option value="takraw369/masa-automation">Automation</option>
+              <option value="takraw369/masahiro-yamada-com">Website</option>
+            </select>
+          </label>
+          <label>検索
+            <input id="search" type="search" placeholder="Issue番号・キーワード" autocomplete="off" />
+          </label>
+        </div>
+      </div>
+      <p class="meta" id="list-meta" aria-live="polite"></p>
+      <div class="issue-list" id="issue-list" aria-live="polite">
+        <p class="empty">GitHubの情報を取得しています…</p>
+      </div>
+      <p class="footnote">「承認ラベル」はGitHubの明示ラベルだけを集計。単なるOPENやDraftを本人承認待ちとは断定しません。CIはPRのhead SHAと一致した実行のみ表示し、未確認は未確認のまま残します。</p>
+    </section>
+
+    <footer class="tail-links">
+      <a href="https://github.com/takraw369/masa-automation/issues" target="_blank" rel="noopener noreferrer">Automation Issue原本 ↗</a>
+      <a href="https://github.com/takraw369/masahiro-yamada-com/issues" target="_blank" rel="noopener noreferrer">Website Issue原本 ↗</a>
+    </footer>
+  </main>
+</DashboardLayout>
+
+<script is:inline>
+  const $ = (id) => document.getElementById(id);
+  const state = { repos: [], mode: 'open', repo: 'all', search: '' };
+  const make = (tag, className, text) => {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text !== undefined) el.textContent = String(text);
+    return el;
+  };
+  const link = (text, url, className = '') => {
+    const el = make('a', className, text);
+    el.href = url;
+    el.target = '_blank';
+    el.rel = 'noopener noreferrer';
+    return el;
+  };
+  const dateLabel = (raw) => {
+    if (!raw) return '時刻未確認';
+    const date = new Date(raw);
+    return Number.isNaN(date.getTime()) ? '時刻未確認' : date.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour:'2-digit', minute:'2-digit' });
+  };
+  const statusName = (value) => {
+    if (value === 'success') return '成功';
+    if (value === 'failure' || value === 'timed_out') return '失敗';
+    if (value === 'cancelled') return '中止';
+    if (value === 'skipped') return 'スキップ';
+    return '実行中';
+  };
+  const repoName = (slug) => slug.endsWith('masa-automation') ? 'AUTOMATION' : 'WEBSITE';
+
+  function renderRepos() {
+    const target = $('repos');
+    target.replaceChildren();
+    for (const repo of state.repos) {
+      const card = make('article', 'repo-card');
+      const top = make('div', 'repo-top');
+      top.append(make('strong', '', repo.label));
+      const access = repo.access === 'connected' ? '取得成功' : repo.access === 'partial' ? '一部未取得' : repo.access === 'needs_token' ? '非公開の連携待ち' : '取得できません';
+      top.append(make('span', 'access ' + (repo.access === 'connected' ? 'ok' : 'warn'), access));
+      card.append(top);
+      card.append(make('p', 'repo-slug', repo.repo));
+      if (repo.summary) {
+        const metrics = make('div', 'repo-metrics');
+        for (const [label, value] of [['未完了', repo.summary.shownOpenIssues], ['Open PR', repo.summary.shownOpenPRs], ['承認ラベル', repo.summary.shownHumanGates]]) {
+          const stat = make('div');
+          stat.append(make('b', '', value), make('small', '', label + '（表示範囲）'));
+          metrics.append(stat);
+        }
+        card.append(metrics);
+      } else {
+        card.append(make('p', 'unavailable', repo.access === 'needs_token'
+          ? '非公開Issueの取得にはCloudflare Worker Secret「GITHUB_ISSUES_READ_TOKEN」が必要です。GitHub連携アプリのチャット用認証は自動では引き継がれません。'
+          : 'GitHubから情報を取得できません。接続・API制限を確認してください。'));
+      }
+      if (repo.recentRun) {
+        const ci = make('p', 'latest-ci');
+        ci.append(make('span', '', '最新Workflow · '));
+        ci.append(link(repo.recentRun.name + '：' + (repo.recentRun.status === 'completed' ? statusName(repo.recentRun.conclusion) : '実行中'), repo.recentRun.url));
+        card.append(ci);
+      }
+      card.append(link('GitHubを開く ↗', 'https://github.com/' + repo.repo + '/issues', 'repo-source'));
+      target.append(card);
+    }
+  }
+
+  function displayedRows() {
+    const rows = state.repos.flatMap((repo) => {
+      if (repo.access === 'needs_token' || repo.access === 'unavailable') return [];
+      if (state.mode === 'prs') return (repo.pulls || []).filter((item) => item.state === 'open');
+      if (state.mode === 'gates') return [...(repo.issues || []), ...(repo.pulls || [])].filter((item) => item.state === 'open' && item.humanGate);
+      if (state.mode === 'closed') return (repo.issues || []).filter((item) => item.state === 'closed');
+      return (repo.issues || []).filter((item) => item.state === 'open');
+    });
+    const search = state.search.toLocaleLowerCase('ja-JP');
+    return rows.filter((item) =>
+      (state.repo === 'all' || item.repo === state.repo)
+      && (!search || String(item.number).includes(search) || (item.title || '').toLocaleLowerCase('ja-JP').includes(search) || (item.labels || []).some((name) => name.toLocaleLowerCase('ja-JP').includes(search)))
+    ).sort((a,b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+  }
+
+  function renderList() {
+    const target = $('issue-list');
+    target.replaceChildren();
+    const rows = displayedRows();
+    const totalAvailable = state.repos.filter((repo) => repo.access === 'connected').length;
+    const limited = state.repos.some((repo) => repo.truncated?.issues || repo.truncated?.pulls);
+    $('list-meta').textContent = rows.length + '件を表示 · ' + (limited ? 'GitHub APIの最新件数に上限あり · ' : '') + (totalAvailable < 2 ? '未接続リポジトリの項目は含みません' : 'GitHub実データ');
+    if (!rows.length) {
+      target.append(make('p', 'empty', totalAvailable === 0 ? 'GitHubデータを取得できません。上の接続状態を確認してください。' : 'この条件に合う項目はありません。'));
+      return;
+    }
+    for (const item of rows) {
+      const article = make('article', 'issue-card');
+      const head = make('div', 'issue-head');
+      head.append(make('span', 'issue-repo', repoName(item.repo) + ' / #' + item.number));
+      const chip = make('span', 'chip ' + (item.state === 'closed' ? 'done' : 'active'), item.kind === 'pr' ? (item.draft ? 'DRAFT PR' : 'OPEN PR') : item.state.toUpperCase());
+      head.append(chip);
+      if (item.humanGate) head.append(make('span', 'chip human', 'HUMAN GATE'));
+      article.append(head);
+      article.append(link(item.title || ('Issue #' + item.number), item.url, 'issue-title'));
+      const foot = make('div', 'issue-foot');
+      foot.append(make('span', '', '更新 ' + dateLabel(item.updatedAt)));
+      if (item.kind === 'pr') {
+        if (item.ci?.url) foot.append(link('CI：' + (item.ci.status === 'completed' ? statusName(item.ci.conclusion) : '実行中') + ' ↗', item.ci.url, 'ci-link'));
+        else foot.append(make('span', 'ci-unknown', 'CI未照合'));
+      }
+      for (const label of (item.labels || []).slice(0, 3)) foot.append(make('span', 'label-tag', label));
+      article.append(foot);
+      target.append(article);
+    }
+  }
+
+  async function load() {
+    const button = $('reload');
+    button.disabled = true;
+    $('freshness').textContent = 'GitHubへ確認中…';
+    try {
+      const response = await fetch('/api/dashboard/github-issues', { cache:'no-store', credentials:'same-origin' });
+      const data = await response.json();
+      if (!response.ok || !data.ok || !Array.isArray(data.repos)) throw new Error('feed_unavailable');
+      state.repos = data.repos;
+      const dates = data.repos.map((repo) => repo.fetchedAt).filter(Boolean).sort();
+      $('freshness').textContent = dates.length ? '取得 ' + dateLabel(dates.at(-1)) + ' · 約90秒キャッシュ' : '接続待ち';
+      renderRepos();
+      renderList();
+    } catch {
+      $('freshness').textContent = '読み込み失敗';
+      $('repos').replaceChildren(make('p', 'empty', '取得できません。ログイン状態と通信を確認してください。'));
+      $('issue-list').replaceChildren(make('p', 'empty', '最新のIssueを確認できませんでした。GitHub原本を確認してください。'));
+    } finally { button.disabled = false; }
+  }
+
+  document.querySelectorAll('[data-mode]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.mode = button.dataset.mode;
+      document.querySelectorAll('[data-mode]').forEach((other) => {
+        const active = other === button;
+        other.classList.toggle('active', active);
+        other.setAttribute('aria-pressed', String(active));
+      });
+      renderList();
+    });
+  });
+  $('repo-filter').addEventListener('change', (event) => { state.repo = event.target.value; renderList(); });
+  $('search').addEventListener('input', (event) => { state.search = event.target.value.trim(); renderList(); });
+  $('reload').addEventListener('click', load);
+  load();
+</script>
+
+<style>
+  .issues-shell{width:min(1180px,100%);margin:0 auto;padding:12px 0 50px}
+  .eyebrow{color:#98602a;font-size:.65rem;letter-spacing:.17em;font-weight:700}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:0 0 22px}
+  h1{font-size:clamp(1.9rem,4vw,3rem);line-height:1.18;margin:4px 0 10px;font-weight:700;letter-spacing:-.045em}
+  .head p:last-child{color:#626b75;font-size:.86rem;max-width:740px;line-height:1.75}
+  .head-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .subtle-link,.refresh,.repo-source,.tail-links a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;text-decoration:none;border:1px solid #d7d0c6;color:#754a16;font-size:.8rem;background:#fff;cursor:pointer}
+  .refresh{background:#2b2825;color:#fff;border-color:#2b2825}
+  .refresh:disabled{opacity:.6;cursor:progress}
+  .source-note{font-size:.75rem;line-height:1.8;color:#626b75;border:1px solid #e6ded2;padding:14px 18px;background:#fdfaf5;margin-bottom:20px}
+  .repo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-bottom:30px}
+  .repo-card{min-width:0;background:white;border:1px solid #e3ddd3;padding:20px;display:grid;align-content:start;gap:12px}
+  .repo-top{display:flex;gap:9px;align-items:center;justify-content:space-between}
+  .repo-top strong{font-size:1.05rem}
+  .access{font-size:.66rem;border:1px solid #d6d3c9;color:#655a4a;padding:4px 7px}
+  .access.ok{border-color:#b6e1c4;color:#176845;background:#f1faf4}
+  .access.warn{border-color:#e2ceb0;color:#98602a;background:#fff8ed}
+  .repo-slug{color:#8b929a;font-size:.69rem;overflow-wrap:anywhere}
+  .repo-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .repo-metrics div{background:#f8f6f2;padding:12px 7px;min-width:0}
+  .repo-metrics b{display:block;font-size:1.65rem;line-height:1.2}
+  .repo-metrics small{font-size:.62rem;color:#6d747b}
+  .latest-ci,.unavailable{font-size:.76rem;color:#626b75;line-height:1.65}
+  .latest-ci a{color:#98602a;text-decoration:underline;text-underline-offset:3px}
+  .repo-source{justify-self:start;margin-top:4px}
+  .work-area{border-top:2px solid #352d23;padding-top:26px}
+  .work-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px}
+  .work-head h2{font-size:1.45rem;margin-top:5px}
+  .work-head small{color:#7d858e;font-size:.7rem}
+  .toolbar{display:flex;flex-direction:column;gap:15px}
+  .tabs{display:flex;flex-wrap:wrap;gap:5px}
+  .tab{min-height:44px;padding:10px 13px;border:1px solid #d9d5cf;background:white;color:#626b75;cursor:pointer;font-size:.8rem}
+  .tab.active{background:#322b25;color:#fff;border-color:#322b25}
+  .fields{display:grid;grid-template-columns:minmax(160px,230px) minmax(180px,1fr);gap:12px;max-width:720px}
+  .fields label{display:grid;gap:5px;color:#626b75;font-size:.69rem}
+  .fields select,.fields input{min-height:44px;width:100%;border:1px solid #d4cec4;background:#fff;color:#292927;font:inherit;font-size:.83rem;padding:8px 10px}
+  .meta{color:#7d858e;font-size:.73rem;margin:16px 0 10px}
+  .issue-list{display:grid;gap:8px}
+  .issue-card{border:1px solid #e2dcd4;background:#fff;padding:17px 19px;min-width:0}
+  .issue-head{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:9px}
+  .issue-repo{font-size:.65rem;color:#8d6a48;font-weight:700;letter-spacing:.06em}
+  .chip{font-size:.59rem;border:1px solid #d5d0c9;padding:3px 6px;color:#605749}
+  .chip.active{color:#386c97;border-color:#c3d5e1}
+  .chip.done{color:#65756a;border-color:#d1d8d1}
+  .chip.human{color:#9e5b28;border-color:#e3caaf;background:#fff9f0}
+  .issue-title{display:block;font-size:.96rem;font-weight:700;line-height:1.55;text-decoration:none;color:#2b2b2a;overflow-wrap:anywhere}
+  .issue-title:hover{color:#98602a;text-decoration:underline;text-underline-offset:3px}
+  .issue-foot{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:11px;font-size:.69rem;color:#7b838c}
+  .label-tag{padding:2px 6px;border:1px solid #e4e0d8;color:#786b5e}
+  .ci-link{color:#906128;text-decoration:underline;text-underline-offset:3px}
+  .ci-unknown{color:#8a929c}
+  .footnote{color:#79818a;line-height:1.8;font-size:.7rem;margin-top:20px}
+  .empty{padding:24px;border:1px dashed #d8d0c5;background:#fff;color:#667079;font-size:.82rem}
+  .tail-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+  @media(max-width:800px){.head{align-items:flex-start;flex-direction:column}.repo-grid{grid-template-columns:1fr}.work-head{flex-direction:column;align-items:flex-start}}
+  @media(max-width:520px){.issues-shell{padding-top:0}.repo-card{padding:16px}.fields{grid-template-columns:1fr}.tabs{display:grid;grid-template-columns:1fr 1fr}.tab{font-size:.73rem}.issue-card{padding:14px}.work-head h2{font-size:1.25rem}}
+</style>
