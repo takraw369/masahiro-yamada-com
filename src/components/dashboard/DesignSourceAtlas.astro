@@ -4,7 +4,9 @@
  * Primary source of truth: MASA DESIGN INTELLIGENCE Google Doc.
  * No third-party assets, snippets, packages, tracking scripts or screenshots.
  */
-const groups = [
+type Source = { name: string; url: string; tag: string; priority: string; use: string; docs?: string; recipe?: string };
+type SourceGroup = { id: string; name: string; description: string; expanded: boolean; sites: Source[] };
+const groups: SourceGroup[] = [
   {
     id: 'screens', name: '画面全体・配置', description: '何を先に見せるか、情報の階層やページ全体の流れを研究。', expanded: true,
     sites: [
@@ -51,7 +53,7 @@ const groups = [
   },
 ];
 const totalSources = groups.reduce((sum, group) => sum + group.sites.length, 0);
-const promptFor = (site) => [
+const promptFor = (site: Source) => [
   'MASA DESIGN INTELLIGENCE / UI Pattern Vault のルールで、次の参考を「最小1コンポーネント」で評価してください。',
   '参考: ' + site.name + ' ' + site.url,
   '目的: ' + (site.recipe ?? site.use),
@@ -105,11 +107,11 @@ const promptFor = (site) => [
 </section>
 
 <script>
-  const atlas = document.querySelector('#source-atlas');
+  const atlas = document.querySelector<HTMLElement>('#source-atlas');
   if (atlas) {
-    const field = atlas.querySelector('#ds-atlas-search');
-    const cards = [...atlas.querySelectorAll('[data-source-card]')];
-    const sections = [...atlas.querySelectorAll('.ds-atlas-group')];
+    const field = atlas.querySelector<HTMLInputElement>('#ds-atlas-search');
+    const cards = [...atlas.querySelectorAll<HTMLElement>('[data-source-card]')];
+    const sections = [...atlas.querySelectorAll<HTMLDetailsElement>('.ds-atlas-group')];
     const count = atlas.querySelector('#ds-atlas-result');
     const status = atlas.querySelector('#ds-atlas-copy-status');
     field?.addEventListener('input', () => {
