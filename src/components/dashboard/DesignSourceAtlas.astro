@@ -123,7 +123,7 @@ const promptFor = (site: Source) => [
         if (match) visible++;
       }
       for (const section of sections) {
-        const hasMatch = [...section.querySelectorAll('[data-source-card]')].some(card => !card.hidden);
+        const hasMatch = [...section.querySelectorAll<HTMLElement>('[data-source-card]')].some(card => !card.hidden);
         section.hidden = !hasMatch;
         section.open = query ? hasMatch : section.dataset.initialOpen === 'true';
       }
