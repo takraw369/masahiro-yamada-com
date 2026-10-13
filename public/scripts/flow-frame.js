@@ -9,6 +9,7 @@
     square: { label: 'X / 正方形', width: 1080, height: 1080 },
     story: { label: 'Story 9:16', width: 1080, height: 1920 },
     note: { label: 'note 横長', width: 1280, height: 670 },
+    appstoreMedium: { label: 'App Store 6.3″（必須サイズ）', width: 1179, height: 2556 },
     appstore: { label: 'App Store 6.9″（参考）', width: 1320, height: 2868 },
   };
   const themes = {
@@ -181,7 +182,7 @@
     const brand = read('ff-brand');
     const cta = read('ff-cta');
     const mode = read('ff-frame');
-    const imageStyle = mode === 'auto' ? (key === 'appstore' ? 'phone' : 'card') : mode;
+    const imageStyle = mode === 'auto' ? (key.startsWith('appstore') ? 'phone' : 'card') : mode;
     const fit = read('ff-fit');
     background(ctx, w, h, colors);
     ctx.textBaseline = 'alphabetic';
@@ -189,7 +190,7 @@
 
     const edge = w * .075;
     const fontFamily = '"Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif';
-    const heading = key === 'note' ? 65 * scale : key === 'appstore' ? 89 * scale : 78 * scale;
+    const heading = key === 'note' ? 65 * scale : key.startsWith('appstore') ? 89 * scale : 78 * scale;
     const bodySize = key === 'note' ? 23 * scale : 29 * scale;
     const baseline = key === 'note' ? h * .17 : h * .087;
 
@@ -202,7 +203,7 @@
     ctx.fillText(brand || 'FLOW FRAME', edge + 27 * scale, baseline + 4 * scale, w * .77);
 
     const textX = edge;
-    const titleY = key === 'note' ? h * .29 : key === 'appstore' ? h * .124 : h * .174;
+    const titleY = key === 'note' ? h * .29 : key.startsWith('appstore') ? h * .124 : h * .174;
     const titleWidth = key === 'note' ? w * .48 : w * .86;
     ctx.font = '700 ' + heading + 'px ' + fontFamily;
     ctx.fillStyle = colors.ink;
@@ -214,7 +215,7 @@
     let rect;
     if (key === 'note') {
       rect = { x: w * .62, y: h * .125, w: w * .29, h: h * .75 };
-    } else if (key === 'appstore') {
+    } else if (key.startsWith('appstore')) {
       rect = { x: w * .17, y: h * .27, w: w * .66, h: h * .622 };
     } else if (key === 'story') {
       rect = { x: w * .155, y: h * .402, w: w * .69, h: h * .48 };
@@ -269,7 +270,7 @@
     pngButton.disabled = value || !sourceImage;
     zipButton.disabled = value || !sourceImage;
     pngButton.textContent = value ? '生成中…' : 'このサイズをPNG保存 ↓';
-    zipButton.textContent = value ? '生成中…' : '5種類をZIPで一括保存 ↓';
+    zipButton.textContent = value ? '生成中…' : '6種類をZIPで一括保存 ↓';
   }
 
   async function loadFile(file) {
@@ -394,8 +395,8 @@
           files.push({ name: 'flow-frame-' + key + '.png', blob: await canvasBlob(surface) });
         }
         const zip = await buildZip(files);
-        download(zip, 'flow-frame-5-formats.zip');
-        setStatus('5種類のPNGをZIPにまとめました。保存先を確認してください。');
+        download(zip, 'flow-frame-6-formats.zip');
+        setStatus('6種類のPNGをZIPにまとめました。保存先を確認してください。');
       } else {
         const surface = document.createElement('canvas');
         drawScene(surface, current);
