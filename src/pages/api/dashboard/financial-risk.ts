@@ -70,12 +70,12 @@ async function creditSpread(): Promise<RiskSignal> {
   try {
     const r=await fetch(FRED_URL,{headers:{Accept:'text/csv'},signal:AbortSignal.timeout(8000)});
     if (!r.ok) return fallback;
-    const lines=(await r.text()).trim().split(/\\r?\\n/);
+    const lines=(await r.text()).trim().split(/\r?\n/);
     const rows=lines.slice(1).map(line=>{
       const [date,val]=line.replace(/"/g,'').split(',');
       const value=Number(val);
       return {date,value};
-    }).filter(row=>/^\\d{4}-\\d{2}-\\d{2}$/.test(row.date)&&Number.isFinite(row.value)&&row.value>0);
+    }).filter(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date)&&Number.isFinite(row.value)&&row.value>0);
     if (!rows.length) return fallback;
     const last=rows.at(-1)!;
     const observedAt=last.date+'T00:00:00.000Z';
