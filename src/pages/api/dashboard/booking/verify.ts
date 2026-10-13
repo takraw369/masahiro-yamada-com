@@ -28,7 +28,7 @@ export const POST = async ({ request, locals }: APIContext) => {
   if (!start || !end || (hasRoute && (!stationForArea(from) || !stationForArea(to)))) {
     return respond({ ok: false, reason: 'invalid_fields' }, 400);
   }
-  const env = getSiteStorageEnv(locals) as BookingConnections;
+  const env = getSiteStorageEnv(locals) as unknown as BookingConnections;
   try {
     const snapshot = await getLiveBusy(env, start, end);
     const free = slotIsFree(snapshot.busy, start, end, 20);
