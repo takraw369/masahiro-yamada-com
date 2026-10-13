@@ -26,7 +26,7 @@ const fixture = String.raw`<!doctype html><html lang="ja"><head><meta charset="u
   <select id="ff-theme"><option value="orange">Orange</option><option value="cream">Cream</option><option value="night">Night</option><option value="green">Forest</option></select>
   <select id="ff-fit"><option value="contain">Contain</option><option value="cover">Cover</option></select>
   <select id="ff-frame"><option value="auto">Auto</option><option value="card">Card</option><option value="phone">Phone</option></select>
-  <div class="ff-tabs"><button data-ff-size="instagram">IG</button><button data-ff-size="square">Square</button><button data-ff-size="story">Story</button><button data-ff-size="note">Note</button><button data-ff-size="appstore">App Store</button></div>
+  <div class="ff-tabs"><button data-ff-size="instagram">IG</button><button data-ff-size="square">Square</button><button data-ff-size="story">Story</button><button data-ff-size="note">Note</button><button data-ff-size="appstoreMedium">App Store required</button><button data-ff-size="appstore">App Store extra</button></div>
   <div class="ff-preview-stage"><canvas id="ff-preview" width="1080" height="1350"></canvas></div>
   <strong id="ff-size-label"></strong><span id="ff-status"></span>
   <button id="ff-export" disabled>PNG</button><button id="ff-zip" disabled>ZIP</button>
@@ -70,7 +70,7 @@ window.addEventListener('load', async () => {
     const canvas = document.getElementById('ff-preview');
     const modes = [
       ['instagram', 1080, 1350], ['square', 1080, 1080], ['story', 1080, 1920],
-      ['note', 1280, 670], ['appstore', 1320, 2868],
+      ['note', 1280, 670], ['appstoreMedium', 1179, 2556], ['appstore', 1320, 2868],
     ];
     for (const [mode, w, h] of modes) {
       document.querySelector('[data-ff-size="' + mode + '"]').click();
@@ -96,7 +96,7 @@ window.addEventListener('load', async () => {
       offset = start + size;
     }
     assert(zip.getUint32(offset, true) === 0x02014b50, 'ZIP central directory');
-    report.textContent = 'PASS: 5 PNG exports + 5 ZIP entries, correct dimensions and signatures';
+    report.textContent = 'PASS: 6 PNG exports + 6 ZIP entries, correct dimensions and signatures';
     report.dataset.result = 'pass';
   } catch (e) {
     report.textContent = 'FAIL: ' + (e.stack || e.message || e);
@@ -120,7 +120,7 @@ test('FLOW FRAME real-Chrome screenshot-to-PNG-and-ZIP smoke', { timeout: 60_000
       '--dump-dom', pathToFileURL(htmlFile).href,
     ], { encoding: 'utf8', timeout: 50_000, maxBuffer: 3_000_000, stdio: ['ignore', 'pipe', 'ignore'] });
     assert.match(output, /data-result="pass"/, output.match(/<pre id="ff-browser-result"[^>]*>[\s\S]*?<\/pre>/)?.[0] || 'No result from browser');
-    assert.match(output, /5 PNG exports \+ 5 ZIP entries/);
+    assert.match(output, /6 PNG exports \+ 6 ZIP entries/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
