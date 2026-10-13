@@ -1,6 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import VisualStructureThumbnail from '../../components/dashboard/VisualStructureThumbnail.astro';
+import StoryboardBuilder from '../../components/dashboard/StoryboardBuilder.astro';
 import { visualStructureTemplates } from '../../data/visualStructureTemplates';
 
 const first = visualStructureTemplates[0];
@@ -23,6 +24,8 @@ const first = visualStructureTemplates[0];
     <section class="flow" aria-label="制作フロー">
       <span>CHAT / IDEA</span><i>→</i><span>NATURAL LANGUAGE</span><i>→</i><span>STRUCTURE</span><i>→</i><span>PROMPT</span><i>→</i><span>VISUAL</span><i>→</i><span>ACE / SNS / NOTE</span>
     </section>
+
+    <StoryboardBuilder />
 
     <section class="request-panel">
       <div class="section-head">
