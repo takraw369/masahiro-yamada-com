@@ -11,6 +11,8 @@ export interface BookingPaymentEnv extends BookingConnections {
   BOOKING_STRIPE_ACCOUNT_ID?: string;
   BOOKING_STRIPE_PRICE_ID?: string;
   BOOKING_STRIPE_WEBHOOK_SECRET?: string;
+  /** Must remain off until the signed webhook is installed and test-delivered. */
+  BOOKING_PAYMENT_WEBHOOK_READY?: string;
   BOOKING_PUBLIC_ENABLED?: string;
   BOOKING_ONLINE_VENUE_CONFIRMED?: string;
   BOOKING_TURNSTILE_SECRET?: string;
@@ -34,6 +36,7 @@ export type BookingRecord = {
 
 export function bookingEnabled(env: BookingPaymentEnv): boolean {
   return env.BOOKING_PUBLIC_ENABLED === 'true'
+    && env.BOOKING_PAYMENT_WEBHOOK_READY === 'true'
     && env.BOOKING_ONLINE_VENUE_CONFIRMED === 'true'
     && Boolean(env.BOOKING_TURNSTILE_SECRET && env.BOOKING_GOOGLE_CALENDAR_IDS
       && env.BOOKING_GOOGLE_REFRESH_TOKEN && env.BOOKING_GOOGLE_CLIENT_ID && env.BOOKING_GOOGLE_CLIENT_SECRET
