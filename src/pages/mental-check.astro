@@ -93,6 +93,29 @@ import PublicPageLayout from '../layouts/PublicPageLayout.astro';
   let questions = [];
   let sessionKey = sessionStorage.getItem('mental-check-session') || crypto.randomUUID();
   sessionStorage.setItem('mental-check-session', sessionKey);
+  let submittedSuccessfully = false;
+
+  // Keep analytics separate from the questionnaire: an unavailable event ledger must
+  // never block a user's LINE / preview navigation, and no answers or PII are sent.
+  document.getElementById('success-card')?.addEventListener('click', (event) => {
+    if (!submittedSuccessfully) return;
+    const anchor = event.target instanceof Element ? event.target.closest('a') : null;
+    if (!(anchor instanceof HTMLAnchorElement)) return;
+    const destination = anchor.getAttribute('href') || '';
+    const eventName = destination.startsWith('https://lin.ee/pcAHpTBy')
+      ? 'mental_check_line_click'
+      : destination === '/library/entry-toolkit'
+        ? 'mental_check_toolkit_click'
+        : null;
+    if (!eventName) return;
+    fetch('/api/funnel/mental-check', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionKey, event: eventName }),
+      keepalive: true,
+    }).catch(() => {});
+  });
 
   const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c] || c));
   const inputName = (key) => `q_${key.replace(/[^a-zA-Z0-9_-]/g,'_')}`;
@@ -209,6 +232,7 @@ import PublicPageLayout from '../layouts/PublicPageLayout.astro';
       });
       const body = await res.json();
       if (!res.ok || !body.ok) throw new Error(body.error || 'submit_failed');
+      submittedSuccessfully = true;
       form.hidden = true;
       const recommend = await recommendationLoader;
       if (recommend) {
