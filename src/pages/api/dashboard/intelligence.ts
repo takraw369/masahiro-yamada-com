@@ -1,67 +1,7 @@
 import type { APIContext } from 'astro';
 import { getDashboardOwnerKey, getSiteStorageEnv, supabaseRpc } from '../../../lib/siteStorage';
 
-type IntelligenceRow = {
-  id: string;
-  source_id: string;
-  title: string;
-  url: string;
-  source_kind: string;
-  provenance: string;
-  excerpt: string;
-  published_at: string;
-  detected_at: string | null;
-  topic: string;
-  lenses: string[] | null;
-  scores: Record<string, number> | null;
-  fact_type: string;
-  ace_impact: string;
-  why_it_matters: string;
-  suggested_outputs: string[] | null;
-  status: string;
-  output_targets: string[] | null;
-  content_seed: string;
-  drive_url: string;
-  evidence_id: string | null;
-  ingest_source: string;
-  first_seen_at: string;
-  last_seen_at: string;
-  reviewed_at: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-function toItem(row: IntelligenceRow) {
-  return {
-    id: row.id,
-    sourceId: row.source_id,
-    title: row.title,
-    url: row.url,
-    sourceKind: row.source_kind,
-    provenance: row.provenance,
-    excerpt: row.excerpt,
-    publishedAt: row.published_at,
-    detectedAt: row.detected_at,
-    topic: row.topic,
-    lenses: row.lenses ?? [],
-    scores: row.scores ?? {},
-    factType: row.fact_type,
-    aceImpact: row.ace_impact,
-    whyItMatters: row.why_it_matters,
-    suggestedOutputs: row.suggested_outputs ?? [],
-    status: row.status,
-    outputTargets: row.output_targets ?? [],
-    contentSeed: row.content_seed,
-    driveUrl: row.drive_url,
-    evidenceId: row.evidence_id,
-    ingestSource: row.ingest_source,
-    firstSeenAt: row.first_seen_at,
-    lastSeenAt: row.last_seen_at,
-    reviewedAt: row.reviewed_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
+import { toIntelligenceItem as toItem, type IntelligenceRow } from '../../../lib/intelligenceReader';
 
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), {
   status,
@@ -83,7 +23,7 @@ export const GET = async ({ request, locals }: APIContext) => {
       p_topic: clean(url.searchParams.get('topic')) || null,
       p_limit: Math.min(Math.max(Number(url.searchParams.get('limit') || 300), 1), 500),
     });
-    return json({ ok: true, items: (rows || []).map(toItem) });
+    return json({ ok: true, items: await Promise.all((rows || []).map(toItem)) });
   } catch (error) {
     return json({ ok: false, error: String(error) }, 500);
   }
@@ -107,7 +47,7 @@ export const POST = async ({ request, locals }: APIContext) => {
         p_review_note: clean(body.reviewNote) || null,
       });
       const row = Array.isArray(result) ? result[0] : result;
-      return row ? json({ ok: true, item: toItem(row) }) : json({ ok: false, error: 'promotion_missing' }, 500);
+      return row ? json({ ok: true, item: await toItem(row) }) : json({ ok: false, error: 'promotion_missing' }, 500);
     }
 
     if (action === 'x_draft') {
@@ -130,7 +70,7 @@ export const POST = async ({ request, locals }: APIContext) => {
         p_id: id,
       });
       const row = Array.isArray(result) ? result[0] : result;
-      return row ? json({ ok: true, item: toItem(row) }) : json({ ok: false, error: 'output_drafts_missing' }, 500);
+      return row ? json({ ok: true, item: await toItem(row) }) : json({ ok: false, error: 'output_drafts_missing' }, 500);
     }
 
     const title = clean(body.title);
@@ -145,7 +85,7 @@ export const POST = async ({ request, locals }: APIContext) => {
       p_why_it_matters: clean(body.whyItMatters) || null,
     });
     const row = Array.isArray(result) ? result[0] : result;
-    return row ? json({ ok: true, item: toItem(row) }, 201) : json({ ok: false, error: 'intelligence_create_missing' }, 500);
+    return row ? json({ ok: true, item: await toItem(row) }, 201) : json({ ok: false, error: 'intelligence_create_missing' }, 500);
   } catch (error) {
     return json({ ok: false, error: String(error) }, 500);
   }
@@ -177,7 +117,7 @@ export const PATCH = async ({ request, locals }: APIContext) => {
       p_patch: patch,
     });
     const row = Array.isArray(result) ? result[0] : result;
-    return row ? json({ ok: true, item: toItem(row) }) : json({ ok: false, error: 'intelligence_update_missing' }, 500);
+    return row ? json({ ok: true, item: await toItem(row) }) : json({ ok: false, error: 'intelligence_update_missing' }, 500);
   } catch (error) {
     return json({ ok: false, error: String(error) }, 500);
   }
