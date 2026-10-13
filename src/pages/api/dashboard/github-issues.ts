@@ -19,7 +19,7 @@ type RepoResult = {
 };
 
 let snapshot: { expires: number; hasToken: boolean; repos: RepoResult[] } | null = null;
-const CACHE_MS = 90_000;
+const CACHE_MS = 300_000;
 const REQUEST_TIMEOUT_MS = 7000;
 
 // Repositories and routes are server-selected; no arbitrary URL or owner input from the browser.
