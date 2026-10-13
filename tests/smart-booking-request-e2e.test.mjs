@@ -21,6 +21,7 @@ function makeRequest(fields={}) {
 const baseConfig={
   BOOKING_PUBLIC_ENABLED:'true',
   BOOKING_PAYMENT_WEBHOOK_READY:'true',
+  BOOKING_LEGACY_STRIPE_ROUTER_READY:'true',
   BOOKING_ONLINE_VENUE_CONFIRMED:'true',
   BOOKING_ONLINE_VENUE_AREA:'kunitachi',
   BOOKING_TURNSTILE_SECRET:'fake-turnstile',
