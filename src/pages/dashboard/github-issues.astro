@@ -183,7 +183,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       if (!response.ok || !data.ok || !Array.isArray(data.repos)) throw new Error('feed_unavailable');
       state.repos = data.repos;
       const dates = data.repos.map((repo) => repo.fetchedAt).filter(Boolean).sort();
-      $('freshness').textContent = dates.length ? '取得 ' + dateLabel(dates.at(-1)) + ' · 約90秒キャッシュ' : '接続待ち';
+      $('freshness').textContent = dates.length ? '取得 ' + dateLabel(dates.at(-1)) + ' · 約5分キャッシュ' : '接続待ち';
       renderRepos();
       renderList();
     } catch {
