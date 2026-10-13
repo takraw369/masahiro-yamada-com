@@ -117,3 +117,27 @@ investment app or an automatic trade signal.
 - Next phase: derive stable time-series snapshots from terms-compliant sources,
   track first/last observation separately from event dates, and correlate changes
   with financial disclosures only after reproducible validation.
+
+## Global Financial Risk Monitor — 2026-10-13
+
+This is a read-only stress monitor integrated at the top of the existing
+`/dashboard/investment` page, not a new dashboard or trading agent.
+
+- Signals: US 10Y yield, JGB 10Y (unconnected/Unknown until approved official series),
+  WTI crude, USD/JPY, gold, ICE BofA US high-yield OAS via FRED, VIX, NASDAQ Composite.
+- Data path: `/api/dashboard/financial-risk` fetches Yahoo Finance chart reference data
+  and FRED public CSV on page open or on explicit refresh. No secrets or DB migration.
+- Per-indicator rule thresholds are in `src/lib/financialRisk.ts`. Outputs are
+  `normal / watch / elevated / severe / unknown`, not probability estimates.
+- Aggregate state requires at least 5 fresh valid readings. Missing/stale readings
+  stay Unknown and never become green by default. Severe aggregate requires several
+  co-occurring red readings including at least one credit/VIX stress signal.
+- Every reading includes its source, publication/observation time, comparison and
+  threshold explanation. Gold's rise alone is not confirmation of crisis.
+- FRED ICE BofA OAS units are **percent**, not basis points (e.g., 3.15% = 315bp).
+  Source: https://fred.stlouisfed.org/series/BAMLH0A0HYM2
+- No broker execution, portfolio writes, credential changes, or notification scheduling.
+- News headlines/Robert Kiyosaki opinions are not input to the numeric risk state.
+- Caveat: Yahoo Finance chart is an unofficial/uncontracted data interface;
+  failed requests are surfaced visibly as Unknown. Prefer a licensed provider for
+  production-strength data guarantees.
