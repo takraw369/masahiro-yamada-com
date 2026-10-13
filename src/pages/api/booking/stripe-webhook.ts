@@ -65,6 +65,9 @@ export const POST = async ({ request, locals }: APIContext) => {
       }
       event = await upsertBookingCalendarEvent(env, { ...booking, state: 'paid' }, payment.customerEmail);
     }
+    // A Calendar event without a working Meet URL is not a delivered web session.
+    // Stripe will retry after Google's asynchronous conference creation finishes.
+    if (!event.meetingUrl) throw new Error('meet_link_pending');
     const confirmed = await bookingDb<{ state?: string; error?: string }>(env, 'ace_booking_confirm_v1', {
       p_booking_id: booking.id, p_calendar_event_id: event.eventId,
     });
