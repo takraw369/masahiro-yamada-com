@@ -117,3 +117,71 @@ investment app or an automatic trade signal.
 - Next phase: derive stable time-series snapshots from terms-compliant sources,
   track first/last observation separately from event dates, and correlate changes
   with financial disclosures only after reproducible validation.
+
+## Global Financial Risk Monitor — 2026-10-13
+
+This is a read-only stress monitor integrated at the top of the existing
+`/dashboard/investment` page, not a new dashboard or trading agent.
+
+- Signals: US 10Y yield, JGB 10Y (unconnected/Unknown until approved official series),
+  WTI crude, USD/JPY, gold, ICE BofA US high-yield OAS via FRED, VIX, NASDAQ Composite.
+- Data path: `/api/dashboard/financial-risk` fetches Yahoo Finance chart reference data
+  and FRED public CSV on page open or on explicit refresh. No secrets or DB migration.
+- Per-indicator rule thresholds are in `src/lib/financialRisk.ts`. Outputs are
+  `normal / watch / elevated / severe / unknown`, not probability estimates.
+- Aggregate state requires at least 5 fresh valid readings. Missing/stale readings
+  stay Unknown and never become green by default. Severe aggregate requires several
+  co-occurring red readings including at least one credit/VIX stress signal.
+- Every reading includes its source, publication/observation time, comparison and
+  threshold explanation. Gold's rise alone is not confirmation of crisis.
+- FRED ICE BofA OAS units are **percent**, not basis points (e.g., 3.15% = 315bp).
+  Source: https://fred.stlouisfed.org/series/BAMLH0A0HYM2
+- No broker execution, portfolio writes, credential changes, or notification scheduling.
+- News headlines/Robert Kiyosaki opinions are not input to the numeric risk state.
+- Caveat: Yahoo Finance chart is an unofficial/uncontracted data interface;
+  failed requests are surfaced visibly as Unknown. Prefer a licensed provider for
+  production-strength data guarantees.
+
+## Global Market Intelligence: relative strength + research — 2026-10-13
+
+Extends the EXISTING `/dashboard/investment`; does not create a new app.
+The screen is a human-in-the-loop observation and research surface.
+
+### Phase 1 (this release)
+- `/api/dashboard/market-flow` retrieves six months of daily ETF reference
+  data (Yahoo Finance chart interface), using adjusted close if a complete
+  adjusted series exists; otherwise raw close (explicitly shown).
+- Compares approximately 21 and 63 US trading sessions: SPY baseline, QQQ,
+  IWM, EWJ, EEM, TLT, GLD, XLE, XLF, XLK and XLV.
+- Shows the absolute price returns and *percentage-point return differences*
+  versus SPY with observation timestamps, stale/missing safeguards and
+  source links. Group and 1M / 3M controls are client-side.
+- Research labels ("persistent", "emerging", "lagging", "mixed", "unknown")
+  are qualitative screening cues, NOT investment recommendations. The 3pp
+  cutoff is heuristic, not backtested predictive accuracy.
+- Clicking "市場比較を開く" is required before network fetch. This avoids
+  eleven extra chart requests on every visit alongside Risk Monitor and
+  the pre-existing market signals.
+- Local research queue stores only ETF symbol keys in
+  `masa-capital-flow-watch-v1` (browser only, not Supabase). Copyable research
+  briefs prompt examination of causes, counterevidence and primary sources.
+- Important: ETF prices and sector outperformance are **NOT** ETF net flows,
+  creations/redemptions, positioning, or causal proof of capital rotation.
+  True flow data is displayed as **unconnected** until terms-compliant,
+  attributable primary sources are integrated. EWJ is a USD-listed
+  unhedged Japanese equity ETF and is not a yen-local equity benchmark.
+- No automatic trading, profit targeting, newsletter, notification or changes
+  to existing investment-state persistence. Trading remains manual.
+- Source: https://finance.yahoo.com/ ; source data is best-effort and may be
+  delayed, fail or rate-limit. For production grade uptime use a contracted
+  provider with redistribution rights.
+
+### Phase 2 (not implemented)
+Add ETF issuer net creation/redemption figures, official fund flow statistics,
+thematic catalysts, dated historical snapshots and compare signals against
+real capital flows before asserting "where money goes".
+
+### Phase 3 (not implemented)
+Automate daily/weekly significant-change detection using existing
+`masa-automation/workflows/25_investment`, with evidence and alert thresholds,
+without automatically changing positions or placing orders.

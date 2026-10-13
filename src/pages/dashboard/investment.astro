@@ -1,12 +1,16 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import InvestmentDashboard from '../../components/dashboard/InvestmentDashboard';
+import FinancialRiskMonitor from '../../components/dashboard/FinancialRiskMonitor';
+import MarketFlowIntelligence from '../../components/dashboard/MarketFlowIntelligence';
 import InvestmentSourceRegistry from '../../components/dashboard/InvestmentSourceRegistry';
 import TenbaggerSignalLab from '../../components/dashboard/TenbaggerSignalLab';
 import MarketNetworkExplorer from '../../components/dashboard/MarketNetworkExplorer';
 ---
 
 <DashboardLayout title="Investment">
+  <FinancialRiskMonitor client:only="react" />
+  <MarketFlowIntelligence client:only="react" />
   <InvestmentDashboard client:only="react" />
   <InvestmentSourceRegistry client:only="react" />
   <TenbaggerSignalLab client:only="react" />

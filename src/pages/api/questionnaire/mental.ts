@@ -60,6 +60,18 @@ export const POST = async ({ request, locals }: APIContext) => {
       p_source_ref: clean(body.sourceRef, 500) || '/mental-check',
       p_website: clean(body.website, 200) || null,
     });
+    // Record an aggregate completion in the existing funnel ledger after successful persistence.
+    // A missing analytics RPC must never turn a valid questionnaire into a submission error.
+    if (typeof data.session_id === 'string' && typeof body.sessionKey === 'string') {
+      try {
+        await supabaseRpc<number | null>(env, 'mental_check_funnel_event_add_v1', {
+          p_session_key: body.sessionKey,
+          p_event_name: 'mental_check_completed',
+        });
+      } catch {
+        console.warn('mental_check_completion_event_unavailable');
+      }
+    }
     return json({ ok: true, data }, 201);
   } catch (error) {
     const message = String(error);
