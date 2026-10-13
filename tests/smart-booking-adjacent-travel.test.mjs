@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateTravelAroundAppointment, identifyArea } from '../src/lib/smartBookingAdjacentEvents.ts';
+import './helpers/worker-runtime.mjs';
+const { evaluateTravelAroundAppointment, identifyArea } = await import('../src/lib/smartBookingAdjacentEvents.ts');
 
 const time = new Date(Date.now() + 48 * 3600000).getTime();
 const start = new Date(time).toISOString(), end = new Date(time + 90 * 60000).toISOString();
