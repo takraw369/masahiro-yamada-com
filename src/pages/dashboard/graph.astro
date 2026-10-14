@@ -1,5 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PeopleGraphLens from '../../components/dashboard/PeopleGraphLens';
+const peopleMode = Astro.url.searchParams.get('view') === 'people';
 
 const nodes = [
   { id:'N025', label:'MASTER DASHBOARD', kind:'CONTROL', note:'MASA OS全体の現在地・優先順位・次Actionを俯瞰する操作面。' },
@@ -86,10 +88,11 @@ const kindEntries = Object.entries(kindMeta).map(([kind, meta]) => ({ kind, ...m
     <header class="graph-header">
       <div class="graph-title">
         <p class="eyebrow-local">MASA BRAIN · LIVING GRAPH v0.4</p>
-        <div class="title-row"><h1>つながりから、次の一手を見つける。</h1><span class="status-badge">{nodes.length} nodes · {edges.length} edges</span></div>
+        <div class="title-row"><h1>つながりから、次の一手を見つける。</h1><span class="status-badge">{peopleMode ? "People Lens · DEMO" : `${nodes.length} nodes · ${edges.length} edges`}</span></div>
+        <nav class="graph-view-tabs" aria-label="Graphの表示切り替え"><a class:list={["graph-view-tab",{active:!peopleMode}]} href="/dashboard/graph" aria-current={!peopleMode ? "page" : undefined}>Knowledge</a><a class:list={["graph-view-tab",{active:peopleMode}]} href="/dashboard/graph?view=people" aria-current={peopleMode ? "page" : undefined}>People <span>DEMO</span></a></nav>
         <div class="howto"><span><b>1</b>左で探す</span><span><b>2</b>中央で流れを見る</span><span><b>3</b>右で意味と次Action</span></div>
       </div>
-      <div class="header-actions">
+      <div class="header-actions" style={peopleMode ? "display:none" : undefined}>
         <label class="global-search"><span>⌕</span><input id="search" placeholder="例：CONTENT / 人 / 収益" autocomplete="off" /><kbd>/</kbd></label>
         <button id="reset-view" class="ui-btn" type="button">全体表示</button>
         <button id="connect-mode" class="ui-btn" type="button">＋ 2点をつなぐ</button>
@@ -97,7 +100,7 @@ const kindEntries = Object.entries(kindMeta).map(([kind, meta]) => ({ kind, ...m
       </div>
     </header>
 
-    <div class="workspace">
+    <div class="workspace" style={peopleMode ? "display:none" : undefined}>
       <aside class="explorer">
         <section class="explorer-section">
           <div class="section-head"><div><p class="section-kicker">EXPLORE</p><h2>何を見たい？</h2></div><button id="clear-filters" class="text-btn" type="button">リセット</button></div>
@@ -169,10 +172,17 @@ const kindEntries = Object.entries(kindMeta).map(([kind, meta]) => ({ kind, ...m
         <details class="inspector-card activity-card"><summary><span><span class="section-kicker">RECENT NOTES</span><strong>最近のGraphメモ</strong></span><span>＋</span></summary><div id="activity" class="activity"><p class="node-note">読み込み中…</p></div></details>
       </aside>
     </div>
+    {peopleMode && <div class="graph-people-mount"><PeopleGraphLens client:load /></div>}
   </div>
 </DashboardLayout>
 
 <style>
+  .graph-view-tabs{display:flex;gap:5px;margin-top:9px;align-items:center}
+  .graph-view-tab{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;border:1px solid #d5d1c9;border-radius:10px;padding:7px 13px;background:#f8f7f4;color:#69717a;text-decoration:none}
+  .graph-view-tab.active{background:#fff4e4;border-color:#eeb77c;color:#995718}
+  .graph-view-tab span{font-size:9px;letter-spacing:.08em;color:#bb7b42}
+  .graph-people-mount{flex:1;min-height:0;overflow:auto;background:#f2f0ec;padding:12px;}
+  @media(max-width:700px){.graph-people-mount{padding:5px}}
   .graph-app{--bg:#f4f2ee;--panel:#fff;--ink:#20262d;--muted:#66717c;--line:#d9d4cc;--accent:#9a641f;height:calc(100vh - 66px);min-height:680px;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);overflow:hidden}
   .graph-header{flex:0 0 auto;min-height:126px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:18px 22px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line)}
   .graph-title{min-width:0}.eyebrow-local,.section-kicker{color:#8b5b2c;font-size:.62rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase}.title-row{display:flex;align-items:center;gap:12px;margin-top:3px;flex-wrap:wrap}.title-row h1{font-size:1.22rem}.status-badge{padding:2px 8px;border:1px solid #ddd6cb;border-radius:999px;color:#727983;background:#fbfaf8;font-size:.62rem}.howto{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.howto span{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:7px;background:#f7f4ef;color:#626b75;font-size:.66rem}.howto b{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;border:1px solid #d7d0c7;color:#7a4c15;font-size:.58rem}
@@ -211,7 +221,7 @@ const kindEntries = Object.entries(kindMeta).map(([kind, meta]) => ({ kind, ...m
   nodes.forEach((n,i)=>motionSeeds.set(n.id,{phase:(i*1.73)%6.28,phase2:(i*2.31+1.2)%6.28,amp:7+(i%5)*2,speed:.00016+(i%4)*.000025}));
 
   let selected='N025',activeKind='ALL',connectMode=false,pair=[],gptIndex=-1,gptSuggestion=null,view={x:0,y:0,w:1600,h:1000},panStart=null,hoveredId=null;
-  let motionEnabled=!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,animationFrame=null;
+  let motionEnabled=!new URLSearchParams(window.location.search).get('view')?.includes('people')&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,animationFrame=null;
 
   const labelFor=id=>byId.get(id)?.label||id;
   const kindLabel=kind=>kindMeta[kind]?.label||kind;
