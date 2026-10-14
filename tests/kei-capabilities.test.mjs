@@ -12,6 +12,7 @@ test('KEI capabilities registry preserves all approved baseline cards', () => {
   assert.ok(entries.length >= 41, 'Do not accidentally drop existing capability cards');
   assert.ok(entries.find((x) => x.id === 'assetize'));
   assert.ok(entries.find((x) => x.id === 'rsvp'));
+  assert.ok(entries.find((x) => x.id === 'anatomy-interactive'), 'Anatomy interactive diagram card is required');
   assert.ok(entries.find((x) => x.id === 'dots-tracking'));
 });
 
