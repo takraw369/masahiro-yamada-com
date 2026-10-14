@@ -111,7 +111,7 @@ test('real Pipeline HTML / JS / CSS works in headless Chromium at desktop and mo
       assert.equal(result.detailOpens,true,'details must open');
       assert.equal(result.searchCount,1,'search must narrow results');
       assert.equal(result.gateCount,1,'MASA Gate filter must preserve search');
-      assert.equal(result.lanes,5,'active view must display five lanes');
+      assert.equal(result.lanes,6,'MASA Gate view preserves all six phase lanes');
       assert.ok(result.alert.includes('期限超過') && result.alert.includes('MASA判断待ち'));
     }
   } finally {
