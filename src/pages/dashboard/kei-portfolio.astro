@@ -50,10 +50,25 @@ const groups:Group[] = [
     {id:'skill',title:'成功パターンをSkill化',description:'作業方法を再利用可能なルール・手順へ。',command:'これSkillにして。既存Skillへの統合を優先し、検証可能な手順にして。',status:'ready'},
     {id:'orchestrate',title:'複数AIの役割を選ぶ',description:'Chief / Research / Editor / Designer / Builderを使い分ける。',command:'適任に任せて。Purposeから必要最小限の役割とツールを選び、成果まで進めて。',status:'ready'},
   ]},
+  { id:'recipes', label:'Plusで今使う実践レシピ', english:'PLUS · PRACTICAL', intro:'調査・判断・資産化の実務に使う10レシピ。接続と承認が必要な操作は実行時に確認。', items:[
+    {id:"source-audit",title:"資料を正本へ差分統合",description:"記事・X・会話の出典・重複を調べ、Drive正本に差分保存して読み戻す。",command:"この資料を既存Driveに資産化して。関連正本を検索し、出典・重複・差分を示して保存。読み戻しと成果リンクまで報告して。",status:"ready"},
+    {id:"pending-radar",title:"未対応・期限を一括点検",description:"Gmail・TASKS・GitHubの滞留、判断待ち、期限切れを整理。",command:"未完了レーダーを実行して。Gmail・TASK_BOARD・GitHubの未対応、期限、承認待ちを根拠リンク付きで今日の3件に絞って。外部送信・変更はしないで。",status:"ready"},
+    {id:"meeting-brief",title:"商談前の30分ブリーフ",description:"Calendarと関連メール・資料から経緯、未決・重要質問を準備。",command:"商談準備をして。予定・関連メール・資料を接続可能な範囲で照合し、30分前に読む1画面の経緯・未決・質問・次Actionにまとめて。送信しないで。",status:"gated"},
+    {id:"revenue-leak",title:"売上の取りこぼしを探す",description:"未請求・見積滞留・返信待ちを調べ、営業の次の一手と下書きを作る。",command:"売上機会の取りこぼしを監査して。未請求・未回収・見積/返信待ちを証拠付きで整理し、優先3件と文面案を作成。請求・決済・送信はMASA承認までしない。",status:"gated"},
+    {id:"content-consistency",title:"SNS・note・教材を整合チェック",description:"数字・出典・CTA・商品価格・ブランド表現のずれを媒体横断で検査。",command:"このテーマのX・note・動画・教材を整合監査して。数値・出典・ブランド・CTA・価格を比較し、修正案を提示して。公開はしないで。",status:"ready"},
+    {id:"decision-review",title:"判断を学習資産にする",description:"事前仮説・選択・結果・矛盾・学びを次の実験につなぐ。",command:"この判断を学習に変えて。仮説、選択、実際の結果、矛盾、学び、次に試す実験を分け、関連DriveのDecision正本へ差分統合して。",status:"ready"},
+    {id:"brand-audit",title:"UIとブランドを比較監査",description:"Design Intelligenceと現行UIを比較し、最小改善案にまとめる。",command:"現行UIをMASA DESIGN INTELLIGENCE・ブランド原則・GitHubと照合して。差分と優先修正3件を出し、必要ならDraft PRまで。公開はしないで。",status:"ready"},
+    {id:"learning-loop",title:"アスリート体験から教材改訂",description:"実際のフィードバックからACEワーク・評価指標・教材次版を作る。",command:"この実践フィードバックをACE教材に反映して。実体験と仮説を分け、ワーク・測定指標・次版原稿を作って。許可ある実データだけ使って。",status:"ready"},
+    {id:"multilens-review",title:"5視点の成果レビュー",description:"顧客・学習者・実装・安全・ブランドの視点で抜けを見つける。",command:"この成果を顧客、学習者、Builder、安全、ブランドの5視点でレビューして。根拠と反証を示し、優先修正3件へ統合して。",status:"ready"},
+    {id:"voice-capture",title:"声と思考をBrain Flowへ",description:"音声メモ・文字起こしをDump→Storming→Bridge→Flowで資産候補に。",command:"この音声メモまたは文字起こしをBrain Flowに整理して。Dump→Storming→Bridge→FlowをTask・Content・Knowledgeへ仕分け。音声未取得なら必要手順を示して。",status:"gated"},
+  ]},
   { id:'dots', label:'Proで広がること（dots）', english:'DOTS · PRO', intro:'常時稼働の仕事は、対象Proプランとdotの利用開始後に。現状の慧では未導入。', items:[
     {id:'dots-tracking',title:'会話していない間も案件を追う',description:'締切・進捗・判断待ちを継続確認し、必要なタイミングで報告。Pro+dots利用後の候補。',command:'【Pro+dots利用開始後の依頼】複数Projectの期日、止まっている作業、MASAの判断が必要なことを継続的に追い、重要な変更だけ報告して。DriveとTASKSの正本を確認し、外部操作は承認を取って。未導入なら開始せず条件だけ整理して。',status:'pro'},
     {id:'dots-across-apps',title:'アプリをまたいで準備を進める',description:'許可したDrive・Gmail・Calendar等を横断し、必要な下書き・差分・確認事項をまとめる。',command:'【Pro+dots利用開始後の依頼】許可済みアプリの範囲でDrive、Gmail、Calendarの関連情報を照合して、必要な返信下書きと更新候補を作成して。送信・公開・正本上書きは必ず事前確認。未導入なら実行せず接続条件だけ示して。',status:'pro'},
     {id:'dots-delegation',title:'Codexと制作作業を取りまとめる',description:'調査・実装・コンテンツ更新を依頼し、レビュー用の成果と判断事項にまとめる。',command:'【Pro+dots利用開始後の依頼】GitHubのPRとコンテンツ進行を継続確認し、必要な調査・修正案をCodex等へ委任してレビュー可能な成果物にまとめて。マージ・デプロイ・外部公開はHuman Gateを守る。未導入なら導入条件だけ整理して。',status:'pro'},
+    {id:"dots-doc-cascade",title:"資料変更を関連成果物へ波及",description:"仕様・価格・重要情報の変更を追い、関連する提案書・教材の修正案を準備。",command:"【Pro+dots導入後】許可した資料の重要な変更を継続確認し、関連する提案書・教材・原稿の修正候補を提示。正本書込・外部送信・公開は事前承認。未導入なら条件だけ確認して。",status:"pro"},
+    {id:"dots-cloud-local",title:"クラウドPCとローカル作業を橋渡し",description:"dotのクラウド作業と、オンラインMac/PCのファイル・Skills利用を区別。",command:"【Pro+dots導入後】クラウドPCとローカルMac/PC接続が必要な作業を分け、アクセス権・起動条件・承認ルールを設計して。現時点で未導入なら接続しないで。",status:"pro"},
+    {id:"dots-proactive",title:"先回り調査で差分だけ知らせる",description:"接続ソースを読み取り中心で監視し、例外的なリスクだけ報告。",command:"【Pro+dots導入後】優先案件の重要な変化、期限リスク、見落としを継続調査し、例外だけ根拠付きで知らせて。自発調査から送信・Drive書込へ無断で進めない。未導入なら計画だけ。",status:"pro"},
   ]},
 ];
 const allCapabilities=groups.flatMap(group=>group.items);
