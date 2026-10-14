@@ -59,7 +59,7 @@ export const dashboardAppCatalog: DashboardApp[] = [
     "description": "思いつきや気づきを、残して育てる。",
     "href": "/mind",
     "category": "discover",
-    "access": "public",
+    "access": "dashboard",
     "symbol": "🧠",
     "tags": [
       "ノート",
