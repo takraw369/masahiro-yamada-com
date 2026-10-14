@@ -77,7 +77,7 @@ jobs:
   shelf-preview-manual:
     name: Cloudflare isolated Knowledge Shelf Preview (manual)
     # Never run this on pull_request, push or master. Never deploy to the production route.
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/fix/shelf-journey-payment-signal-and-preview-20261014'
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/fix/shelf-journey-payment-signal-and-preview-20261014') || (github.event_name == 'pull_request' && github.head_ref == 'fix/shelf-journey-payment-signal-and-preview-20261014' && github.event.pull_request.head.repo.full_name == github.repository)
     needs: [test-and-build, secret-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 20
