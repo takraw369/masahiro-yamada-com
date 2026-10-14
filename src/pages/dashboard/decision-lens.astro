@@ -26,8 +26,10 @@ const modes = [
         <div class="card">
           <div class="card-head"><span class="step">01 / CASE</span><strong id="stage-label">NEW CASE</strong></div>
           <label>何を判断する？ <input id="case-title" maxlength="180" placeholder="例：今月は新企画より既存商品を磨くべきか" /></label>
-          <label>状況・目的・制約<textarea id="case-context" maxlength="6000" rows="5" placeholder="判断する前に分かっていた事実、Purpose、期限、制約。本人の結論はまだ書かない。"></textarea></label>
-          <label>候補の選択肢<textarea id="case-options" maxlength="3000" rows="2" placeholder="A: 既存商品改善 / B: 新企画 / C: 保留 など"></textarea></label>
+          <label>状況・目的・制約 <small>分かる場合だけ入力。AIが補助します</small><textarea id="case-context" maxlength="6000" rows="5" placeholder="空欄でOK。分かっている制約があれば記載。"></textarea></label>
+          <label>候補の選択肢 <small>AIが自動で作成。分かる場合だけ入力</small><textarea id="case-options" maxlength="3000" rows="2" placeholder="空欄でOK。AIが比較候補を生成します"></textarea></label>
+          <div class="actions"><button id="auto-predict" type="button" class="primary">AIで候補・予測を作って確定する</button></div>
+          <p class="footnote">テーマだけで開始できます。予測は本人の判断前に自動固定。重要な外部行動は実行しません。</p>
         </div>
         <div class="card">
           <div class="card-head"><span class="step">02 / LENS</span><small>人格ではなく、判断のレンズ</small></div>
@@ -41,8 +43,10 @@ const modes = [
             ))}
           </div>
           <p class="mode-hint" id="mode-hint">{modes[0].detail}</p>
-          <button id="copy-prompt" class="secondary" type="button">この視点のAI指示をコピー</button>
-          <small class="footnote">コピーした指示をChatGPT等で実行し、返答を下に貼り付ける手動Pilot。ここでAI自動予測を実行したとは扱わない。</small>
+          <details><summary class="footnote">手動でAI指示をコピーする（代替手順）</summary>
+            <button id="copy-prompt" class="secondary" type="button">AI指示をコピー</button>
+          </details>
+          <small class="footnote">通常は01 / CASEのボタンからAIが自動生成します。COREは本人の実判断ではなく予測仮説です。</small>
         </div>
         <div class="card">
           <div class="card-head"><span class="step">03 / PREDICTION</span><span id="locked-time"></span></div>
@@ -57,8 +61,8 @@ const modes = [
         <div class="card" id="actual-card" hidden>
           <div class="card-head"><span class="step">04 / ACTUAL</span><small>予測を固定してから記録</small></div>
           <label>MASA本人の判断・実際の選択<textarea id="actual" rows="3" maxlength="6000" placeholder="最終的にどれを選んだ？ どのような条件で？"></textarea></label>
-          <label>予測との差分・その理由<textarea id="difference" rows="3" maxlength="4000" placeholder="選択・重み・直感・反転条件の違い。違いなしも記録できる。"></textarea></label>
-          <div class="actions"><button id="record-actual" class="primary" type="button">実判断を記録して比較する</button></div>
+          <label>予測との差分・その理由 <small>AIが自動作成します</small><textarea id="difference" rows="3" maxlength="4000" placeholder="AIが比較して記録します。編集する場合のみ入力。"></textarea></label>
+          <div class="actions"><button id="auto-compare" class="primary" type="button">AIに差分を分析させて記録</button><button id="record-actual" class="secondary" type="button">手動記録</button></div>
         </div>
         <div class="card" id="outcome-card" hidden>
           <div class="card-head"><span class="step">05 / LEARN</span><small>Outcome ≠ prediction accuracy</small></div>
@@ -124,6 +128,8 @@ const modes = [
       get<HTMLInputElement|HTMLTextAreaElement>(id).disabled=locked||busy;
     }
     document.querySelectorAll<HTMLInputElement>('input[name="decision-mode"]').forEach(x=>x.disabled=locked||busy);
+    get<HTMLButtonElement>('auto-predict').disabled=locked||busy;
+    get<HTMLButtonElement>('auto-compare').disabled=stage!=='locked'||busy;
     get<HTMLButtonElement>('save-draft').disabled=locked||busy;
     get<HTMLButtonElement>('lock-prediction').disabled=locked||busy||!selected?.id;
     get<HTMLButtonElement>('record-actual').disabled=stage!=='locked'||busy;
@@ -194,6 +200,35 @@ const modes = [
     }catch{notice('保存できませんでした。入力を保持しています。接続を確認して再試行してください。',true);}
     finally{busy=false;stageRender();renderList();}
   }
+  // Server-side owner HMAC is never exposed to the browser. All generation is
+  // proxied through the authenticated Dashboard API; no provider keys in JS.
+  async function runAuto(mode:'compose'|'compare'){
+    if(busy)return;
+    if(mode==='compose'&&value('case-title').length<3){notice('判断テーマを3文字以上で入力してね。',true);return;}
+    if(mode==='compare'&&(!selected?.id||!value('actual'))){notice('本人の実判断だけ入力してください。',true);return;}
+    busy=true;stageRender();
+    notice(mode==='compose'?'AIが候補・予測を作成し、先に固定しています…':'AIが予測と実判断の差分を調べています…');
+    try {
+      const cleanOptional=(s:string)=>/^(あ){3,}$/.test(s)||/^test$/i.test(s)?'':s;
+      const response=await fetch('/api/dashboard/decision-auto',{
+        method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({mode,title:value('case-title'),lens:lens(),
+          ...(mode==='compose'
+            ? {context_text:cleanOptional(value('case-context')),options_text:cleanOptional(value('case-options'))}
+            : {id:selected!.id,actual_text:value('actual')})
+        }),
+      });
+      const data=await response.json().catch(()=>null);
+      if(!response.ok||!data?.ok||!data.item)throw new Error(data?.error||'unavailable');
+      const saved=data.item as LensRecord;
+      items=[saved,...items.filter(x=>x.id!==saved.id)].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,25);
+      choose(saved);
+      notice(mode==='compose'?'AIが予測を生成・固定しました。MASAの判断だけ記録してください。':'AIが差分を分析して保存しました。結果は後から記録できます。');
+    } catch {
+      notice('AI自動処理に失敗しました。入力は保持。時間を置いて再試行してください。',true);
+      await load();
+    } finally {busy=false;stageRender();}
+  }
   function makePrompt(){
     const d=pick();
     if(!d.title||!d.context_text){notice('指示をコピーする前にタイトルと状況を入力してね。',true);return '';}
@@ -218,6 +253,8 @@ DriveのMASA_CORE_MAP / Agent OS / DECISION_LOGの関連情報を参照できる
     try{await navigator.clipboard.writeText(prompt);notice('指示をコピーしました。AIの回答を貼り、予測を先に確定してください。');}
     catch{notice('自動コピーできませんでした。ブラウザの権限を確認してください。',true);}
   });
+  get('auto-predict').addEventListener('click',()=>void runAuto('compose'));
+  get('auto-compare').addEventListener('click',()=>void runAuto('compare'));
   get('save-draft').addEventListener('click',()=>void save('draft'));
   get('lock-prediction').addEventListener('click',()=>void save('lock'));
   get('record-actual').addEventListener('click',()=>void save('actual'));
