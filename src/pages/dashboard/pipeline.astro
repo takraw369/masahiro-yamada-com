@@ -11,7 +11,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         <p class="pipeline-subtitle">仕事の流れを、ひと目で。滞留を見つけ、次の一手へ。</p>
       </div>
       <div class="pipeline-head-actions">
-        <span class="pipeline-source-pill">READ ONLY · TASK_BOARD正本</span>
+        <span class="pipeline-source-pill">Google Sheets · TASK_BOARD正本</span>
         <button id="pipeline-reload" class="pipeline-refresh" type="button">↻ 更新</button>
       </div>
     </header>
@@ -38,6 +38,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         <input id="pipeline-search" type="search" placeholder="⌕  Project・Task・次の行動で検索" autocomplete="off" />
       </label>
       <span id="pipeline-sync" class="pipeline-sync" role="status" aria-live="polite">読み込み中…</span>
+      <p id="pipeline-move-state" class="pipeline-move-state" role="status" aria-live="polite">書き込み連携を確認しています…</p>
     </div>
 
     <div id="pipeline-board" class="pipeline-board" aria-label="タスクフェーズ別ボード" tabindex="0">
@@ -46,7 +47,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     <footer class="pipeline-footer">
       <span>フェーズはTASK_BOARDの status から集計。件数・期限は実データのみ使用しています。</span>
-      <span>この画面ではフェーズを書き換えません。正本の変更・承認は既存の運用経路で行います。</span>
+      <span>カード移動はGoogle Sheets TASKSへの保存が確認された場合のみ確定。未連携・失敗時は状態を変更しません。</span>
     </footer>
   </main>
 
@@ -62,6 +63,20 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       <span class="pipeline-kicker">NEXT ACTION</span>
       <p id="pipeline-detail-next"></p>
     </div>
+    <section class="pipeline-move-controls" aria-label="タスクを移動">
+      <label for="pipeline-move-target">移動先</label>
+      <select id="pipeline-move-target">
+        <option value="NEXT">次に進める</option>
+        <option value="NOW">実行中</option>
+        <option value="REVIEW">検証・確認</option>
+        <option value="WAIT">停止・待機</option>
+        <option value="DONE">完了</option>
+      </select>
+      <label id="pipeline-receipt-label" for="pipeline-move-receipt" hidden>完了の証跡（成果物・検証結果など12文字以上）</label>
+      <textarea id="pipeline-move-receipt" rows="3" maxlength="1200" hidden placeholder="成果物URLや検証結果を記録"></textarea>
+      <button id="pipeline-move-submit" type="button" disabled>Google Sheetsへ保存</button>
+      <p id="pipeline-detail-write-note">保存経路を確認中です。</p>
+    </section>
     <div class="pipeline-dialog-bottom">
       <a href="/dashboard/tasks">Task Flowへ →</a>
       <button type="button" id="pipeline-dismiss">閉じる</button>
@@ -86,6 +101,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   let scope = 'actionable';
   let search = '';
   let loaded = false;
+  let writeEnabled = false;
+  let saving = false;
+  let dragTaskId = null;
+  let selectedTask = null;
   const safeText = value => String(value == null ? '' : value);
   const upper = value => safeText(value).trim().toUpperCase();
   const dateKey = value => {
@@ -178,6 +197,22 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const phase = phaseFor(item);
     const button = el('button', 'pipeline-task' + (overdue(item) ? ' is-overdue' : '' ));
     button.type = 'button';
+    button.draggable = writeEnabled && !saving && ['NEXT','NOW','REVIEW','WAIT','DONE'].includes(upper(item.status));
+    if (button.draggable) {
+      button.addEventListener('dragstart', event => {
+        if (!event.dataTransfer || saving) { event.preventDefault(); return; }
+        dragTaskId = item.taskId;
+        event.dataTransfer.setData('text/plain', item.taskId);
+        event.dataTransfer.effectAllowed = 'move';
+        button.classList.add('is-dragging');
+      });
+      button.addEventListener('dragend', () => {
+        dragTaskId = null;
+        board.querySelectorAll('.pipeline-lane').forEach(node => node.classList.remove('is-drop-target'));
+        button.classList.remove('is-dragging');
+      });
+      button.title = 'ドラッグして列を移動できます。スマホでは詳細から移動先を選択。';
+    }
     button.setAttribute('aria-label', safeText(item.task || '名称未設定') + ' の詳細を開く');
     const head = append(button, 'span', 'pipeline-task-top');
     let label = overdue(item) ? '期限超過' : (dueToday(item) ? '本日期限' : (upper(item.executionLane) === 'MASA_GATE' ? 'MASA判断' : (item.priority || item.status || 'TASK')));
@@ -200,7 +235,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     drawAlert();
     board.replaceChildren();
     const selected = tasks.filter(isVisible);
-    const visiblePhases = scope === 'actionable' ? phases.filter(phase => phase.key !== 'DONE') : phases;
+    // DONE remains a valid drop target even when completed cards are filtered out.
+    // Hide the first empty INBOX lane so a narrow viewport starts at useful work.
+    const visiblePhases = phases.filter(phase => phase.key !== 'INBOX' || tasks.some(x => phaseFor(x) === 'INBOX'));
     for (const phase of visiblePhases) {
       const list = selected.filter(item => phaseFor(item) === phase.key)
         .sort((a,b) => {
@@ -209,6 +246,28 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
           return (dateKey(a.dueDate) || '9999-12-31').localeCompare(dateKey(b.dueDate) || '9999-12-31');
         });
       const lane = el('section', 'pipeline-lane tone-' + phase.tone);
+      lane.dataset.phase = phase.key;
+      if (writeEnabled && ['NEXT','NOW','REVIEW','WAIT','DONE'].includes(phase.key)) {
+        lane.addEventListener('dragover', event => {
+          if (!dragTaskId || saving) return;
+          const dragged = tasks.find(x => x.taskId === dragTaskId);
+          if (!dragged || upper(dragged.status) === phase.key) return;
+          event.preventDefault();
+          if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+          lane.classList.add('is-drop-target');
+        });
+        lane.addEventListener('dragleave', event => {
+          if (!lane.contains(event.relatedTarget)) lane.classList.remove('is-drop-target');
+        });
+        lane.addEventListener('drop', event => {
+          event.preventDefault();
+          lane.classList.remove('is-drop-target');
+          const id = dragTaskId || event.dataTransfer?.getData('text/plain');
+          dragTaskId = null;
+          const item = tasks.find(x => x.taskId === id);
+          if (item) void moveTask(item, phase.key);
+        });
+      }
       lane.setAttribute('aria-label', phase.name + ' ' + list.length + '件');
       const laneHead = append(lane, 'header', 'pipeline-lane-head');
       const laneTitle = append(laneHead, 'div', 'pipeline-lane-heading');
@@ -217,13 +276,22 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       append(laneTitle, 'span', 'pipeline-lane-count', list.length);
       append(lane, 'p', 'pipeline-lane-description', phase.help);
       const cards = append(lane, 'div', 'pipeline-lane-cards');
-      if (!list.length) append(cards, 'p', 'pipeline-empty', '該当するタスクはありません');
+      if (!list.length) append(cards, 'p', 'pipeline-empty', phase.key === 'DONE' && scope === 'actionable' ? 'ここへドロップすると完了（証跡必須）' : '該当するタスクはありません');
       else for (const item of list) cards.appendChild(drawTask(item));
       board.appendChild(lane);
     }
     $('pipeline-sync').textContent = selected.length + ' / ' + tasks.length + '件表示';
   }
   function openDetail(item) {
+    selectedTask = item;
+    $('pipeline-move-target').value = ['NEXT','NOW','REVIEW','WAIT','DONE'].includes(upper(item.status)) ? upper(item.status) : 'NEXT';
+    $('pipeline-move-receipt').value = '';
+    $('pipeline-move-target').disabled = !writeEnabled || saving;
+    $('pipeline-move-submit').disabled = !writeEnabled || saving;
+    $('pipeline-detail-write-note').textContent = writeEnabled
+      ? '保存先：Google Sheets TASKS。ドラッグでも移動できます。'
+      : '閲覧専用。書き込み連携の準備が必要です。';
+    updateReceiptField();
     $('pipeline-detail-heading').textContent = item.task || '名称未設定のタスク';
     $('pipeline-detail-project').textContent = item.project || 'NO PROJECT';
     const container = $('pipeline-detail-data');
@@ -243,6 +311,84 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const dialog = $('pipeline-detail');
     if (!dialog.open) dialog.showModal();
   }
+
+  function updateReceiptField() {
+    const completed = $('pipeline-move-target').value === 'DONE';
+    $('pipeline-receipt-label').hidden = !completed;
+    $('pipeline-move-receipt').hidden = !completed;
+  }
+  function moveMessage(text, error = false) {
+    const target = $('pipeline-move-state');
+    target.textContent = text;
+    target.classList.toggle('is-error', error);
+  }
+  async function refreshWriter() {
+    writeEnabled = false;
+    try {
+      const response = await fetch('/api/dashboard/task-move', {credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+      const payload = await response.json();
+      if (!response.ok || !payload.ok || !payload.writeEnabled || !payload.statuses) throw Error('writer not ready');
+      const statuses = payload.statuses;
+      // Source Sheet status + revision win over possibly stale Supabase read mirror.
+      tasks.forEach(item => {
+        const canonical = statuses[item.taskId];
+        if (canonical && Number.isSafeInteger(canonical.revision)) {
+          item.status = canonical.status;
+          item.sourceRevision = canonical.revision;
+        }
+      });
+      writeEnabled = true;
+      moveMessage('移動OK · カードをドラッグ／タップで移動先を選択 · Google Sheetsに保存');
+    } catch {
+      moveMessage('現在は閲覧のみ：Google Sheets書き込み連携が未設定または利用できません', true);
+    }
+    if (loaded) renderBoard();
+  }
+  async function moveTask(item, toStatus, receipt = '') {
+    const fromStatus = upper(item.status);
+    if (!writeEnabled || saving || fromStatus === toStatus) return;
+    if (!['NEXT','NOW','REVIEW','WAIT','DONE'].includes(toStatus) ||
+        !['NEXT','NOW','REVIEW','WAIT','DONE'].includes(fromStatus)) {
+      moveMessage('このタスクは状態を確認してから移動してください', true); return;
+    }
+    if (toStatus === 'DONE' && receipt.trim().length < 12) {
+      openDetail(item);
+      $('pipeline-move-target').value = 'DONE';
+      updateReceiptField();
+      $('pipeline-detail-write-note').textContent = 'DONEは完了証跡を入力してから保存します。';
+      $('pipeline-move-receipt').focus();
+      return;
+    }
+    saving = true;
+    moveMessage('Google Sheets正本に保存中…');
+    $('pipeline-move-submit').disabled = true;
+    try {
+      const response = await fetch('/api/dashboard/task-move', {
+        method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',Accept:'application/json'},
+        body:JSON.stringify({taskId:item.taskId,fromStatus,toStatus,expectedRevision:item.sourceRevision,receipt})
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok || !data.verified) {
+        if (response.status === 409) throw Error('別の編集がありました。更新して最新の状態を確認してください。');
+        if (data.error === 'completion_evidence_required') throw Error('DONEには完了の証跡が必要です。');
+        throw Error('保存できませんでした。Google Sheets連携をご確認ください。');
+      }
+      item.status = data.status;
+      item.sourceRevision = data.sourceRevision;
+      item.sourceUpdatedAt = data.sourceUpdatedAt;
+      item.sourceEditBy = data.sourceEditBy;
+      moveMessage('Google Sheetsへの保存・再読取を確認しました。Supabase同期は後から反映されます。');
+      $('pipeline-detail').close();
+    } catch(error) {
+      moveMessage(error.message || '保存できませんでした。画面上の状態は変更していません。', true);
+      if ($('pipeline-detail').open) $('pipeline-detail-write-note').textContent = error.message || '保存失敗';
+    } finally {
+      saving = false;
+      if (loaded) renderBoard();
+      $('pipeline-move-submit').disabled = !writeEnabled;
+    }
+  }
+
   async function load() {
     const button = $('pipeline-reload');
     button.disabled = true;
@@ -255,6 +401,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       tasks = payload.items;
       loaded = true;
       renderBoard();
+      await refreshWriter();
       const last = payload.summary && payload.summary.lastSourceSyncAt;
       if (last && !Number.isNaN(Date.parse(last))) {
         const date = new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(last));
@@ -289,6 +436,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     renderBoard();
   });
   $('pipeline-reload').addEventListener('click', load);
+  $('pipeline-move-target').addEventListener('change', updateReceiptField);
+  $('pipeline-move-submit').addEventListener('click', () => {
+    if (selectedTask) void moveTask(selectedTask, $('pipeline-move-target').value, $('pipeline-move-receipt').value);
+  });
   $('pipeline-close').addEventListener('click', () => $('pipeline-detail').close());
   $('pipeline-dismiss').addEventListener('click', () => $('pipeline-detail').close());
   $('pipeline-detail').addEventListener('click', event => {
@@ -329,6 +480,19 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 .pipeline-search-label{flex:1;min-width:200px;max-width:365px;}
 .pipeline-search-label input{width:100%;border:1px solid var(--pp-line);border-radius:8px;min-height:38px;background:#fff;padding:8px 12px;font-size:12px;color:#17191c;}
 .pipeline-sync{font-size:11px;color:#7c838d;white-space:nowrap;}
+.pipeline-move-state{font-size:11px;color:#21654d;flex-basis:100%;margin:0;line-height:1.5}
+.pipeline-move-state.is-error{color:#a34535}
+.pipeline-task[draggable="true"]{cursor:grab}
+.pipeline-task.is-dragging{opacity:.55;cursor:grabbing}
+.pipeline-lane.is-drop-target{outline:3px solid #d4af37;outline-offset:-4px;background:#faf3e3}
+.pipeline-move-controls{margin:16px 0 10px;padding:13px;border:1px solid #e6e0d4;border-radius:9px;display:grid;gap:8px;background:#fbfaf8}
+.pipeline-move-controls label{font-size:12px;font-weight:700}
+.pipeline-move-controls select,.pipeline-move-controls textarea{width:100%;min-height:42px;padding:8px 10px;border:1px solid #c9c5bd;border-radius:7px;background:white;color:#20252a;font-size:14px}
+.pipeline-move-controls textarea{min-height:85px;resize:vertical;line-height:1.5}
+.pipeline-move-controls button{min-height:44px;color:white;background:#0f172a;border:0;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700}
+.pipeline-move-controls button:disabled{cursor:not-allowed;opacity:.45}
+.pipeline-move-controls p{font-size:11px;color:#73777e;line-height:1.5;margin:0}
+.pipeline-move-controls [hidden]{display:none!important}
 .pipeline-board{display:flex;gap:11px;align-items:stretch;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:0 1px 14px;scrollbar-width:thin;min-height:340px;}
 .pipeline-lane{background:#f0f0f0;border:1px solid #e5e5e4;border-radius:13px;padding:12px;flex:1 0 219px;min-width:219px;max-width:340px;scroll-snap-align:start;align-self:stretch;}
 .pipeline-lane-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
