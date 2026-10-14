@@ -10,7 +10,7 @@ import { dashboardAppCatalog, dashboardAppCategories } from '../../data/dashboar
       <h1>作ったものを、<span>すぐ使う。</span></h1>
       <p>試したいことに、ワンタップで。自作アプリとDashboardツールの入口を、用途ごとにまとめたよ。</p>
       <div class="apps-overview">
-        <span><strong>29</strong> 件の入口</span>
+        <span><strong>{dashboardAppCatalog.length}</strong> 件の入口</span>
         <span>📱 スマホからも起動</span>
         <span>☆ よく使うものを保存</span>
       </div>
@@ -27,7 +27,7 @@ import { dashboardAppCatalog, dashboardAppCategories } from '../../data/dashboar
         ))}
         <button type="button" class="apps-chip apps-fav-toggle" id="apps-only-favorites" aria-pressed="false">☆ お気に入り</button>
       </div>
-      <p class="apps-count" role="status" aria-live="polite" id="apps-results">全29件を表示</p>
+      <p class="apps-count" role="status" aria-live="polite" id="apps-results">全{dashboardAppCatalog.length}件を表示</p>
     </div>
 
     {dashboardAppCategories.map(category => (
