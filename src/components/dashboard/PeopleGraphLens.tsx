@@ -144,7 +144,6 @@ export default function PeopleGraphLens(){
 
   useEffect(()=>{
     let frame=0,raf=0,active=true;
-    const projected=new Map(graphNodes.map(n=>[n.id,n]));
     const depth=visibleDepth;
     const paint=()=>{
       const canvas=svg.current;if(!canvas)return;
@@ -166,6 +165,8 @@ export default function PeopleGraphLens(){
           rect.setAttribute('visibility','visible');rect.setAttribute('x',String(Math.min(...xs)-42));rect.setAttribute('y',String(Math.min(...ys)-42));
           rect.setAttribute('width',String(Math.max(115,Math.max(...xs)-Math.min(...xs)+84)));
           rect.setAttribute('height',String(Math.max(95,Math.max(...ys)-Math.min(...ys)+84)));
+          const header=canvas.querySelector<SVGTextElement>('[data-group-caption="'+g.id+'"]');
+          if(header){header.setAttribute('x',String(Math.min(...xs)-29));header.setAttribute('y',String(Math.min(...ys)-51));}
         }
       }
     };
@@ -226,12 +227,31 @@ export default function PeopleGraphLens(){
     if(pointer.current?.kind!=='node'||pointer.current.id!==e.pointerId)return;
     const target=pointer.current.nodeId;if(!target)return;
     const p=points.current[target],pt=screenPoint(e);
+    if(Math.hypot(pt.x-pointer.current.x,pt.y-pointer.current.y)<5&&!p.pinned)return;
     p.x=pointer.current.originX+pt.x-pointer.current.x;p.y=pointer.current.originY+pt.y-pointer.current.y;
     p.vx=p.vy=0;p.pinned=true;
     e.stopPropagation();
   }
   function onNodeUp(e:ReactPointerEvent<SVGGElement>,id:string){
-    e.stopPropagation();pointer.current=null;setSelected(id);setInfo('位置を固定しました。選択中の人物はピン解除で再び動きます。');setCounter(v=>v+1);
+    e.stopPropagation();const wasMoved=!!points.current[id]?.pinned;pointer.current=null;setSelected(id);if(wasMoved)setInfo('人物を選択しました。ドラッグで移動・固定できます。');setCounter(v=>v+1);
+  }
+  function onGroupDown(e:ReactPointerEvent<SVGGElement>,id:string){
+    e.stopPropagation();const pt=screenPoint(e);
+    const initial:Record<string,{x:number;y:number}>={};
+    for(const n of graphNodes.filter(n=>n.group===id)){const p=points.current[n.id];if(p)initial[n.id]={x:p.x,y:p.y}}
+    groupDrag.current={id:e.pointerId,group:id,x:pt.x,y:pt.y,initial};
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+  function onGroupMove(e:ReactPointerEvent<SVGGElement>){
+    const drag=groupDrag.current;if(!drag||drag.id!==e.pointerId)return;
+    e.stopPropagation();const pt=screenPoint(e),dx=pt.x-drag.x,dy=pt.y-drag.y;
+    if(Math.hypot(dx,dy)<4)return;
+    for(const [id,original] of Object.entries(drag.initial)){const p=points.current[id];if(!p)continue;
+      p.x=original.x+dx;p.y=original.y+dy;p.vx=p.vy=0;p.pinned=true;
+    }
+  }
+  function onGroupUp(e:ReactPointerEvent<SVGGElement>){
+    e.stopPropagation();groupDrag.current=null;setCounter(v=>v+1);setInfo('グループの位置をまとめて固定しました');
   }
   function onBackgroundDown(e:ReactPointerEvent<SVGSVGElement>){
     if((e.target as Element).closest?.('[data-people-node]'))return;
@@ -298,7 +318,12 @@ export default function PeopleGraphLens(){
             role="img" aria-label="架空の人脈ネットワーク。点をドラッグして位置を固定できます"
             onPointerDown={onBackgroundDown} onPointerMove={onBackgroundMove} onPointerUp={()=>{if(pointer.current?.kind==='pan')pointer.current=null}}
             onPointerCancel={()=>{pointer.current=null}} onWheel={onWheel}>
-            {layout==='groups'&&groups.map(g=><rect key={g.id} data-people-group={g.id} fill={g.color} fillOpacity=".07" stroke={g.color} strokeDasharray="8 7" rx="25" strokeWidth="1.5"/>)}
+            {layout==='groups'&&groups.map(g=><g key={g.id} onPointerDown={e=>onGroupDown(e,g.id)}
+              onPointerMove={onGroupMove} onPointerUp={onGroupUp}
+              style={{cursor:'move',touchAction:'none'}}>
+              <rect data-people-group={g.id} fill={g.color} fillOpacity=".07" stroke={g.color} strokeDasharray="8 7" rx="25" strokeWidth="1.5"/>
+              <text data-group-caption={g.id} fontSize="13" fill={g.color} fontWeight="700">{g.label} · ドラッグで移動</text>
+            </g>)}
             {graphEdges.map((e,i)=><line key={e.a+'|'+e.b+'|'+e.type} data-people-edge={i} stroke={routeEdges.has([e.a,e.b].sort().join('|'))?'#ee7800':e.confirmed?'#718091':'#a6a1a0'} strokeWidth={routeEdges.has([e.a,e.b].sort().join('|'))?4:1.8} strokeDasharray={e.confirmed?undefined:'5 6'} opacity=".73"/>)}
             {graphNodes.map(n=>{
               const p=points.current[n.id]||{x:WIDTH/2,y:HEIGHT/2,pinned:false},person=byId.get(n.id);
