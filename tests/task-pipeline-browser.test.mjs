@@ -49,7 +49,7 @@ function assemblePage(astroSource) {
     'const searchCount=document.querySelectorAll(".pipeline-task").length;'+
     'const gate=document.querySelector("[data-scope=gate]");gate?.click();'+
     'const gateCount=document.querySelectorAll(".pipeline-task").length;'+
-    'const audit={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,initialCount,detailOpens,searchCount,gateCount,lanes:document.querySelectorAll(".pipeline-lane").length,alert:document.getElementById("pipeline-alert-title")?.textContent};'+
+    'const audit={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,initialCount,detailOpens,searchCount,gateCount,lanes:document.querySelectorAll(".pipeline-lane").length,alert:document.getElementById("pipeline-alert-title")?.textContent,boardText:document.getElementById("pipeline-board")?.textContent?.slice(0,240),sync:document.getElementById("pipeline-sync")?.textContent};'+
     'const result=document.createElement("pre");result.id="layout-audit";result.textContent=JSON.stringify(audit);document.body.appendChild(result);'+
     '},400);</script></body></html>';
 }
@@ -107,7 +107,7 @@ test('real Pipeline HTML / JS / CSS works in headless Chromium at desktop and mo
       assert.ok(result,'no Pipeline audit at '+width);
       assert.ok(Math.abs(result.viewport-width)<=2,'viewport mismatch: requested '+width+' got '+result.viewport);
       assert.ok(result.scrollWidth<=result.viewport+1,'horizontal BODY overflow @'+width+': '+result.scrollWidth);
-      assert.equal(result.initialCount,5,'active phases must contain exactly five mock tasks');
+      assert.equal(result.initialCount,5,'active phases must contain five mock tasks: '+JSON.stringify(result));
       assert.equal(result.detailOpens,true,'details must open');
       assert.equal(result.searchCount,1,'search must narrow results');
       assert.equal(result.gateCount,1,'MASA Gate filter must preserve search');
