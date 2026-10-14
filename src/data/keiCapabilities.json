@@ -1,0 +1,370 @@
+[
+  {
+    "id": "research",
+    "label": "調査・検証",
+    "english": "RESEARCH",
+    "intro": "根拠と反証から、判断できる情報へ。",
+    "items": [
+      {
+        "id": "verify",
+        "title": "主張を検証する",
+        "description": "一次資料・最新研究・数字を照合。事実と仮説を分ける。",
+        "command": "これ検証して。一次情報まで辿り、支持・反証・未確定を分けて。",
+        "status": "ready"
+      },
+      {
+        "id": "compare",
+        "title": "歴史・制度を比較",
+        "description": "過去の類似事例、構造、現在への示唆を整理。",
+        "command": "歴史的に比較して。相違点と今に活かせる原理まで。",
+        "status": "ready"
+      },
+      {
+        "id": "redteam",
+        "title": "盲点を探す",
+        "description": "失敗条件・代替仮説・機会損失を分析。",
+        "command": "反証して。盲点と最大の失敗リスク、第一推奨を示して。",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "id": "knowledge",
+    "label": "知識・資産化",
+    "english": "KNOWLEDGE",
+    "intro": "会話や資料を、あとで使える資産へ。",
+    "items": [
+      {
+        "id": "assetize",
+        "title": "Driveに資産化",
+        "description": "既存正本を探し、重複せず差分統合する。",
+        "command": "これ資産化して。既存のDrive正本を確認し、重複なく統合・検証して。",
+        "status": "ready"
+      },
+      {
+        "id": "searchdrive",
+        "title": "過去資料を発掘",
+        "description": "テーマからDriveの関連資料を横断検索。",
+        "command": "このテーマの資料を全部探して。現在の正本と旧版を区別して。",
+        "status": "ready"
+      },
+      {
+        "id": "map",
+        "title": "Knowledge Mapへ接続",
+        "description": "既存概念と関連を整理。DBへの自動反映は都度確認。",
+        "command": "関連概念をつないで。Drive正本と現在のKnowledge実装を先に照合して。",
+        "status": "gated"
+      }
+    ]
+  },
+  {
+    "id": "creative",
+    "label": "発信・クリエイティブ",
+    "english": "CREATE",
+    "intro": "1つの原石から、伝わる形を何度も生む。",
+    "items": [
+      {
+        "id": "post",
+        "title": "X・noteに展開",
+        "description": "MASA視点、Hook、行動への導線まで編集。",
+        "command": "これをX投稿とnote記事へ展開して。事実とMASAの実体験を混同しないで。",
+        "status": "ready"
+      },
+      {
+        "id": "visual",
+        "title": "画像・図解・資料を作る",
+        "description": "インスタ用の構造、図解、PDF、プレゼンへ。",
+        "command": "これを分かりやすく図解・資料化して。目的に合う媒体を選んで。",
+        "status": "ready"
+      },
+      {
+        "id": "publish",
+        "title": "SNSの自動配信",
+        "description": "投稿案から予約・公開の一貫処理は接続と公開承認が必要。",
+        "command": "SNS配信の現在状態を確認して、公開承認が必要な箇所を示して。",
+        "status": "gated"
+      }
+    ]
+  },
+  {
+    "id": "business",
+    "label": "商品・収益設計",
+    "english": "BUSINESS",
+    "intro": "知識を顧客価値と売上につなげる。",
+    "items": [
+      {
+        "id": "offer",
+        "title": "最小商品にする",
+        "description": "ターゲット、提供価値、価格、MVPを組み立てる。",
+        "command": "これ商品になる？ 最小商品・価格・顧客成果・検証手順まで決めて。",
+        "status": "ready"
+      },
+      {
+        "id": "funnel",
+        "title": "販売導線を設計",
+        "description": "SNS→信頼→体験→商品→継続の流れ。",
+        "command": "収益化ルートを作って。既存のACE・SLFの商品と重複させずに。",
+        "status": "ready"
+      },
+      {
+        "id": "checkout",
+        "title": "決済・自動販売につなぐ",
+        "description": "StripeやEntitlementの接続・実商品E2Eは要検証。",
+        "command": "Commerce Agentの現在状態を確認し、商品から決済までの最短ルートを検証して。",
+        "status": "gated"
+      }
+    ]
+  },
+  {
+    "id": "builder",
+    "label": "Web・アプリ開発",
+    "english": "BUILD",
+    "intro": "自然言語を、コードと触れる仕組みに。",
+    "items": [
+      {
+        "id": "github",
+        "title": "GitHubの進行確認",
+        "description": "Issue・PR・実装・テストの現状を調べる。",
+        "command": "GitHub見て。現状、止まっているGate、次に進める1件を整理して。",
+        "status": "ready"
+      },
+      {
+        "id": "brief",
+        "title": "実装仕様にする",
+        "description": "要件、UI、テスト、受入条件までCodex用に具体化。",
+        "command": "Codexに渡す指示書作って。既存Repoを先に確認し、最小変更・検証条件まで。",
+        "status": "ready"
+      },
+      {
+        "id": "deploy",
+        "title": "本番まで開発・公開",
+        "description": "コード変更は可能。CI・権限・Human Gate・実機QAを通して公開。",
+        "command": "この機能を実装して。テスト、PR、デプロイGateまで確認し、未完は明示して。",
+        "status": "gated"
+      }
+    ]
+  },
+  {
+    "id": "automation",
+    "label": "日常・自動化",
+    "english": "OPERATE",
+    "intro": "予定・連絡・繰り返し作業を軽くする。",
+    "items": [
+      {
+        "id": "gmail",
+        "title": "重要メールを整理",
+        "description": "Gmail検索、要対応抽出、返信下書き。送信は明示依頼。",
+        "command": "重要メールを見て。返信が必要なものと次の一手を整理して。",
+        "status": "ready"
+      },
+      {
+        "id": "calendar",
+        "title": "予定・優先順位を整える",
+        "description": "CalendarとTaskを確認し、今日の3つに絞る。",
+        "command": "朝会。予定とTASK_BOARDの正本を読んで、今日の3つを決めて。",
+        "status": "ready"
+      },
+      {
+        "id": "watch",
+        "title": "定期チェック・通知",
+        "description": "指定日時や条件でチェック。外部Runnerの稼働とは区別。",
+        "command": "このテーマを定期確認して、意味のある変更があった時だけ教えて。",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "id": "education",
+    "label": "学習・教育",
+    "english": "LEARN",
+    "intro": "理解→実践→検証→成長を設計する。",
+    "items": [
+      {
+        "id": "quiz",
+        "title": "弱点に合わせた問題集",
+        "description": "消防設備士乙4などの類題・解説・重点復習。",
+        "command": "弱点だけ出して。本質的な覚え方と、ひっかけ対策まで。",
+        "status": "ready"
+      },
+      {
+        "id": "ace",
+        "title": "ACE教材へ変換",
+        "description": "身体知・脳科学・哲学を体験ワークと教材へ。",
+        "command": "これACEに接続して。本人の体験→問い→実践まで教材化して。",
+        "status": "ready"
+      },
+      {
+        "id": "rsvp",
+        "title": "RSVPで読む・理解を確かめる",
+        "description": "日本語RSVPの試作品あり。速度調整・読み戻し・Recallで学習を検証。ACE本番統合は未実装。",
+        "command": "RSVP Learning Labを使いたい。既存Driveの試作品とPJT-037の仕様を確認し、教材テキストで試せる方法と理解度・翌日想起の検証を組み立てて。ACE本番統合が必要なら未実装として別に進めて。",
+        "status": "ready",
+        "resourceUrl": "https://drive.google.com/file/d/1YnR0P-d70Q3tXMw4ktHnUOJA2P2wReiD/view"
+      },
+      {
+        "id": "factory",
+        "title": "教材化Dashboardへ連携",
+        "description": "教材レビュー・保存・自動派生を統合する仕組みは開発中。",
+        "command": "ACE Material Factoryの正本と現在の実装状態を確認し、次の最小実装を進めて。",
+        "status": "building"
+      }
+    ]
+  },
+  {
+    "id": "agent",
+    "label": "AIチーム・Skills",
+    "english": "AGENT OS",
+    "intro": "慧の能力そのものを改善・再利用する。",
+    "items": [
+      {
+        "id": "ttp",
+        "title": "外部ツールを取り込む",
+        "description": "OSS・Skillの価値、ライセンス、既存OSとの差分を検証。",
+        "command": "これTTPして。現在のMASA Agent OSと重複を確認し、価値のある差分だけ検証・統合して。",
+        "status": "ready"
+      },
+      {
+        "id": "skill",
+        "title": "成功パターンをSkill化",
+        "description": "作業方法を再利用可能なルール・手順へ。",
+        "command": "これSkillにして。既存Skillへの統合を優先し、検証可能な手順にして。",
+        "status": "ready"
+      },
+      {
+        "id": "orchestrate",
+        "title": "複数AIの役割を選ぶ",
+        "description": "Chief / Research / Editor / Designer / Builderを使い分ける。",
+        "command": "適任に任せて。Purposeから必要最小限の役割とツールを選び、成果まで進めて。",
+        "status": "ready"
+      }
+    ]
+  },
+  {
+    "id": "recipes",
+    "label": "Plusで今使う実践レシピ",
+    "english": "PLUS · PRACTICAL",
+    "intro": "調査・判断・資産化の実務に使う10レシピ。接続と承認が必要な操作は実行時に確認。",
+    "items": [
+      {
+        "id": "source-audit",
+        "title": "資料を正本へ差分統合",
+        "description": "記事・X・会話の出典・重複を調べ、Drive正本に差分保存して読み戻す。",
+        "command": "この資料を既存Driveに資産化して。関連正本を検索し、出典・重複・差分を示して保存。読み戻しと成果リンクまで報告して。",
+        "status": "ready"
+      },
+      {
+        "id": "pending-radar",
+        "title": "未対応・期限を一括点検",
+        "description": "Gmail・TASKS・GitHubの滞留、判断待ち、期限切れを整理。",
+        "command": "未完了レーダーを実行して。Gmail・TASK_BOARD・GitHubの未対応、期限、承認待ちを根拠リンク付きで今日の3件に絞って。外部送信・変更はしないで。",
+        "status": "ready"
+      },
+      {
+        "id": "meeting-brief",
+        "title": "商談前の30分ブリーフ",
+        "description": "Calendarと関連メール・資料から経緯、未決・重要質問を準備。",
+        "command": "商談準備をして。予定・関連メール・資料を接続可能な範囲で照合し、30分前に読む1画面の経緯・未決・質問・次Actionにまとめて。送信しないで。",
+        "status": "gated"
+      },
+      {
+        "id": "revenue-leak",
+        "title": "売上の取りこぼしを探す",
+        "description": "未請求・見積滞留・返信待ちを調べ、営業の次の一手と下書きを作る。",
+        "command": "売上機会の取りこぼしを監査して。未請求・未回収・見積/返信待ちを証拠付きで整理し、優先3件と文面案を作成。請求・決済・送信はMASA承認までしない。",
+        "status": "gated"
+      },
+      {
+        "id": "content-consistency",
+        "title": "SNS・note・教材を整合チェック",
+        "description": "数字・出典・CTA・商品価格・ブランド表現のずれを媒体横断で検査。",
+        "command": "このテーマのX・note・動画・教材を整合監査して。数値・出典・ブランド・CTA・価格を比較し、修正案を提示して。公開はしないで。",
+        "status": "ready"
+      },
+      {
+        "id": "decision-review",
+        "title": "判断を学習資産にする",
+        "description": "事前仮説・選択・結果・矛盾・学びを次の実験につなぐ。",
+        "command": "この判断を学習に変えて。仮説、選択、実際の結果、矛盾、学び、次に試す実験を分け、関連DriveのDecision正本へ差分統合して。",
+        "status": "ready"
+      },
+      {
+        "id": "brand-audit",
+        "title": "UIとブランドを比較監査",
+        "description": "Design Intelligenceと現行UIを比較し、最小改善案にまとめる。",
+        "command": "現行UIをMASA DESIGN INTELLIGENCE・ブランド原則・GitHubと照合して。差分と優先修正3件を出し、必要ならDraft PRまで。公開はしないで。",
+        "status": "ready"
+      },
+      {
+        "id": "learning-loop",
+        "title": "アスリート体験から教材改訂",
+        "description": "実際のフィードバックからACEワーク・評価指標・教材次版を作る。",
+        "command": "この実践フィードバックをACE教材に反映して。実体験と仮説を分け、ワーク・測定指標・次版原稿を作って。許可ある実データだけ使って。",
+        "status": "ready"
+      },
+      {
+        "id": "multilens-review",
+        "title": "5視点の成果レビュー",
+        "description": "顧客・学習者・実装・安全・ブランドの視点で抜けを見つける。",
+        "command": "この成果を顧客、学習者、Builder、安全、ブランドの5視点でレビューして。根拠と反証を示し、優先修正3件へ統合して。",
+        "status": "ready"
+      },
+      {
+        "id": "voice-capture",
+        "title": "声と思考をBrain Flowへ",
+        "description": "音声メモ・文字起こしをDump→Storming→Bridge→Flowで資産候補に。",
+        "command": "この音声メモまたは文字起こしをBrain Flowに整理して。Dump→Storming→Bridge→FlowをTask・Content・Knowledgeへ仕分け。音声未取得なら必要手順を示して。",
+        "status": "gated"
+      }
+    ]
+  },
+  {
+    "id": "dots",
+    "label": "Proで広がること（dots）",
+    "english": "DOTS · PRO",
+    "intro": "常時稼働の仕事は、対象Proプランとdotの利用開始後に。現状の慧では未導入。",
+    "items": [
+      {
+        "id": "dots-tracking",
+        "title": "会話していない間も案件を追う",
+        "description": "締切・進捗・判断待ちを継続確認し、必要なタイミングで報告。Pro+dots利用後の候補。",
+        "command": "【Pro+dots利用開始後の依頼】複数Projectの期日、止まっている作業、MASAの判断が必要なことを継続的に追い、重要な変更だけ報告して。DriveとTASKSの正本を確認し、外部操作は承認を取って。未導入なら開始せず条件だけ整理して。",
+        "status": "pro"
+      },
+      {
+        "id": "dots-across-apps",
+        "title": "アプリをまたいで準備を進める",
+        "description": "許可したDrive・Gmail・Calendar等を横断し、必要な下書き・差分・確認事項をまとめる。",
+        "command": "【Pro+dots利用開始後の依頼】許可済みアプリの範囲でDrive、Gmail、Calendarの関連情報を照合して、必要な返信下書きと更新候補を作成して。送信・公開・正本上書きは必ず事前確認。未導入なら実行せず接続条件だけ示して。",
+        "status": "pro"
+      },
+      {
+        "id": "dots-delegation",
+        "title": "Codexと制作作業を取りまとめる",
+        "description": "調査・実装・コンテンツ更新を依頼し、レビュー用の成果と判断事項にまとめる。",
+        "command": "【Pro+dots利用開始後の依頼】GitHubのPRとコンテンツ進行を継続確認し、必要な調査・修正案をCodex等へ委任してレビュー可能な成果物にまとめて。マージ・デプロイ・外部公開はHuman Gateを守る。未導入なら導入条件だけ整理して。",
+        "status": "pro"
+      },
+      {
+        "id": "dots-doc-cascade",
+        "title": "資料変更を関連成果物へ波及",
+        "description": "仕様・価格・重要情報の変更を追い、関連する提案書・教材の修正案を準備。",
+        "command": "【Pro+dots導入後】許可した資料の重要な変更を継続確認し、関連する提案書・教材・原稿の修正候補を提示。正本書込・外部送信・公開は事前承認。未導入なら条件だけ確認して。",
+        "status": "pro"
+      },
+      {
+        "id": "dots-cloud-local",
+        "title": "クラウドPCとローカル作業を橋渡し",
+        "description": "dotのクラウド作業と、オンラインMac/PCのファイル・Skills利用を区別。",
+        "command": "【Pro+dots導入後】クラウドPCとローカルMac/PC接続が必要な作業を分け、アクセス権・起動条件・承認ルールを設計して。現時点で未導入なら接続しないで。",
+        "status": "pro"
+      },
+      {
+        "id": "dots-proactive",
+        "title": "先回り調査で差分だけ知らせる",
+        "description": "接続ソースを読み取り中心で監視し、例外的なリスクだけ報告。",
+        "command": "【Pro+dots導入後】優先案件の重要な変化、期限リスク、見落としを継続調査し、例外だけ根拠付きで知らせて。自発調査から送信・Drive書込へ無断で進めない。未導入なら計画だけ。",
+        "status": "pro"
+      }
+    ]
+  }
+]
