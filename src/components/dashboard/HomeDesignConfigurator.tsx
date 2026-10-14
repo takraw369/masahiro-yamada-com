@@ -7,13 +7,16 @@ import {
 } from '../../data/homeDesignCombinations';
 import '../../styles/dashboard-design-studio.css';
 import HomeDesignPreview from './HomeDesignPreview';
+import DashboardDesignReferenceGallery from './DashboardDesignReferenceGallery';
+import { DASHBOARD_REFERENCE_STORAGE_KEY, dashboardDesignReferences, emptyDashboardReferenceState,
+  parseDashboardReferenceState, writeDashboardReferenceState, type DashboardReferenceId, type DashboardReferenceState } from '../../data/dashboardDesignReferences';
 
 type Favorite = { id:string; name:string; config:HomeDesignConfig };
 const maxFavorites = 12;
 const layoutNames:Record<string,string> = {focus:'一つに集中',split:'行動と収益',journey:'流れから選ぶ',tiles:'すぐに届ける',editorial:'考えを編む',studio:'全体を見渡す'};
-const styleNames:Record<string,string> = {dawn:'朝の余白',night:'夜の集中',ocean:'澄んだ流れ',glass:'軽やかな層',editorial:'紙とインク',quest:'前へ進む'};
+const styleNames:Record<string,string> = {orange:'MASA オレンジ',dawn:'朝の余白',night:'夜の集中',ocean:'澄んだ流れ',glass:'軽やかな層',editorial:'紙とインク',quest:'前へ進む'};
 const partNames:Record<string,Record<string,string>>={buttons:{sharp:'まっすぐ',soft:'やわらか',pill:'丸く'},cards:{outline:'輪郭で分ける',soft:'面でまとめる',float:'奥行きで分ける'},navigation:{tabs:'横に並べる',chips:'小さくまとめる',dock:'手元に集める'},cta:{solid:'はっきり',outline:'控えめに',minimal:'言葉と矢印'}};
-const panels = [{id:'layout',name:'構成'},{id:'style',name:'見た目'},{id:'parts',name:'部品'}] as const;
+const panels = [{id:'references',name:'参考5案'},{id:'layout',name:'構成'},{id:'style',name:'見た目'},{id:'parts',name:'部品'}] as const;
 type Panel = (typeof panels)[number]['id'];
 const componentGroups = [
   { key:'buttons', label:'BUTTON', title:'ボタンの輪郭', hint:'タップの気持ちよさを選ぶ。' },
@@ -37,7 +40,8 @@ function readFavorites():Favorite[] {
 }
 
 export default function HomeDesignConfigurator() {
-  const [panel,setPanel] = useState<Panel>('layout');
+  const [panel,setPanel] = useState<Panel>('references');
+  const [references,setReferences] = useState<DashboardReferenceState>(emptyDashboardReferenceState);
   const [frameSize,setFrameSize] = useState<'fit'|'phone'>('phone');
   const [previewChoice,setPreviewChoice] = useState<HomeDesignConfig>(DEFAULT_HOME_DESIGN);
   const [choice,setChoice] = useState<HomeDesignConfig>(DEFAULT_HOME_DESIGN);
@@ -53,11 +57,15 @@ export default function HomeDesignConfigurator() {
       const existing = loadHomeDesign(localStorage);
       const saved = readFavorites();
       const queryStyle = new URLSearchParams(window.location.search).get('style');
+      const referenceState = parseDashboardReferenceState(localStorage.getItem(DASHBOARD_REFERENCE_STORAGE_KEY));
+      const resumed = dashboardDesignReferences.find(item=>item.id===referenceState.previewId);
+      setReferences(referenceState);
       setApplied(existing);
-      setChoice({
+      setChoice(resumed && !isHomeDesignPreset(queryStyle) ? {...resumed.config} : {
         ...(existing || DEFAULT_HOME_DESIGN),
         style:isHomeDesignPreset(queryStyle) ? queryStyle : (existing?.style ?? DEFAULT_HOME_DESIGN.style),
       });
+      if (isHomeDesignPreset(queryStyle)) setPanel('style');
       setFavorites(saved);
     } catch {
       setStorageReady(false);
@@ -67,8 +75,36 @@ export default function HomeDesignConfigurator() {
   },[]);
 
   function update<K extends keyof HomeDesignConfig>(key:K, value:HomeDesignConfig[K]) {
+    clearReferencePreview();
     setChoice(previous=>({ ...previous, [key]:value }));
     setStatus('選択内容をプレビュー中。適用するまでホームは変更されません。');
+  }
+  function saveReferences(next:DashboardReferenceState) {
+    setReferences(next);
+    try {
+      writeDashboardReferenceState(localStorage,next);
+      setStatus('参考案の選択・お気に入り・メモを、このブラウザに保存しました。');
+      return true;
+    } catch { setStatus('保存できませんでした。変更は画面上だけに残っています。再読み込み前にメモを控えてください。'); return false; }
+  }
+  function clearReferencePreview() {
+    const next={...references,previewId:null};
+    setReferences(next);
+    if (storageReady) {
+      try { writeDashboardReferenceState(localStorage,next); }
+      catch { setStatus('プレビューの再開位置を保存できませんでした。'); }
+    }
+  }
+  function previewReference(id:DashboardReferenceId) {
+    const item=dashboardDesignReferences.find(reference=>reference.id===id);
+    if (!item) return;
+    const next={...references,previewId:id};
+    const stored=storageReady ? saveReferences(next) : false;
+    if (!storageReady) setReferences(next);
+    setChoice({...item.config});
+    setFavoriteName(item.name+' · MASA オレンジ');
+    setStatus(item.name+'のMASA案をプレビュー中。ホームへは未適用です。'+(stored?'':' 再開位置は保存できていません。'));
+    document.getElementById('studio-preview')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   }
   function apply() {
     if (!storageReady) return;
@@ -83,6 +119,7 @@ export default function HomeDesignConfigurator() {
   function reset() {
     try {
       resetHomeDesign(localStorage);
+      clearReferencePreview();
       setApplied(null);
       setChoice(DEFAULT_HOME_DESIGN);
       setStatus('標準のDashboardに戻しました。これまでの保存デザイン案は残しています。');
@@ -117,23 +154,25 @@ export default function HomeDesignConfigurator() {
   const previewUrl='/dashboard?design-preview='+encodeURIComponent(JSON.stringify(previewChoice));
   const selectionName=styleNames[choice.style]+' · '+layoutNames[choice.layout];
 
-  return <div className="design-studio" id="home-design-studio">
+  return <div className="design-studio" id="home-design-studio" data-panel={panel}>
     <header className="studio-header studio-header-v3">
       <div><p className="overline">DESIGN STUDIO</p><h1>自分の動きに、<br/><em>合う画面を。</em></h1></div>
-      <p>まず配置を選ぶ。見た目と部品はあとから。<br/>画面を見ながら、しっくりくる形を探そう。</p>
+      <p>参考5案を残して、いつでも見比べる。<br/>構成・見た目・部品はあとから整えよう。</p>
     </header>
-    <div className="studio-adopted"><div><span>選んだ組み合わせ</span><strong>夜の集中 × すぐに届ける</strong><small>やわらかい面・チップの導線・はっきりした一手</small></div><button type="button" onClick={()=>{setChoice({...MASA_SELECTED_HOME_DESIGN});setStatus('選んだ組み合わせを読み込みました。適用するまでホームは変わりません。');}}>この組み合わせを試す</button></div>
-    <div className="studio-workbench">
+    <div className="studio-workbench" data-panel={panel}>
       <div className="studio-picker" id="studio-choices">
         <div className="studio-tabs" role="tablist" aria-label="デザインを選ぶ順番">
           {panels.map((item,index)=><button type="button" key={item.id} id={'tab-'+item.id} role="tab" aria-selected={panel===item.id} aria-controls={'studio-'+item.id} tabIndex={panel===item.id?0:-1}
             onClick={()=>setPanel(item.id)} onKeyDown={event=>{
               const keys=['ArrowRight','ArrowLeft','Home','End']; if(!keys.includes(event.key))return;
               event.preventDefault();
-              const next=event.key==='Home'?0:event.key==='End'?2:(index+(event.key==='ArrowRight'?1:2))%3;
+              const next=event.key==='Home'?0:event.key==='End'?panels.length-1:(index+(event.key==='ArrowRight'?1:panels.length-1))%panels.length;
               setPanel(panels[next].id);document.getElementById('tab-'+panels[next].id)?.focus();
             }}><span>0{index+1}</span>{item.name}</button>)}
         </div>
+        <section id="studio-references" className="studio-panel" role="tabpanel" aria-labelledby="tab-references" hidden={panel!=='references'}>
+          <DashboardDesignReferenceGallery state={references} ready={hydrated} canSave={storageReady} onPreview={previewReference} onSave={saveReferences}/>
+        </section>
         <section id="studio-layout" className="studio-panel" role="tabpanel" aria-labelledby="tab-layout" hidden={panel!=='layout'}>
           <div className="picker-heading"><h2>何から始めたい？</h2><p>最初に見るものと、次へ進む順番が変わります。</p></div>
           <div className="layout-grid">
@@ -183,14 +222,15 @@ export default function HomeDesignConfigurator() {
       </section>
     </div>
     <nav className="studio-mobile-jumps" aria-label="選択と結果を行き来する">
-      <a href="#studio-choices">構成を選ぶ ↓</a><a href="#studio-preview">選んだ画面を見る ↑</a>
+      <a href="#studio-choices">参考案を選ぶ ↓</a><a href="#studio-preview">選んだ画面を見る ↑</a>
     </nav>
+    <div className="studio-adopted"><div><span>これまでに選んだ組み合わせ</span><strong>夜の集中 × すぐに届ける</strong><small>やわらかい面・チップの導線・はっきりした一手</small></div><button type="button" onClick={()=>{clearReferencePreview();setChoice({...MASA_SELECTED_HOME_DESIGN});setStatus('選んだ組み合わせを読み込みました。適用するまでホームは変わりません。');}}>この組み合わせを試す</button></div>
     <details className="studio-saved" id="studio-favorites">
       <summary><span>気に入った組み合わせを残す</span><span>{favorites.length} / 12 <b aria-hidden="true">＋</b></span></summary>
       <div className="saved-content"><p>保存はこのブラウザだけ。ホームへの適用とは別です。</p>
         <div className="favorite-creator"><label htmlFor="design-favorite-name">案の名前</label><input id="design-favorite-name" type="text" maxLength={48} value={favoriteName} onChange={event=>setFavoriteName(event.target.value)} placeholder="例：朝に集中する画面"/>
           <button type="button" onClick={saveFavorite} disabled={!storageReady||!hydrated}>この組み合わせを保存</button></div>
-        {favorites.length>0?<div className="favorite-list">{favorites.map(item=><article key={item.id} className="favorite-item"><div><strong>{item.name}</strong><small>{describeHomeDesign(item.config)}</small></div><div><button type="button" onClick={()=>{setChoice(item.config);setStatus('保存案を読み込みました。ホームへは未適用です。');document.getElementById('studio-preview')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}}>読み込む</button><button type="button" className="remove" onClick={()=>deleteFavorite(item.id)} aria-label={`${item.name}を削除`}>削除</button></div></article>)}</div>:<p className="empty-favorites">まだ保存した案はありません。</p>}
+        {favorites.length>0?<div className="favorite-list">{favorites.map(item=><article key={item.id} className="favorite-item"><div><strong>{item.name}</strong><small>{describeHomeDesign(item.config)}</small></div><div><button type="button" onClick={()=>{clearReferencePreview();setChoice(item.config);setStatus('保存案を読み込みました。ホームへは未適用です。');document.getElementById('studio-preview')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}}>読み込む</button><button type="button" className="remove" onClick={()=>deleteFavorite(item.id)} aria-label={`${item.name}を削除`}>削除</button></div></article>)}</div>:<p className="empty-favorites">まだ保存した案はありません。</p>}
       </div>
     </details>
     <footer className="studio-foot"><a href="/dashboard/design-lab">好みの選択を続ける ↗</a><a href="/dashboard/visual-structures">図解の構成を選ぶ ↗</a><p>この段階ではホームの大きな区画と導線を比較します。各機能の細かな操作画面は、実際に使った感想をもとに次の段階で整えます。</p></footer>
