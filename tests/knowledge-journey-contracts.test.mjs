@@ -52,3 +52,22 @@ test('Knowledge Journey dashboard labels drop-off as a signal, not certainty', a
   assert.match(dashboard, /離脱確定.*ではなく/s);
   assert.match(dashboard, /masa_knowledge_journey_snapshot_v1/);
 });
+
+test('Knowledge Journey checkout click is intent, never anonymous purchase proof', async () => {
+  const client = await read('src/lib/knowledgeJourneyClient.ts');
+  const endpoint = await read('src/pages/api/library/journey.ts');
+  assert.match(client, /ks_checkout_start/);
+  assert.match(client, /buy\\.stripe\\.com/);
+  assert.match(client, /stripe_payment_link/);
+  assert.doesNotMatch(endpoint, /^\\s*'ks_purchase',/m);
+  assert.match(endpoint, /signature-verified payment webhook/);
+});
+
+test('isolated Worker smoke covers existing purchaser key, reader and fake purchase denial', async () => {
+  const smoke = await read('scripts/smoke-preview.mjs');
+  for (const name of ['/library/access', '/library/a3-decision-flow/read', '/api/library/claim-key', '/api/library/unlock', 'fakePurchase']) {
+    assert.ok(smoke.includes(name), 'missing smoke case: ' + name);
+  }
+  assert.match(smoke, /no-store/);
+  assert.match(smoke, /invalid_event/);
+});
