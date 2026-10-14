@@ -34,24 +34,39 @@ function assemblePage(astroSource) {
   const css = astroSource.match(/<style is:global>([\s\S]*?)<\/style>/)?.[1];
   assert.ok(body && script && css, 'review fixture must use the real Pipeline HTML, JS and CSS');
   const data = JSON.stringify({ok:true,items:fixture,summary:{lastSourceSyncAt:'2026-10-14T08:00:00Z'}});
+  const statuses = Object.fromEntries(fixture.map(item=>[item.taskId,{status:item.status,revision:2}]));
   return '<!doctype html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
     '<style>*{box-sizing:border-box}body{margin:0;padding:12px;font-family:Arial,sans-serif;background:#f3f1ed;color:#17191c}</style>'+
     '<style>'+css+'</style></head><body>'+
     body+
-    '<script>window.fetch=async()=>{window.__fixtureFetchCalls=(window.__fixtureFetchCalls||0)+1;return {ok:true,json:async()=>('+JSON.stringify(JSON.parse(data))+')}};</script>'+
+    '<script>window.__mockTaskStatus='+JSON.stringify(statuses)+';window.__mockMoves=[];window.fetch=async(url,opts={})=>{window.__fixtureFetchCalls=(window.__fixtureFetchCalls||0)+1;'+
+    'if(String(url).includes("/api/dashboard/task-move")){'+
+      'if(opts.method==="POST"){const input=JSON.parse(opts.body);window.__mockMoves.push(input);'+
+        'const src=window.__mockTaskStatus[input.taskId];src.status=input.toStatus;src.revision++;'+
+        'return {ok:true,json:async()=>({ok:true,verified:true,status:src.status,sourceRevision:src.revision,sourceUpdatedAt:"2026-10-14T00:00:00Z",sourceEditBy:"MASA Dashboard"})};}'+
+      'return {ok:true,json:async()=>({ok:true,writeEnabled:true,statuses:window.__mockTaskStatus})};}'+
+    'return {ok:true,json:async()=>('+JSON.stringify(JSON.parse(data))+')};};</script>'+
     '<script>'+script+'</script>'+
     '<script>setTimeout(()=>{'+
     'const initialCount=document.querySelectorAll(".pipeline-task").length;'+
     'const first=document.querySelector(".pipeline-task");first?.click();'+
     'const detailOpens=document.getElementById("pipeline-detail")?.open===true;'+
     'document.getElementById("pipeline-detail")?.close();'+
+    'const source=Array.from(document.querySelectorAll(".pipeline-task")).find(node=>node.textContent.includes("期限切れの確認"));'+
+    'const dest=document.querySelector(\'.pipeline-lane[data-phase="WAIT"]\');'+
+    'const dragReady=source?.draggable===true;'+
+    'const dataTransfer=new DataTransfer();'+
+    'source?.dispatchEvent(new DragEvent("dragstart",{bubbles:true,cancelable:true,dataTransfer}));'+
+    'dest?.dispatchEvent(new DragEvent("dragover",{bubbles:true,cancelable:true,dataTransfer}));'+
+    'dest?.dispatchEvent(new DragEvent("drop",{bubbles:true,cancelable:true,dataTransfer}));'+
+    'setTimeout(()=>{'+
     'const search=document.getElementById("pipeline-search");search.value="特別";search.dispatchEvent(new Event("input",{bubbles:true}));'+
     'const searchCount=document.querySelectorAll(".pipeline-task").length;'+
     'const gate=document.querySelector("[data-scope=gate]");gate?.click();'+
     'const gateCount=document.querySelectorAll(".pipeline-task").length;'+
-    'const audit={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,initialCount,detailOpens,searchCount,gateCount,lanes:document.querySelectorAll(".pipeline-lane").length,alert:document.getElementById("pipeline-alert-title")?.textContent,boardText:document.getElementById("pipeline-board")?.textContent?.slice(0,240),sync:document.getElementById("pipeline-sync")?.textContent,error:window.__pipelineTestError||"",fetchCalls:window.__fixtureFetchCalls||0};'+
+    'const audit={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,initialCount,detailOpens,searchCount,gateCount,lanes:document.querySelectorAll(".pipeline-lane").length,alert:document.getElementById("pipeline-alert-title")?.textContent,boardText:document.getElementById("pipeline-board")?.textContent?.slice(0,240),sync:document.getElementById("pipeline-sync")?.textContent,error:window.__pipelineTestError||"",fetchCalls:window.__fixtureFetchCalls||0,dragReady,moveCount:window.__mockMoves.length,moveTarget:window.__mockMoves[0]?.toStatus,sourceMoved:window.__mockTaskStatus["T-001"]?.status};'+
     'const result=document.createElement("pre");result.id="layout-audit";result.textContent=JSON.stringify(audit);document.body.appendChild(result);'+
-    '},400);</script></body></html>';
+    '},150);},400);</script></body></html>';
 }
 
 test('real Pipeline HTML / JS / CSS works in headless Chromium at desktop and mobile widths', {timeout:60000}, async t => {
@@ -109,6 +124,10 @@ test('real Pipeline HTML / JS / CSS works in headless Chromium at desktop and mo
       assert.ok(result.scrollWidth<=result.viewport+1,'horizontal BODY overflow @'+width+': '+result.scrollWidth);
       assert.equal(result.initialCount,5,'active phases must contain five mock tasks: '+JSON.stringify(result));
       assert.equal(result.detailOpens,true,'details must open');
+      assert.equal(result.dragReady,true,'mouse drag handle must be available');
+      assert.equal(result.moveCount,1,'one drop must issue exactly one canonical move');
+      assert.equal(result.moveTarget,'WAIT','drop must target requested lane');
+      assert.equal(result.sourceMoved,'WAIT','confirmed move must update the board status');
       assert.equal(result.searchCount,1,'search must narrow results');
       assert.equal(result.gateCount,1,'MASA Gate filter must preserve search');
       assert.equal(result.lanes,6,'MASA Gate view preserves all six phase lanes');
