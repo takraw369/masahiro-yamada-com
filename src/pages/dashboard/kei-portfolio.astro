@@ -5,7 +5,7 @@ import { aiCommandSources } from '../../data/aiCommandLibrary';
 // Human-facing, curated view. Operational truth remains in Drive's 07_AI_COMMANDS
 // and project-specific canonicals. "Ready" describes a requestable workflow,
 // never guarantees external permission, automatic execution, or production deploy.
-type CapabilityStatus = 'ready' | 'gated' | 'building';
+type CapabilityStatus = 'ready' | 'gated' | 'building' | 'pro';
 type Capability = { id:string; title:string; description:string; command:string; status:CapabilityStatus };
 type Group = { id:string; label:string; english:string; intro:string; items:Capability[] };
 const groups:Group[] = [
@@ -49,9 +49,14 @@ const groups:Group[] = [
     {id:'skill',title:'成功パターンをSkill化',description:'作業方法を再利用可能なルール・手順へ。',command:'これSkillにして。既存Skillへの統合を優先し、検証可能な手順にして。',status:'ready'},
     {id:'orchestrate',title:'複数AIの役割を選ぶ',description:'Chief / Research / Editor / Designer / Builderを使い分ける。',command:'適任に任せて。Purposeから必要最小限の役割とツールを選び、成果まで進めて。',status:'ready'},
   ]},
+  { id:'dots', label:'Proで広がること（dots）', english:'DOTS · PRO', intro:'常時稼働の仕事は、対象Proプランとdotの利用開始後に。現状の慧では未導入。', items:[
+    {id:'dots-tracking',title:'会話していない間も案件を追う',description:'締切・進捗・判断待ちを継続確認し、必要なタイミングで報告。Pro+dots利用後の候補。',command:'【Pro+dots利用開始後の依頼】複数Projectの期日、止まっている作業、MASAの判断が必要なことを継続的に追い、重要な変更だけ報告して。DriveとTASKSの正本を確認し、外部操作は承認を取って。未導入なら開始せず条件だけ整理して。',status:'pro'},
+    {id:'dots-across-apps',title:'アプリをまたいで準備を進める',description:'許可したDrive・Gmail・Calendar等を横断し、必要な下書き・差分・確認事項をまとめる。',command:'【Pro+dots利用開始後の依頼】許可済みアプリの範囲でDrive、Gmail、Calendarの関連情報を照合して、必要な返信下書きと更新候補を作成して。送信・公開・正本上書きは必ず事前確認。未導入なら実行せず接続条件だけ示して。',status:'pro'},
+    {id:'dots-delegation',title:'Codexと制作作業を取りまとめる',description:'調査・実装・コンテンツ更新を依頼し、レビュー用の成果と判断事項にまとめる。',command:'【Pro+dots利用開始後の依頼】GitHubのPRとコンテンツ進行を継続確認し、必要な調査・修正案をCodex等へ委任してレビュー可能な成果物にまとめて。マージ・デプロイ・外部公開はHuman Gateを守る。未導入なら導入条件だけ整理して。',status:'pro'},
+  ]},
 ];
 const allCapabilities=groups.flatMap(group=>group.items);
-const labels:Record<CapabilityStatus,string>={ready:'今頼める',gated:'接続・承認確認',building:'開発中'};
+const labels:Record<CapabilityStatus,string>={ready:'今頼める',gated:'接続・承認確認',building:'開発中',pro:'Proで拡張（未導入）'};
 const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lIrFjZIc7-CeROPtio/edit';
 ---
 
@@ -71,6 +76,11 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
     </header>
 
     <div class="kei-flow" aria-label="操作の流れ"><span>探す</span><i>→</i><span>選ぶ</span><i>→</i><span>依頼文コピー</span><i>→</i><span>慧に渡す</span></div>
+
+    <aside class="kei-pro-intro" aria-label="Pro限定拡張">
+      <div><strong>Proなら、継続して仕事を任せられる。</strong><p>OpenAI dotsは対象Proプランで使える常時稼働エージェント。現在の慧（ChatGPT）とは区別し、導入・接続・権限設定が完了するまで自動実行しません。</p></div>
+      <a href="https://openai.com/ja-JP/index/introducing-dots/" target="_blank" rel="noopener noreferrer">dots公式情報 ↗</a>
+    </aside>
 
     <section class="kei-compose" aria-labelledby="kei-compose-title">
       <div class="kei-compose-head">
@@ -99,7 +109,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
         <button type="button" data-kei-filter="all" aria-pressed="true">すべて</button>
         {groups.map(group=><button type="button" data-kei-filter={group.id} aria-pressed="false">{group.label}</button>)}
       </div>
-      <div class="kei-status-note" aria-label="状態の見方"><span>● 今頼める</span><span>○ 接続・承認確認</span><span>◇ 開発中</span></div>
+      <div class="kei-status-note" aria-label="状態の見方"><span>● 今頼める</span><span>○ 接続・承認確認</span><span>◇ 開発中</span><span>✦ Proで拡張（未導入）</span></div>
       {groups.map(group=>(
         <section class="kei-group" data-kei-group={group.id} aria-labelledby={`kei-title-${group.id}`}>
           <div class="kei-group-heading"><div><small>{group.english}</small><h3 id={`kei-title-${group.id}`}>{group.label}</h3><p>{group.intro}</p></div></div>
@@ -109,7 +119,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
                 <div class="kei-card-top"><span class:list={['kei-status',item.status]}>{labels[item.status]}</span></div>
                 <h4>{item.title}</h4>
                 <p>{item.description}</p>
-                <button type="button" data-kei-select data-kei-command={item.command} data-kei-name={item.title} data-kei-description={item.description}>これを頼む →</button>
+                <button type="button" data-kei-select data-kei-command={item.command} data-kei-name={item.title} data-kei-description={item.description} data-kei-status={item.status}>これを頼む →</button>
               </article>
             ))}
           </div>
@@ -119,7 +129,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
     </section>
 
     <footer class="kei-foot">
-      <p>この画面はDrive正本・07_AI_COMMANDSからの案内用View。状態は2026-10-13時点の分類であり、実行時は接続権限・GitHub・本番Gateを再確認する。</p>
+      <p>この画面はDrive正本・07_AI_COMMANDSからの案内用View。状態は2026-10-14時点の分類（Pro項目は未導入）であり、実行時は接続権限・GitHub・本番Gateを再確認する。</p>
       <a href={aiCommandSources.registry} target="_blank" rel="noopener noreferrer">コマンド正本を見る ↗</a>
     </footer>
   </div>
@@ -168,7 +178,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
       currentCommand=button.dataset.keiCommand||'';
       if(selected) selected.textContent=button.dataset.keiName||'選択中';
       if(description) description.textContent=button.dataset.keiDescription||'';
-      if(notice) notice.textContent='依頼内容を確認して、コピーして慧に渡せる。';
+      if(notice) notice.textContent=button.dataset.keiStatus==='pro'?'Pro+dots未導入のため、現時点では実行できない機能の依頼例です。':'依頼内容を確認して、コピーして慧に渡せる。';
       refreshCommand();
       document.querySelector('#kei-compose-title')?.scrollIntoView({behavior:'smooth',block:'start'});
       output?.focus();
@@ -207,6 +217,10 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
   .kei-total b{font-size:2rem;color:#a76b24}.kei-total span{font-size:.75rem;color:#6f7780}
   .kei-flow{display:flex;flex-wrap:wrap;gap:11px;align-items:center;padding:17px 0;color:#6d7176;font-size:.78rem;font-weight:700}
   .kei-flow i{color:#c3a47a;font-style:normal}
+  .kei-pro-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:15px 18px;margin:0 0 20px;border:1px solid #e3d7c6;background:#fbf6ee}
+  .kei-pro-intro strong{font-size:.9rem;color:#67431b}
+  .kei-pro-intro p{margin:5px 0 0;color:#6b6e73;font-size:.78rem;line-height:1.7}
+  .kei-pro-intro a{flex-shrink:0;font-size:.76rem;font-weight:700;color:#835a25}
   .kei-compose{padding:22px;border:1px solid #d7c5aa;background:#fffdf9;box-shadow:0 6px 22px rgba(52,40,21,.045)}
   .kei-compose-head,.kei-browser-title{display:flex;justify-content:space-between;align-items:center;gap:14px}
   .kei-compose h2,.kei-browser h2{font-size:1.28rem;margin:6px 0}
@@ -236,7 +250,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
   .kei-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
   .kei-card{display:flex;flex-direction:column;min-width:0;gap:10px;padding:17px;background:#fff;border:1px solid #ddd9d2}
   .kei-status{display:inline-block;padding:4px 9px;font-size:.69rem;background:#ecf4ee;color:#276347}
-  .kei-status.gated{background:#f8f0df;color:#855d1f}.kei-status.building{background:#eeeef3;color:#595b76}
+  .kei-status.gated{background:#f8f0df;color:#855d1f}.kei-status.building{background:#eeeef3;color:#595b76}.kei-status.pro{background:#f4e7d5;color:#83511b}
   .kei-card h4{font-size:1rem;color:#293038;line-height:1.45}
   .kei-card p{color:#606b76;font-size:.82rem;line-height:1.7;flex:1}
   .kei-card button{min-height:44px;text-align:left;padding:9px 0;background:none;border:0;border-top:1px solid #ece5db;font:inherit;font-size:.82rem;font-weight:700;color:#85591c;cursor:pointer}
@@ -248,6 +262,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
   @media(max-width:860px){.kei-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:580px){
     .kei-hero{align-items:stretch;flex-direction:column;padding-top:10px}
+    .kei-pro-intro{align-items:flex-start;flex-direction:column}
     .kei-total{align-self:start}.kei-compose{padding:15px}
     .kei-grid{grid-template-columns:1fr}
     .kei-compose-head{align-items:flex-start;flex-direction:column}
