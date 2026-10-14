@@ -65,3 +65,8 @@ Publishing FlowのSource QAでは16pxでも、本番の共通masa-readable.css�
 # Purchase access versus creator access
 
 For Knowledge Shelf, the purchase key belongs to customer material delivery. Creator discovery and editing use the existing Dashboard session without a second product key. Preserve private source visibility while keeping this distinction clear in the UI.
+
+### 2026-10-15 — Public quiz is an experience, not a dark admin form
+- Corrected: 既存の23問診断は暗く、選択肢が読みにくく小さく、楽しい体験になっていない。公開プロフィールへ送客する前に改善が必要。
+- Cause: ACEの黒×ゴールドの静かな高級感を、幅広い初回訪問者が回答するフォームにも適用し、全問表示＋小さい選択肢で認知負荷が増えた。
+- Rule: 診断・セルフチェックはモバイル優先の一問表示、大きなタップ領域、明るく読みやすい選択面、戻る導線・進捗と必須回答エラー表示を確認する。回答保存・同意・個人情報・LINE計測を壊さず、iPhone実機QAと本人の公開承認までプロフィール誘導を出さない。
