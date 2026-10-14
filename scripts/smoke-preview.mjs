@@ -66,6 +66,11 @@ try {
     assert.match(res.headers.get('content-type') || '', /text\/css/, path);
     assert.match(await res.text(), /@scope\s*\(\./, path);
   }
+  // Task Pipeline is private and must not leak a task board to anonymous users.
+  const privatePipeline = await previewFetch(base + '/dashboard/pipeline', { redirect: 'manual' });
+  assert.equal(privatePipeline.status, 302, 'Pipeline is a private Dashboard route');
+  assert.equal(privatePipeline.headers.get('location'), '/dashboard/login');
+  assert.match(privatePipeline.headers.get('cache-control'), /no-store/);
   const dashboard = await previewFetch(base + '/dashboard', { redirect: 'manual' });
   assert.equal(dashboard.status, 302);
   assert.equal(dashboard.headers.get('location'), '/dashboard/login');
