@@ -335,6 +335,17 @@ export const dashboardAppCatalog: DashboardApp[] = [
     "featured": false
   },
   {
+    "id": "task-pipeline",
+    "title": "Task Pipeline",
+    "description": "フェーズと期限、判断待ちを一画面で俯瞰する。",
+    "href": "/dashboard/pipeline",
+    "category": "operate",
+    "access": "dashboard",
+    "symbol": "🗂️",
+    "tags": ["タスク", "進捗", "判断", "カンバン"],
+    "featured": false
+  },
+  {
     "id": "task-flow",
     "title": "Task Flow",
     "description": "プロジェクトと次の行動を管理。",
