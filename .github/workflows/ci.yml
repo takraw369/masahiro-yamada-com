@@ -118,6 +118,10 @@ jobs:
           [vars]
           SITE_NAME = "Knowledge Shelf / isolated preview"
           PREVIEW_MODE = "read_only_no_real_payments"
+
+          [previews.vars]
+          SITE_NAME = "Knowledge Shelf / isolated preview"
+          PREVIEW_MODE = "read_only_no_real_payments"
           PREVIEW
           # Intentional isolation: no production routes, D1, FLOW_RUNNER,
           # Supabase URL/keys, Stripe secrets, Dashboard secrets or product settings.
