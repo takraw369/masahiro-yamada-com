@@ -6,8 +6,21 @@ import '../../styles/design-source-atlas.css';
 ---
 
 <DashboardLayout title="Design Studio" eyebrow="MASA DESIGN INTELLIGENCE">
+  <section class="screenshot-entry" aria-label="スクリーンショット制作">
+    <div><p>DESIGN STUDIO / OUTPUT TOOL</p><h2>スクショを、伝わる一枚に。</h2><span>アプリの画面＋短いコピーから、宣伝画像を無料で作る。</span></div>
+    <a href="/dashboard/design-templates/screenshot">Screenshot Studio を開く ↗</a>
+  </section>
   <HomeDesignConfigurator client:only="react">
     <p slot="fallback">デザインのサンプルを読み込み中…</p>
   </HomeDesignConfigurator>
   <DesignSourceAtlas />
 </DashboardLayout>
+
+<style>
+  .screenshot-entry{display:flex;align-items:center;justify-content:space-between;gap:18px;max-width:1180px;margin:0 auto 26px;padding:21px 24px;border:1px solid #dfd7ca;background:#fffaf3}
+  .screenshot-entry p{font-size:10px;letter-spacing:.13em;color:#946a32}
+  .screenshot-entry h2{font-size:21px;font-weight:500;margin:6px 0}
+  .screenshot-entry span{font-size:12px;color:#5b666d}
+  .screenshot-entry a{display:inline-flex;align-items:center;min-height:44px;white-space:nowrap;padding:10px 17px;background:#936324;color:#fff;font-size:13px;text-decoration:none}
+  @media(max-width:660px){.screenshot-entry{flex-direction:column;align-items:flex-start;padding:19px}.screenshot-entry a{width:100%;justify-content:center}}
+</style>
