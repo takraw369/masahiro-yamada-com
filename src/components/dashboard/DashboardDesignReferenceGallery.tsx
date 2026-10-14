@@ -18,6 +18,6 @@ export default function DashboardDesignReferenceGallery({state,ready,canSave,onP
         </details>
       </article>;
     })}</div>
-    <p className="reference-footnote">5案と参考URLはいつでもここに。お気に入り・メモ・ホームへの適用は、このブラウザに保存します。プレビューは参考の構造をMASA向けに組み直したものです。</p>
+    <p className="reference-footnote">5案と参考URLはいつでもここに。お気に入り・メモはこのブラウザに保存し、「共有保存」で別の端末へ引き継げます。ホームへの適用は端末ごとに選べます。プレビューは参考の構造をMASA向けに組み直したものです。</p>
   </div>;
 }
