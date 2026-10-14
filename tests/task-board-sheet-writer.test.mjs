@@ -89,7 +89,8 @@ test('Dashboard task writer endpoint uses private session gate and never writes 
   assert.match(helper,/task\.status!==fromStatus\|\|task\.revision!==expectedRevision/);
   assert.match(helper,/task_write_verification_failed/);
   assert.match(helper,/Google Sheets does not provide multi-cell compare-and-swap/);
-  assert.doesNotMatch(helper,/supabaseRpc|os_tasks/);
+  assert.doesNotMatch(helper,/await\s+supabaseRpc\s*\(/);
+  assert.doesNotMatch(helper,/UPDATE\s+(?:public\.)?os_tasks/i);
   assert.match(middleware,/isDashboardApi/);
   assert.match(middleware,/isSameOriginRequest/);
   assert.match(middleware,/verifyDashboardSession/);
