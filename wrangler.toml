@@ -54,3 +54,15 @@ SUPABASE_URL = "https://qydbtholbwbuwiswmqsr.supabase.co"
 # Postgres function grants. Never put a Supabase secret/service-role key here.
 SUPABASE_PUBLISHABLE_KEY = "sb_publishable_mv8O-7lEXnuubYLVzXIJnA_A1irQJB9"
 # X_HARNESS_API_KEY and LINE_HARNESS_API_KEY are set as Cloudflare Worker Secrets
+
+# Persist Worker invocation logs so Cloudflare Observability remains enabled
+# across GitHub-managed production deploys. Revisit 100% sampling after diagnosis.
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true

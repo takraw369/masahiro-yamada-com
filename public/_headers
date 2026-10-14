@@ -1,0 +1,6 @@
+# AI discovery static text: explicitly declare UTF-8 for Japanese characters.
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
