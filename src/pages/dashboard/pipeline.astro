@@ -103,6 +103,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   let loaded = false;
   let writeEnabled = false;
   let saving = false;
+  let loading = false;
   let dragTaskId = null;
   let selectedTask = null;
   const safeText = value => String(value == null ? '' : value);
@@ -197,10 +198,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const phase = phaseFor(item);
     const button = el('button', 'pipeline-task' + (overdue(item) ? ' is-overdue' : '' ));
     button.type = 'button';
-    button.draggable = writeEnabled && Number.isSafeInteger(item.sourceRevision) && !saving && ['NEXT','NOW','REVIEW','WAIT','DONE'].includes(upper(item.status));
+    button.draggable = writeEnabled && Number.isSafeInteger(item.sourceRevision) && !saving && !loading && ['NEXT','NOW','REVIEW','WAIT','DONE'].includes(upper(item.status));
     if (button.draggable) {
       button.addEventListener('dragstart', event => {
-        if (!event.dataTransfer || saving) { event.preventDefault(); return; }
+        if (!event.dataTransfer || saving || loading) { event.preventDefault(); return; }
         dragTaskId = item.taskId;
         event.dataTransfer.setData('text/plain', item.taskId);
         event.dataTransfer.effectAllowed = 'move';
@@ -347,7 +348,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   }
   async function moveTask(item, toStatus, receipt = '') {
     const fromStatus = upper(item.status);
-    if (!writeEnabled || saving || fromStatus === toStatus || !Number.isSafeInteger(item.sourceRevision)) return;
+    if (!writeEnabled || saving || loading || fromStatus === toStatus || !Number.isSafeInteger(item.sourceRevision)) return;
     if (!['NEXT','NOW','REVIEW','WAIT','DONE'].includes(toStatus) ||
         !['NEXT','NOW','REVIEW','WAIT','DONE'].includes(fromStatus)) {
       moveMessage('このタスクは状態を確認してから移動してください', true); return;
@@ -394,7 +395,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   }
 
   async function load() {
-    if (saving) return;
+    if (saving || loading) return;
+    loading = true;
+    selectedTask = null;
+    dragTaskId = null;
+    $('pipeline-detail').close();
+    writeEnabled = false;
+    if (loaded) renderBoard();
     const button = $('pipeline-reload');
     button.disabled = true;
     $('pipeline-sync').textContent = '読み込み中…';
@@ -426,6 +433,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       $('pipeline-alert-title').textContent = '接続を確認してください';
       $('pipeline-alert-body').textContent = '表示は前回の値ではなく、取得状態を明示しています。';
     } finally {
+      loading = false;
+      if (loaded) renderBoard();
       button.disabled = false;
     }
   }

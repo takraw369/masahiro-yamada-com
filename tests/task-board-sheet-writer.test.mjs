@@ -46,3 +46,23 @@ test('endpoint uses existing FLOW_RUNNER and retains private session/origin gate
   assert.match(config,/binding = "FLOW_RUNNER"\s+service = "masa-flow-runner"/);
   assert.match(middleware,/isDashboardApi/);assert.match(middleware,/isSameOriginRequest/);assert.match(middleware,/verifyDashboardSession/);
 });
+
+test('actual route forwards sanitized input through private binding and maps failures',async()=>{
+  let source=await readFile(new URL('../src/pages/api/dashboard/task-move.ts',import.meta.url),'utf8');
+  source=source.replace(/import \{ getSiteStorageEnv, getDashboardOwnerKey \}[^;]+;/,
+    'const getSiteStorageEnv=()=>globalThis.__taskMoveTestEnv;const getDashboardOwnerKey=async()=>"owner-test";');
+  source=source.replace("'../../../lib/taskBoardSheetWriter'",JSON.stringify(new URL('../src/lib/taskBoardSheetWriter.ts',import.meta.url).href));
+  const route=await import('data:text/javascript;base64,'+Buffer.from((await import('node:module')).stripTypeScriptTypes(source)).toString('base64'));
+  const context=(body)=>({locals:{},request:new Request('https://example.com/api/dashboard/task-move',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})});
+  try{
+    globalThis.__taskMoveTestEnv={FLOW_RUNNER:{taskBoardStatuses:async()=>({ok:true,writeEnabled:true,statuses:{T0001:{status:'NEXT',revision:4}}}),taskBoardMove:async(body)=>{assert.deepEqual(body,{...input,receipt:undefined});return success;}}};
+    let res=await route.GET({locals:{}});assert.equal(res.headers.get('Cache-Control'),'no-store');assert.equal((await res.json()).writeEnabled,true);
+    res=await route.POST(context({...input,unexpected:'never forwarded'}));assert.equal(res.status,200);assert.equal((await res.json()).verified,true);
+    globalThis.__taskMoveTestEnv.FLOW_RUNNER.taskBoardMove=async()=>({ok:false,error:'revision_conflict',status:409});
+    res=await route.POST(context(input));assert.equal(res.status,409);assert.deepEqual(await res.json(),{ok:false,error:'revision_conflict'});
+    res=await route.POST(context({...input,expectedRevision:'4'}));assert.equal(res.status,400);
+    res=await route.POST(context({...input,receipt:'x'.repeat(2800)}));assert.equal(res.status,413);
+    globalThis.__taskMoveTestEnv={};res=await route.GET({locals:{}});assert.equal((await res.json()).writeEnabled,false);
+    res=await route.POST(context(input));assert.equal(res.status,503);
+  }finally{delete globalThis.__taskMoveTestEnv;}
+});
