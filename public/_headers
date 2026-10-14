@@ -1,6 +1,4 @@
-# AI discovery static text: explicitly declare UTF-8 for Japanese characters.
+# Static robots.txt text: keep UTF-8 explicit; llms.txt is Worker-served.
 /robots.txt
   Content-Type: text/plain; charset=utf-8
 
-/llms.txt
-  Content-Type: text/plain; charset=utf-8

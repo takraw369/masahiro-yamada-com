@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 
 const [robots, llms, middleware, astroConfig, sitemap, staticHeaders, wranglerConfig] = await Promise.all([
   readFile(new URL('../public/robots.txt', import.meta.url), 'utf8'),
-  readFile(new URL('../public/llms.txt', import.meta.url), 'utf8'),
+  readFile(new URL('../src/pages/llms.txt.ts', import.meta.url), 'utf8'),
   readFile(new URL('../src/middleware.ts', import.meta.url), 'utf8'),
   readFile(new URL('../astro.config.mjs', import.meta.url), 'utf8'),
   readFile(new URL('../src/pages/sitemap.xml.ts', import.meta.url), 'utf8'),
@@ -40,9 +41,11 @@ test('sitemap intentionally excludes private dashboard and API routes', () => {
   assert.match(sitemap, /['\"]\/faq['\"]/);
 });
 
-test('AI text endpoints declare UTF-8 to prevent Japanese mojibake', () => {
+test('AI discovery text responses declare UTF-8 to prevent Japanese mojibake', () => {
   assert.match(staticHeaders, /\/robots\.txt\s+Content-Type:\s*text\/plain;\s*charset=utf-8/i);
-  assert.match(staticHeaders, /\/llms\.txt\s+Content-Type:\s*text\/plain;\s*charset=utf-8/i);
+  assert.match(llms, /'Content-Type': 'text\/plain; charset=utf-8'/);
+  assert.match(llms, /山田昌寛/);
+  assert.ok(!existsSync(new URL('../public/llms.txt', import.meta.url)), 'avoid a competing static asset');
 });
 
 test('Cloudflare Workers invocation logs persist across GitHub deployments', () => {
