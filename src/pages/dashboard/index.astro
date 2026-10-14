@@ -2,6 +2,7 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import DashboardCockpit from '../../components/dashboard/DashboardCockpit';
 import { featuredDashboardApps, dashboardAppCatalog } from '../../data/dashboardAppCatalog';
+import { dashboardAppIdeas } from '../../data/dashboardAppIdeas';
 import RevenueMission from '../../components/dashboard/RevenueMission';
 import '../../styles/dashboard-home-presets.css';
 import { HomeFlowMap, HomeOutputDoors } from '../../components/dashboard/HomeFlowSurfaces';
@@ -68,7 +69,7 @@ const deepDoors = [
     <section class="home-app-shelf" aria-labelledby="home-app-title">
       <div class="home-app-heading">
         <div><p class="kicker">MY APPS / QUICK LAUNCH</p><h2 id="home-app-title">作ったアプリを、すぐ開く。</h2></div>
-        <a href="/dashboard/apps" class="home-app-all">アプリ一覧 <span>（{dashboardAppCatalog.length}件）</span> ↗</a>
+        <a href="/dashboard/apps" class="home-app-all">アプリ一覧 <span>（{dashboardAppCatalog.length + dashboardAppIdeas.length}件）</span> ↗</a>
       </div>
       <div class="home-app-grid">
         {featuredDashboardApps.map(app => (

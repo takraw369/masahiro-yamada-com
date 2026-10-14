@@ -1,16 +1,24 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { dashboardAppCatalog, dashboardAppCategories } from '../../data/dashboardAppCatalog';
+import { dashboardAppIdeas } from '../../data/dashboardAppIdeas';
+
+const totalAppEntries = dashboardAppCatalog.length + dashboardAppIdeas.length;
+const appIdeaGroups = [
+  { id: 'prototype', title: '試作中', summary: '動かせるファイルはあるが、本番アプリではない' },
+  { id: 'planned', title: '構想中', summary: 'Driveの仕様・企画から、これから形にするもの' },
+] as const;
 ---
 
 <DashboardLayout title="アプリ一覧" eyebrow="MASA OS · APP LIBRARY">
   <div class="apps-shell">
     <header class="apps-hero">
       <p class="apps-kicker">YOUR WORKSPACE / LAUNCH PAD</p>
-      <h1>作ったものを、<span>すぐ使う。</span></h1>
-      <p>試したいことに、ワンタップで。自作アプリとDashboardツールの入口を、用途ごとにまとめたよ。</p>
+      <h1>作ったものも、<span>これから作るものも。</span></h1>
+      <p>使えるアプリはすぐ起動。試作品はファイルを確認。まだ作っていないアイデアは、Driveの企画書から次の一手へ進める。</p>
       <div class="apps-overview">
-        <span><strong>29</strong> 件の入口</span>
+        <span><strong>{totalAppEntries}</strong> 件のアプリ・構想</span>
+        <span>{dashboardAppIdeas.length}件は試作・構想中</span>
         <span>📱 スマホからも起動</span>
         <span>☆ よく使うものを保存</span>
       </div>
@@ -25,9 +33,11 @@ import { dashboardAppCatalog, dashboardAppCategories } from '../../data/dashboar
         {dashboardAppCategories.map(category => (
           <button type="button" class="apps-chip" data-app-filter={category.id} aria-pressed="false">{category.label}</button>
         ))}
+        <button type="button" class="apps-chip" data-app-filter="prototype" aria-pressed="false">試作中</button>
+        <button type="button" class="apps-chip" data-app-filter="planned" aria-pressed="false">構想中</button>
         <button type="button" class="apps-chip apps-fav-toggle" id="apps-only-favorites" aria-pressed="false">☆ お気に入り</button>
       </div>
-      <p class="apps-count" role="status" aria-live="polite" id="apps-results">全29件を表示</p>
+      <p class="apps-count" role="status" aria-live="polite" id="apps-results">全{totalAppEntries}件を表示</p>
     </div>
 
     {dashboardAppCategories.map(category => (
@@ -50,8 +60,36 @@ import { dashboardAppCatalog, dashboardAppCategories } from '../../data/dashboar
         </div>
       </section>
     ))}
+    {appIdeaGroups.map(group => (
+      <section class="apps-group apps-group--ideas" data-app-group={group.id} aria-labelledby={'apps-' + group.id}>
+        <div class="apps-group-head"><div><p>{group.summary}</p><h2 id={'apps-' + group.id}>{group.title}</h2></div></div>
+        <p class="apps-idea-note">{group.id === 'prototype'
+          ? 'Drive上のHTMLはプレビューだけでは動かない場合があります。ダウンロードしてブラウザで開いてください。実機・本番検証は未完了です。'
+          : 'これらは開発済みアプリではありません。カードを押すと実在するDrive企画書が開きます。'}</p>
+        <div class="apps-grid">
+          {dashboardAppIdeas.filter(app => app.status === group.id).map(app => (
+            <article class="apps-card apps-card--idea" data-app-card data-id={app.id} data-category={app.status} data-search={[app.title, app.description, app.nextAction, ...app.tags].join(' ')}>
+              <a class="apps-card-link" href={app.href} target="_blank" rel="noopener noreferrer" aria-label={app.title + (app.status === 'prototype' ? 'の試作ファイルをDriveで見る' : 'の企画書をDriveで見る')}>
+                <span class="apps-symbol" aria-hidden="true">{app.symbol}</span>
+                <span class="apps-card-main">
+                  <strong>{app.title}</strong>
+                  <span class="apps-card-desc">{app.description}</span>
+                  <span class="apps-idea-next">次の一手：{app.nextAction}</span>
+                </span>
+                <span class="apps-launch-icon" aria-hidden="true">↗</span>
+              </a>
+              <div class="apps-card-foot">
+                <span class="apps-idea-state">{app.status === 'prototype' ? '試作・未公開' : '構想・未公開'}</span>
+                <a class="apps-source-link" href={app.sourceUrl} target="_blank" rel="noopener noreferrer">仕様書 ↗</a>
+                <button type="button" class="apps-favorite" data-app-favorite={app.id} aria-pressed="false" aria-label={app.title + 'をお気に入りに追加'} title="お気に入り">☆</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    ))}
     <p class="apps-empty" id="apps-empty" hidden>一致するアプリが見つからなかったよ。検索語やカテゴリを変えてみて。</p>
-    <footer class="apps-foot">ここは既存のアプリ・機能への入口。新しいアプリは <code>dashboardAppCatalog.ts</code> に追加していく。掲載は自動の稼働監視ではありません。</footer>
+    <footer class="apps-foot">稼働・公開済みの入口は <code>dashboardAppCatalog.ts</code>、Drive正本からの試作・構想は <code>dashboardAppIdeas.ts</code> で分けて管理。掲載は稼働や実装完了の証明ではありません。</footer>
   </div>
 </DashboardLayout>
 
@@ -146,6 +184,13 @@ import { dashboardAppCatalog, dashboardAppCategories } from '../../data/dashboar
   .apps-favorite{min-width:40px;min-height:38px;border:0;background:transparent;border-radius:9px;cursor:pointer;color:#a66f27;font-size:25px}
   .apps-favorite[aria-pressed="true"]{color:#bc7412}
   .apps-favorite:hover{background:#fbf0e0}
+  .apps-group--ideas{margin-top:35px}
+  .apps-idea-note{margin:0 3px 14px;color:#66727d;font-size:12px;line-height:1.8}
+  .apps-card--idea{background:#fefdfb;border-style:dashed}
+  .apps-card--idea .apps-card-link{min-height:160px}
+  .apps-idea-next{color:#85633a;font-size:11px;line-height:1.6}
+  .apps-idea-state{font-weight:700;color:#906735!important}
+  .apps-source-link{color:#576d86;text-decoration:underline;text-underline-offset:3px;font-size:12px;margin-left:auto;margin-right:8px}
   .apps-card[hidden],.apps-group[hidden],.apps-empty[hidden]{display:none!important}
   .apps-empty{padding:40px 20px;color:#707983;background:#fff;border:1px dashed #d6d6d0;border-radius:16px}
   .apps-foot{margin-top:40px;color:#7a8289;font-size:11px;line-height:1.8}
