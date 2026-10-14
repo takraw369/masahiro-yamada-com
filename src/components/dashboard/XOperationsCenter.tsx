@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import XCommandCenter from './XCommandCenter';
 import XHealthPanel from './XHealthPanel';
+import XNativeConnectionPanel from './XNativeConnectionPanel';
 
 type Tab = 'publish' | 'health';
 
@@ -32,7 +33,7 @@ export default function XOperationsCenter() {
           接続と分析
         </button>
       </div>
-      {tab === 'health' && <XHealthPanel />}
+      {tab === 'health' && <><XNativeConnectionPanel /><XHealthPanel /></>}
     </section>
   );
 }
