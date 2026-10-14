@@ -1,7 +1,9 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import WishList from '../../components/dashboard/WishList';
+import IncomeFreedomSimulator from '../../components/dashboard/IncomeFreedomSimulator';
 ---
-<DashboardLayout title="Wish List">
+<DashboardLayout title="Wish List / Life Freedom">
+  <IncomeFreedomSimulator client:only="react" />
   <WishList client:only="react" />
 </DashboardLayout>

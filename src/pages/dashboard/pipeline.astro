@@ -1,0 +1,380 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Task Pipeline" eyebrow="MASA OS · EXECUTION">
+  <main class="pipeline-shell">
+    <header class="pipeline-head">
+      <div>
+        <p class="pipeline-kicker">EXECUTION / FLOW INTELLIGENCE</p>
+        <h1>Task Pipeline</h1>
+        <p class="pipeline-subtitle">仕事の流れを、ひと目で。滞留を見つけ、次の一手へ。</p>
+      </div>
+      <div class="pipeline-head-actions">
+        <span class="pipeline-source-pill">READ ONLY · TASK_BOARD正本</span>
+        <button id="pipeline-reload" class="pipeline-refresh" type="button">↻ 更新</button>
+      </div>
+    </header>
+
+    <section class="pipeline-alert" aria-label="優先して見ること">
+      <div class="pipeline-alert-icon" aria-hidden="true">↗</div>
+      <div>
+        <strong id="pipeline-alert-title">現在地を確認しています</strong>
+        <p id="pipeline-alert-body">タスクの状態を読み込み、対応が必要な項目を表示します。</p>
+      </div>
+      <a href="/dashboard/tasks">Task詳細を見る →</a>
+    </section>
+
+    <section id="pipeline-kpis" class="pipeline-kpis" aria-label="フェーズ別サマリー"></section>
+
+    <div class="pipeline-toolbar">
+      <div class="pipeline-filters" role="group" aria-label="表示対象">
+        <button type="button" data-scope="actionable" aria-pressed="true">進行中</button>
+        <button type="button" data-scope="all" aria-pressed="false">すべて</button>
+        <button type="button" data-scope="gate" aria-pressed="false">MASA判断待ち</button>
+      </div>
+      <label class="pipeline-search-label">
+        <span class="pipeline-visually-hidden">Taskを検索</span>
+        <input id="pipeline-search" type="search" placeholder="⌕  Project・Task・次の行動で検索" autocomplete="off" />
+      </label>
+      <span id="pipeline-sync" class="pipeline-sync" role="status" aria-live="polite">読み込み中…</span>
+    </div>
+
+    <div id="pipeline-board" class="pipeline-board" aria-label="タスクフェーズ別ボード" tabindex="0">
+      <p class="pipeline-loading">TASK_BOARD read model を読み込んでいます…</p>
+    </div>
+
+    <footer class="pipeline-footer">
+      <span>フェーズはTASK_BOARDの status から集計。件数・期限は実データのみ使用しています。</span>
+      <span>この画面ではフェーズを書き換えません。正本の変更・承認は既存の運用経路で行います。</span>
+    </footer>
+  </main>
+
+  <dialog id="pipeline-detail" class="pipeline-dialog" aria-labelledby="pipeline-detail-heading">
+    <div class="pipeline-dialog-top">
+      <span class="pipeline-kicker">TASK / DETAILS</span>
+      <button type="button" id="pipeline-close" aria-label="詳細を閉じる">✕</button>
+    </div>
+    <h2 id="pipeline-detail-heading"></h2>
+    <p id="pipeline-detail-project" class="pipeline-detail-project"></p>
+    <div id="pipeline-detail-data" class="pipeline-detail-data"></div>
+    <div class="pipeline-detail-action">
+      <span class="pipeline-kicker">NEXT ACTION</span>
+      <p id="pipeline-detail-next"></p>
+    </div>
+    <div class="pipeline-dialog-bottom">
+      <a href="/dashboard/tasks">Task Flowへ →</a>
+      <button type="button" id="pipeline-dismiss">閉じる</button>
+    </div>
+  </dialog>
+</DashboardLayout>
+
+<script is:inline>
+(() => {
+  const phases = [
+    { key:'INBOX', name:'未分類', short:'INBOX', tone:'slate', help:'状態の確認が必要' },
+    { key:'NEXT', name:'次に進める', short:'NEXT', tone:'indigo', help:'着手を待つタスク' },
+    { key:'NOW', name:'実行中', short:'IN FLOW', tone:'gold', help:'動かしているタスク' },
+    { key:'REVIEW', name:'検証・確認', short:'REVIEW', tone:'violet', help:'成果と品質を確認' },
+    { key:'WAIT', name:'停止・待機', short:'WAIT', tone:'coral', help:'判断・外部条件待ち' },
+    { key:'DONE', name:'完了', short:'DONE', tone:'green', help:'完了したタスク' }
+  ];
+  const $ = id => document.getElementById(id);
+  const board = $('pipeline-board');
+  const kpis = $('pipeline-kpis');
+  let tasks = [];
+  let scope = 'actionable';
+  let search = '';
+  let loaded = false;
+  const safeText = value => String(value == null ? '' : value);
+  const upper = value => safeText(value).trim().toUpperCase();
+  const dateKey = value => {
+    const result = /^(\d{4}-\d{2}-\d{2})/.exec(safeText(value));
+    if (!result) return '';
+    const date = new Date(result[1] + 'T00:00:00Z');
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0,10) === result[1] ? result[1] : '';
+  };
+  const todayKey = () => {
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Tokyo', year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(new Date());
+    const part = Object.fromEntries(parts.map(row => [row.type, row.value]));
+    return part.year + '-' + part.month + '-' + part.day;
+  };
+  const phaseFor = item => {
+    const status = upper(item.status);
+    if (['DONE','COMPLETE','COMPLETED','CLOSED'].includes(status)) return 'DONE';
+    if (['WAIT','BLOCKED','PAUSED','ON_HOLD','HOLD'].includes(status)) return 'WAIT';
+    if (['REVIEW','VALIDATE','IN_REVIEW','QA'].includes(status)) return 'REVIEW';
+    if (['NOW','EXECUTE','DOING','IN_PROGRESS','ACTIVE'].includes(status)) return 'NOW';
+    if (['NEXT','TODO','READY','PLANNED','BACKLOG'].includes(status)) return 'NEXT';
+    return 'INBOX';
+  };
+  const el = (tag, className, label) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (label !== undefined) node.textContent = safeText(label);
+    return node;
+  };
+  const overdue = item => {
+    const due = dateKey(item.dueDate);
+    return Boolean(due && due < todayKey() && phaseFor(item) !== 'DONE');
+  };
+  const dueToday = item => dateKey(item.dueDate) === todayKey() && phaseFor(item) !== 'DONE';
+  const stats = () => {
+    const overdueCount = tasks.filter(overdue).length;
+    const gateCount = tasks.filter(x => upper(x.executionLane) === 'MASA_GATE' && phaseFor(x) !== 'DONE').length;
+    const waitingCount = tasks.filter(x => phaseFor(x) === 'WAIT').length;
+    return { overdueCount, gateCount, waitingCount };
+  };
+  const formatDue = item => {
+    const key = dateKey(item.dueDate);
+    if (!key) return '';
+    const parts = key.split('-');
+    return Number(parts[1]) + '/' + Number(parts[2]);
+  };
+  const isVisible = item => {
+    if (scope === 'actionable' && phaseFor(item) === 'DONE') return false;
+    if (scope === 'gate' && upper(item.executionLane) !== 'MASA_GATE') return false;
+    if (!search) return true;
+    return [item.taskId,item.task,item.project,item.status,item.nextAction,item.executionLane,item.priority]
+      .map(safeText).join(' ').toLocaleLowerCase('ja-JP').includes(search);
+  };
+  const append = (node, tag, className, label) => {
+    const child = el(tag, className, label);
+    node.appendChild(child);
+    return child;
+  };
+  function drawKpis() {
+    kpis.replaceChildren();
+    const total = tasks.length;
+    phases.filter(phase => phase.key !== 'INBOX').forEach(phase => {
+      const count = tasks.filter(item => phaseFor(item) === phase.key).length;
+      const card = el('article', 'pipeline-kpi tone-' + phase.tone);
+      append(card, 'span', 'pipeline-kpi-title', phase.short);
+      append(card, 'strong', 'pipeline-kpi-number', count + ' 件');
+      const track = append(card, 'span', 'pipeline-kpi-track');
+      const fill = append(track, 'span', 'pipeline-kpi-fill');
+      fill.style.width = (total ? Math.round(count / total * 100) : 0) + '%';
+      append(card, 'span', 'pipeline-kpi-help', phase.help);
+      kpis.appendChild(card);
+    });
+  }
+  function drawAlert() {
+    const s = stats();
+    const title = $('pipeline-alert-title');
+    const body = $('pipeline-alert-body');
+    if (!loaded) return;
+    if (!tasks.length) {
+      title.textContent = '現在、表示できるタスクはありません';
+      body.textContent = 'TASK_BOARDの同期状況をご確認ください。架空のデータは表示しません。';
+    } else if (s.overdueCount || s.gateCount || s.waitingCount) {
+      title.textContent = s.overdueCount + '件の期限超過 · ' + s.gateCount + '件のMASA判断待ち';
+      body.textContent = 'WAIT中 ' + s.waitingCount + '件。次のActionと正本を確認できます。';
+    } else {
+      title.textContent = '期限超過・判断待ちは見つかりませんでした';
+      body.textContent = '全 ' + tasks.length + ' 件のタスクをフェーズ別に確認できます。';
+    }
+  }
+  function drawTask(item) {
+    const phase = phaseFor(item);
+    const button = el('button', 'pipeline-task' + (overdue(item) ? ' is-overdue' : '' ));
+    button.type = 'button';
+    button.setAttribute('aria-label', safeText(item.task || '名称未設定') + ' の詳細を開く');
+    const head = append(button, 'span', 'pipeline-task-top');
+    let label = overdue(item) ? '期限超過' : (dueToday(item) ? '本日期限' : (upper(item.executionLane) === 'MASA_GATE' ? 'MASA判断' : (item.priority || item.status || 'TASK')));
+    append(head, 'span', 'pipeline-chip' + (overdue(item) ? ' urgent' : ''), label);
+    append(head, 'span', 'pipeline-task-date', formatDue(item));
+    append(button, 'span', 'pipeline-task-project', item.project || 'NO PROJECT');
+    append(button, 'strong', 'pipeline-task-title', item.task || '名称未設定のタスク');
+    const next = append(button, 'span', 'pipeline-task-next');
+    append(next, 'b', '', 'NEXT ');
+    append(next, 'span', '', item.nextAction || '次のAction未登録');
+    const foot = append(button, 'span', 'pipeline-task-foot');
+    append(foot, 'span', 'pipeline-owner', item.executionLane || '担当区分未設定');
+    append(foot, 'span', 'pipeline-id', item.taskId || phase);
+    button.addEventListener('click', () => openDetail(item));
+    return button;
+  }
+  function renderBoard() {
+    if (!loaded) return;
+    drawKpis();
+    drawAlert();
+    board.replaceChildren();
+    const selected = tasks.filter(isVisible);
+    const visiblePhases = scope === 'actionable' ? phases.filter(phase => phase.key !== 'DONE') : phases;
+    for (const phase of visiblePhases) {
+      const list = selected.filter(item => phaseFor(item) === phase.key)
+        .sort((a,b) => {
+          const ao = overdue(a) ? 0 : 1, bo = overdue(b) ? 0 : 1;
+          if (ao !== bo) return ao - bo;
+          return (dateKey(a.dueDate) || '9999-12-31').localeCompare(dateKey(b.dueDate) || '9999-12-31');
+        });
+      const lane = el('section', 'pipeline-lane tone-' + phase.tone);
+      lane.setAttribute('aria-label', phase.name + ' ' + list.length + '件');
+      const laneHead = append(lane, 'header', 'pipeline-lane-head');
+      const laneTitle = append(laneHead, 'div', 'pipeline-lane-heading');
+      append(laneTitle, 'span', 'pipeline-status-dot');
+      append(laneTitle, 'h2', '', phase.name);
+      append(laneTitle, 'span', 'pipeline-lane-count', list.length);
+      append(lane, 'p', 'pipeline-lane-description', phase.help);
+      const cards = append(lane, 'div', 'pipeline-lane-cards');
+      if (!list.length) append(cards, 'p', 'pipeline-empty', '該当するタスクはありません');
+      else for (const item of list) cards.appendChild(drawTask(item));
+      board.appendChild(lane);
+    }
+    $('pipeline-sync').textContent = selected.length + ' / ' + tasks.length + '件表示';
+  }
+  function openDetail(item) {
+    $('pipeline-detail-heading').textContent = item.task || '名称未設定のタスク';
+    $('pipeline-detail-project').textContent = item.project || 'NO PROJECT';
+    const container = $('pipeline-detail-data');
+    container.replaceChildren();
+    const entries = [
+      ['ID',item.taskId],['状態',item.status],['フェーズ',item.phase],
+      ['担当区分',item.executionLane],['実行分類',item.executionClass],
+      ['優先度',item.priority],['期限',item.dueDate],
+      ['正本Revision',item.sourceRevision],['最終同期元の編集者',item.sourceEditBy]
+    ];
+    for (const pair of entries) {
+      const row = append(container, 'div', 'pipeline-detail-row');
+      append(row, 'dt', '', pair[0]);
+      append(row, 'dd', '', pair[1] == null || pair[1] === '' ? '—' : pair[1]);
+    }
+    $('pipeline-detail-next').textContent = item.nextAction || '次のActionはまだ登録されていません。';
+    const dialog = $('pipeline-detail');
+    if (!dialog.open) dialog.showModal();
+  }
+  async function load() {
+    const button = $('pipeline-reload');
+    button.disabled = true;
+    $('pipeline-sync').textContent = '読み込み中…';
+    try {
+      const response = await fetch('/api/dashboard/task-execution?limit=300', {credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const payload = await response.json();
+      if (!payload.ok || !Array.isArray(payload.items)) throw new Error('read_model_unavailable');
+      tasks = payload.items;
+      loaded = true;
+      renderBoard();
+      const last = payload.summary && payload.summary.lastSourceSyncAt;
+      if (last && !Number.isNaN(Date.parse(last))) {
+        const date = new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(last));
+        $('pipeline-sync').textContent += ' · 最終同期 ' + date;
+      }
+    } catch(error) {
+      loaded = false;
+      tasks = [];
+      kpis.replaceChildren();
+      board.replaceChildren();
+      const errorBox = append(board, 'div', 'pipeline-error');
+      append(errorBox, 'strong', '', 'TASK_BOARDの情報を取得できませんでした');
+      append(errorBox, 'p', '', 'ログイン・連携・同期状況をご確認ください。失敗時は架空の値を表示しません。');
+      const source = append(errorBox, 'a', '', '既存Task Flowを開く →');
+      source.href = '/dashboard/tasks';
+      $('pipeline-sync').textContent = '取得失敗';
+      $('pipeline-alert-title').textContent = '接続を確認してください';
+      $('pipeline-alert-body').textContent = '表示は前回の値ではなく、取得状態を明示しています。';
+    } finally {
+      button.disabled = false;
+    }
+  }
+  document.querySelectorAll('.pipeline-filters button').forEach(button => {
+    button.addEventListener('click', () => {
+      scope = button.dataset.scope || 'actionable';
+      document.querySelectorAll('.pipeline-filters button').forEach(target => target.setAttribute('aria-pressed', String(target === button)));
+      renderBoard();
+    });
+  });
+  $('pipeline-search').addEventListener('input', event => {
+    search = event.target.value.trim().toLocaleLowerCase('ja-JP');
+    renderBoard();
+  });
+  $('pipeline-reload').addEventListener('click', load);
+  $('pipeline-close').addEventListener('click', () => $('pipeline-detail').close());
+  $('pipeline-dismiss').addEventListener('click', () => $('pipeline-detail').close());
+  $('pipeline-detail').addEventListener('click', event => {
+    if (event.target === $('pipeline-detail')) $('pipeline-detail').close();
+  });
+  load();
+})();
+</script>
+
+<style is:global>
+.pipeline-shell { --pp-bg:#f5f4f1;--pp-line:#dddcd7;--pp-muted:#6a717d;--pp-ink:#1a202a;max-width:1560px;margin-inline:auto;color:var(--pp-ink);padding-bottom:44px; }
+.pipeline-shell button {font:inherit;cursor:pointer;}
+.pipeline-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:23px;}
+.pipeline-kicker{font-size:11px;letter-spacing:.13em;font-weight:700;color:#916d39;}
+.pipeline-head h1{font-family:'Zen Kaku Gothic New',sans-serif;font-size:clamp(27px,3.5vw,40px);letter-spacing:-.045em;margin:5px 0 6px;line-height:1.2;font-weight:700;}
+.pipeline-subtitle{font-size:14px;color:#626a77;}
+.pipeline-head-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+.pipeline-source-pill{font-size:11px;background:#eaf0e9;border:1px solid #c5d7c6;color:#286543;padding:9px 11px;border-radius:7px;font-weight:700;}
+.pipeline-refresh{min-height:38px;padding:8px 13px;background:#fff;border:1px solid var(--pp-line);border-radius:7px;font-size:12px;font-weight:700;}
+.pipeline-refresh:disabled{opacity:.5;cursor:wait;}
+.pipeline-alert{display:flex;align-items:center;gap:14px;border:1px solid #e3d7bf;background:#fffdf8;border-radius:12px;padding:15px 17px;min-width:0;}
+.pipeline-alert-icon{flex:none;display:grid;place-items:center;width:35px;height:35px;border-radius:9px;background:#f3e8cf;color:#966c31;font-size:21px;}
+.pipeline-alert>div:nth-child(2){flex:1;min-width:0;}
+.pipeline-alert strong{display:block;font-size:14px;}
+.pipeline-alert p{font-size:12px;color:#68717c;margin-top:4px;}
+.pipeline-alert a{font-size:12px;white-space:nowrap;text-decoration:none;color:#805622;font-weight:700;}
+.pipeline-kpis{margin-top:17px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;}
+.pipeline-kpi{min-width:0;background:#fff;border:1px solid var(--pp-line);border-radius:13px;padding:15px 14px 13px;box-shadow:0 2px 0 rgba(39,36,29,.035);}
+.pipeline-kpi-title{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;color:#818691;}
+.pipeline-kpi-number{display:block;font-size:clamp(22px,2.6vw,29px);font-weight:500;margin:7px 0 9px;line-height:1.2;font-variant-numeric:tabular-nums;}
+.pipeline-kpi-track{display:block;height:5px;background:#eef0f2;border-radius:99px;overflow:hidden;}
+.pipeline-kpi-fill{display:block;height:100%;border-radius:99px;background:var(--tone);}
+.pipeline-kpi-help{display:block;font-size:10px;margin-top:9px;color:var(--pp-muted);}
+.pipeline-toolbar{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;margin:21px 0 11px;}
+.pipeline-filters{display:flex;gap:3px;padding:3px;background:#ebebea;border:1px solid #e0dfdc;border-radius:9px;}
+.pipeline-filters button{background:transparent;border:1px solid transparent;padding:8px 10px;border-radius:6px;color:#646a74;font-size:12px;white-space:nowrap;}
+.pipeline-filters button[aria-pressed="true"]{background:#fff;color:#232a34;box-shadow:0 1px 4px #00000014;font-weight:700;}
+.pipeline-search-label{flex:1;min-width:200px;max-width:365px;}
+.pipeline-search-label input{width:100%;border:1px solid var(--pp-line);border-radius:8px;min-height:38px;background:#fff;padding:8px 12px;font-size:12px;color:#17191c;}
+.pipeline-sync{font-size:11px;color:#7c838d;white-space:nowrap;}
+.pipeline-board{display:flex;gap:11px;align-items:stretch;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:0 1px 14px;scrollbar-width:thin;min-height:340px;}
+.pipeline-lane{background:#f0f0f0;border:1px solid #e5e5e4;border-radius:13px;padding:12px;flex:1 0 219px;min-width:219px;max-width:340px;scroll-snap-align:start;align-self:stretch;}
+.pipeline-lane-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.pipeline-lane-heading{display:flex;align-items:center;gap:8px;min-width:0;}
+.pipeline-lane-heading h2{font-size:13px;line-height:1.45;font-weight:700;white-space:nowrap;}
+.pipeline-status-dot{width:8px;height:8px;border-radius:50%;background:var(--tone);flex:none;}
+.pipeline-lane-count{display:inline-grid;place-items:center;min-width:23px;height:22px;padding:0 5px;border-radius:99px;background:#fff;font-size:11px;font-variant-numeric:tabular-nums;}
+.pipeline-lane-description{font-size:10px;color:#8b8d91;margin:6px 0 12px;line-height:1.5;}
+.pipeline-lane-cards{display:grid;gap:9px;align-content:start;}
+.pipeline-task{width:100%;text-align:left;display:block;padding:12px;border:1px solid #e4e4e3;border-radius:12px;background:#fff;box-shadow:0 2px 2px #00000007,0 5px 12px #00000008;color:var(--pp-ink);transition:box-shadow .16s ease,transform .16s ease,border-color .16s ease;min-width:0;}
+.pipeline-task:hover{box-shadow:0 6px 18px #00000016;border-color:#c9b7a1;transform:translateY(-2px);}
+.pipeline-task:focus-visible,.pipeline-shell button:focus-visible,.pipeline-shell a:focus-visible{outline:3px solid #a56c22;outline-offset:2px;}
+.pipeline-task.is-overdue{border-left:3px solid #c76451;}
+.pipeline-task-top{display:flex;align-items:center;gap:7px;justify-content:space-between;}
+.pipeline-chip{display:inline-block;font-weight:700;font-size:10px;line-height:1.3;padding:5px 7px;border-radius:5px;background:#f4f0e7;color:#805e2d;max-width:140px;overflow-wrap:anywhere;}
+.pipeline-chip.urgent{color:#a04439;background:#fcebe9;}
+.pipeline-task-date{font-size:10px;color:#888d94;white-space:nowrap;}
+.pipeline-task-project{display:block;color:#8b8e95;font-size:10px;margin:10px 0 3px;overflow-wrap:anywhere;}
+.pipeline-task-title{display:block;font-size:12px;line-height:1.6;font-weight:700;overflow-wrap:anywhere;}
+.pipeline-task-next{display:block;font-size:11px;line-height:1.65;color:#69717d;margin:10px 0;padding:9px 0;border-top:1px solid #ececea;border-bottom:1px solid #ececea;overflow-wrap:anywhere;}
+.pipeline-task-next b{color:#88662e;font-size:9px;letter-spacing:.06em;}
+.pipeline-task-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#797f89;font-size:10px;min-width:0;}
+.pipeline-owner{display:inline-block;background:#f2f4f6;padding:4px 6px;border-radius:5px;overflow-wrap:anywhere;}
+.pipeline-id{font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-align:right;font-size:9px;}
+.pipeline-empty{font-size:11px;color:#95999e;text-align:center;padding:24px 5px;border:1px dashed #ddd;border-radius:8px;}
+.pipeline-loading,.pipeline-error{width:100%;background:#fff;padding:22px;border:1px solid var(--pp-line);border-radius:12px;color:#69717d;font-size:13px;}
+.pipeline-error strong{color:#914a3e;display:block;}
+.pipeline-error p{margin:9px 0;}
+.pipeline-error a{color:#7b5525;}
+.pipeline-footer{display:grid;gap:5px;margin-top:12px;font-size:11px;color:#757b83;}
+.pipeline-dialog{border:1px solid #e0dbd2;border-radius:16px;padding:22px;width:min(540px,calc(100% - 26px));max-height:min(80vh,780px);box-shadow:0 24px 70px #0004;}
+.pipeline-dialog::backdrop{background:#111d2b99;}
+.pipeline-dialog-top,.pipeline-dialog-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.pipeline-dialog-top button,.pipeline-dialog-bottom button{background:#f2f2f1;border:1px solid #ddd;border-radius:6px;padding:7px 10px;}
+.pipeline-dialog h2{font-size:22px;margin:13px 0 5px;line-height:1.5;overflow-wrap:anywhere;}
+.pipeline-detail-project{font-size:12px;color:#717783;overflow-wrap:anywhere;margin-bottom:15px;}
+.pipeline-detail-data{display:grid;border-top:1px solid #e5e4e1;}
+.pipeline-detail-row{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px;padding:8px 0;border-bottom:1px solid #eee;font-size:12px;overflow-wrap:anywhere;}
+.pipeline-detail-row dt{color:#767b82;}
+.pipeline-detail-row dd{margin:0;font-weight:700;}
+.pipeline-detail-action{background:#fbf8f2;border-left:3px solid #d4af37;margin:16px 0;padding:13px;overflow-wrap:anywhere;}
+.pipeline-detail-action p{font-size:13px;line-height:1.7;margin-top:6px;}
+.pipeline-dialog-bottom a{font-size:12px;color:#815823;font-weight:700;text-decoration:none;}
+.tone-slate{--tone:#94979c}.tone-indigo{--tone:#576ab6}.tone-gold{--tone:#c2943a}.tone-violet{--tone:#9376aa}.tone-coral{--tone:#c96b57}.tone-green{--tone:#398b6c}
+.pipeline-visually-hidden{position:absolute!important;clip:rect(0,0,0,0);height:1px;width:1px;overflow:hidden;white-space:nowrap;}
+@media(max-width:900px){.pipeline-kpis{grid-template-columns:repeat(3,minmax(0,1fr));}.pipeline-head{align-items:flex-start;}.pipeline-lane{flex-basis:245px;}}
+@media(max-width:640px){.pipeline-head{display:block;}.pipeline-head-actions{margin-top:13px;}.pipeline-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.pipeline-kpi{padding:12px;}.pipeline-alert{flex-wrap:wrap;}.pipeline-alert a{margin-left:49px;}.pipeline-toolbar{gap:9px;}.pipeline-search-label{min-width:100%;max-width:none;order:2;}.pipeline-sync{order:3;}.pipeline-board{margin-right:-10px;padding-right:10px;}.pipeline-lane{flex:0 0 min(80vw,275px);min-width:0;}.pipeline-subtitle{font-size:12px;}.pipeline-detail-row{grid-template-columns:105px minmax(0,1fr);}}
+@media(prefers-reduced-motion:reduce){.pipeline-task{transition:none;}.pipeline-task:hover{transform:none;}.pipeline-board{scroll-behavior:auto;}}
+</style>
