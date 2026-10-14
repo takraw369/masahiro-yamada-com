@@ -21,7 +21,9 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 type Credentials = {client_email:string;private_key:string;token_uri?:string};
 export class TaskSheetError extends Error {
-  constructor(public code:string, public httpStatus:number) { super(code); }
+  code:string;
+  httpStatus:number;
+  constructor(code:string, httpStatus:number) { super(code); this.code=code; this.httpStatus=httpStatus; }
 }
 
 function credentialsFrom(secret: string | undefined): Credentials {
