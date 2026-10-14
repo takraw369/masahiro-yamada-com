@@ -30,7 +30,7 @@ function chromiumPath() {
 
 function assemblePage(astroSource) {
   const body = astroSource.match(/<DashboardLayout[^>]*>([\s\S]*?)<\/DashboardLayout>/)?.[1];
-  const script = astroSource.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
+  const script = astroSource.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1]?.replace("} catch(error) {", "} catch(error) { window.__pipelineTestError = String(error?.stack || error);");
   const css = astroSource.match(/<style is:global>([\s\S]*?)<\/style>/)?.[1];
   assert.ok(body && script && css, 'review fixture must use the real Pipeline HTML, JS and CSS');
   const data = JSON.stringify({ok:true,items:fixture,summary:{lastSourceSyncAt:'2026-10-14T08:00:00Z'}});
@@ -38,7 +38,7 @@ function assemblePage(astroSource) {
     '<style>*{box-sizing:border-box}body{margin:0;padding:12px;font-family:Arial,sans-serif;background:#f3f1ed;color:#17191c}</style>'+
     '<style>'+css+'</style></head><body>'+
     body+
-    '<script>window.fetch=async()=>({ok:true,json:async()=>('+JSON.stringify(JSON.parse(data))+')});</script>'+
+    '<script>window.fetch=async()=>{window.__fixtureFetchCalls=(window.__fixtureFetchCalls||0)+1;return {ok:true,json:async()=>('+JSON.stringify(JSON.parse(data))+')}};</script>'+
     '<script>'+script+'</script>'+
     '<script>setTimeout(()=>{'+
     'const initialCount=document.querySelectorAll(".pipeline-task").length;'+
@@ -49,7 +49,7 @@ function assemblePage(astroSource) {
     'const searchCount=document.querySelectorAll(".pipeline-task").length;'+
     'const gate=document.querySelector("[data-scope=gate]");gate?.click();'+
     'const gateCount=document.querySelectorAll(".pipeline-task").length;'+
-    'const audit={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,initialCount,detailOpens,searchCount,gateCount,lanes:document.querySelectorAll(".pipeline-lane").length,alert:document.getElementById("pipeline-alert-title")?.textContent,boardText:document.getElementById("pipeline-board")?.textContent?.slice(0,240),sync:document.getElementById("pipeline-sync")?.textContent};'+
+    'const audit={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,initialCount,detailOpens,searchCount,gateCount,lanes:document.querySelectorAll(".pipeline-lane").length,alert:document.getElementById("pipeline-alert-title")?.textContent,boardText:document.getElementById("pipeline-board")?.textContent?.slice(0,240),sync:document.getElementById("pipeline-sync")?.textContent,error:window.__pipelineTestError||"",fetchCalls:window.__fixtureFetchCalls||0};'+
     'const result=document.createElement("pre");result.id="layout-audit";result.textContent=JSON.stringify(audit);document.body.appendChild(result);'+
     '},400);</script></body></html>';
 }
