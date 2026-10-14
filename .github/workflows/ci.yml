@@ -133,13 +133,30 @@ jobs:
           const artifactConfig = resolve('.wrangler/deploy', redirect.configPath);
           const built = JSON.parse(readFileSync(artifactConfig, 'utf8'));
           const actualMain = resolve(dirname(artifactConfig), built.main);
+          const actualAssets = resolve(dirname(artifactConfig), built.assets?.directory || '');
           if (!existsSync(actualMain)) throw new Error('Built Astro Worker not found, refusing preview');
+          if (!built.assets?.directory || !existsSync(actualAssets)) {
+            throw new Error('Built Astro client assets missing: refuse unstyled Preview');
+          }
+          // Astro emits CSS at /_astro/*.css. Only dist/client contains the
+          // correct public URL root: distributing dist/ instead produces 404s.
+          const { readdirSync } = await import('node:fs');
+          const cssRoot = resolve(actualAssets, '_astro');
+          if (!existsSync(cssRoot) || !readdirSync(cssRoot).some(file => file.endsWith('.css'))) {
+            throw new Error('No public Astro CSS found under generated asset directory');
+          }
           const configFile = '.shelf-preview.wrangler.toml';
           const before = readFileSync(configFile, 'utf8');
           const virtual = 'main = "@astrojs/cloudflare/entrypoints/server"';
-          if (!before.includes(virtual)) throw new Error('Unexpected Preview main declaration');
-          writeFileSync(configFile, before.replace(virtual, 'main = "' + actualMain + '"'));
-          console.log('Preview will load verified built Astro Worker, not production config');
+          const incorrectAssets = 'assets = { directory = "./dist", binding = "ASSETS" }';
+          if (!before.includes(virtual) || !before.includes(incorrectAssets)) {
+            throw new Error('Unexpected Preview entrypoint or assets declaration');
+          }
+          const updated = before
+            .replace(virtual, 'main = "' + actualMain + '"')
+            .replace(incorrectAssets, 'assets = { directory = "' + actualAssets + '", binding = "ASSETS" }');
+          writeFileSync(configFile, updated);
+          console.log('Preview uses generated Astro entry and public client asset root; CSS exists');
           RESOLVE_ASTRO_PREVIEW
           # Intentional isolation: no production routes, D1, FLOW_RUNNER,
           # Supabase URL/keys, Stripe secrets, Dashboard secrets or product settings.
