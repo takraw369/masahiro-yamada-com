@@ -39,7 +39,7 @@ Web：https://example.com`}
 
       <div id="privacy-note" class="notice">
         <strong>データ最小化</strong>
-        <p>メール・電話・郵便番号・生年月日・URLと、ラベルが明確な氏名・住所・職業・所属などはコードで抽出する。曖昧な文章の候補だけJevで分類する。入力原文はこの機能の保存データには残さない。</p>
+        <p>メール・電話・郵便番号・生年月日・URLと、ラベルが明確な氏名・住所・職業・所属などはコードで抽出する。曖昧な文章の候補だけJevで分類する。漢字だけの短い入力は未確認の氏名候補として提示し、保存前の本人確認を求める。入力原文はこの機能の保存データには残さない。</p>
       </div>
       <div id="danger-note" class="notice danger">
         <strong>ここには入れない</strong>
@@ -162,7 +162,9 @@ Web：https://example.com`}
         reviewState.textContent=data.needsHumanReview?'REVIEW REQUIRED':'HUMAN GATE';
         reviewPanel.hidden=false;
         const count=Object.keys(data.fields||{}).length;
-        if(data.analysisMode==='partial_jev_unavailable'){
+        if(data.analysisMode==='local_unlabeled_candidate'){
+          setStatus(analyzeStatus,'氏名の候補として表示しました。名前とは限らないため、内容を確認してから保存してください。');
+        }else if(data.analysisMode==='partial_jev_unavailable'){
           setStatus(analyzeStatus,`AI応答がないため、直接読み取れた${count}項目だけ表示中。抜けている情報は手入力で補足し、必ず確認してください。`,'error');
         }else{
           setStatus(analyzeStatus,`解析完了 · ${count}項目を検出`,'success');
