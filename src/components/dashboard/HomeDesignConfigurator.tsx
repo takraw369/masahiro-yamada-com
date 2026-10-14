@@ -154,7 +154,7 @@ export default function HomeDesignConfigurator() {
   const previewUrl='/dashboard?design-preview='+encodeURIComponent(JSON.stringify(previewChoice));
   const selectionName=styleNames[choice.style]+' · '+layoutNames[choice.layout];
 
-  return <div className="design-studio" id="home-design-studio">
+  return <div className="design-studio" id="home-design-studio" data-panel={panel}>
     <header className="studio-header studio-header-v3">
       <div><p className="overline">DESIGN STUDIO</p><h1>自分の動きに、<br/><em>合う画面を。</em></h1></div>
       <p>参考5案を残して、いつでも見比べる。<br/>構成・見た目・部品はあとから整えよう。</p>
