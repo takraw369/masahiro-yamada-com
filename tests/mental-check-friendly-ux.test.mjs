@@ -30,7 +30,7 @@ test('mobile answer choices are vertically stacked, readable and touch friendly'
 test('quiz visual exception does not create duplicate backend or alter consent semantics', () => {
   assert.match(page, /body:has\(#mental-form\)/);
   assert.match(page, /background: #fffaf3/);
-  assert.match(page, /followupConsent:.*followupConsent/);
+  assert.match(page, /followupConsent,/);
   assert.match(page, /sessionStorage\.removeItem\('mental-check-session'\)/);
   assert.match(page, /\/api\/questionnaire\/mental/);
   assert.match(page, /\/api\/funnel\/mental-check/);
