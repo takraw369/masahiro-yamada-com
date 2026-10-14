@@ -22,6 +22,17 @@ export const dashboardAppCategories: { id: DashboardAppCategory; label: string; 
 
 export const dashboardAppCatalog: DashboardApp[] = [
   {
+    "id": "automation-portfolio",
+    "title": "Automation Portfolio",
+    "description": "自動化5機能の実装・未検証・次の検証を確認。",
+    "href": "/dashboard/automation-portfolio",
+    "category": "operate",
+    "access": "dashboard",
+    "symbol": "⚙️",
+    "tags": ["自動化", "稼働監査", "Railway", "n8n", "PDF", "LP", "Whisper"],
+    "featured": false
+  },
+  {
     "id": "food-lens",
     "title": "Food Lens",
     "description": "食品の裏面を撮影。成分を発見して図鑑を育てる。",

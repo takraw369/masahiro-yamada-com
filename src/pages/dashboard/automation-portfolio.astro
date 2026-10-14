@@ -1,0 +1,161 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const auditedAt = '2026-10-14';
+const canonical = 'https://docs.google.com/document/d/1D-nDn2orJrwh2hTme2H3XfvgnB9ZMrNXeCrIyNLbJGk/edit';
+const capabilities = [
+  {
+    id: '01', name: 'LINE / n8n-core', purpose: 'LINE連携・診断・ステップ配信',
+    code: 'LINE Flow / LineFlowManagerV2、LINE dispatch cron、External Runner',
+    gap: 'Messaging APIから実際のステップ配信・解除・診断→成約までの本番E2E',
+    next: '診断→本人同意→送信→結果→解除・リトライを1件ずつ検証',
+    source: 'https://github.com/takraw369/masahiro-yamada-com/blob/master/src/pages/dashboard/line.astro',
+  },
+  {
+    id: '02', name: 'note-automation', purpose: 'Whisper → 編集 → note下書き',
+    code: 'Content Engine のnoteドラフト、note adapter、Note Harness',
+    gap: '音声入力→文字起こし→校正→note草稿保存まで一貫した実行Receipt',
+    next: '1本を手動承認付きでE2E検証。自動公開はしない',
+    source: 'https://github.com/takraw369/masa-automation/blob/main/mcp/masa-os/BRIDGE_STATUS.md',
+  },
+  {
+    id: '03', name: 'sns-autopost', purpose: 'X用本文・画像・予約投稿',
+    code: 'X用ドラフト生成・文字数制御、X Post UI / draft API',
+    gap: '画像統合、投稿認可、予約・重複防止、投稿結果と学習のE2E',
+    next: '本文＋画像をレビューまで一体化。外部公開はHuman Gate',
+    source: 'https://github.com/takraw369/masa-automation/blob/main/workflows/30_content/publishing_engine.py',
+  },
+  {
+    id: '04', name: 'PDF-builder', purpose: 'テンプレート＋AI → PDF',
+    code: 'Presentation OS / Smart Report / レンダリング用スクリプト',
+    gap: '汎用テンプレ選択→PDF視覚QA→Drive保存・納品の再利用可能なE2E',
+    next: '実案件1件を既存Report経路で仕上げ、共通化の要否を判断',
+    source: 'https://github.com/takraw369/masa-automation/blob/main/scripts/render_smart_report.py',
+  },
+  {
+    id: '05', name: 'LP-gen', purpose: 'Obsidian・AIの原稿 → LP公開',
+    code: 'masahiro-yamada-com / sunlovesflow-site / ace-lp と既存Web配信',
+    gap: '任意原稿→レビュー→公開→CV計測、Vercel/Render運用の証憑',
+    next: '既存Webサイトへ小さく追加。CV実証後のみテンプレ化',
+    source: 'https://github.com/takraw369/masahiro-yamada-com',
+  },
+] as const;
+
+const infrastructure = [
+  { name: 'Cloudflare + GitHub', status: 'CURRENT FIRST', description: '現在のWeb配信・自動化コードの再利用を最優先。個別ジョブの本番健全性は別途監視。' },
+  { name: 'Drive + Supabase', status: 'CANONICAL / READ', description: 'DriveはProject・意思決定の正本。Supabaseは業務状態の読取・同期モデル。二重CRMを作らない。' },
+  { name: 'Railway / n8n', status: 'HISTORICAL / VERIFY', description: '2025年の構築資料はあるが、2026年の常時稼働・課金・配信成否は未検証。' },
+  { name: 'Paperspace', status: 'ON DEMAND ONLY', description: '長尺音声・映像・GPUなど、既存の処理能力を超える実案件の時だけ検討。' },
+  { name: 'Render / Vercel', status: 'HOLD / NEED EVIDENCE', description: '移管案は計画。Cloudflareを離れる理由と移管先のE2E証拠が揃うまで追加しない。' },
+] as const;
+---
+
+<DashboardLayout title="Automation Portfolio" eyebrow="MASA OS · REALITY CHECK">
+  <div class="audit-shell">
+    <header class="audit-hero">
+      <div>
+        <p class="kicker">AUTOMATION PORTFOLIO / EVIDENCE FIRST</p>
+        <h1>何ができて、<em>何がまだか。</em></h1>
+        <p class="hero-copy">2025年のRailway・n8n構想を、現行のMASA Agent OSと実コードで再評価。コードの存在と本番稼働を混同しないための実装棚卸し。</p>
+        <div class="hero-meta"><span>監査基準日 {auditedAt}</span><span>5 capabilities</span><span>静的監査スナップショット</span></div>
+      </div>
+      <a class="canonical-link" href={canonical} target="_blank" rel="noopener noreferrer">Drive正本を確認 ↗</a>
+    </header>
+
+    <section class="summary" aria-label="Audit summary">
+      <div><span>一部実装を確認</span><strong>5 / 5</strong><small>機能単位。全工程完成の意味ではない</small></div>
+      <div><span>本番E2E確認済み</span><strong>0 / 5</strong><small>今回の対象5経路について証拠未取得</small></div>
+      <div><span>第一推奨</span><strong class="priority">LINE</strong><small>診断 → 配信 → 結果の実証</small></div>
+    </section>
+
+    <section class="audit-section" aria-labelledby="cap-title">
+      <div class="section-title"><div><p class="kicker">01 / CAPABILITIES</p><h2 id="cap-title">機能別の現在地</h2></div><p class="section-hint">PARTIAL = コード・UIの一部あり。LIVEやDONEを意味しません。</p></div>
+      <div class="capabilities">
+        {capabilities.map(item => (
+          <article class="capability">
+            <div class="cap-head"><div><span class="cap-num">{item.id}</span><h3>{item.name}</h3><p>{item.purpose}</p></div><span class="state">PARTIAL · E2E未確認</span></div>
+            <div class="cap-grid">
+              <div><span class="field">確認できた資産</span><p>{item.code}</p></div>
+              <div><span class="field">できていない／未確認</span><p>{item.gap}</p></div>
+              <div class="next"><span class="field">NEXT ACTION</span><p>{item.next}</p></div>
+            </div>
+            <a class="source" href={item.source} target="_blank" rel="noopener noreferrer">コード証拠を見る ↗</a>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="audit-section" aria-labelledby="infra-title">
+      <div class="section-title"><div><p class="kicker">02 / INFRASTRUCTURE</p><h2 id="infra-title">移管するより、既存基盤を育てる。</h2></div></div>
+      <div class="infra-grid">
+        {infrastructure.map(item => (
+          <article class="infra-card"><h3>{item.name}</h3><span>{item.status}</span><p>{item.description}</p></article>
+        ))}
+      </div>
+    </section>
+
+    <section class="audit-section">
+      <div class="section-title"><div><p class="kicker">03 / RELEASE GATE</p><h2>完成の条件</h2></div></div>
+      <div class="gate-flow" aria-label="Release gate">
+        <span>Source / Input</span><b>→</b><span>Transform / Draft</span><b>→</b><span>Human Gate</span><b>→</b><span>E2E Receipt</span><b>→</b><span>Measure / Learn</span>
+      </div>
+      <p class="caution">この画面は監査日のコード照合結果です。Railway・Render・Paperspace・Mac上のジョブや外部配信サービスをリアルタイム監視していません。「E2E未確認」は「必ず未実装・停止中」を意味しません。実際の健康状態はRUN_LEDGER、GitHub CI、プロバイダログ、送信・課金などの本番Receiptで確認します。</p>
+      <div class="page-links">
+        <a href="/dashboard/line">LINE Flow ↗</a>
+        <a href="/dashboard/note-harness">Note Harness ↗</a>
+        <a href="/dashboard/post">X Post ↗</a>
+        <a href="/dashboard/github-issues">GitHub Workboard ↗</a>
+      </div>
+    </section>
+    <footer>Operational source of truth: Drive canonical · Execution evidence: RUN_LEDGER / CI / provider receipts · User interface: Dashboard.</footer>
+  </div>
+</DashboardLayout>
+
+<style>
+  .audit-shell{max-width:1240px;margin:0 auto;padding:12px 0 60px;color:var(--text-primary)}
+  .audit-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;background:linear-gradient(135deg,#fff9f0 0%,#fff 72%);border:1px solid var(--border-default);border-radius:22px;padding:clamp(20px,4vw,38px)}
+  .kicker{font-size:.7rem;font-weight:700;letter-spacing:.14em;color:var(--gold-muted)}
+  .audit-hero h1{margin:12px 0;font-size:clamp(1.75rem,3.6vw,3rem);line-height:1.3;letter-spacing:-.04em}
+  .audit-hero h1 em{font-style:normal;color:#b46c15}
+  .hero-copy{max-width:740px;color:var(--text-muted);line-height:1.8;font-size:.88rem}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .hero-meta span{border:1px solid #e5d8c3;border-radius:999px;padding:6px 10px;font-size:.72rem;color:#7b6b53;background:#fff}
+  .canonical-link{flex:none;border:1px solid #d5bd98;color:#815517;background:#fff;border-radius:10px;padding:12px 14px;text-decoration:none;font-size:.8rem;font-weight:700}
+  .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 36px}
+  .summary>div{display:grid;gap:5px;padding:19px;border:1px solid var(--border-default);border-radius:16px;background:#fff}
+  .summary span,.summary small{color:var(--text-muted);font-size:.73rem}
+  .summary strong{font-size:clamp(1.8rem,3vw,2.4rem);letter-spacing:-.05em}
+  .summary .priority{color:#a76615}
+  .audit-section{margin-top:38px}
+  .section-title{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:15px}
+  .section-title h2{font-size:clamp(1.24rem,2vw,1.65rem);letter-spacing:-.03em;margin-top:7px}
+  .section-hint{font-size:.75rem;color:var(--text-muted);max-width:360px}
+  .capabilities{display:grid;gap:12px}
+  .capability{border:1px solid var(--border-default);background:#fff;border-radius:17px;padding:21px}
+  .cap-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:20px}
+  .cap-head>div{min-width:0}
+  .cap-num{color:#a16b31;font-size:.75rem;font-weight:800}
+  .cap-head h3{display:inline;margin-left:12px;overflow-wrap:anywhere;font-size:1.14rem}
+  .cap-head p{margin-top:7px;color:var(--text-muted);font-size:.8rem}
+  .state{flex:none;padding:7px 10px;border-radius:999px;background:#f2f1ef;border:1px solid #ddd9d2;color:#63676c;font-size:.71rem;font-weight:700}
+  .cap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .cap-grid>div{background:#faf9f7;border-radius:11px;padding:14px}
+  .cap-grid .next{background:#fcf5e8;border:1px solid #ead7b4}
+  .field{display:block;font-size:.68rem;color:#91672f;font-weight:800;letter-spacing:.05em}
+  .cap-grid p{margin-top:8px;line-height:1.8;font-size:.81rem;color:#505b64}
+  .source{display:inline-flex;margin-top:15px;text-decoration:none;color:#8b5c24;font-size:.79rem;font-weight:700}
+  .infra-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .infra-card{padding:18px;background:#fff;border:1px solid var(--border-default);border-radius:14px}
+  .infra-card h3{font-size:.98rem}
+  .infra-card span{display:inline-block;font-size:.66rem;font-weight:800;color:#886234;margin-top:8px}
+  .infra-card p{line-height:1.75;color:var(--text-muted);font-size:.79rem;margin-top:10px}
+  .gate-flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:19px;background:#fff;border:1px solid var(--border-default);border-radius:13px}
+  .gate-flow span{font-size:.77rem;padding:8px 10px;background:#f9f5ee;border-radius:8px}
+  .gate-flow b{color:#a8763a}
+  .caution{font-size:.8rem;color:var(--text-muted);line-height:1.9;margin:17px 0}
+  .page-links{display:flex;flex-wrap:wrap;gap:10px}
+  .page-links a{border:1px solid var(--border-default);background:#fff;padding:11px 14px;text-decoration:none;border-radius:9px;font-size:.79rem}
+  footer{font-size:.7rem;line-height:1.7;color:var(--text-dim);padding-top:28px}
+  @media(max-width:960px){.cap-grid{grid-template-columns:1fr}.infra-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.audit-hero{align-items:flex-start;flex-direction:column}}
+  @media(max-width:640px){.summary{grid-template-columns:1fr}.cap-head{display:grid}.state{justify-self:start}.infra-grid{grid-template-columns:1fr}.section-title{display:block}.audit-hero{padding:20px}}
+</style>
