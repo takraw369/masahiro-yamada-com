@@ -182,7 +182,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const head = append(button, 'span', 'pipeline-task-top');
     let label = overdue(item) ? '期限超過' : (dueToday(item) ? '本日期限' : (upper(item.executionLane) === 'MASA_GATE' ? 'MASA判断' : (item.priority || item.status || 'TASK')));
     append(head, 'span', 'pipeline-chip' + (overdue(item) ? ' urgent' : ''), label);
-    append(head, 'span', 'pipeline-task-date', formatDue(item.dueDate));
+    append(head, 'span', 'pipeline-task-date', formatDue(item));
     append(button, 'span', 'pipeline-task-project', item.project || 'NO PROJECT');
     append(button, 'strong', 'pipeline-task-title', item.task || '名称未設定のタスク');
     const next = append(button, 'span', 'pipeline-task-next');
