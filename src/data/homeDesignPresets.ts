@@ -2,6 +2,13 @@ export const HOME_PRESET_STORAGE_KEY = 'masa.dashboard.home.design-preset.v1';
 
 export const homeDesignPresets = [
   {
+    id: 'orange', name: 'MASA Orange',
+    subtitle: '白い余白に、オレンジの一手。',
+    description: 'ブランドカラー #EE7800。濃色文字と静かな面で情報を整理。',
+    source: 'MASA Dashboard References / 2026-10-14',
+    tones: ['#fafaf9', '#ffffff', '#ee7800'],
+  },
+  {
     id: 'dawn',
     name: 'Dawn Focus',
     subtitle: '余白で、次の一手を際立たせる。',
