@@ -18,9 +18,30 @@
     }
   ],
   "shortcuts": [
-    { "name": "Capture", "short_name": "Capture", "url": "/mind?action=capture" },
-    { "name": "POST", "short_name": "POST", "url": "/dashboard/post" },
-    { "name": "INTEL", "short_name": "INTEL", "url": "/dashboard/intelligence" },
-    { "name": "CALENDAR", "short_name": "CAL", "url": "/dashboard/schedule" }
+    {
+      "name": "Apps",
+      "short_name": "Apps",
+      "url": "/dashboard/apps"
+    },
+    {
+      "name": "Capture",
+      "short_name": "Capture",
+      "url": "/mind?action=capture"
+    },
+    {
+      "name": "POST",
+      "short_name": "POST",
+      "url": "/dashboard/post"
+    },
+    {
+      "name": "INTEL",
+      "short_name": "INTEL",
+      "url": "/dashboard/intelligence"
+    },
+    {
+      "name": "CALENDAR",
+      "short_name": "CAL",
+      "url": "/dashboard/schedule"
+    }
   ]
 }
