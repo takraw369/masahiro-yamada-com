@@ -123,6 +123,24 @@ jobs:
           SITE_NAME = "Knowledge Shelf / isolated preview"
           PREVIEW_MODE = "read_only_no_real_payments"
           PREVIEW
+          # Astro's Cloudflare adapter emits a built entrypoint in the generated
+          # deployment config. Wrangler standalone cannot resolve Astro's
+          # package-virtual @astrojs/cloudflare/entrypoints/server main.
+          node --input-type=module <<'RESOLVE_ASTRO_PREVIEW'
+          import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+          import { resolve, dirname } from 'node:path';
+          const redirect = JSON.parse(readFileSync('.wrangler/deploy/config.json', 'utf8'));
+          const artifactConfig = resolve('.wrangler/deploy', redirect.configPath);
+          const built = JSON.parse(readFileSync(artifactConfig, 'utf8'));
+          const actualMain = resolve(dirname(artifactConfig), built.main);
+          if (!existsSync(actualMain)) throw new Error('Built Astro Worker not found, refusing preview');
+          const configFile = '.shelf-preview.wrangler.toml';
+          const before = readFileSync(configFile, 'utf8');
+          const virtual = 'main = "@astrojs/cloudflare/entrypoints/server"';
+          if (!before.includes(virtual)) throw new Error('Unexpected Preview main declaration');
+          writeFileSync(configFile, before.replace(virtual, 'main = "' + actualMain + '"'));
+          console.log('Preview will load verified built Astro Worker, not production config');
+          RESOLVE_ASTRO_PREVIEW
           # Intentional isolation: no production routes, D1, FLOW_RUNNER,
           # Supabase URL/keys, Stripe secrets, Dashboard secrets or product settings.
           if grep -Eq '(^|[[:space:]])(routes|route|d1_databases|services|SUPABASE_URL|SUPABASE_PUBLISHABLE_KEY|stripe)\b' .shelf-preview.wrangler.toml; then
