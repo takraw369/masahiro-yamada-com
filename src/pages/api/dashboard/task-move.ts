@@ -1,22 +1,22 @@
 import type { APIContext } from 'astro';
 import { getSiteStorageEnv, getDashboardOwnerKey } from '../../../lib/siteStorage';
-import { moveTaskInSheet, readTaskStatuses, TaskSheetError } from '../../../lib/taskBoardSheetWriter';
+import { moveTaskInSheet, readTaskStatuses, TaskSheetError, type TaskBoardRunner } from '../../../lib/taskBoardSheetWriter';
 
 // Middleware enforces Dashboard session, same-origin requests and private no-store.
 const json=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
-type WriterEnv=ReturnType<typeof getSiteStorageEnv> & { GOOGLE_TASK_BOARD_WRITER_JSON?:string };
-function writerSecret(locals:APIContext['locals']) {
+type WriterEnv=ReturnType<typeof getSiteStorageEnv> & { FLOW_RUNNER?:TaskBoardRunner };
+function writerRunner(locals:APIContext['locals']) {
   const env=getSiteStorageEnv(locals) as WriterEnv;
-  return {env,secret:env.GOOGLE_TASK_BOARD_WRITER_JSON||''};
+  return {env,flow:env.FLOW_RUNNER};
 }
 export const GET=async({locals}:APIContext)=>{
-  const {env,secret}=writerSecret(locals);
+  const {env,flow}=writerRunner(locals);
   try {
     await getDashboardOwnerKey(env);
-    if(!secret)return json({ok:true,writeEnabled:false,reason:'writer_not_configured'});
+    if(!flow)return json({ok:true,writeEnabled:false,reason:'flow_runner_unavailable'});
     // Source canonical is queried once on load to show fresh status even
     // while the one-way Sheets -> Supabase synchronization is delayed.
-    const {statuses}=await readTaskStatuses(secret);
+    const {statuses}=await readTaskStatuses(flow);
     return json({ok:true,writeEnabled:true,statuses,source:'MASA_TASK_BOARD/TASKS'});
   }catch(error){
     console.error('task_board_sheet_status_unavailable',error instanceof TaskSheetError?error.code:'failed');
@@ -40,9 +40,9 @@ export const POST=async({request,locals}:APIContext)=>{
      typeof expectedRevision!=='number'||(receipt!==undefined&&typeof receipt!=='string'))
     return json({ok:false,error:'invalid_task_move'},400);
   try{
-    const {env,secret}=writerSecret(locals);
+    const {env,flow}=writerRunner(locals);
     await getDashboardOwnerKey(env);
-    const saved=await moveTaskInSheet(secret,{taskId,fromStatus,toStatus,expectedRevision,receipt});
+    const saved=await moveTaskInSheet(flow,{taskId,fromStatus,toStatus,expectedRevision,receipt});
     return json({ok:true,...saved,canonical:'Google Sheets TASKS',verified:true});
   }catch(error){
     const known=error instanceof TaskSheetError?error:new TaskSheetError('task_sheet_unavailable',503);

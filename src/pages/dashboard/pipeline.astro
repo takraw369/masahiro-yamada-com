@@ -197,7 +197,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const phase = phaseFor(item);
     const button = el('button', 'pipeline-task' + (overdue(item) ? ' is-overdue' : '' ));
     button.type = 'button';
-    button.draggable = writeEnabled && !saving && ['NEXT','NOW','REVIEW','WAIT','DONE'].includes(upper(item.status));
+    button.draggable = writeEnabled && Number.isSafeInteger(item.sourceRevision) && !saving && ['NEXT','NOW','REVIEW','WAIT','DONE'].includes(upper(item.status));
     if (button.draggable) {
       button.addEventListener('dragstart', event => {
         if (!event.dataTransfer || saving) { event.preventDefault(); return; }
@@ -286,8 +286,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     selectedTask = item;
     $('pipeline-move-target').value = ['NEXT','NOW','REVIEW','WAIT','DONE'].includes(upper(item.status)) ? upper(item.status) : 'NEXT';
     $('pipeline-move-receipt').value = '';
-    $('pipeline-move-target').disabled = !writeEnabled || saving;
-    $('pipeline-move-submit').disabled = !writeEnabled || saving;
+    $('pipeline-move-target').disabled = !writeEnabled || !Number.isSafeInteger(item.sourceRevision) || saving;
+    $('pipeline-move-submit').disabled = !writeEnabled || !Number.isSafeInteger(item.sourceRevision) || saving;
     $('pipeline-detail-write-note').textContent = writeEnabled
       ? '保存先：Google Sheets TASKS。ドラッグでも移動できます。'
       : '閲覧専用。書き込み連携の準備が必要です。';
@@ -332,6 +332,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       // Source Sheet status + revision win over possibly stale Supabase read mirror.
       tasks.forEach(item => {
         const canonical = statuses[item.taskId];
+        delete item.sourceRevision;
         if (canonical && Number.isSafeInteger(canonical.revision)) {
           item.status = canonical.status;
           item.sourceRevision = canonical.revision;
@@ -346,7 +347,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   }
   async function moveTask(item, toStatus, receipt = '') {
     const fromStatus = upper(item.status);
-    if (!writeEnabled || saving || fromStatus === toStatus) return;
+    if (!writeEnabled || saving || fromStatus === toStatus || !Number.isSafeInteger(item.sourceRevision)) return;
     if (!['NEXT','NOW','REVIEW','WAIT','DONE'].includes(toStatus) ||
         !['NEXT','NOW','REVIEW','WAIT','DONE'].includes(fromStatus)) {
       moveMessage('このタスクは状態を確認してから移動してください', true); return;
@@ -360,6 +361,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       return;
     }
     saving = true;
+    $('pipeline-reload').disabled = true;
+    if (loaded) renderBoard();
     moveMessage('Google Sheets正本に保存中…');
     $('pipeline-move-submit').disabled = true;
     try {
@@ -368,7 +371,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         body:JSON.stringify({taskId:item.taskId,fromStatus,toStatus,expectedRevision:item.sourceRevision,receipt})
       });
       const data = await response.json();
-      if (!response.ok || !data.ok || !data.verified) {
+      if (!response.ok || !data.ok || !data.verified || data.taskId !== item.taskId || data.status !== toStatus || data.sourceRevision !== item.sourceRevision + 1) {
         if (response.status === 409) throw Error('別の編集がありました。更新して最新の状態を確認してください。');
         if (data.error === 'completion_evidence_required') throw Error('DONEには完了の証跡が必要です。');
         throw Error('保存できませんでした。Google Sheets連携をご確認ください。');
@@ -384,12 +387,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       if ($('pipeline-detail').open) $('pipeline-detail-write-note').textContent = error.message || '保存失敗';
     } finally {
       saving = false;
+      $('pipeline-reload').disabled = false;
       if (loaded) renderBoard();
       $('pipeline-move-submit').disabled = !writeEnabled;
     }
   }
 
   async function load() {
+    if (saving) return;
     const button = $('pipeline-reload');
     button.disabled = true;
     $('pipeline-sync').textContent = '読み込み中…';

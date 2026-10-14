@@ -10,12 +10,12 @@ import { pathToFileURL } from 'node:url';
 const run = promisify(execFile);
 const sourcePath = new URL('../src/pages/dashboard/pipeline.astro', import.meta.url);
 const fixture = [
-  { taskId:'T-001', task:'期限切れの確認', project:'ACE', status:'NOW', executionLane:'AI_RUN', priority:'S', dueDate:'2020-01-01', nextAction:'確認する' },
-  { taskId:'T-002', task:'特別な対象', project:'SLF', status:'NEXT', executionLane:'MASA_GATE', priority:'A', dueDate:'2099-12-30', nextAction:'意思決定する' },
-  { taskId:'T-003', task:'検証作業', project:'WEB', status:'REVIEW', executionLane:'AI_RUN', nextAction:'結果を見る' },
-  { taskId:'T-004', task:'外部待機', project:'ACE', status:'WAIT', executionLane:'MASA_GATE', nextAction:'待機' },
-  { taskId:'T-005', task:'公開完了', project:'WEB', status:'DONE', executionLane:'AI_RUN', nextAction:'記録' },
-  { taskId:'T-006', task:'新規タスク', project:'ACE', status:'UNKNOWN', executionLane:'AI_RUN', nextAction:'分類する' }
+  { taskId:'T0001', task:'期限切れの確認', project:'ACE', status:'NOW', executionLane:'AI_RUN', priority:'S', dueDate:'2020-01-01', nextAction:'確認する' },
+  { taskId:'T0002', task:'特別な対象', project:'SLF', status:'NEXT', executionLane:'MASA_GATE', priority:'A', dueDate:'2099-12-30', nextAction:'意思決定する' },
+  { taskId:'T0003', task:'検証作業', project:'WEB', status:'REVIEW', executionLane:'AI_RUN', nextAction:'結果を見る' },
+  { taskId:'T0004', task:'外部待機', project:'ACE', status:'WAIT', executionLane:'MASA_GATE', nextAction:'待機' },
+  { taskId:'T0005', task:'公開完了', project:'WEB', status:'DONE', executionLane:'AI_RUN', nextAction:'記録' },
+  { taskId:'T0006', task:'新規タスク', project:'ACE', status:'UNKNOWN', executionLane:'AI_RUN', nextAction:'分類する' }
 ];
 
 function chromiumPath() {
@@ -42,8 +42,8 @@ function assemblePage(astroSource) {
     '<script>window.__mockTaskStatus='+JSON.stringify(statuses)+';window.__mockMoves=[];window.fetch=async(url,opts={})=>{window.__fixtureFetchCalls=(window.__fixtureFetchCalls||0)+1;'+
     'if(String(url).includes("/api/dashboard/task-move")){'+
       'if(opts.method==="POST"){const input=JSON.parse(opts.body);window.__mockMoves.push(input);'+
-        'const src=window.__mockTaskStatus[input.taskId];src.status=input.toStatus;src.revision++;'+
-        'return {ok:true,json:async()=>({ok:true,verified:true,status:src.status,sourceRevision:src.revision,sourceUpdatedAt:"2026-10-14T00:00:00Z",sourceEditBy:"MASA Dashboard"})};}'+
+        'const src=window.__mockTaskStatus[input.taskId];if(!src || src.status!==input.fromStatus || src.revision!==input.expectedRevision) return {ok:false,status:409,json:async()=>({ok:false,error:"revision_conflict"})};src.status=input.toStatus;src.revision++;'+
+        'return {ok:true,json:async()=>({ok:true,verified:true,taskId:input.taskId,status:src.status,sourceRevision:src.revision,sourceUpdatedAt:"2026-10-14T00:00:00Z",sourceEditBy:"MASA Dashboard"})};}'+
       'return {ok:true,json:async()=>({ok:true,writeEnabled:true,statuses:window.__mockTaskStatus})};}'+
     'return {ok:true,json:async()=>('+JSON.stringify(JSON.parse(data))+')};};</script>'+
     '<script>'+script+'</script>'+
@@ -64,7 +64,7 @@ function assemblePage(astroSource) {
     'const searchCount=document.querySelectorAll(".pipeline-task").length;'+
     'const gate=document.querySelector("[data-scope=gate]");gate?.click();'+
     'const gateCount=document.querySelectorAll(".pipeline-task").length;'+
-    'const audit={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,initialCount,detailOpens,searchCount,gateCount,lanes:document.querySelectorAll(".pipeline-lane").length,alert:document.getElementById("pipeline-alert-title")?.textContent,boardText:document.getElementById("pipeline-board")?.textContent?.slice(0,240),sync:document.getElementById("pipeline-sync")?.textContent,error:window.__pipelineTestError||"",fetchCalls:window.__fixtureFetchCalls||0,dragReady,moveCount:window.__mockMoves.length,moveTarget:window.__mockMoves[0]?.toStatus,sourceMoved:window.__mockTaskStatus["T-001"]?.status};'+
+    'const audit={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,initialCount,detailOpens,searchCount,gateCount,lanes:document.querySelectorAll(".pipeline-lane").length,alert:document.getElementById("pipeline-alert-title")?.textContent,boardText:document.getElementById("pipeline-board")?.textContent?.slice(0,240),sync:document.getElementById("pipeline-sync")?.textContent,error:window.__pipelineTestError||"",fetchCalls:window.__fixtureFetchCalls||0,dragReady,moveCount:window.__mockMoves.length,moveTarget:window.__mockMoves[0]?.toStatus,sourceMoved:window.__mockTaskStatus["T0001"]?.status};'+
     'const result=document.createElement("pre");result.id="layout-audit";result.textContent=JSON.stringify(audit);document.body.appendChild(result);'+
     '},150);},400);</script></body></html>';
 }

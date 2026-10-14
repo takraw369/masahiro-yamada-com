@@ -1,32 +1,31 @@
-# Task Pipeline｜Drag & Drop → TASK_BOARD 書き戻しRunbook
-更新: 2026-10-14 · 状態: IMPLEMENTED IN PR / SECRET + SHEET EDITOR PERMISSION PENDING
+# Task Pipeline｜existing Flow Runner → TASK_BOARD
+Updated: 2026-10-14 · DRAFT / RELEASE BLOCKED until real-data validation
 
-## なぜ単純なドラッグ保存では足りないか
-- Google Sheets `MASA_TASK_BOARD｜GPT主導` の `TASKS` タブがTask Statusの正本。
-- `os_tasks` / `masa_task_execution_list_v1` / Dashboardは一方向同期の派生表示。
-- Supabaseだけ変更すると次回のSheet同期で戻るため禁止。ブラウザ `localStorage` に疑似完了を書き込むことも禁止。
-- 旧実装は read-only。Tendraの「ドラッグで列を変える」操作とデータの書き戻しは未実装だった。
+## Canonical flow
+Browser → existing authenticated Dashboard `/api/dashboard/task-move` → existing `FLOW_RUNNER` service binding → private `masa-flow-runner` RPC → `MASA_TASK_BOARD｜GPT主導 / TASKS` → readback.
 
-## 新しいコード
-- `src/pages/dashboard/pipeline.astro` : PCはカード dragstart/drop、スマホ・キーボードは詳細ダイアログの移動先セレクト。成功後にのみ状態変更。
-- `src/pages/api/dashboard/task-move.ts` : Dashboard Session + same-origin + request size + status / ID / revision gate。
-- `src/lib/taskBoardSheetWriter.ts` : Cloudflare内のSecretを使いGoogle Service Account JWTでGoogle Sheets APIへ直接書込。Task IDで行特定、Revision/Statusをfresh readして不一致なら409。A(Status)/J(Revision+1)/K(Updated at)/L(Updated by)を一括更新、DONE時だけH(Notes)に証跡追記、直後再読で検証。
-- GET `/api/dashboard/task-move` は正本のStatus+Revisionを取得してSupabase read modelにオーバーレイ表示（保存元は変えない）。これにより数時間後のSheet→Supabase同期前でも画面で正本の状態を見せられる。
-- 同時にSheetを複数ユーザーで編集した場合、Google Sheets自体にCompare-and-Swapがないため「read→write」間のごく短い競合を完全には防げない。厳密な原子性が必要ならApps Script LockServiceや専用Writer RPCが次段階。
+- Dashboard PR #352 depends on masa-automation PR #244; keep both Draft until acceptance.
+- Reuse Runner's existing `GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL` and `GOOGLE_DRIVE_PRIVATE_KEY`. Shared existing Drive authentication code handles tokens. No new service account, private key, Dashboard credential, Worker, D1 table, or migration.
+- Credentials stay in Runner. Dashboard receives only sanitized statuses and verified move receipts. Existing Dashboard session, same-origin, no-store and payload-size gates remain.
+- Supabase `os_tasks` is a one-way read mirror. Never write task statuses there or simulate saved state in localStorage.
 
-## 有効化のためのHuman Gate（このPRだけでは有効化されない）
-1. **新しい専用Google Service Account**を作成（既存Sheet Sync runnerのviewer秘密鍵は使い回さない）。Google Sheets APIを有効化し、JSON keyを安全に取得。
-2. Google Sheets `MASA_TASK_BOARD｜GPT主導`（Spreadsheet ID: `12GCdg88OfKmyxP4HGikqfKmvxiQBXASvUkkyD4I2svk`）だけ、そのService Accountのメールアドレスへ **編集者** で共有。別のDrive / 他のSheetには権限を与えない。共有はファイル全体の権限なので機密性を考慮。
-3. Cloudflare Dashboard → Workers & Pages → `masahiro-yamada-com` → Settings → Variables and Secrets → 新規 **Secret** `GOOGLE_TASK_BOARD_WRITER_JSON` にJSON全文を設定。リポジトリ・チャット・Drive Doc・スクショに private_key を貼らない。ブラウザへ露出させない。変更後はCloudflareの反映状況を確認。
-4. `/dashboard/pipeline` にログイン、緑文字で「移動OK…Google Sheetsに保存」→ T####の `NEXT→NOW` など影響の小さいTaskでテスト → Google Sheetの `A/J/K/L` とボードが一致するか読み直す。故意に古いRevisionのPOSTを投げても409となることを確認。
-5. `DONE` は完了証跡（12〜1200文字）を入力して保存。失敗時はUIの状態は動かさず、原因を表示。
-6. 認証切れ/403/未設定/ネットワーク障害では read-only に退避。秘密鍵はWorkers Secretとして管理・ローテーション。誤って公開された場合は即無効化。
+## Mutation contract
+1. Resolve immutable `Task ID` in I using current canonical rows, rejecting duplicates and missing IDs. Verify all A:N headers against the known schema.
+2. Acquire the existing `FLOW_DB / flow_idempotency` lease for the canonical Sheet writer (120 seconds) to serialize RPC moves across isolates. No business state is stored in the lease.
+3. Immediately before writing, fresh-read the physical target A:N and verify Task ID, expected Revision and source Status. A changed row/revision/status returns 409 with no write.
+4. One Sheets batch changes only A(Status), J(Revision+1), K(Asia/Tokyo timestamp), L(`MASA Dashboard`, the user-operated UI's writer label). DONE also appends H(Notes) evidence, retaining all existing Notes. Reject cell-size overflow before writing.
+5. Re-read target A:N; verify ID/status/revision/timestamp/editor and exact appended Notes. Only then return `verified:true` and readback metadata. A verification failure does not imply rollback: re-read canonical data before any retry.
+6. UI changes only after the matching verified receipt. Missing canonical IDs are read-only. Disable reload and further moves during save. GET overlays canonical status/revision while normal Sheets→Supabase synchronization catches up.
 
-## 公開Gate
-- CI / regression / Typecheck / Worker preview / Chromium5幅でPASS。
-- Cloudflare Workers SecretとGoogle Sheets編集者権限の用意を確認。
-- 認証後の本番データで1件のみ移動し、Google Sheet Task IDとRevisionの読戻しを検証。
-- Safari / Brave Desktop / iPhoneでドラッグ、列間移動、詳細セレクト、DONE証跡、エラー表示を評価。
-- 明示的なリリース承認と回復可能なリリースバージョン確認後にmasterへマージ。
+Google Sheets has no atomic compare-and-swap. The existing lease serializes this RPC's writers only; direct human edits, sorts, other writers and Sheet structural changes can still race the fresh-read/write interval. Readback detects mismatches after a write and cannot undo a wrong-row write. Real validation must account for this residual limitation; do not claim atomic CAS.
 
-Task statuses: NOW / NEXT / WAIT / REVIEW / DONE。INBOXは不明ステータスの表示列であり移動先にできない。Source statusが未知の場合は正本を確認する。
+## Required verification before production
+- Both current-head CI workflows pass: Dashboard tests, release-delta typecheck, build, isolated preview, security; Runner static checks, types, TypeScript, tests and existing lease SQL test.
+- Verify existing Runner runtime identity is the already approved editor `masa-flow-runner-drive-writer@masa-flow-runner-drive-writer.iam.gserviceaccount.com`, without printing its key.
+- Use an authenticated, isolated preview of both PR heads with existing credentials. Public Runner HTTP remains 404. Do not deploy production to enable this test.
+- Choose one explicitly identified Task ID and intended stage move; fresh-read its A:N, send the move through the preview Dashboard→Runner RPC, and independently re-read A:N to verify fields and preserve unrelated columns/rows. Confirm stale Revision returns 409 and writes nothing. Record sanitized evidence without copying private task text into Git.
+- Check drag/drop on desktop, destination select on touch/keyboard, DONE evidence, error display, and persisted status after reload. Synthetic fixtures and connector reads alone are not runtime write evidence.
+- Keep both PRs unmerged, do not trigger production deployment, and obtain the release go/no-go only after real-data evidence is complete. Rollback: revert the paired revisions; no new secret/schema cleanup is required.
+
+## Current acceptance
+Code and fixture verification are tracked in the two PRs. Actual deployed Runner identity, authenticated preview RPC and a real-task write/readback remain UNVERIFIED until observed. This document does not claim that production drag-saving is enabled.
