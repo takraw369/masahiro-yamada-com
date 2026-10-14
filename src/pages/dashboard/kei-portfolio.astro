@@ -98,6 +98,20 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
       <a href="https://openai.com/ja-JP/index/introducing-dots/" target="_blank" rel="noopener noreferrer">dots公式情報 ↗</a>
     </aside>
 
+    <section class="kei-updates" aria-labelledby="kei-updates-title">
+      <div class="kei-updates-head">
+        <div><p class="kei-kicker">OFFICIAL · DOTS UPDATE</p><h2 id="kei-updates-title">公式アップデート4項目</h2></div>
+        <a href="https://learn.chatgpt.com/docs/whats-new/dots-october-9-2026" target="_blank" rel="noopener noreferrer">公式情報 ↗</a>
+      </div>
+      <div class="kei-updates-grid">
+        <article><strong>スマホアプリから作成</strong><p>最新ChatGPTアプリからdotの作成・名前変更・Plugin接続。モバイルWebは非対応。</p></article>
+        <article><strong>ChatGPTの過去会話を探す</strong><p>関係する会話の文脈を活用。Driveへの正本保存とは別の機能。</p></article>
+        <article><strong>Codexの継続スレッドを活用</strong><p>既存作業を続けるか、新しく開始するかを判断して作業を整理。</p></article>
+        <article><strong>Workの定期タスクを管理</strong><p>Work automationsの閲覧・編集。権限・承認と対象タスクの確認が前提。</p></article>
+      </div>
+      <p class="kei-updates-fine">2026年10月5〜9日のOpenAI公式更新。Pro dotsの利用資格・セットアップ後に使える機能で、現在のPlusから自動実行するものではありません。</p>
+    </section>
+
     <section class="kei-compose" aria-labelledby="kei-compose-title">
       <div class="kei-compose-head">
         <div><p class="kei-kicker">SELECTED CAPABILITY</p><h2 id="kei-compose-title">まず、やりたいことを選ぶ。</h2></div>
@@ -125,13 +139,20 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
         <button type="button" data-kei-filter="all" aria-pressed="true">すべて</button>
         {groups.map(group=><button type="button" data-kei-filter={group.id} aria-pressed="false">{group.label}</button>)}
       </div>
+      <div class="kei-status-filters" role="group" aria-label="利用状態で絞り込む">
+        <button type="button" data-kei-status-filter="all" aria-pressed="true">すべて</button>
+        <button type="button" data-kei-status-filter="ready" aria-pressed="false">今頼める</button>
+        <button type="button" data-kei-status-filter="gated" aria-pressed="false">接続・承認確認</button>
+        <button type="button" data-kei-status-filter="building" aria-pressed="false">開発中</button>
+        <button type="button" data-kei-status-filter="pro" aria-pressed="false">Pro限定</button>
+      </div>
       <div class="kei-status-note" aria-label="状態の見方"><span>● 今頼める</span><span>○ 接続・承認確認</span><span>◇ 開発中</span><span>✦ Proで拡張（未導入）</span></div>
       {groups.map(group=>(
         <section class="kei-group" data-kei-group={group.id} aria-labelledby={`kei-title-${group.id}`}>
           <div class="kei-group-heading"><div><small>{group.english}</small><h3 id={`kei-title-${group.id}`}>{group.label}</h3><p>{group.intro}</p></div></div>
           <div class="kei-grid">
             {group.items.map(item=>(
-              <article class="kei-card" data-kei-card data-group={group.id} data-search={`${item.title} ${item.description} ${item.command} ${group.label}`.toLowerCase()}>
+              <article class="kei-card" data-kei-card data-group={group.id} data-status={item.status} data-search={`${item.title} ${item.description} ${item.command} ${group.label}`.toLowerCase()}>
                 <div class="kei-card-top"><span class:list={['kei-status',item.status]}>{labels[item.status]}</span></div>
                 <h4>{item.title}</h4>
                 <p>{item.description}</p>
@@ -155,6 +176,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
 <script>
   let currentCommand='';
   let activeGroup='all';
+  let activeStatus='all';
   const target=document.querySelector<HTMLTextAreaElement>('#kei-target');
   const output=document.querySelector<HTMLTextAreaElement>('#kei-output');
   const copy=document.querySelector<HTMLButtonElement>('#kei-copy');
@@ -167,6 +189,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
   const cards=Array.from(document.querySelectorAll<HTMLElement>('[data-kei-card]'));
   const groups=Array.from(document.querySelectorAll<HTMLElement>('[data-kei-group]'));
   const filters=Array.from(document.querySelectorAll<HTMLButtonElement>('[data-kei-filter]'));
+  const statusFilters=Array.from(document.querySelectorAll<HTMLButtonElement>('[data-kei-status-filter]'));
 
   function refreshCommand(){
     if(!output) return;
@@ -180,7 +203,8 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
     for(const card of cards){
       const categoryOK=activeGroup==='all'||card.dataset.group===activeGroup;
       const text=card.dataset.search||'';
-      const visible=categoryOK&&(!query||text.includes(query));
+      const statusOK=activeStatus==='all'||card.dataset.status===activeStatus;
+      const visible=categoryOK&&statusOK&&(!query||text.includes(query));
       card.hidden=!visible;
       if(visible) shown++;
     }
@@ -209,6 +233,13 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
       refreshList();
     });
   }
+  for(const filter of statusFilters){
+    filter.addEventListener('click',()=>{
+      activeStatus=filter.dataset.keiStatusFilter||'all';
+      for(const sibling of statusFilters)sibling.setAttribute('aria-pressed',String(sibling===filter));
+      refreshList();
+    });
+  }
   search?.addEventListener('input',refreshList);
   copy?.addEventListener('click',async()=>{
     if(!output?.value)return;
@@ -234,6 +265,18 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
   .kei-total b{font-size:2rem;color:#a76b24}.kei-total span{font-size:.75rem;color:#6f7780}
   .kei-flow{display:flex;flex-wrap:wrap;gap:11px;align-items:center;padding:17px 0;color:#6d7176;font-size:.78rem;font-weight:700}
   .kei-flow i{color:#c3a47a;font-style:normal}
+  .kei-updates{margin:0 0 20px;padding:18px;border:1px solid #ded6c9;background:#fff}
+  .kei-updates-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .kei-updates-head h2{font-size:1.05rem;margin:4px 0}
+  .kei-updates-head a{font-size:.77rem;font-weight:700;color:#835a25}
+  .kei-updates-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kei-updates-grid article{padding:12px;background:#faf8f4;border:1px solid #e8e0d5}
+  .kei-updates-grid strong{font-size:.83rem;color:#533e25}
+  .kei-updates-grid p,.kei-updates-fine{margin-top:5px;color:#6a737b;font-size:.75rem;line-height:1.65}
+  .kei-status-filters{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .kei-status-filters button{min-height:42px;padding:8px 11px;background:#fff;border:1px solid #d6d1ca;color:#59636c;cursor:pointer;font:inherit;font-size:.76rem}
+  .kei-status-filters button[aria-pressed="true"]{background:#5e4a31;border-color:#5e4a31;color:#fff}
+
   .kei-pro-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:15px 18px;margin:0 0 20px;border:1px solid #e3d7c6;background:#fbf6ee}
   .kei-pro-intro strong{font-size:.9rem;color:#67431b}
   .kei-pro-intro p{margin:5px 0 0;color:#6b6e73;font-size:.78rem;line-height:1.7}
@@ -281,6 +324,8 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
   @media(max-width:580px){
     .kei-hero{align-items:stretch;flex-direction:column;padding-top:10px}
     .kei-pro-intro{align-items:flex-start;flex-direction:column}
+    .kei-updates-grid{grid-template-columns:1fr}
+    .kei-updates-head{align-items:flex-start;flex-direction:column}
     .kei-total{align-self:start}.kei-compose{padding:15px}
     .kei-grid{grid-template-columns:1fr}
     .kei-compose-head{align-items:flex-start;flex-direction:column}
