@@ -387,7 +387,6 @@ import PublicPageLayout from '../layouts/PublicPageLayout.astro';
     previousStep.disabled = currentStepIndex === 0;
     nextStep.hidden = atReview;
     document.getElementById('step-hint').textContent = atReview ? '最後の確認です' : '1問ずつ、自分のペースで';
-    if (atReview) document.getElementById('progress-label').textContent = '23問の確認が終わりました';
     updateProgress();
     if (moveFocus) {
       const target = atReview ? followup.querySelector('h2') : cards[currentStepIndex]?.querySelector('h3');
@@ -431,7 +430,7 @@ import PublicPageLayout from '../layouts/PublicPageLayout.astro';
       const field = document.querySelector(`[name="${name}"]:checked`) || document.querySelector(`textarea[name="${name}"]`);
       return field && String(field.value || '').trim() !== '';
     }).length;
-    const pct = Math.round((answered / questions.length) * 100);
+    const pct = Math.round((currentStepIndex === questions.length ? 1 : (currentStepIndex + 1) / questions.length) * 100);
     document.getElementById('progress-percent').textContent = `${pct}%`;
     document.getElementById('progress-bar').style.width = `${pct}%`;
     document.getElementById('progress-label').textContent = currentStepIndex === questions.length ? '回答完了・送信前の確認' : `質問 ${currentStepIndex + 1} / ${questions.length} ・回答済み ${answered}`;
@@ -449,6 +448,10 @@ import PublicPageLayout from '../layouts/PublicPageLayout.astro';
       list.innerHTML = questions.map((q,i) => { const html = renderQuestion(q,i,previousDomain); previousDomain=q.domain; return html; }).join('');
       showStep(0);
       form.addEventListener('change', updateProgress);
+      list.addEventListener('change', (event) => {
+        const error = event.target?.closest?.('.question-card')?.querySelector('.field-error');
+        if (error) { error.hidden = true; error.textContent = ''; }
+      });
       form.addEventListener('input', updateProgress);
     } catch (error) {
       list.innerHTML = `<p class="loading-note">質問を読み込めませんでした。ページを再読み込みしてください。<br><small>${esc(String(error))}</small></p>`;
