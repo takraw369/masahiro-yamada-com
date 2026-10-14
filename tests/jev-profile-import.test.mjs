@@ -71,3 +71,11 @@ test('ACE handoff requires click and transfers only the selected name', () => {
  assert.match(page, /clipboard\.writeText/);
  assert.match(page, /コピーした文字は端末のクリップボードに残る/);
 });
+
+test('unlabeled name candidate remains review-only and is explained', () => {
+  assert.match(page, /local_unlabeled_candidate/);
+  assert.match(page, /氏名の候補として表示しました/);
+  assert.match(page, /未確認の氏名候補として提示/);
+  assert.match(page, /id="save-profile"/);
+  assert.match(page, /needsHumanReview/);
+});
