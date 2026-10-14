@@ -15,11 +15,11 @@ PR334 remains draft; no live migration, secret update, payment, invitation, or p
 
 Fresh production deployment run: 38493205716, master a53c2015617db826be1380a7843df51ea8fd1c79, all release gates + protected deploy succeeded.
 
-- `/mental-check`: HTTP200; browser 390/1280px no page overflow; existing LINE and toolkit links present. Question load is checked separately in the local evidence receipt.
+- `/mental-check`: HTTP200; browser 390/1280px no page overflow; existing LINE and toolkit links present. Browser waited for actual questions: questionnaire API HTTP200, 23 question cards / 100 radio inputs, no page errors and no overflow at 390px. No questionnaire submitted.
 - `/api/funnel/mental-check`: unauthorized origin ->403; allowed origin with invalid body ->400 invalid_event. No synthetic conversions inserted.
 - Live core DB aggregate `mental_check_%` events returned zero rows. This does not establish acquisition or conversion success.
 - `/library/entry-toolkit`: HTTP200; actual content says MEMBER candidate / under preparation, with opt-in preview. It is not a delivered free Quest. No claim of free delivery.
-- Existing LINE URL resolves HTTP200 to the official account add surface. Friend/add, actual keyword message, response, checkout and delivery on a real user's LINE remain UNVERIFIED. No external message sent.
+- Existing LINE URL resolves HTTP200 to the official account add surface. Read-only deployed `line-menu-router` v8 contains 勝ち筋 -> existing offer -> 勝ち筋｜申込 -> qualification, plus existing QUEST menu. Friend/add, actual keyword message, response, checkout and delivery on a real user's LINE remain UNVERIFIED. No external message sent.
 - `/booking` on production:404, consistent with unmerged draft. No public booking launch.
 - Dashboard chart / authenticated runtime / real conversions remain UNVERIFIED.
 
