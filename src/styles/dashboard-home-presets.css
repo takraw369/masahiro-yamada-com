@@ -1,4 +1,5 @@
 #dashboard-home-shell{container-type:inline-size;container-name:home-composition}
+:is(#dashboard-home-shell,.flow-shell,.x-workspace)[data-home-preset="orange"]{--preset-bg:#fafaf9;--preset-paper:#fff;--preset-ink:#171717;--preset-muted:#666;--preset-line:#e7e5e4;--preset-accent:#a84b00;--preset-brand:#ee7800;--preset-cta-ink:#171717;--preset-rad:12px}
 /* Explicit saved design: shared palette only for Home, Flow and X workspace. */
 :is(#dashboard-home-shell,.flow-shell,.x-workspace)[data-home-preset="dawn"] { --preset-bg:#f5f1ea;--preset-paper:#fffefa;--preset-ink:#29251e;--preset-muted:#796e60;--preset-line:#d7c9b7;--preset-accent:#96652d;--preset-rad:10px; }
 :is(#dashboard-home-shell,.flow-shell,.x-workspace)[data-home-preset="night"] { --preset-bg:#10141b;--preset-paper:#1c2530;--preset-ink:#f2ebdd;--preset-muted:#aeb8c0;--preset-line:#3a4b57;--preset-accent:#cfac70;--preset-rad:8px; }
@@ -88,6 +89,8 @@
 #dashboard-home-shell[data-home-buttons="soft"] :is(.focus-cta,.output-card,.home-quick-nav a){border-radius:10px}
 #dashboard-home-shell[data-home-buttons="pill"] :is(.focus-cta,.home-quick-nav a){border-radius:100px}
 #dashboard-home-shell[data-home-cta="solid"] .focus-cta{background:var(--preset-accent);color:var(--preset-cta-ink,#fff);border-color:var(--preset-accent)}
+#dashboard-home-shell[data-home-preset="orange"][data-home-cta="solid"] .focus-cta{background:var(--preset-brand);border-color:var(--preset-brand);color:#171717}
+#dashboard-home-shell[data-home-preset="orange"] .revenue-actions .revenue-primary{background:var(--preset-brand);border-color:var(--preset-brand);color:#171717}
 #dashboard-home-shell[data-home-cta="outline"] .focus-cta{background:transparent;color:#ffe3a9;border:2px solid var(--preset-accent);box-shadow:none}
 #dashboard-home-shell[data-home-cta="minimal"] .focus-cta{background:transparent;color:#ffe3a9;border:0;border-bottom:2px solid var(--preset-accent);border-radius:0;box-shadow:none;padding-inline:0}
 #dashboard-home-shell[data-home-cta="outline"] .output-card{border-color:var(--preset-accent)}

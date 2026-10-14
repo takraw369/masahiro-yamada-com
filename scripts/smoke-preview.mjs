@@ -77,7 +77,7 @@ try {
     assert.match(res.headers.get('cache-control'), /no-store/, path);
     assert.equal(res.headers.get('referrer-policy'), 'no-referrer', path);
   }
-  for (const path of ['/api/dashboard/state', '/api/dashboard/voice', '/api/x-harness/x-accounts', '/api/line-harness/line-accounts']) {
+  for (const path of ['/api/dashboard/state', '/api/dashboard/design-state', '/api/dashboard/voice', '/api/x-harness/x-accounts', '/api/line-harness/line-accounts']) {
     const res = await previewFetch(base + path);
     assert.equal(res.status, 401, path);
     assert.match(res.headers.get('cache-control'), /no-store/);
