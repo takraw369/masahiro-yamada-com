@@ -38,7 +38,7 @@ function assemblePage(astroSource) {
     '<style>*{box-sizing:border-box}body{margin:0;padding:12px;font-family:Arial,sans-serif;background:#f3f1ed;color:#17191c}</style>'+
     '<style>'+css+'</style></head><body>'+
     body+
-    '<script>window.fetch=async()=>({ok:true,json:async()=>'+JSON.stringify(JSON.parse(data))+'});</script>'+
+    '<script>window.fetch=async()=>({ok:true,json:async()=>('+JSON.stringify(JSON.parse(data))+')});</script>'+
     '<script>'+script+'</script>'+
     '<script>setTimeout(()=>{'+
     'const initialCount=document.querySelectorAll(".pipeline-task").length;'+
