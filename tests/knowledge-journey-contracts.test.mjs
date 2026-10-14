@@ -57,9 +57,9 @@ test('Knowledge Journey checkout click is intent, never anonymous purchase proof
   const client = await read('src/lib/knowledgeJourneyClient.ts');
   const endpoint = await read('src/pages/api/library/journey.ts');
   assert.match(client, /ks_checkout_start/);
-  assert.match(client, /buy\\.stripe\\.com/);
+  assert.match(client, /buy\.stripe\.com/);
   assert.match(client, /stripe_payment_link/);
-  assert.doesNotMatch(endpoint, /^\\s*'ks_purchase',/m);
+  assert.doesNotMatch(endpoint, /^\s*'ks_purchase',/m);
   assert.match(endpoint, /signature-verified payment webhook/);
 });
 
