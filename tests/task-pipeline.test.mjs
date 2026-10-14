@@ -17,15 +17,22 @@ test('Task Pipeline is reachable from existing MASA Dashboard surfaces', async (
   assert.match(home, /href:'\/dashboard\/pipeline'/);
 });
 
-test('Pipeline only reads canonical TASK_BOARD, without imaginary statuses or remote writes', async () => {
+test('Pipeline reads TASK_BOARD and writes stages only through the canonical Sheet-gated endpoint', async () => {
   const page = await readFile(pagePath, 'utf8');
   assert.match(page, /\/api\/dashboard\/task-execution\?limit=300/);
-  assert.match(page, /READ ONLY · TASK_BOARD正本/);
+  assert.match(page, /Google Sheets · TASK_BOARD正本/);
   assert.match(page, /!payload\.ok \|\| !Array\.isArray\(payload\.items\)/);
   assert.match(page, /tasks = payload\.items/);
   assert.doesNotMatch(page, /Math\.random\(/);
-  assert.doesNotMatch(page, /method:\s*['"](?:PUT|POST|DELETE|PATCH)/);
-  assert.doesNotMatch(page, /draggable=["']true/);
+  assert.match(page, /\/api\/dashboard\/task-move/);
+  assert.match(page, /expectedRevision:item\.sourceRevision/);
+  assert.match(page, /data\.verified/);
+  assert.match(page, /await refreshWriter\(\)/);
+  assert.match(page, /button\.draggable = writeEnabled/);
+  assert.match(page, /dragstart/);
+  assert.match(page, /dragover/);
+  assert.match(page, /dragend/);
+  assert.match(page, /event\.preventDefault\(\)/);
 });
 
 test('Pipeline is mobile-aware and accessible, including no fake progress percentages', async () => {
