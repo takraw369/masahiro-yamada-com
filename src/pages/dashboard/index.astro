@@ -17,6 +17,7 @@ const dateLabel = new Intl.DateTimeFormat('ja-JP', {
 }).format(new Date());
 
 const deepDoors = [
+  { group:'EXECUTE', title:'Task Pipeline', detail:'Phase別の現在地・停滞・次Actionを俯瞰', href:'/dashboard/pipeline' },
   { group:'EXECUTE', title:'Task Flow', detail:'Project・Task・WAITの詳細', href:'/dashboard/tasks' },
   { group:'EXECUTE', title:'GitHub Workboard', detail:'Issue・PR・CIの現在地とHuman Gateを確認', href:'/dashboard/github-issues' },
   { group:'SPRINT', title:'72H Flow Build', detail:'既存資産を72時間で現実へ流す', href:'/dashboard/sprint' },
