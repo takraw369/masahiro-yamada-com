@@ -35,6 +35,16 @@ type XPostDraftRequest = {
 
 const CANONICAL_WRITE_CONFIRMATION = 'CONFIRM_ONE_CANONICAL_WRITE';
 
+type CanonicalTargetRequest = {
+  sourceId: number; sourceUrl: string; targetId: string;
+  action: 'PATCH' | 'LINK_EXISTING' | 'NO_NEW_FILE';
+  appendText: string; evidenceText: string;
+  conflictStatus: 'clear' | 'conflict' | 'unreviewed';
+};
+type CanonicalTargetAuthorization = CanonicalTargetRequest & {
+  targetRevision: string; targetDigest: string; sourceDigest: string; deltaDigest: string;
+};
+
 interface FlowRunnerBinding {
   health(): Promise<unknown>;
   status(limit?: number): Promise<unknown>;
@@ -42,8 +52,8 @@ interface FlowRunnerBinding {
   raindropSearch(search: string, limit?: number): Promise<unknown>;
   raindropGet(ids: number[]): Promise<unknown>;
   raindropCurate(operations: CuratorOperation[]): Promise<unknown>;
-  canonicalAssetPreview(sourceId: number): Promise<unknown>;
-  canonicalAssetWrite(sourceId: number, confirmation: string): Promise<unknown>;
+  canonicalAssetPreview(sourceId: number, target?: CanonicalTargetRequest): Promise<unknown>;
+  canonicalAssetWrite(sourceId: number, confirmation: string, target?: CanonicalTargetAuthorization): Promise<unknown>;
   generateXPostDraft(input: XPostDraftRequest): Promise<unknown>;
 }
 
@@ -137,6 +147,33 @@ function xPostDraftInput(value: unknown): XPostDraftRequest | null {
       boundary,
     },
   };
+}
+
+function canonicalTarget(value: unknown, sourceId: number, write: boolean): CanonicalTargetRequest | CanonicalTargetAuthorization | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const input = value as Record<string, unknown>;
+  if (input.sourceId !== sourceId || typeof input.sourceUrl !== 'string' || input.sourceUrl.length > 4000) return null;
+  try {
+    const url = new URL(input.sourceUrl);
+    if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) return null;
+  } catch { return null; }
+  if (typeof input.targetId !== 'string' || !/^[A-Za-z0-9_-]{1,200}$/.test(input.targetId)) return null;
+  if (!['PATCH', 'LINK_EXISTING', 'NO_NEW_FILE'].includes(String(input.action))) return null;
+  if (typeof input.appendText !== 'string' || input.appendText.length > 6000
+    || (input.action === 'PATCH' ? !input.appendText.trim() : input.appendText !== '')) return null;
+  if (typeof input.evidenceText !== 'string' || !input.evidenceText.trim() || input.evidenceText.length > 2000) return null;
+  if (!['clear', 'conflict', 'unreviewed'].includes(String(input.conflictStatus))) return null;
+  const request: CanonicalTargetRequest = {
+    sourceId, sourceUrl: input.sourceUrl, targetId: input.targetId,
+    action: input.action as CanonicalTargetRequest['action'], appendText: input.appendText,
+    evidenceText: input.evidenceText, conflictStatus: input.conflictStatus as CanonicalTargetRequest['conflictStatus'],
+  };
+  if (!write) return request;
+  if (typeof input.targetRevision !== 'string' || !input.targetRevision || input.targetRevision.length > 512) return null;
+  const digests = [input.targetDigest, input.sourceDigest, input.deltaDigest];
+  if (!digests.every(digest => typeof digest === 'string' && /^[a-f0-9]{64}$/.test(digest))) return null;
+  return { ...request, targetRevision: input.targetRevision, targetDigest: input.targetDigest as string,
+    sourceDigest: input.sourceDigest as string, deltaDigest: input.deltaDigest as string };
 }
 
 function curatorOperations(value: unknown): CuratorOperation[] | null {
@@ -237,6 +274,13 @@ export const POST = async ({ request }: APIContext) => {
       case 'canonical.preview': {
         const sourceId = positiveInteger(body.sourceId);
         if (!sourceId) return json({ ok: false, error: 'invalid_source_id' }, 400);
+        if (body.target !== undefined) {
+          const target = canonicalTarget(body.target, sourceId, false);
+          if (!target) return json({ ok: false, error: 'invalid_canonical_target' }, 400);
+          const health = await flow.health() as { canonicalTargetContract?: unknown } | null;
+          if (health?.canonicalTargetContract !== 'exact_source_target_v2') return json({ ok: false, error: 'canonical_target_runner_not_ready' }, 503);
+          return json({ ok: true, data: await flow.canonicalAssetPreview(sourceId, target) });
+        }
         return json({ ok: true, data: await flow.canonicalAssetPreview(sourceId) });
       }
       case 'canonical.write': {
@@ -245,6 +289,13 @@ export const POST = async ({ request }: APIContext) => {
         const confirmation = typeof body.confirmation === 'string' ? body.confirmation : '';
         if (confirmation !== CANONICAL_WRITE_CONFIRMATION) {
           return json({ ok: false, error: 'canonical_human_gate_required' }, 400);
+        }
+        if (body.target !== undefined) {
+          const target = canonicalTarget(body.target, sourceId, true);
+          if (!target) return json({ ok: false, error: 'invalid_canonical_target_authorization' }, 400);
+          const health = await flow.health() as { canonicalTargetContract?: unknown } | null;
+          if (health?.canonicalTargetContract !== 'exact_source_target_v2') return json({ ok: false, error: 'canonical_target_runner_not_ready' }, 503);
+          return json({ ok: true, data: await flow.canonicalAssetWrite(sourceId, confirmation, target as CanonicalTargetAuthorization) });
         }
         return json({ ok: true, data: await flow.canonicalAssetWrite(sourceId, confirmation) });
       }
