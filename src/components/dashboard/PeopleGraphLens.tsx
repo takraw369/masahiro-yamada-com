@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent, PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react';
 import '../../styles/people-graph-lens.css';
+import { distanceMap, shortestPath } from '../../lib/peopleGraphModel';
 
 /**
  * A strictly synthetic interaction lens for the PRIMARY MASA Brain Graph.
@@ -52,29 +53,6 @@ const LINKS: Link[] = [
   ['p11','p15','intro'],['p12','p17','quest'],['p13','p15','meet'],['p14','p16','social'],
 ].map(([a,b,type],i)=>({a,b,type:type as Link['type'],confirmed:i%6!==0}));
 
-function distanceMap(root: string, links: Link[], max: number): Map<string,number> {
-  const depth = new Map<string,number>([[root,0]]);
-  const queue = [root];
-  for(let i=0;i<queue.length;i++){
-    const id=queue[i],d=depth.get(id)!;
-    if(d>=max)continue;
-    for(const e of links){const other=e.a===id?e.b:e.b===id?e.a:null;
-      if(other&&!depth.has(other)){depth.set(other,d+1);queue.push(other)}
-    }
-  }
-  return depth;
-}
-function shortestPath(start:string,end:string,links:Link[]):string[]{
-  const seen=new Map<string,string|null>([[start,null]]),queue=[start];
-  for(let i=0;i<queue.length;i++){const id=queue[i];if(id===end)break;
-    for(const e of links){const next=e.a===id?e.b:e.b===id?e.a:null;
-      if(next&&!seen.has(next)){seen.set(next,id);queue.push(next)}
-    }
-  }
-  if(!seen.has(end))return [];
-  const path:string[]=[];for(let id:string|null=end;id;id=seen.get(id)??null)path.unshift(id);
-  return path;
-}
 function startPoint(i:number,total:number):Point {
   const angle=(i/Math.max(1,total))*Math.PI*2-Math.PI/2;
   return {x:WIDTH/2+Math.cos(angle)*(170+i%3*22),y:HEIGHT/2+Math.sin(angle)*(125+i%4*19),vx:0,vy:0,pinned:false};
