@@ -87,3 +87,13 @@ test('manual Cloudflare Preview job is isolated and cannot run on push or PR', a
   assert.doesNotMatch(manual, /wrangler deploy\b/);
   assert.doesNotMatch(manual, /\[\[routes\]\]|\[\[d1_databases\]\]|\[\[services\]\]/);
 });
+
+test('Cloudflare shared preview deploy uses built client asset root and verifies public CSS', async () => {
+  const workflow = await read('.github/workflows/ci.yml');
+  assert.match(workflow, /built\.assets\?\.directory/);
+  assert.match(workflow, /actualAssets/);
+  assert.match(workflow, /cssRoot/);
+  assert.match(workflow, /stylesheetCount > 0/);
+  assert.match(workflow, /CSS not served:/);
+  assert.match(workflow, /'\/library'/);
+});
