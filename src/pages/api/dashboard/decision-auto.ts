@@ -6,7 +6,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LENSES = new Set(['core','alt','2035','challenge']);
-const bounded = (v: unknown, n: number) => typeof v === 'string' && v.length <= n;
+const bounded = (v: unknown, n: number): v is string => typeof v === 'string' && v.length <= n;
 type Item = {id:string;title:string;lens:string;stage:string;prediction_text:string;rationale_text:string;actual_text?:string};
 const validatedOutput = (data: any, mode: string) => {
   if (!data?.ok || !data?.data || typeof data.data !== 'object') return false;
@@ -25,7 +25,8 @@ export const POST = async ({request,locals}:APIContext) => {
     body = parsed as Record<string,unknown>;
   } catch {return json({ok:false,error:'invalid_json'},400);}
   const mode = body.mode === 'compare' ? 'compare' : body.mode === 'compose' ? 'compose' : '';
-  const title = body.title, lens = body.lens;
+  const title = typeof body.title === 'string' ? body.title : '', lens = body.lens;
+  const actualText = typeof body.actual_text === 'string' ? body.actual_text : '';
   if (!mode || !bounded(title,180) || title.trim().length<3 ||
     !LENSES.has(String(lens)) ||
     (body.context_text !== undefined && !bounded(body.context_text,6000)) ||
@@ -33,7 +34,7 @@ export const POST = async ({request,locals}:APIContext) => {
     return json({ok:false,error:'invalid_input'},400);
   }
   if (mode === 'compare' && (typeof body.id !== 'string' || !UUID.test(body.id)
-    || !bounded(body.actual_text,6000) || !body.actual_text.trim())) {
+    || !bounded(actualText,6000) || !actualText.trim())) {
     return json({ok:false,error:'invalid_actual'},400);
   }
   try {
@@ -56,7 +57,7 @@ export const POST = async ({request,locals}:APIContext) => {
         body:JSON.stringify({owner_key:owner,mode,title,lens,
           ...(mode==='compose'
             ? {context_text:body.context_text||'',options_text:body.options_text||''}
-            : {actual_text:body.actual_text,prediction_text:existing?.prediction_text,rationale_text:existing?.rationale_text})
+            : {actual_text:actualText,prediction_text:existing?.prediction_text,rationale_text:existing?.rationale_text})
         })
       });
     } finally {clearTimeout(timer);}
@@ -64,7 +65,7 @@ export const POST = async ({request,locals}:APIContext) => {
     if(!response.ok || !validatedOutput(result,mode)) return json({ok:false,error:'ai_generation_unavailable'},503);
     if(mode==='compare') {
       const saved = await supabaseRpc(env,'masa_cognitive_case_save_v1',{
-        p_owner_key:owner,p_action:'actual',p_case:{id:body.id,actual_text:body.actual_text,difference_text:result.data.difference_text}
+        p_owner_key:owner,p_action:'actual',p_case:{id:body.id,actual_text:actualText,difference_text:result.data.difference_text}
       });
       return json({ok:true,item:saved,ai:true,model:result.model});
     }
@@ -76,7 +77,7 @@ export const POST = async ({request,locals}:APIContext) => {
       const fixed = await supabaseRpc(env,'masa_cognitive_case_save_v1',{
         p_owner_key:owner,p_action:'lock',
         p_case:{id:draft.id,prediction_text:result.data.prediction_text,
-          rationale_text:result.data.rationale_text + '\n[AI生成: '+String(result.model||'unspecified').slice(0,80)+']'}
+          rationale_text:(result.data.rationale_text as string).slice(0,3800) + '\n[AI生成: '+String(result.model||'unspecified').slice(0,80)+']'}
       });
       return json({ok:true,item:fixed,ai:true,model:result.model});
     } catch {
