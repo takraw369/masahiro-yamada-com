@@ -54,29 +54,64 @@ function assemblePage(astroSource) {
     '},400);</script></body></html>';
 }
 
-test('real Pipeline HTML / JS / CSS works in headless Chromium at desktop and mobile widths', {timeout:90000}, async t => {
+test('real Pipeline HTML / JS / CSS works in headless Chromium at desktop and mobile widths', {timeout:60000}, async t => {
   const browser = chromiumPath();
   if (!browser) return t.skip('Chromium not present: manual device and UI QA remain required');
   const source = await readFile(sourcePath, 'utf8');
   const dir = await mkdtemp(join(tmpdir(), 'masa-pipeline-review-'));
   try {
+    // Chrome clamps top-level windows below 500 CSS px. srcdoc iframes have
+    // genuine independent 320/375/390/430px CSS viewports and media queries.
+    const widths = [320,375,390,430,1440];
+    const childHtml = JSON.stringify(assemblePage(source)).replaceAll('</','<\\/');
+    const frameScript = [
+      'const widths='+JSON.stringify(widths)+';',
+      'const markup='+childHtml+';',
+      'const results=[];',
+      'for(const width of widths){',
+      '  const frame=document.createElement("iframe");',
+      '  frame.setAttribute("title","Pipeline width "+width);',
+      '  frame.style.cssText="width:"+width+"px;height:1200px;border:0;display:block";',
+      '  frame.dataset.requestedWidth=String(width);',
+      '  frame.srcdoc=markup;',
+      '  document.body.appendChild(frame);',
+      '}',
+      'let attempts=0;',
+      'const timer=setInterval(()=>{',
+      '  attempts++;',
+      '  const collected=Array.from(document.querySelectorAll("iframe")).map(frame=>({',
+      '    width:Number(frame.dataset.requestedWidth),',
+      '    audit:frame.contentDocument?.getElementById("layout-audit")?.textContent||null',
+      '  }));',
+      '  if(collected.every(row=>row.audit)||attempts>=60){',
+      '    clearInterval(timer);',
+      '    const marker=document.createElement("pre");marker.id="audit-results";',
+      '    marker.textContent=JSON.stringify(collected.map(row=>({width:row.width,result:row.audit?JSON.parse(row.audit):null})));',
+      '    document.body.appendChild(marker);',
+      '  }',
+      '},50);'
+    ].join('\n');
+    const frameHost='<!doctype html><html><head><meta charset="UTF-8"></head><body>'+
+      '<script>'+frameScript+'</script></body></html>';
     const path = join(dir,'index.html');
-    await writeFile(path,assemblePage(source),'utf8');
-    for (const width of [320,375,390,430,1440]) {
-      const args = ['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
-        '--no-first-run','--hide-scrollbars','--window-size='+width+',900','--force-device-scale-factor=1',
-        '--virtual-time-budget=2000','--dump-dom',pathToFileURL(path).href];
-      const {stdout} = await run(browser,args,{timeout:18000,maxBuffer:10*1024*1024,env:{...process.env,HOME:dir}});
-      const raw = stdout.match(/<pre id="layout-audit">([^<]+)<\/pre>/)?.[1];
-      assert.ok(raw,'browser fixture did not reach interaction assertions @'+width);
-      const result = JSON.parse(raw.replace(/&quot;/g,'"').replace(/&amp;/g,'&'));
+    await writeFile(path,frameHost,'utf8');
+    const args = ['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+      '--no-first-run','--hide-scrollbars','--window-size=1600,900','--force-device-scale-factor=1',
+      '--virtual-time-budget=4500','--dump-dom',pathToFileURL(path).href];
+    const {stdout} = await run(browser,args,{timeout:25000,maxBuffer:10*1024*1024,env:{...process.env,HOME:dir}});
+    const raw = stdout.match(/<pre id="audit-results">([^<]+)<\/pre>/)?.[1];
+    assert.ok(raw,'browser fixture did not reach interaction assertions');
+    const checks=JSON.parse(raw.replace(/&quot;/g,'"').replace(/&amp;/g,'&'));
+    assert.equal(checks.length,widths.length);
+    for (const {width,result} of checks) {
+      assert.ok(result,'no Pipeline audit at '+width);
       assert.ok(Math.abs(result.viewport-width)<=2,'viewport mismatch: requested '+width+' got '+result.viewport);
       assert.ok(result.scrollWidth<=result.viewport+1,'horizontal BODY overflow @'+width+': '+result.scrollWidth);
-      assert.equal(result.initialCount,5,'active phases contain exactly 5 mock tasks');
+      assert.equal(result.initialCount,5,'active phases must contain exactly five mock tasks');
       assert.equal(result.detailOpens,true,'details must open');
       assert.equal(result.searchCount,1,'search must narrow results');
-      assert.equal(result.gateCount,1,'MASA Gate filter after search must preserve matches');
-      assert.equal(result.lanes,5,'active view must display 5 lanes');
+      assert.equal(result.gateCount,1,'MASA Gate filter must preserve search');
+      assert.equal(result.lanes,5,'active view must display five lanes');
       assert.ok(result.alert.includes('期限超過') && result.alert.includes('MASA判断待ち'));
     }
   } finally {
