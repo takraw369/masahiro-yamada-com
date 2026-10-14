@@ -67,6 +67,16 @@ Web：https://example.com`}
       </div>
       <p id="saved-summary">まだ保存されていません。</p>
       <div class="notice"><strong>MVPの保存先</strong><p>確定した構造化プロフィールだけを、このブラウザの localStorage に保存する。サーバー側プロフィールDBへの書き込みはまだ行わない。</p></div>
+      <section class="handoff" aria-labelledby="handoff-title">
+        <h3 id="handoff-title">ACEへ必要な情報だけ渡す</h3>
+        <p>保存した氏名だけを、ACEで入力しやすい形式でコピーします。メール・住所・電話・生年月日などは含めません。別サイトへの自動送信もありません。</p>
+        <p>コピーした文字は端末のクリップボードに残ることがあります。共有端末では利用せず、ACEで使い終えたら別の内容をコピーしてください。</p>
+        <div class="actions split">
+          <button id="copy-ace-name" class="secondary-button" type="button" disabled>ACE用の氏名をコピー</button>
+          <a class="secondary-button handoff-link" href="https://ace.sunlovesflow.com/profile" rel="noopener noreferrer">ACEのプロフィールを開く ↗</a>
+        </div>
+        <p id="copy-ace-status" class="status" role="status" aria-live="polite"></p>
+      </section>
       <button id="delete-profile" class="secondary-button delete" type="button" disabled>保存済みプロフィールを削除</button>
     </section>
   </main>
@@ -76,6 +86,10 @@ Web：https://example.com`}
     .panel{margin-top:22px;padding:26px;background:var(--bg-surface);border:1px solid var(--border-default)}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}.tag{flex-shrink:0;padding:5px 7px;border:1px solid var(--border-accent);color:#7d694e;font:600 .6rem/1 'Cormorant Garamond',serif;letter-spacing:.12em}
     textarea{width:100%;min-height:280px;resize:vertical;padding:16px 14px;border:1px solid #d8d4cd;border-radius:0;outline:none;background:#fbfaf8;color:var(--text-primary);font:400 .88rem/1.8 'Zen Kaku Gothic New',sans-serif}textarea:focus{border-color:#b58a53;box-shadow:0 0 0 2px rgba(165,108,34,.08)}textarea::placeholder{color:#9a958d}.input-meta{display:flex;justify-content:space-between;gap:12px;margin-top:7px;color:var(--text-dim);font-size:.69rem}.text-button{padding:0;border:0;background:transparent;color:#80633f;cursor:pointer;font:inherit}.text-button:hover{text-decoration:underline}
     .notice{margin-top:16px;padding:14px 16px;border-left:2px solid #b79c75;background:#fbfaf8}.notice.danger{border-left-color:#a86a52}.notice strong{display:block;margin-bottom:4px;color:#544637;font-size:.76rem}.notice p{color:var(--text-muted);font-size:.76rem;line-height:1.75}.actions{display:flex;align-items:center;gap:16px;margin-top:22px}.actions.split{justify-content:space-between}.primary-button,.secondary-button{min-height:46px;border-radius:0;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;font-size:.76rem;font-weight:700;letter-spacing:.04em}.primary-button{padding:0 24px;border:1px solid #8b642e;background:#9b6c2b;color:#fff}.primary-button:hover:not(:disabled){background:#80561f}.secondary-button{padding:0 18px;border:1px solid #cfc8bd;background:transparent;color:#646b72}.secondary-button:hover:not(:disabled){border-color:#b58a53;color:#493c2e}button:disabled{cursor:not-allowed;opacity:.48}.status{color:var(--text-muted);font-size:.75rem;line-height:1.55}.status.error{color:#9a4336}.status.success{color:#20704d}
+    .handoff{margin-top:22px;padding:18px;border:1px solid var(--border-default);background:#fbfaf8}
+    .handoff h3{font-size:1rem;color:var(--text-primary);margin:0 0 10px}
+    .handoff p{color:var(--text-muted);font-size:.83rem;line-height:1.7;margin:8px 0}
+    .handoff-link{display:inline-flex;justify-content:center;align-items:center;text-align:center;text-decoration:none}
     .review-copy{margin:-4px 0 20px;color:var(--text-muted);font-size:.8rem;line-height:1.7}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 22px}.field{min-width:0}.field.wide{grid-column:1/-1}.field label{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;color:#65584b;font-size:.72rem;font-weight:700}.field .meta{color:#8c847a;font:500 .58rem/1 'Cormorant Garamond',serif;letter-spacing:.08em}.field input{width:100%;min-height:44px;padding:10px 4px;border:0;border-bottom:1px solid #d7d1c8;border-radius:0;outline:none;background:transparent;color:var(--text-primary);font:400 .85rem/1.4 'Zen Kaku Gothic New',sans-serif}.field input:focus{border-bottom-color:#9b6c2b}.field[data-low-confidence="true"] input{border-bottom-color:#b56d4c}.field[data-low-confidence="true"] .meta::after{content:' · 要確認';color:#a3533b}.saved #saved-summary{color:var(--text-muted);font-size:.82rem;line-height:1.7}.delete{margin-top:18px}
     @media(max-width:760px){.profile-page{padding:34px 18px 68px}.panel{padding:20px 17px}.field-grid{grid-template-columns:1fr}.field.wide{grid-column:auto}.actions,.actions.split{align-items:stretch;flex-direction:column}.primary-button,.secondary-button{width:100%}textarea{min-height:330px}}
     /* No outer horizontal scroll at 320px+; iOS input focus must not auto-zoom. */
@@ -124,7 +138,7 @@ Web：https://example.com`}
     const sourceLabel=(source)=>source==='jev'?'JEV':'CODE';
     function renderFields(fields={},lowConfidenceFields=[]){if(!fieldGrid)return;fieldGrid.textContent='';const low=new Set(lowConfidenceFields);for(const [key,label,wide] of FIELD_CONFIG){const entry=fields[key]||{},wrapper=document.createElement('div');wrapper.className=`field${wide?' wide':''}`;wrapper.dataset.field=key;wrapper.dataset.lowConfidence=low.has(key)?'true':'false';const labelNode=document.createElement('label'),labelText=document.createElement('span'),meta=document.createElement('span'),input=document.createElement('input');labelNode.htmlFor=`profile-${key}`;labelText.textContent=label;meta.className='meta';const confidence=Number(entry.confidence);meta.textContent=entry.source?`${sourceLabel(entry.source)} · ${Number.isFinite(confidence)?Math.round(confidence*100):'--'}%`:'EMPTY';labelNode.append(labelText,meta);input.id=`profile-${key}`;input.name=key;input.type=key==='email'?'email':key==='website'?'url':'text';input.autocomplete='off';input.value=typeof entry.value==='string'?entry.value:'';wrapper.append(labelNode,input);fieldGrid.append(wrapper)}}
     function confirmedFields(){const fields={};for(const [key] of FIELD_CONFIG){const input=document.querySelector(`#profile-${key}`),value=input?.value?.trim();if(value)fields[key]=value}return fields}
-    function refreshSavedState(){if(!savedBadge||!savedSummary||!deleteProfile)return;const saved=localStorage.getItem(STORAGE_KEY);if(!saved){savedBadge.textContent='EMPTY';savedSummary.textContent='まだ保存されていません。';deleteProfile.disabled=true;return}try{const profile=JSON.parse(saved),fieldCount=Object.keys(profile?.fields||{}).length,updated=profile?.updatedAt?new Date(profile.updatedAt).toLocaleString('ja-JP'):'日時不明';savedBadge.textContent='SAVED';savedSummary.textContent=`${fieldCount}項目を保存中 · 最終更新 ${updated}`;deleteProfile.disabled=false}catch{localStorage.removeItem(STORAGE_KEY);refreshSavedState()}}
+    function refreshSavedState(){if(!savedBadge||!savedSummary||!deleteProfile)return;const copyAce=document.querySelector('#copy-ace-name');const saved=localStorage.getItem(STORAGE_KEY);if(copyAce)copyAce.disabled=true;if(!saved){savedBadge.textContent='EMPTY';savedSummary.textContent='まだ保存されていません。';deleteProfile.disabled=true;return}try{const profile=JSON.parse(saved),fieldCount=Object.keys(profile?.fields||{}).length,updated=profile?.updatedAt?new Date(profile.updatedAt).toLocaleString('ja-JP'):'日時不明';savedBadge.textContent='SAVED';savedSummary.textContent=`${fieldCount}項目を保存中 · 最終更新 ${updated}`;deleteProfile.disabled=false;if(copyAce)copyAce.disabled=!(typeof profile?.fields?.fullName==='string'&&profile.fields.fullName.trim().length>0)}catch{localStorage.removeItem(STORAGE_KEY);refreshSavedState()}}
     async function analyzeProfile(){
       if(!raw||!analyze||!reviewPanel)return;
       const rawText=raw.value.trim();
@@ -171,6 +185,27 @@ Web：https://example.com`}
     raw?.addEventListener('input',updateCount);document.querySelector('#clear-raw')?.addEventListener('click',()=>{if(!raw)return;raw.value='';updateCount();raw.focus();setStatus(analyzeStatus,'')});analyze?.addEventListener('click',analyzeProfile);
     document.querySelector('#discard-preview')?.addEventListener('click',()=>{if(reviewPanel)reviewPanel.hidden=true;if(fieldGrid)fieldGrid.textContent='';setStatus(saveStatus,'');setStatus(analyzeStatus,'解析結果を破棄しました。')});
     document.querySelector('#save-profile')?.addEventListener('click',()=>{const fields=confirmedFields();if(Object.keys(fields).length===0){setStatus(saveStatus,'保存する項目がありません。','error');return}localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,updatedAt:new Date().toISOString(),fields}));setStatus(saveStatus,'確認済みプロフィールをこのブラウザに保存しました。','success');refreshSavedState()});
+    document.querySelector('#copy-ace-name')?.addEventListener('click',async()=>{
+      const target=document.querySelector('#copy-ace-status');
+      let name='';
+      try{
+        const record=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+        if(record?.version===1&&typeof record?.fields?.fullName==='string')name=record.fields.fullName.trim();
+      }catch{}
+      if(!name||name.length>100||/[<>\\r\\n\\u0000-\\u001f]/.test(name)){
+        setStatus(target,'保存済みの氏名がありません。JEVで氏名を登録してから試してください。','error');
+        return;
+      }
+      // No URL/query params or automatic cross-origin request; user explicitly copies only the name.
+      const transfer=JSON.stringify({type:'masa-jev-name',version:1,name});
+      try{
+        if(!navigator.clipboard?.writeText)throw Error('clipboard_unavailable');
+        await navigator.clipboard.writeText(transfer);
+        setStatus(target,'コピーできました。ACEのプロフィールで「JEVから入力」を開いて貼り付けてください。','success');
+      }catch{
+        setStatus(target,'このブラウザではコピーできません。Safariのクリップボード権限をご確認ください。','error');
+      }
+    });
     deleteProfile?.addEventListener('click',()=>{localStorage.removeItem(STORAGE_KEY);refreshSavedState();setStatus(saveStatus,'保存済みプロフィールを削除しました。')});updateCount();refreshSavedState();
   </script>
 </DashboardLayout>
