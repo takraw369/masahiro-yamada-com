@@ -6,7 +6,7 @@ import { aiCommandSources } from '../../data/aiCommandLibrary';
 // and project-specific canonicals. "Ready" describes a requestable workflow,
 // never guarantees external permission, automatic execution, or production deploy.
 type CapabilityStatus = 'ready' | 'gated' | 'building' | 'pro';
-type Capability = { id:string; title:string; description:string; command:string; status:CapabilityStatus };
+type Capability = { id:string; title:string; description:string; command:string; status:CapabilityStatus; resourceUrl?:string };
 type Group = { id:string; label:string; english:string; intro:string; items:Capability[] };
 const groups:Group[] = [
   { id:'research', label:'調査・検証', english:'RESEARCH', intro:'根拠と反証から、判断できる情報へ。', items:[
@@ -42,6 +42,7 @@ const groups:Group[] = [
   { id:'education', label:'学習・教育', english:'LEARN', intro:'理解→実践→検証→成長を設計する。', items:[
     {id:'quiz',title:'弱点に合わせた問題集',description:'消防設備士乙4などの類題・解説・重点復習。',command:'弱点だけ出して。本質的な覚え方と、ひっかけ対策まで。',status:'ready'},
     {id:'ace',title:'ACE教材へ変換',description:'身体知・脳科学・哲学を体験ワークと教材へ。',command:'これACEに接続して。本人の体験→問い→実践まで教材化して。',status:'ready'},
+    {id:'rsvp',title:'RSVPで読む・理解を確かめる',description:'日本語RSVPの試作品あり。速度調整・読み戻し・Recallで学習を検証。ACE本番統合は未実装。',command:'RSVP Learning Labを使いたい。既存Driveの試作品とPJT-037の仕様を確認し、教材テキストで試せる方法と理解度・翌日想起の検証を組み立てて。ACE本番統合が必要なら未実装として別に進めて。',status:'ready',resourceUrl:'https://drive.google.com/file/d/1YnR0P-d70Q3tXMw4ktHnUOJA2P2wReiD/view'},
     {id:'factory',title:'教材化Dashboardへ連携',description:'教材レビュー・保存・自動派生を統合する仕組みは開発中。',command:'ACE Material Factoryの正本と現在の実装状態を確認し、次の最小実装を進めて。',status:'building'},
   ]},
   { id:'agent', label:'AIチーム・Skills', english:'AGENT OS', intro:'慧の能力そのものを改善・再利用する。', items:[
@@ -119,6 +120,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
                 <div class="kei-card-top"><span class:list={['kei-status',item.status]}>{labels[item.status]}</span></div>
                 <h4>{item.title}</h4>
                 <p>{item.description}</p>
+                {item.resourceUrl && <a class="kei-resource" href={item.resourceUrl} target="_blank" rel="noopener noreferrer">試作品・資料を見る ↗</a>}
                 <button type="button" data-kei-select data-kei-command={item.command} data-kei-name={item.title} data-kei-description={item.description} data-kei-status={item.status}>これを頼む →</button>
               </article>
             ))}
@@ -253,6 +255,7 @@ const sourceDoc='https://docs.google.com/document/d/1yY-eTzLKMGOwDk_IGMOqlTQr-lI
   .kei-status.gated{background:#f8f0df;color:#855d1f}.kei-status.building{background:#eeeef3;color:#595b76}.kei-status.pro{background:#f4e7d5;color:#83511b}
   .kei-card h4{font-size:1rem;color:#293038;line-height:1.45}
   .kei-card p{color:#606b76;font-size:.82rem;line-height:1.7;flex:1}
+  .kei-resource{font-size:.76rem;font-weight:700;color:#85591c;text-decoration:underline;text-underline-offset:3px}
   .kei-card button{min-height:44px;text-align:left;padding:9px 0;background:none;border:0;border-top:1px solid #ece5db;font:inherit;font-size:.82rem;font-weight:700;color:#85591c;cursor:pointer}
   .kei-card button:hover{text-decoration:underline}
   .kei-empty{padding:25px;text-align:center;background:#fff}
