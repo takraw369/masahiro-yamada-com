@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react';
 import { homeDesignPresets, isHomeDesignPreset } from '../../data/homeDesignPresets';
 import {
   DEFAULT_HOME_DESIGN, MASA_SELECTED_HOME_DESIGN, HOME_DESIGN_FAVORITES_KEY,
-  homeComponentPresets, homeLayoutPresets, describeHomeDesign, isHomeDesignConfig, loadHomeDesign,
-  resetHomeDesign, writeHomeDesign, type HomeDesignConfig,
+  homeComponentPresets, homeLayoutPresets, describeHomeDesign, loadHomeDesign,
+  resetHomeDesign, writeHomeDesign, parseHomeDesign, type HomeDesignConfig,
 } from '../../data/homeDesignCombinations';
 import '../../styles/dashboard-design-studio.css';
 import HomeDesignPreview from './HomeDesignPreview';
 import DashboardDesignReferenceGallery from './DashboardDesignReferenceGallery';
+import DashboardDesignHandoff from './DashboardDesignHandoff';
+import { DESIGN_DRAFT_KEY, DESIGN_IMPORT_BACKUP_KEY, parseDesignFavorites, readDesignBackup, importDesignSnapshot, type DesignFavorite, type DashboardDesignSnapshot } from '../../data/dashboardDesignSnapshot';
 import { DASHBOARD_REFERENCE_STORAGE_KEY, dashboardDesignReferences, emptyDashboardReferenceState,
   parseDashboardReferenceState, writeDashboardReferenceState, type DashboardReferenceId, type DashboardReferenceState } from '../../data/dashboardDesignReferences';
 
-type Favorite = { id:string; name:string; config:HomeDesignConfig };
+type Favorite = DesignFavorite;
 const maxFavorites = 12;
 const layoutNames:Record<string,string> = {focus:'一つに集中',split:'行動と収益',journey:'流れから選ぶ',tiles:'すぐに届ける',editorial:'考えを編む',studio:'全体を見渡す'};
 const styleNames:Record<string,string> = {orange:'MASA オレンジ',dawn:'朝の余白',night:'夜の集中',ocean:'澄んだ流れ',glass:'軽やかな層',editorial:'紙とインク',quest:'前へ進む'};
@@ -30,12 +32,7 @@ function readFavorites():Favorite[] {
     const raw = localStorage.getItem(HOME_DESIGN_FAVORITES_KEY);
     if (!raw) return [];
     const parsed:unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.slice(0,maxFavorites).filter((item):item is Favorite => !!item && typeof item==='object'
-      && typeof item.id==='string' && item.id.length<60
-      && typeof item.name==='string' && item.name.length<=48 && item.name.length>0
-      && isHomeDesignConfig(item.config))
-      .map(item=>({ id:item.id, name:item.name, config:item.config }));
+    return parseDesignFavorites(parsed);
   } catch { return []; }
 }
 
@@ -51,6 +48,7 @@ export default function HomeDesignConfigurator() {
   const [status,setStatus] = useState('スタイル・構成・部品を試して、気に入った組み合わせだけ適用しよう。');
   const [storageReady,setStorageReady] = useState(true);
   const [hydrated,setHydrated] = useState(false);
+  const [hasBackup,setHasBackup] = useState(false);
 
   useEffect(()=>{
     try {
@@ -61,7 +59,9 @@ export default function HomeDesignConfigurator() {
       const resumed = dashboardDesignReferences.find(item=>item.id===referenceState.previewId);
       setReferences(referenceState);
       setApplied(existing);
-      setChoice(resumed && !isHomeDesignPreset(queryStyle) ? {...resumed.config} : {
+      const draft=parseHomeDesign(localStorage.getItem(DESIGN_DRAFT_KEY));
+      setHasBackup(!!readDesignBackup(localStorage.getItem(DESIGN_IMPORT_BACKUP_KEY)));
+      setChoice(!isHomeDesignPreset(queryStyle) && draft ? draft : resumed && !isHomeDesignPreset(queryStyle) ? {...resumed.config} : {
         ...(existing || DEFAULT_HOME_DESIGN),
         style:isHomeDesignPreset(queryStyle) ? queryStyle : (existing?.style ?? DEFAULT_HOME_DESIGN.style),
       });
@@ -73,6 +73,29 @@ export default function HomeDesignConfigurator() {
     }
     setHydrated(true);
   },[]);
+
+  const snapshot:DashboardDesignSnapshot={version:1,references,draft:choice,favorites};
+  function importShared(incoming:DashboardDesignSnapshot) {
+    try {
+      const restored=importDesignSnapshot(localStorage,incoming,snapshot);
+      setReferences(restored.references);setFavorites(restored.favorites);setChoice(restored.draft);setHasBackup(true);
+      setStatus('案を読み込みました。ホームへの適用はプレビューから選べます。');
+      return true;
+    } catch {setStatus('案を読み込めませんでした。保存領域を確認してください。');return false;}
+  }
+  function restoreBackup(){
+    try {
+      const backup=readDesignBackup(localStorage.getItem(DESIGN_IMPORT_BACKUP_KEY));
+      if(backup)return importShared(backup);
+    }catch {setStatus('控えた案を読み込めませんでした。');}
+    return false;
+  }
+
+  useEffect(()=>{
+    if(!hydrated || !storageReady)return;
+    try {localStorage.setItem(DESIGN_DRAFT_KEY,JSON.stringify(choice));}
+    catch {setStatus('プレビューの再開位置を保存できませんでした。');}
+  },[choice,hydrated,storageReady]);
 
   function update<K extends keyof HomeDesignConfig>(key:K, value:HomeDesignConfig[K]) {
     clearReferencePreview();
@@ -170,6 +193,7 @@ export default function HomeDesignConfigurator() {
               setPanel(panels[next].id);document.getElementById('tab-'+panels[next].id)?.focus();
             }}><span>0{index+1}</span>{item.name}</button>)}
         </div>
+        <DashboardDesignHandoff snapshot={snapshot} ready={hydrated} canImport={storageReady} hasBackup={hasBackup} onImport={importShared} onRestore={restoreBackup}/>
         <section id="studio-references" className="studio-panel" role="tabpanel" aria-labelledby="tab-references" hidden={panel!=='references'}>
           <DashboardDesignReferenceGallery state={references} ready={hydrated} canSave={storageReady} onPreview={previewReference} onSave={saveReferences}/>
         </section>
@@ -227,7 +251,7 @@ export default function HomeDesignConfigurator() {
     <div className="studio-adopted"><div><span>これまでに選んだ組み合わせ</span><strong>夜の集中 × すぐに届ける</strong><small>やわらかい面・チップの導線・はっきりした一手</small></div><button type="button" onClick={()=>{clearReferencePreview();setChoice({...MASA_SELECTED_HOME_DESIGN});setStatus('選んだ組み合わせを読み込みました。適用するまでホームは変わりません。');}}>この組み合わせを試す</button></div>
     <details className="studio-saved" id="studio-favorites">
       <summary><span>気に入った組み合わせを残す</span><span>{favorites.length} / 12 <b aria-hidden="true">＋</b></span></summary>
-      <div className="saved-content"><p>保存はこのブラウザだけ。ホームへの適用とは別です。</p>
+      <div className="saved-content"><p>このブラウザに保存します。別の端末へは「共有保存」で引き継げます。ホームへの適用とは別です。</p>
         <div className="favorite-creator"><label htmlFor="design-favorite-name">案の名前</label><input id="design-favorite-name" type="text" maxLength={48} value={favoriteName} onChange={event=>setFavoriteName(event.target.value)} placeholder="例：朝に集中する画面"/>
           <button type="button" onClick={saveFavorite} disabled={!storageReady||!hydrated}>この組み合わせを保存</button></div>
         {favorites.length>0?<div className="favorite-list">{favorites.map(item=><article key={item.id} className="favorite-item"><div><strong>{item.name}</strong><small>{describeHomeDesign(item.config)}</small></div><div><button type="button" onClick={()=>{clearReferencePreview();setChoice(item.config);setStatus('保存案を読み込みました。ホームへは未適用です。');document.getElementById('studio-preview')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}}>読み込む</button><button type="button" className="remove" onClick={()=>deleteFavorite(item.id)} aria-label={`${item.name}を削除`}>削除</button></div></article>)}</div>:<p className="empty-favorites">まだ保存した案はありません。</p>}
