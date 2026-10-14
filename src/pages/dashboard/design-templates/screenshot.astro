@@ -166,10 +166,12 @@ import DashboardLayout from '../../../layouts/DashboardLayout.astro';
       for(let i=0;i<subtitle.length;i++)ctx.fillText(subtitle[i],w*.08,subtitleY+i*w*.041);
 
       const density=Number(densityInput.value)/100;
-      const deviceH=Math.min(h*(lower ? .61 : .59)*density,h*.685);
+      const subtitleBottom=subtitleY+subtitle.length*w*.041;
+      const dy=lower ? h*.083 : Math.max(h*.352,subtitleBottom+h*.028);
+      const availableHeight=lower ? h*.70 : h*.94-dy;
+      const deviceH=Math.min(h*(lower ? .61 : .59)*density,h*.685,availableHeight);
       const deviceW=deviceH*.485;
       const dx=(w-deviceW)/2;
-      const dy=lower?h*.083:h*.352;
       const rounded=deviceW*.085;
       const plain=frameInput.value==='plain';
       ctx.save();
