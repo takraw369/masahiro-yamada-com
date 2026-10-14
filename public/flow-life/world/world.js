@@ -120,10 +120,11 @@
     const n = Number($('record-choice').dataset.value);
     if (!Number.isInteger(n) || !visit.choices[n]) return;
     saved.responses[visit.key] = { choice: visit.choices[n], at: new Date().toISOString() };
+    let persisted = true;
     try { localStorage.setItem(storageKey, JSON.stringify(saved)); }
-    catch { $('saved-state').textContent = '端末への保存が制限されています'; }
+    catch { persisted = false; }
     updateHud();
-    $('saved-state').textContent = '旅の記憶に刻みました';
+    $('saved-state').textContent = persisted ? '旅の記憶に刻みました' : 'このセッションのみの記録です';
     $('record-choice').disabled = true;
     if (completed() === 3) {
       $('scene-view').hidden = true;
