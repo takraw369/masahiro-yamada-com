@@ -39,5 +39,6 @@ test('Pipeline is mobile-aware and accessible, including no fake progress percen
   assert.match(page, /textContent =/);
   assert.match(page, /phaseFor\(item\)/);
   assert.match(page, /dateKey\(item\.dueDate\)/);
+  assert.match(page, /pipeline-task-date', formatDue\(item\)/, 'date formatter receives a Task, not dueDate text');
   assert.doesNotMatch(page, /item\.progress/);
 });
