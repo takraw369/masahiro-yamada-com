@@ -78,6 +78,16 @@
         "status": "ready"
       },
       {
+        "id": "anatomy-interactive",
+        "title": "Anatomyで動く技術図解を作る",
+        "description": "MASAのMacのCodexに導入済み。精密な等角SVGの操作できる教材をローカル試作可（本人が完成報告）。Web本番組込は未。",
+        "command": "Anatomyで動く図解にして。題材と見せたい動作を確認し、既存MASA DESIGN INTELLIGENCEと統一した等角SVG教材をCodexでローカル制作。内容の正確性とPC・スマホ表示を確認して。既存アプリの本番変更・ギャラリー公開・デプロイは行わないで。",
+        "status": "ready",
+        "sourceCanonicalUrl": "https://docs.google.com/document/d/1Zzyj7SmCCKfxelVevjunbp-jaantlSDIMgXayu2JIsM/edit",
+        "verificationStatus": "user-reported",
+        "resourceUrl": "https://github.com/wheresryan22/anatomy"
+      },
+      {
         "id": "publish",
         "title": "SNSの自動配信",
         "description": "投稿案から予約・公開の一貫処理は接続と公開承認が必要。",
