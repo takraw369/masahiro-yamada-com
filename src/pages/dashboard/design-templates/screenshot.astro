@@ -1,0 +1,299 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Screenshot Studio" eyebrow="DESIGN STUDIO / EXPORT">
+  <main class="shot-studio">
+    <header class="shot-heading">
+      <a href="/dashboard/design-templates" class="shot-back">← Design Studio に戻る</a>
+      <p class="shot-kicker">SCREENSHOT → STORY → IMAGE</p>
+      <h1>スクショを、<em>伝わる一枚</em>に。</h1>
+      <p>画面を入れる。言葉と余白を整える。書き出す。それだけ。</p>
+      <p class="shot-privacy">ブラウザ内で画像を処理します。外部サービス・AI APIへの送信なし。</p>
+    </header>
+
+    <div class="shot-layout">
+      <form class="shot-controls" id="shot-controls">
+        <fieldset>
+          <legend><span>01</span> 画面を入れる</legend>
+          <label class="shot-upload" id="shot-dropzone" for="shot-file">
+            <strong id="shot-file-label">画像を選ぶ / ドロップ</strong>
+            <small>PNG・JPEG・WebP / 最大20MB / 端末のスクリーンショット推奨</small>
+          </label>
+          <input id="shot-file" name="shot-file" type="file" accept="image/png,image/jpeg,image/webp" />
+        </fieldset>
+
+        <fieldset>
+          <legend><span>02</span> 何を伝える？</legend>
+          <label for="shot-title">見出し</label>
+          <textarea id="shot-title" name="shot-title" rows="2" maxlength="90">その一歩から、未来が変わる。</textarea>
+          <label for="shot-subtitle">補足の一文</label>
+          <input id="shot-subtitle" name="shot-subtitle" type="text" maxlength="120" value="今の自分に合う、次の一歩が見つかる。" />
+        </fieldset>
+
+        <fieldset>
+          <legend><span>03</span> 形を整える</legend>
+          <div class="shot-field-grid">
+            <label>画像サイズ
+              <select id="shot-format">
+                <option value="app">アプリ紹介・縦長 1290×2796</option>
+                <option value="feed" selected>Instagram 縦投稿 1080×1350</option>
+                <option value="story">ストーリー 1080×1920</option>
+                <option value="square">正方形 1080×1080</option>
+              </select>
+            </label>
+            <label>背景
+              <select id="shot-theme">
+                <option value="paper" selected>Paper / 生成り</option>
+                <option value="night">Night / 墨</option>
+                <option value="white">White / 白</option>
+                <option value="orange">Orange / あたたかさ</option>
+              </select>
+            </label>
+            <label>見出しの位置
+              <select id="shot-placement">
+                <option value="top" selected>上</option>
+                <option value="bottom">下</option>
+              </select>
+            </label>
+            <label>フレーム
+              <select id="shot-frame">
+                <option value="device" selected>スマホ</option>
+                <option value="plain">シンプル</option>
+              </select>
+            </label>
+          </div>
+          <label for="shot-density">スクショの大きさ <output id="shot-density-value">100%</output></label>
+          <input id="shot-density" type="range" min="65" max="120" step="5" value="100" />
+        </fieldset>
+
+        <button class="shot-export" type="button" id="shot-download" disabled>PNGを書き出す ↓</button>
+        <p id="shot-status" role="status" aria-live="polite">まずスクリーンショットを選んでください。</p>
+      </form>
+
+      <section class="shot-preview" aria-label="完成画像プレビュー">
+        <div class="shot-preview-head"><span>LIVE PREVIEW</span><span id="shot-dimensions">1080 × 1350</span></div>
+        <div class="shot-preview-surface">
+          <canvas id="shot-canvas" width="1080" height="1350" role="img" aria-label="編集内容に応じて変化する完成画像のプレビュー"></canvas>
+        </div>
+        <p>画面のプレビューと書き出し画像は同じCanvasから生成。別フォント・有料素材・ウォーターマークは使いません。</p>
+      </section>
+    </div>
+  </main>
+</DashboardLayout>
+
+<script>
+  type Theme={ bg:string; ink:string; muted:string; accent:string; phone:string; screen:string };
+  type Format={ w:number; h:number };
+  const themes:Record<string,Theme>={
+    paper:{bg:'#F3EEE6',ink:'#282B2E',muted:'#696863',accent:'#B47C4F',phone:'#121518',screen:'#FFFFFF'},
+    night:{bg:'#101820',ink:'#F7F3EB',muted:'#C7C0B2',accent:'#D3B47D',phone:'#07090B',screen:'#F8F8F8'},
+    white:{bg:'#FAFAF8',ink:'#222830',muted:'#66717A',accent:'#A66B28',phone:'#111821',screen:'#FFFFFF'},
+    orange:{bg:'#F8E7D3',ink:'#38291D',muted:'#72553A',accent:'#EE7800',phone:'#20150E',screen:'#FFFFFF'}
+  };
+  const formats:Record<string,Format>={app:{w:1290,h:2796},feed:{w:1080,h:1350},story:{w:1080,h:1920},square:{w:1080,h:1080}};
+  const byId=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
+  const canvas=byId<HTMLCanvasElement>('shot-canvas');
+  const ctx=canvas.getContext('2d');
+  const controls=byId<HTMLFormElement>('shot-controls');
+  const fileInput=byId<HTMLInputElement>('shot-file');
+  const titleInput=byId<HTMLTextAreaElement>('shot-title');
+  const subtitleInput=byId<HTMLInputElement>('shot-subtitle');
+  const formatInput=byId<HTMLSelectElement>('shot-format');
+  const themeInput=byId<HTMLSelectElement>('shot-theme');
+  const placementInput=byId<HTMLSelectElement>('shot-placement');
+  const frameInput=byId<HTMLSelectElement>('shot-frame');
+  const densityInput=byId<HTMLInputElement>('shot-density');
+  const output=byId<HTMLOutputElement>('shot-density-value');
+  const download=byId<HTMLButtonElement>('shot-download');
+  const status=byId<HTMLElement>('shot-status');
+  const fileLabel=byId<HTMLElement>('shot-file-label');
+  const dropzone=byId<HTMLElement>('shot-dropzone');
+  const font='"Zen Kaku Gothic New", sans-serif';
+  let screenshot:HTMLImageElement|null=null;
+  let drawing=false;
+  let scheduled=false;
+
+  function textLines(value:string, maxWidth:number, maxLines:number):string[]{
+    if(!ctx)return [];
+    const lines:string[]=[]; let line='';
+    for(const char of Array.from(value.replace(/\r/g,''))){
+      if(char==='\n'){
+        lines.push(line);line='';if(lines.length>=maxLines)break;continue;
+      }
+      if(ctx.measureText(line+char).width>maxWidth && line){
+        lines.push(line);line=char;if(lines.length>=maxLines)break;
+      }else line+=char;
+    }
+    if(lines.length<maxLines && line)lines.push(line);
+    return lines.slice(0,maxLines);
+  }
+  function roundRect(x:number,y:number,w:number,h:number,r:number,color:string){
+    if(!ctx)return;
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.roundRect(x,y,w,h,r);
+    ctx.fill();
+  }
+  function draw(){
+    if(!ctx||drawing)return;
+    drawing=true;
+    try{
+      const f=formats[formatInput.value]||formats.feed;
+      const theme=themes[themeInput.value]||themes.paper;
+      canvas.width=f.w;canvas.height=f.h;
+      const w=f.w,h=f.h;
+      ctx.fillStyle=theme.bg;ctx.fillRect(0,0,w,h);
+      const accentHeight=Math.max(7,w*.007);
+      ctx.fillStyle=theme.accent;ctx.fillRect(w*.08,h*.065,w*.11,accentHeight);
+      ctx.fillStyle=theme.muted;
+      ctx.font='500 '+Math.round(w*.019)+'px '+font;
+      ctx.textAlign='left';ctx.textBaseline='top';
+      ctx.fillText('MASA  /  FLOW DESIGN',w*.08,h*.065+accentHeight+w*.018);
+
+      const lower=placementInput.value==='bottom';
+      const fontSize=Math.round(w*.066);
+      ctx.font='500 '+fontSize+'px '+font;
+      const heading=textLines(titleInput.value.trim()||'あなたの可能性を、ひと目で。',w*.84,2);
+      const headlineY=lower?h*.745:h*.148;
+      ctx.fillStyle=theme.ink;
+      ctx.textBaseline='top';
+      for(let i=0;i<heading.length;i++)ctx.fillText(heading[i],w*.08,headlineY+i*fontSize*1.42);
+      const subtitleY=headlineY+heading.length*fontSize*1.42+w*.022;
+      ctx.fillStyle=theme.muted;
+      ctx.font='400 '+Math.round(w*.028)+'px '+font;
+      const subtitle=textLines(subtitleInput.value.trim(),w*.82,2);
+      for(let i=0;i<subtitle.length;i++)ctx.fillText(subtitle[i],w*.08,subtitleY+i*w*.041);
+
+      const density=Number(densityInput.value)/100;
+      const deviceH=Math.min(h*(lower?.61:.59)*density,h*.685);
+      const deviceW=deviceH*.485;
+      const dx=(w-deviceW)/2;
+      const dy=lower?h*.083:h*.352;
+      const rounded=deviceW*.085;
+      const plain=frameInput.value==='plain';
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,.22)';
+      ctx.shadowBlur=w*.035;ctx.shadowOffsetY=w*.016;
+      roundRect(dx,dy,deviceW,deviceH,rounded,plain?'#FFFFFF':theme.phone);
+      ctx.restore();
+      const inset=plain?deviceW*.018:deviceW*.045;
+      const sx=dx+inset,sy=dy+inset,sw=deviceW-2*inset,sh=deviceH-2*inset;
+      roundRect(sx,sy,sw,sh,Math.max(12,rounded-inset*.5),theme.screen);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(sx,sy,sw,sh,Math.max(12,rounded-inset*.5));ctx.clip();
+      if(screenshot){
+        const iw=screenshot.naturalWidth,ih=screenshot.naturalHeight;
+        const scale=Math.min(sw/iw,sh/ih);
+        const dw=iw*scale,dh=ih*scale;
+        ctx.drawImage(screenshot,sx+(sw-dw)/2,sy+(sh-dh)/2,dw,dh);
+      }else{
+        ctx.fillStyle='#F3F1EA';ctx.fillRect(sx,sy,sw,sh);
+        ctx.fillStyle='#D5CCBD';ctx.fillRect(sx+sw*.09,sy+sh*.15,sw*.82,sh*.07);
+        ctx.fillStyle='#E2D9CC';
+        for(let i=0;i<4;i++)roundRect(sx+sw*.09,sy+sh*(.29+i*.125),sw*.82,sh*.085,sw*.02,'#E2D9CC');
+        ctx.font='500 '+Math.round(sw*.05)+'px '+font;
+        ctx.fillStyle='#6B6257';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('SCREENSHOT',sx+sw/2,sy+sh*.78);
+        ctx.textAlign='left';ctx.textBaseline='top';
+      }
+      ctx.restore();
+      if(!plain){
+        roundRect(dx+deviceW*.34,dy+deviceW*.025,deviceW*.32,deviceW*.04,deviceW*.025,theme.phone);
+      }
+      ctx.fillStyle=theme.accent;
+      ctx.fillRect(w*.08,h*.955,w*.05,Math.max(4,w*.004));
+      byId<HTMLElement>('shot-dimensions').textContent=w+' × '+h;
+    }finally{drawing=false;}
+  }
+  function scheduleDraw(){
+    if(scheduled)return;
+    scheduled=true;
+    requestAnimationFrame(()=>{scheduled=false;draw();});
+  }
+  function upload(file?:File){
+    if(!file)return;
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)){
+      status.textContent='PNG・JPEG・WebPの画像を選んでください。';return;
+    }
+    if(file.size>20*1024*1024){status.textContent='20MB以内の画像を選んでください。';return;}
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      if(!img.naturalWidth||!img.naturalHeight){status.textContent='画像を読み込めませんでした。';return;}
+      screenshot=img;fileLabel.textContent=file.name;
+      status.textContent='準備OK。文字と構図を整え、PNGを書き出せます。';
+      download.disabled=false;scheduleDraw();
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);status.textContent='画像を読み込めませんでした。別の画像を試してください。';};
+    img.src=url;
+  }
+  controls.addEventListener('input',()=>{output.textContent=densityInput.value+'%';scheduleDraw();});
+  controls.addEventListener('change',scheduleDraw);
+  fileInput.addEventListener('change',()=>upload(fileInput.files?.[0]));
+  for(const kind of ['dragenter','dragover']){
+    dropzone.addEventListener(kind,event=>{event.preventDefault();dropzone.classList.add('is-over');});
+  }
+  for(const kind of ['dragleave','drop'])dropzone.addEventListener(kind,event=>{event.preventDefault();dropzone.classList.remove('is-over');});
+  dropzone.addEventListener('drop',event=>upload(event.dataTransfer?.files[0]));
+  download.addEventListener('click',()=>{
+    if(!screenshot){status.textContent='最初に画像を選んでください。';return;}
+    draw();
+    download.disabled=true;status.textContent='PNGを準備しています…';
+    canvas.toBlob(blob=>{
+      download.disabled=false;
+      if(!blob){status.textContent='書き出しに失敗しました。もう一度お試しください。';return;}
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement('a');
+      link.href=url;link.download='masa-screenshot-'+formatInput.value+'.png';
+      document.body.append(link);link.click();link.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(url),60000);
+      status.textContent='PNGを書き出しました。';
+    },'image/png');
+  });
+  if(document.fonts?.ready)void document.fonts.ready.then(scheduleDraw);
+  scheduleDraw();
+</script>
+
+<style>
+.shot-studio{max-width:1260px;margin:0 auto;padding:18px 6px 76px}
+.shot-heading{margin-bottom:30px}
+.shot-back{display:inline-block;font-size:13px;color:#795321;margin-bottom:26px;text-underline-offset:3px}
+.shot-kicker{color:#986526;letter-spacing:.16em;font-size:11px;font-weight:700}
+.shot-heading h1{font-size:clamp(28px,4.3vw,47px);font-weight:500;line-height:1.4;letter-spacing:-.04em;margin:8px 0}
+.shot-heading h1 em{font-style:normal;color:#a56c22}
+.shot-heading>p:not(.shot-kicker){font-size:14px;color:#59616A;line-height:1.9}
+.shot-heading .shot-privacy{color:#527467!important;font-size:12px!important;margin-top:8px}
+.shot-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.92fr);gap:22px;align-items:start}
+.shot-controls,.shot-preview{background:#fff;border:1px solid #ddd7cd;padding:clamp(16px,3vw,28px);min-width:0}
+.shot-controls fieldset{padding:0 0 22px;border:0;border-bottom:1px solid #e9e4dc;margin-bottom:23px}
+.shot-controls fieldset:last-of-type{margin-bottom:12px}
+.shot-controls legend{font-size:18px;font-weight:500;color:#20262a;padding-bottom:17px}
+.shot-controls legend span{font-size:12px;color:#a56c22;margin-right:8px}
+.shot-controls label:not(.shot-upload){display:grid;gap:8px;font-size:12px;color:#545e66;margin:0 0 16px}
+.shot-controls input:not([type="file"]):not([type="range"]),.shot-controls textarea,.shot-controls select{display:block;min-height:44px;border:1px solid #d6d1c8;background:#fbfaf8;padding:10px 11px;color:#222930;border-radius:3px;font:inherit;font-size:15px;width:100%}
+.shot-controls textarea{resize:vertical}
+.shot-controls input[type="range"]{width:100%;accent-color:#ae722d}
+.shot-controls output{display:inline;color:#9a6526;margin-left:7px}
+.shot-field-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:12px}
+.shot-upload{min-height:122px;border:1px dashed #caa879;background:#fbf7f0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:17px;text-align:center;cursor:pointer}
+.shot-upload strong{color:#865621;font-size:15px}
+.shot-upload small{color:#767267;font-size:11px;line-height:1.65}
+.shot-upload.is-over{background:#f4e7d4;border-style:solid}
+#shot-file{display:block;margin-top:10px;max-width:100%;font-size:11px;color:#56616A}
+.shot-export{display:block;width:100%;min-height:50px;border:0;background:#936324;color:white;font-size:15px;font-weight:600;cursor:pointer}
+.shot-export:hover:not(:disabled){background:#76501e}
+.shot-export:disabled{opacity:.42;cursor:not-allowed}
+#shot-status{font-size:12px;color:#54616b;margin-top:12px;min-height:24px;line-height:1.6}
+.shot-preview{position:sticky;top:22px}
+.shot-preview-head{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#88622f;font-size:11px;letter-spacing:.09em;padding-bottom:14px}
+.shot-preview-surface{background:#ddd8cf;padding:12px;display:flex;justify-content:center}
+#shot-canvas{display:block;width:100%;max-height:75vh;height:auto;object-fit:contain;background:#F3EEE6}
+.shot-preview>p{font-size:11px;color:#6d737a;margin-top:14px;line-height:1.8}
+@media(max-width:900px){.shot-layout{grid-template-columns:1fr}.shot-preview{position:static;order:-1}.shot-preview-surface{max-height:55vh}.shot-preview canvas{max-height:51vh;width:auto;max-width:100%}}
+@media(max-width:540px){.shot-studio{padding-top:8px}.shot-field-grid{grid-template-columns:1fr}.shot-heading h1{font-size:29px}.shot-preview,.shot-controls{padding:15px}}
+@media(prefers-reduced-motion:reduce){.shot-studio *, .shot-studio *::before{transition:none!important}}
+</style>
