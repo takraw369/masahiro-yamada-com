@@ -174,3 +174,31 @@ jobs:
           npx --yes wrangler@4.135.0 preview --config .shelf-preview.wrangler.toml --worker-name masahiro-yamada-com --name knowledge-shelf-347 --ignore-base-config
           echo 'Find the Preview URL in the Wrangler output above; confirm its hostname is a Cloudflare Preview URL.'
           echo 'Do not enter production customer emails, access keys, or real payment credentials on this isolated preview.'
+      - name: Verify public Preview renders HTML and stylesheets
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'PREVIEW_SMOKE'
+          import assert from 'node:assert/strict';
+          const origin = 'https://knowledge-shelf-347-masahiro-yamada-com.takraw501.workers.dev';
+          let stylesheetCount = 0;
+          for (const path of ['/', '/library']) {
+            const res = await fetch(new URL(path, origin), { redirect: 'follow' });
+            assert.equal(res.status, 200, `${path} returned ${res.status}`);
+            const html = await res.text();
+            assert.match(html, /<html\b/i, `${path} did not render HTML`);
+            assert.match(html, path === '/library' ? /MASA KNOWLEDGE SHELF/ : /ACE METHOD/);
+            const cssLinks = [...html.matchAll(/<link\b[^>]*href=["']([^"']+\.css(?:\?[^"']*)?)["'][^>]*>/gi)]
+              .map(match => new URL(match[1], origin))
+              .filter(url => url.origin === origin);
+            for (const link of cssLinks) {
+              const css = await fetch(link);
+              assert.equal(css.status, 200, `CSS not served: ${link.pathname} (${css.status})`);
+              assert.match(css.headers.get('content-type') || '', /text\/css/i, `CSS wrong MIME: ${link.pathname}`);
+              assert.ok((await css.text()).length > 100, `CSS unexpectedly empty: ${link.pathname}`);
+              stylesheetCount++;
+            }
+            console.log(`${path} HTML 200; ${cssLinks.length} local stylesheets passed`);
+          }
+          assert.ok(stylesheetCount > 0, 'No local CSS references found; unstyled Preview is not acceptable');
+          PREVIEW_SMOKE
