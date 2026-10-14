@@ -10,7 +10,7 @@ const session = {
   id: 'cs_test_001', payment_intent: 'pi_test_001',
   mode: 'payment', payment_status: 'paid', amount_total: 19800, currency: 'jpy',
   customer_details: { email: 'client@example.com' },
-  metadata: { booking_id: bookingId, booking_request_key: requestKey },
+  metadata: { booking_flow: 'smart_booking_v1', booking_id: bookingId, booking_request_key: requestKey },
 };
 async function signed(payload) {
   const raw = JSON.stringify(payload);
@@ -51,4 +51,10 @@ test('tampering, wrong amount, wrong currency and old signature fail', async () 
 test('a genuine paid event without email keeps evidence for review', async () => {
   const missingEmail = await signed({ type: 'checkout.session.completed', data: { object: { ...session, customer_details: {} } } });
   assert.equal((await parseBookingPayment(missingEmail.raw, missingEmail.header, secret))?.customerEmail, null);
+});
+test('partial booking metadata and unmarked booking payments fail closed', async () => {
+  for (const metadata of [{ booking_id: bookingId, booking_request_key: requestKey }, { booking_request_key: requestKey }, { ...session.metadata, booking_flow: 'another_flow' }]) {
+    const signedEvent = await signed({ type: 'checkout.session.completed', data: { object: { ...session, metadata } } });
+    await assert.rejects(() => parseBookingPayment(signedEvent.raw, signedEvent.header, secret), /invalid_booking_payment/);
+  }
 });

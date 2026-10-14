@@ -22,6 +22,7 @@ const baseConfig={
   BOOKING_PUBLIC_ENABLED:'true',
   BOOKING_PAYMENT_WEBHOOK_READY:'true',
   BOOKING_LEGACY_STRIPE_ROUTER_READY:'true',
+  BOOKING_REVENUE_RECONCILIATION_READY:'true',
   BOOKING_ONLINE_VENUE_CONFIRMED:'true',
   BOOKING_ONLINE_VENUE_AREA:'kunitachi',
   BOOKING_TURNSTILE_SECRET:'fake-turnstile',
@@ -110,4 +111,14 @@ test('wrong Stripe merchant refuses checkout after hold, no funds captured',asyn
   const res=await POST({locals:{},request:makeRequest()});
   assert.equal(res.status,503);
   assert.ok(!seen.some(x=>x.address.endsWith('/v1/checkout/sessions')));
+});
+
+test('router approval alone cannot activate booking without verified canonical purchase reconciliation', async t => {
+  Object.assign(env, baseConfig);
+  delete env.BOOKING_REVENUE_RECONCILIATION_READY;
+  const seen = fakeDependencies(t);
+  const response = await POST({ locals: {}, request: makeRequest() });
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), { ok: false, error: 'booking_not_activated' });
+  assert.equal(seen.length, 0);
 });

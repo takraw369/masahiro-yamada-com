@@ -11,10 +11,14 @@ export interface BookingPaymentEnv extends BookingConnections {
   BOOKING_STRIPE_ACCOUNT_ID?: string;
   BOOKING_STRIPE_PRICE_ID?: string;
   BOOKING_STRIPE_WEBHOOK_SECRET?: string;
+  /** Original legacy endpoint secret, only for byte-preserving signed forwards. */
+  BOOKING_LEGACY_STRIPE_WEBHOOK_SECRET?: string;
   /** Must remain off until the signed webhook is installed and test-delivered. */
   BOOKING_PAYMENT_WEBHOOK_READY?: string;
   /** Existing Stripe webhook must safely route booking events without old LINE fulfillment. */
   BOOKING_LEGACY_STRIPE_ROUTER_READY?: string;
+  /** Verified booking-to-canonical-purchase identity/reconciliation is required. */
+  BOOKING_REVENUE_RECONCILIATION_READY?: string;
   BOOKING_PUBLIC_ENABLED?: string;
   BOOKING_ONLINE_VENUE_CONFIRMED?: string;
   BOOKING_ONLINE_VENUE_AREA?: string;
@@ -41,6 +45,7 @@ export function bookingEnabled(env: BookingPaymentEnv): boolean {
   return env.BOOKING_PUBLIC_ENABLED === 'true'
     && env.BOOKING_PAYMENT_WEBHOOK_READY === 'true'
     && env.BOOKING_LEGACY_STRIPE_ROUTER_READY === 'true'
+    && env.BOOKING_REVENUE_RECONCILIATION_READY === 'true'
     && env.BOOKING_ONLINE_VENUE_CONFIRMED === 'true'
     && ['kunitachi','tachikawa','shinjuku','yokohama'].includes(env.BOOKING_ONLINE_VENUE_AREA || '')
     && Boolean(env.BOOKING_TURNSTILE_SECRET && env.BOOKING_GOOGLE_CALENDAR_IDS
@@ -134,6 +139,7 @@ export async function createVerifiedStripeCheckout(
     client_reference_id: bookingId,
     'metadata[booking_id]': bookingId,
     'metadata[booking_request_key]': requestKey,
+    'metadata[booking_flow]': 'smart_booking_v1',
     success_url: 'https://masahiroyamada.com/booking?payment=pending',
     cancel_url: 'https://masahiroyamada.com/booking?cancelled=1',
     expires_at: String(expiry),

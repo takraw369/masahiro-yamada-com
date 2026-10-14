@@ -25,7 +25,8 @@ create table if not exists public.ace_booking_holds (
   constraint ace_booking_resource_valid check (resource_key = 'masa'),
   constraint ace_booking_no_overlap exclude using gist (
     resource_key with =,
-    tstzrange(start_at - interval '20 minutes', end_at + interval '20 minutes', '[)') with &&
+    tsrange((start_at at time zone 'UTC') - interval '20 minutes',
+            (end_at at time zone 'UTC') + interval '20 minutes', '[)') with &&
   ) where (state in ('held','checkout_started','paid','confirmed','needs_review'))
 );
 
@@ -106,7 +107,7 @@ begin
     then return jsonb_build_object('error','payment_id_mismatch'); end if;
   if row.state in ('confirmed','paid','needs_review','refund_required')
     then return jsonb_build_object('id',row.id,'state',row.state); end if;
-  if row.state not in ('held','checkout_started') then
+  if row.state not in ('held','checkout_started') or row.expires_at <= now() then
     -- Money arrived after the reservation was released. Keep evidence and
     -- block overlapping re-sales until human refund/repair review completes.
     update public.ace_booking_holds

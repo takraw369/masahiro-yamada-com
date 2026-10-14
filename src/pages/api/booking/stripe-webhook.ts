@@ -12,13 +12,14 @@ const reply = (value: Record<string, unknown>, status = 200) => new Response(
 /** Booking-only Stripe endpoint. Disabled until a verified endpoint secret is set. */
 export const POST = async ({ request, locals }: APIContext) => {
   const env = getSiteStorageEnv(locals) as BookingPaymentEnv;
-  if (!env.BOOKING_STRIPE_WEBHOOK_SECRET) return reply({ ok: false }, 503);
+  const signingSecrets = [env.BOOKING_STRIPE_WEBHOOK_SECRET, env.BOOKING_LEGACY_STRIPE_WEBHOOK_SECRET].filter((value): value is string => Boolean(value));
+  if (!signingSecrets.length) return reply({ ok: false }, 503);
   if (Number(request.headers.get('content-length') || 0) > 128000) return reply({ ok: false }, 413);
   const raw = await request.text();
   if (new TextEncoder().encode(raw).byteLength > 128000) return reply({ ok: false }, 413);
   let payment: Awaited<ReturnType<typeof parseBookingPayment>>;
   try {
-    payment = await parseBookingPayment(raw, request.headers.get('stripe-signature'), env.BOOKING_STRIPE_WEBHOOK_SECRET);
+    payment = await parseBookingPayment(raw, request.headers.get('stripe-signature'), signingSecrets);
   } catch {
     return reply({ ok: false, reason: 'invalid_event' }, 400);
   }
@@ -28,6 +29,9 @@ export const POST = async ({ request, locals }: APIContext) => {
     if (!booking || booking.request_key !== payment.requestKey || booking.stripe_session_id !== payment.sessionId
       || booking.mode !== 'online' || booking.location_id !== 'online-private') {
       return reply({ ok: false, reason: 'booking_reference_mismatch' }, 503);
+    }
+    if (booking.stripe_payment_intent_id && booking.stripe_payment_intent_id !== payment.paymentIntentId) {
+      return reply({ ok: false, reason: 'payment_reference_mismatch' }, 503);
     }
     if (booking.state === 'confirmed') return reply({ ok: true, duplicate: true });
     const paid = await bookingDb<{ state?: string; error?: string }>(env, 'ace_booking_paid_v1', {

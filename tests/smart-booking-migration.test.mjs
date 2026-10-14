@@ -11,7 +11,7 @@ test('new reservations are private and cannot be inserted by browser roles', () 
 });
 test('holds exclude overlapping times and have explicit expiry and paid states', () => {
   assert.match(sql, /constraint ace_booking_no_overlap exclude using gist/i);
-  assert.match(sql, /tstzrange\(start_at - interval '20 minutes', end_at \+ interval '20 minutes'/i);
+  assert.match(sql, /tsrange\(\(start_at at time zone 'UTC'\) - interval '20 minutes'/i);
   assert.match(sql, /expires_at timestamptz not null default \(now\(\) \+ interval '35 minutes'\)/i);
   assert.match(sql, /ace_booking_hold_create_v1/i);
   assert.match(sql, /ace_booking_attach_checkout_v1/i);
