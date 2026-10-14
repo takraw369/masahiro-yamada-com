@@ -1,0 +1,156 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { dashboardAppCatalog, dashboardAppCategories } from '../../data/dashboardAppCatalog';
+---
+
+<DashboardLayout title="アプリ一覧" eyebrow="MASA OS · APP LIBRARY">
+  <div class="apps-shell">
+    <header class="apps-hero">
+      <p class="apps-kicker">YOUR WORKSPACE / LAUNCH PAD</p>
+      <h1>作ったものを、<span>すぐ使う。</span></h1>
+      <p>試したいことに、ワンタップで。自作アプリとDashboardツールの入口を、用途ごとにまとめたよ。</p>
+      <div class="apps-overview">
+        <span><strong>29</strong> 件の入口</span>
+        <span>📱 スマホからも起動</span>
+        <span>☆ よく使うものを保存</span>
+      </div>
+    </header>
+
+    <div class="apps-tools">
+      <label class="apps-search-label" for="apps-search">アプリを探す
+        <input id="apps-search" type="search" placeholder="例：Food Lens、動画、Quest、知識…" autocomplete="off" />
+      </label>
+      <div class="apps-filterbar" role="group" aria-label="カテゴリを絞り込む">
+        <button type="button" class="apps-chip" data-app-filter="all" aria-pressed="true">すべて</button>
+        {dashboardAppCategories.map(category => (
+          <button type="button" class="apps-chip" data-app-filter={category.id} aria-pressed="false">{category.label}</button>
+        ))}
+        <button type="button" class="apps-chip apps-fav-toggle" id="apps-only-favorites" aria-pressed="false">☆ お気に入り</button>
+      </div>
+      <p class="apps-count" role="status" aria-live="polite" id="apps-results">全29件を表示</p>
+    </div>
+
+    {dashboardAppCategories.map(category => (
+      <section class="apps-group" data-app-group={category.id} aria-labelledby={'apps-' + category.id}>
+        <div class="apps-group-head"><div><p>{category.summary}</p><h2 id={'apps-' + category.id}>{category.label}</h2></div></div>
+        <div class="apps-grid">
+          {dashboardAppCatalog.filter(app => app.category === category.id).map(app => (
+            <article class="apps-card" data-app-card data-id={app.id} data-category={app.category} data-search={[app.title, app.description, ...app.tags].join(' ')}>
+              <a class="apps-card-link" href={app.href} aria-label={app.title + 'を開く'}>
+                <span class="apps-symbol" aria-hidden="true">{app.symbol}</span>
+                <span class="apps-card-main"><strong>{app.title}</strong><span class="apps-card-desc">{app.description}</span></span>
+                <span class="apps-launch-icon" aria-hidden="true">↗</span>
+              </a>
+              <div class="apps-card-foot">
+                <span>{app.access === 'public' ? '公開アプリ' : 'Dashboard内'}</span>
+                <button type="button" class="apps-favorite" data-app-favorite={app.id} aria-pressed="false" aria-label={app.title + 'をお気に入りに追加'} title="お気に入り">☆</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    ))}
+    <p class="apps-empty" id="apps-empty" hidden>一致するアプリが見つからなかったよ。検索語やカテゴリを変えてみて。</p>
+    <footer class="apps-foot">ここは既存のアプリ・機能への入口。新しいアプリは <code>dashboardAppCatalog.ts</code> に追加していく。掲載は自動の稼働監視ではありません。</footer>
+  </div>
+</DashboardLayout>
+
+<script>
+  const KEY = 'masa-dashboard-app-favorites-v1';
+  const search = document.querySelector<HTMLInputElement>('#apps-search');
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-app-filter]'));
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-app-card]'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-app-group]'));
+  const favoriteButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-app-favorite]'));
+  const favoritesOnly = document.querySelector<HTMLButtonElement>('#apps-only-favorites');
+  const results = document.querySelector<HTMLElement>('#apps-results');
+  const empty = document.querySelector<HTMLElement>('#apps-empty');
+  let category = 'all';
+  let onlyFavorites = false;
+  let favorites: Set<string> = new Set();
+  try {
+    const stored = JSON.parse(localStorage.getItem(KEY) || '[]');
+    if (Array.isArray(stored)) favorites = new Set(stored.filter((id): id is string => typeof id === 'string'));
+  } catch { /* Local storage is optional. */ }
+  const norm = (value: string) => value.normalize('NFKC').toLocaleLowerCase('ja');
+  function render() {
+    const query = norm(search?.value.trim() || '');
+    let shown = 0;
+    for (const card of cards) {
+      const match = (category === 'all' || card.dataset.category === category)
+        && (!onlyFavorites || favorites.has(card.dataset.id || ''))
+        && (!query || norm(card.dataset.search || '').includes(query));
+      card.hidden = !match;
+      if (match) shown++;
+    }
+    for (const group of groups) group.hidden = !group.querySelector('[data-app-card]:not([hidden])');
+    for (const chip of chips) chip.setAttribute('aria-pressed', String(chip.dataset.appFilter === category));
+    if (favoritesOnly) favoritesOnly.setAttribute('aria-pressed', String(onlyFavorites));
+    for (const button of favoriteButtons) {
+      const id = button.dataset.appFavorite || '';
+      const yes = favorites.has(id);
+      button.textContent = yes ? '★' : '☆';
+      button.setAttribute('aria-pressed', String(yes));
+      const title = button.closest('[data-app-card]')?.querySelector('strong')?.textContent || 'アプリ';
+      button.setAttribute('aria-label', title + (yes ? 'をお気に入りから外す' : 'をお気に入りに追加'));
+    }
+    if (results) results.textContent = shown + '件を表示';
+    if (empty) empty.hidden = shown !== 0;
+  }
+  search?.addEventListener('input', render);
+  for (const chip of chips) chip.addEventListener('click', () => { category = chip.dataset.appFilter || 'all'; render(); });
+  favoritesOnly?.addEventListener('click', () => { onlyFavorites = !onlyFavorites; render(); });
+  for (const button of favoriteButtons) button.addEventListener('click', () => {
+    const id = button.dataset.appFavorite || '';
+    if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
+    try { localStorage.setItem(KEY, JSON.stringify(Array.from(favorites))); } catch { /* Remain usable without storage. */ }
+    render();
+  });
+  render();
+</script>
+
+<style>
+  .apps-shell{max-width:1220px;margin:0 auto;padding:8px 0 64px;color:var(--text-primary)}
+  .apps-hero{border-radius:26px;padding:clamp(20px,4.5vw,42px);background:linear-gradient(127deg,#fffaf2 0%,#fff 52%,#f4f7fb 100%);border:1px solid #e6e1d7}
+  .apps-kicker{font-size:11px;font-weight:800;letter-spacing:.16em;color:#956428}
+  .apps-hero h1{font-size:clamp(28px,5vw,48px);letter-spacing:-.05em;line-height:1.27;margin:14px 0 12px}
+  .apps-hero h1 span{color:#bd7022}
+  .apps-hero>p:not(.apps-kicker){max-width:720px;font-size:15px;line-height:1.85;color:#59636d}
+  .apps-overview{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}
+  .apps-overview span{display:inline-flex;align-items:center;border:1px solid #e8e0d5;background:#fff;border-radius:999px;padding:7px 14px;font-size:12px;color:#62666b}
+  .apps-overview strong{color:#a96314;font-size:17px;margin-right:5px}
+  .apps-tools{padding:26px 2px 10px}
+  .apps-search-label{display:grid;gap:9px;font-size:13px;font-weight:700;color:#464e56}
+  .apps-search-label input{width:100%;min-height:48px;border:1px solid #d8d7d2;border-radius:14px;background:#fff;padding:12px 16px;color:#191d20;font:inherit}
+  .apps-search-label input:focus{border-color:#bf842e;outline:3px solid #e4c39366}
+  .apps-filterbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+  .apps-chip{min-height:39px;padding:9px 14px;border:1px solid #d9d8d3;border-radius:999px;background:#fff;font-size:12px;color:#4e5760;cursor:pointer}
+  .apps-chip[aria-pressed="true"]{background:#24292e;color:#fff;border-color:#24292e}
+  .apps-fav-toggle{margin-left:auto}
+  .apps-count{padding-top:12px;font-size:12px;color:#69747e}
+  .apps-group{margin-top:26px}
+  .apps-group-head{border-bottom:1px solid #deded9;padding:0 3px 11px;margin-bottom:12px}
+  .apps-group-head p{font-size:11px;color:#986829;letter-spacing:.09em;font-weight:800}
+  .apps-group-head h2{font-size:20px;margin-top:3px;letter-spacing:-.03em}
+  .apps-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .apps-card{position:relative;min-width:0;border-radius:18px;border:1px solid #e3e3df;background:#fff;overflow:hidden;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+  .apps-card:hover{border-color:#cfb28a;box-shadow:0 12px 34px rgba(33,41,46,.06);transform:translateY(-2px)}
+  .apps-card-link{display:flex;min-height:138px;align-items:flex-start;gap:13px;padding:18px 17px 8px;text-decoration:none}
+  .apps-symbol{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:14px;background:#fcf5e8;font-size:25px}
+  .apps-card-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:8px}
+  .apps-card-main strong{font-size:16px;font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere}
+  .apps-card-desc{font-size:12px;line-height:1.7;color:#68727d}
+  .apps-launch-icon{color:#b67a32;font-size:17px}
+  .apps-card-foot{display:flex;align-items:center;justify-content:space-between;padding:0 15px 11px}
+  .apps-card-foot>span{color:#8b9299;font-size:11px}
+  .apps-favorite{min-width:40px;min-height:38px;border:0;background:transparent;border-radius:9px;cursor:pointer;color:#a66f27;font-size:25px}
+  .apps-favorite[aria-pressed="true"]{color:#bc7412}
+  .apps-favorite:hover{background:#fbf0e0}
+  .apps-card[hidden],.apps-group[hidden],.apps-empty[hidden]{display:none!important}
+  .apps-empty{padding:40px 20px;color:#707983;background:#fff;border:1px dashed #d6d6d0;border-radius:16px}
+  .apps-foot{margin-top:40px;color:#7a8289;font-size:11px;line-height:1.8}
+  .apps-foot code{overflow-wrap:anywhere}
+  @media(max-width:1020px){.apps-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:640px){.apps-hero{border-radius:18px}.apps-grid{grid-template-columns:1fr}.apps-card-link{min-height:110px}.apps-fav-toggle{margin-left:0}.apps-chip{font-size:11px;padding:8px 12px}}
+  @media(prefers-reduced-motion:reduce){.apps-card{transition:none}.apps-card:hover{transform:none}}
+</style>

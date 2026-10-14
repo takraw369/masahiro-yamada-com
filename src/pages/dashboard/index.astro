@@ -1,6 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import DashboardCockpit from '../../components/dashboard/DashboardCockpit';
+import { featuredDashboardApps, dashboardAppCatalog } from '../../data/dashboardAppCatalog';
 import RevenueMission from '../../components/dashboard/RevenueMission';
 import '../../styles/dashboard-home-presets.css';
 import { HomeFlowMap, HomeOutputDoors } from '../../components/dashboard/HomeFlowSurfaces';
@@ -61,6 +62,23 @@ const deepDoors = [
       <a href="/dashboard/ace-assets">ACE Assets</a>
       <a href="/mind?action=capture">Capture</a>
     </nav>
+
+
+    <section class="home-app-shelf" aria-labelledby="home-app-title">
+      <div class="home-app-heading">
+        <div><p class="kicker">MY APPS / QUICK LAUNCH</p><h2 id="home-app-title">作ったアプリを、すぐ開く。</h2></div>
+        <a href="/dashboard/apps" class="home-app-all">アプリ一覧 <span>（{dashboardAppCatalog.length}件）</span> ↗</a>
+      </div>
+      <div class="home-app-grid">
+        {featuredDashboardApps.map(app => (
+          <a href={app.href} class="home-app-card" aria-label={app.title + 'を開く'}>
+            <span class="home-app-symbol" aria-hidden="true">{app.symbol}</span>
+            <span class="home-app-info"><strong>{app.title}</strong><small>{app.description}</small></span>
+            <span class="home-app-arrow" aria-hidden="true">↗</span>
+          </a>
+        ))}
+      </div>
+    </section>
 
     <div class="home-layout-grid">
       <div class="home-unit home-unit--cockpit">
@@ -150,3 +168,22 @@ const deepDoors = [
     // Invalid/unavailable storage never breaks the original home layout.
   }
 </script>
+
+<style>
+  #dashboard-home-shell .home-app-shelf{margin:22px 0 20px;padding:20px;border:1px solid #e4dfd5;border-radius:20px;background:linear-gradient(115deg,#fffaf1,#fff 53%,#f8fafb)}
+  #dashboard-home-shell .home-app-heading{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:14px}
+  #dashboard-home-shell .home-app-heading h2{font-size:19px;letter-spacing:-.035em;margin:4px 0 0;font-weight:800}
+  #dashboard-home-shell .home-app-all{color:#986525;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;padding:8px 0}
+  #dashboard-home-shell .home-app-all span{font-weight:500;color:#71767a}
+  #dashboard-home-shell .home-app-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  #dashboard-home-shell .home-app-card{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:14px 12px;border:1px solid #e7e4df;border-radius:14px;background:#fff;text-decoration:none;color:#20242a;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+  #dashboard-home-shell .home-app-card:hover{border-color:#c7a678;box-shadow:0 9px 24px rgba(39,40,47,.055);transform:translateY(-2px)}
+  #dashboard-home-shell .home-app-symbol{flex:none;display:grid;place-items:center;width:39px;height:39px;background:#fff4e4;border-radius:11px;font-size:22px}
+  #dashboard-home-shell .home-app-info{display:flex;min-width:0;flex:1;flex-direction:column;gap:7px}
+  #dashboard-home-shell .home-app-info strong{font-size:13px;letter-spacing:-.02em;overflow-wrap:anywhere}
+  #dashboard-home-shell .home-app-info small{font-size:11px;line-height:1.6;color:#747d86}
+  #dashboard-home-shell .home-app-arrow{font-size:14px;color:#a7783b}
+  @media(max-width:1100px){#dashboard-home-shell .home-app-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:590px){#dashboard-home-shell .home-app-shelf{padding:15px;margin-top:9px}#dashboard-home-shell .home-app-heading{align-items:flex-start}#dashboard-home-shell .home-app-heading h2{font-size:16px}#dashboard-home-shell .home-app-all{font-size:12px}#dashboard-home-shell .home-app-all span{display:none}#dashboard-home-shell .home-app-grid{grid-template-columns:1fr}#dashboard-home-shell .home-app-card{padding:12px}#dashboard-home-shell .home-app-info small{font-size:11px}}
+  @media(prefers-reduced-motion:reduce){#dashboard-home-shell .home-app-card{transition:none}#dashboard-home-shell .home-app-card:hover{transform:none}}
+</style>
