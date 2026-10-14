@@ -71,3 +71,19 @@ test('isolated Worker smoke covers existing purchaser key, reader and fake purch
   assert.match(smoke, /no-store/);
   assert.match(smoke, /invalid_event/);
 });
+
+
+test('manual Cloudflare Preview job is isolated and cannot run on push or PR', async () => {
+  const ci = await read('.github/workflows/ci.yml');
+  const manual = ci.split('  shelf-preview-manual:')[1];
+  assert.ok(manual, 'expected manual job inside existing CI workflow');
+  assert.match(manual, /github.event_name == 'workflow_dispatch'/);
+  assert.match(manual, /github.ref == 'refs\/heads\/fix\/shelf-journey-payment-signal-and-preview-20261014'/);
+  assert.match(manual, /needs: \[test-and-build, secret-scan\]/);
+  assert.match(manual, /--ignore-base-config/);
+  assert.match(manual, /wrangler@4\.135\.0 preview/);
+  assert.match(manual, /workers_dev = false/);
+  assert.match(manual, /preview_urls = true/);
+  assert.doesNotMatch(manual, /wrangler deploy\b/);
+  assert.doesNotMatch(manual, /\[\[routes\]\]|\[\[d1_databases\]\]|\[\[services\]\]/);
+});
