@@ -9,11 +9,15 @@ export const X_OAUTH_PENDING_COOKIE = 'masa-x-oauth-pending';
 export const X_OAUTH_RECEIPT_COOKIE = 'masa-x-oauth-read-receipt';
 const ttl = 600;
 const encoder = new TextEncoder();
-type Pending = { target: string; state: string; verifier: string; redirectUri: string; expires: number };
+type Pending = { target: string; state: string; verifier: string; redirectUri: string; expires: number; persist: boolean; expectedUserId?: string };
+export type XOAuthConnection = { target: string; userId: string; username: string; connectedAt: string; verifiedAt: string; expiresAt: string; status: 'connected' | 'expired' | 'reauthorization_required' };
 interface OAuthService {
   xOAuthReadConfig(): Promise<unknown>;
   xOAuthBeginRead(input: { target: string; state: string; challenge: string; redirectUri: string }): Promise<unknown>;
-  xOAuthCompleteRead(input: { target: string; code: string; verifier: string; redirectUri: string }): Promise<unknown>;
+  xOAuthCompleteRead(input: { target: string; code: string; verifier: string; redirectUri: string; persist?: boolean; expectedUserId?: string }): Promise<unknown>;
+  xOAuthConnectionsRead?(): Promise<unknown>;
+  xOAuthConnectionRecheckRead?(input: { target: string; expectedUserId: string }): Promise<unknown>;
+  xOAuthDisconnectRead?(input: { target: string; expectedUserId: string }): Promise<unknown>;
 }
 export interface XOAuthEnv { DASHBOARD_PASSWORD?: string; DASHBOARD_SESSION_SECRET?: string; X_NATIVE_READ_ENABLED?: string; FLOW_RUNNER?: OAuthService }
 
@@ -52,6 +56,31 @@ function target(value: unknown) {
 function callbackUri(value: unknown, origin: string) {
   return typeof value === 'string' && value === `${origin}${X_OAUTH_CALLBACK_PATH}` ? value : null;
 }
+const numericId = (value: unknown): value is string => typeof value === 'string' && /^\d{1,25}$/.test(value);
+const date = (value: unknown): value is string => typeof value === 'string' && /^\d{4}-\d\d-\d\dT/.test(value) && Number.isFinite(Date.parse(value));
+// Only explicitly allowed metadata may cross the service/browser boundary.
+export function parseXOAuthConnection(raw: unknown): XOAuthConnection | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const row = raw as Record<string, unknown>; const handle = target(row.target);
+  if (!handle || !numericId(row.userId) || typeof row.username !== 'string' || row.username.toLowerCase() !== handle.toLowerCase()
+    || !date(row.connectedAt) || !date(row.verifiedAt) || !date(row.expiresAt)
+    || !['connected', 'expired', 'reauthorization_required'].includes(String(row.status))) return null;
+  return { target: handle, userId: row.userId, username: row.username, connectedAt: row.connectedAt, verifiedAt: row.verifiedAt, expiresAt: row.expiresAt,
+    status: row.status === 'connected' && Date.parse(row.expiresAt) <= Date.now() ? 'expired' : row.status as XOAuthConnection['status'] };
+}
+async function connections(env: XOAuthEnv, required = false): Promise<XOAuthConnection[]> {
+  if (typeof env.FLOW_RUNNER?.xOAuthConnectionsRead !== 'function') {
+    if (required) throw new Error();
+    return [];
+  }
+  const raw = await env.FLOW_RUNNER.xOAuthConnectionsRead();
+  if (!raw || typeof raw !== 'object') throw new Error();
+  const result = raw as Record<string, unknown>;
+  if (result.success !== true || result.postingEnabled !== false || result.schedulingEnabled !== false || !Array.isArray(result.data) || result.data.length > 4) throw new Error();
+  const rows = result.data.map(parseXOAuthConnection);
+  if (rows.some(row => !row) || new Set(rows.map(row => row!.target)).size !== rows.length || new Set(rows.map(row => row!.userId)).size !== rows.length) throw new Error();
+  return rows as XOAuthConnection[];
+}
 async function settings(env: XOAuthEnv, origin: string) {
   if (!nativeXReadEnabled(env)) return { error: 'x_oauth_disabled' };
   if (!env.DASHBOARD_SESSION_SECRET) return { error: 'x_oauth_configuration_required' };
@@ -60,8 +89,9 @@ async function settings(env: XOAuthEnv, origin: string) {
   if (!raw || typeof raw !== 'object') return { error: 'x_oauth_configuration_required' };
   const config = raw as Record<string, unknown>;
   const redirectUri = callbackUri(config.redirectUri, origin);
+  const enabledTargets = Array.isArray(config.enabledTargets) ? config.enabledTargets.map(target).filter((item): item is string => !!item) : ['MASAHIRO_501'];
   return config.enabled === true && config.configured === true && redirectUri
-    ? { redirectUri } : { error: 'x_oauth_configuration_required' };
+    ? { redirectUri, persistenceConfigured: config.persistenceConfigured === true, enabledTargets } : { error: 'x_oauth_configuration_required' };
 }
 export async function handleXOAuthStatus(context: APIContext, env: XOAuthEnv) {
   if (context.request.method !== 'GET') return jsonResponse({ error: 'method_not_allowed' }, 405);
@@ -73,7 +103,8 @@ export async function handleXOAuthStatus(context: APIContext, env: XOAuthEnv) {
     const parsed = saved ? parseNativeXReadResponse(saved.result) : null;
     const receipt = parsed && target(saved?.target) && parsed.data[0].username.toLowerCase() === String(saved?.target).toLowerCase()
       ? { ...parsed, target: saved!.target, verifiedAt: saved!.verifiedAt, proof: 'oauth_callback', tokenStored: false } : null;
-    return jsonResponse({ available: 'redirectUri' in config, ...config, scopes: ['users.read', 'tweet.read'], offlineAccess: false, receipt });
+    const rows = nativeXReadEnabled(env) ? await connections(env, config.persistenceConfigured === true) : [];
+    return jsonResponse({ available: 'redirectUri' in config, ...config, connections: rows, scopes: ['users.read', 'tweet.read'], offlineAccess: false, postingEnabled: false, schedulingEnabled: false, receipt });
   } catch { return jsonResponse({ available: false, error: 'x_oauth_configuration_required', receipt: null }); }
 }
 
@@ -98,7 +129,10 @@ export async function handleXOAuthStart(context: APIContext, env: XOAuthEnv) {
     const origin = new URL(context.request.url).origin;
     const config = await settings(env, origin);
     if (!config.redirectUri) return jsonResponse({ error: config.error }, 503);
-    const pending: Pending = { target: handle, state: b64(crypto.getRandomValues(new Uint8Array(32))), verifier: b64(crypto.getRandomValues(new Uint8Array(32))), redirectUri: config.redirectUri, expires: Date.now() + ttl * 1000 };
+    if (!config.enabledTargets!.includes(handle)) return jsonResponse({ error: 'x_oauth_target_not_enabled' }, 403);
+    const existing = (await connections(env, config.persistenceConfigured === true)).find(row => row.target === handle);
+    const pending: Pending = { target: handle, state: b64(crypto.getRandomValues(new Uint8Array(32))), verifier: b64(crypto.getRandomValues(new Uint8Array(32))), redirectUri: config.redirectUri, expires: Date.now() + ttl * 1000,
+      persist: config.persistenceConfigured === true, ...(existing ? { expectedUserId: existing.userId } : {}) };
     const challenge = b64(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(pending.verifier))));
     const response = await env.FLOW_RUNNER!.xOAuthBeginRead({ target: handle, state: pending.state, challenge, redirectUri: pending.redirectUri });
     if (!response || typeof response !== 'object' || !('authorizeUrl' in response) || typeof response.authorizeUrl !== 'string') throw new Error();
@@ -134,19 +168,57 @@ export async function handleXOAuthCallback(context: APIContext, env: XOAuthEnv) 
     if (params.get('error')) return finish(context, 'cancelled');
     if (params.getAll('code').length !== 1 || !params.get('code')) return finish(context, 'failed');
     const config = await settings(env, origin);
-    if (!config.redirectUri || config.redirectUri !== pending.redirectUri) return finish(context, 'failed');
-    const raw = await env.FLOW_RUNNER!.xOAuthCompleteRead({ target: String(pending.target), code: params.get('code')!, verifier: pending.verifier, redirectUri: config.redirectUri });
+    if (!config.redirectUri || config.redirectUri !== pending.redirectUri || !config.enabledTargets!.includes(String(pending.target))
+      || (pending.persist === true && config.persistenceConfigured !== true)) return finish(context, 'failed');
+    const existing = (await connections(env, pending.persist === true)).find(row => row.target === pending.target);
+    if (existing && pending.expectedUserId && existing.userId !== pending.expectedUserId) return finish(context, 'identity_mismatch');
+    const expectedUserId = existing?.userId || (numericId(pending.expectedUserId) ? pending.expectedUserId : undefined);
+    const raw = await env.FLOW_RUNNER!.xOAuthCompleteRead({ target: String(pending.target), code: params.get('code')!, verifier: pending.verifier, redirectUri: config.redirectUri,
+      ...(pending.persist === true ? { persist: true } : {}), ...(expectedUserId ? { expectedUserId } : {}) });
     const safe = parseNativeXReadResponse(raw);
     const result = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
     const scopes = result.scopes;
     if (!safe || safe.data[0].username.toLowerCase() !== String(pending.target).toLowerCase()
-      || result.proof !== 'oauth_callback' || result.tokenStored !== false || typeof result.verifiedAt !== 'string' || Math.abs(Date.now() - Date.parse(result.verifiedAt)) > 60000 || !Number.isFinite(Date.parse(String(result.verifiedAt)))
+      || (expectedUserId && safe.data[0].id !== expectedUserId)
+      || result.proof !== 'oauth_callback' || result.tokenStored !== (pending.persist === true) || typeof result.verifiedAt !== 'string' || Math.abs(Date.now() - Date.parse(result.verifiedAt)) > 60000 || !Number.isFinite(Date.parse(String(result.verifiedAt)))
       || !Array.isArray(scopes) || scopes.length !== 2 || !['users.read', 'tweet.read'].every(scope => scopes.includes(scope))) {
       return finish(context, result.error === 'x_oauth_identity_mismatch' ? 'identity_mismatch' : 'failed');
+    }
+    if (pending.persist === true) {
+      const stored = (await connections(env, true)).find(row => row.target === pending.target);
+      return finish(context, stored?.userId === safe.data[0].id && stored.status === 'connected' ? 'connected' : 'failed');
     }
     await context.cookies.set(X_OAUTH_RECEIPT_COOKIE, await sealOAuthCookie(env.DASHBOARD_SESSION_SECRET!, origin, 'receipt', {
       target: pending.target, result: safe, verifiedAt: result.verifiedAt, expires: Date.now() + ttl * 1000,
     }), cookieOptions(context));
     return finish(context, 'verified');
   } catch { return finish(context, 'failed'); }
+}
+
+export async function handleXOAuthConnectionAction(context: APIContext, env: XOAuthEnv, action: 'recheck' | 'disconnect') {
+  if (context.request.method !== 'POST') return jsonResponse({ error: 'method_not_allowed' }, 405);
+  if (!await authorized(context, env)) return jsonResponse({ error: 'unauthorized' }, 401);
+  if (!isSameOriginRequest(context.request)) return jsonResponse({ error: 'same_origin_required' }, 403);
+  if (!context.request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) return jsonResponse({ error: 'json_required' }, 415);
+  if (!nativeXReadEnabled(env)) return jsonResponse({ error: 'x_oauth_disabled' }, 503);
+  try {
+    const input = await body(context); const handle = target(input?.target);
+    if (!handle || Object.keys(input).some(item => item !== 'target')) return jsonResponse({ error: 'invalid_target' }, 400);
+    const existing = (await connections(env, true)).find(row => row.target === handle);
+    if (!existing) return jsonResponse({ error: 'x_oauth_connection_missing' }, 404);
+    const method = action === 'disconnect' ? env.FLOW_RUNNER?.xOAuthDisconnectRead : env.FLOW_RUNNER?.xOAuthConnectionRecheckRead;
+    if (typeof method !== 'function') return jsonResponse({ error: 'x_oauth_configuration_required' }, 503);
+    const args = { target: handle, expectedUserId: existing.userId };
+    const raw = action === 'disconnect'
+      ? await env.FLOW_RUNNER!.xOAuthDisconnectRead!(args)
+      : await env.FLOW_RUNNER!.xOAuthConnectionRecheckRead!(args);
+    if (!raw || typeof raw !== 'object') throw new Error();
+    const result = raw as Record<string, unknown>;
+    if (result.success !== true || result.postingEnabled !== false || result.schedulingEnabled !== false) throw new Error();
+    const rows = await connections(env, true);
+    if (action === 'disconnect' && rows.some(row => row.target === handle)) throw new Error();
+    const connection = rows.find(row => row.target === handle);
+    if (action === 'recheck' && (!connection || connection.userId !== existing.userId)) throw new Error();
+    return jsonResponse({ success: true, connections: rows, postingEnabled: false, schedulingEnabled: false });
+  } catch { return jsonResponse({ error: action === 'disconnect' ? 'x_oauth_disconnect_failed' : 'x_oauth_recheck_failed' }, 502); }
 }

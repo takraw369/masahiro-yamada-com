@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDashboardSession } from '../src/lib/dashboardAuth.ts';
-import { handleXOAuthStart, handleXOAuthCallback, handleXOAuthStatus, openOAuthCookie, sealOAuthCookie, X_OAUTH_CALLBACK_PATH, X_OAUTH_PENDING_COOKIE, X_OAUTH_RECEIPT_COOKIE } from '../src/lib/security/x-oauth-read.ts';
+import { handleXOAuthStart, handleXOAuthCallback, handleXOAuthStatus, handleXOAuthConnectionAction, openOAuthCookie, sealOAuthCookie, X_OAUTH_CALLBACK_PATH, X_OAUTH_PENDING_COOKIE, X_OAUTH_RECEIPT_COOKIE } from '../src/lib/security/x-oauth-read.ts';
 
 const secret = 'fixture-only-password';
 const cookieKey = 'fixture-only-separate-cookie-key';
@@ -17,7 +17,7 @@ const context = (jar, method, path, data, requestOrigin = origin) => ({ cookies:
 function service() {
   const calls = [];
   const runner = {
-    xOAuthReadConfig: async () => ({ enabled: true, configured: true, redirectUri: origin + X_OAUTH_CALLBACK_PATH, PRIVATE_TOKEN: 'PRIVATE' }),
+    xOAuthReadConfig: async () => ({ enabled: true, configured: true, redirectUri: origin + X_OAUTH_CALLBACK_PATH, enabledTargets: ['MASAHIRO_501', 'aima_no_te', 'kodomo_athlete', 'sunlovesflow'], PRIVATE_TOKEN: 'PRIVATE' }),
     xOAuthBeginRead: async input => {
       calls.push({ kind: 'begin' });
       const url = new URL('https://x.com/i/oauth2/authorize');
@@ -133,4 +133,91 @@ test('a changed callback setting and malicious begin URL cannot forward credenti
   const other = await setup(); other.runner.xOAuthBeginRead = async () => ({ success: true, authorizeUrl: 'https://attacker.test/steal' });
   assert.equal((await handleXOAuthStart(context(other.jar, 'POST', '/api/dashboard/x-oauth/start', { target: 'aima_no_te' }), other.env)).status, 502);
   assert.equal(other.jar.values.has(X_OAUTH_PENDING_COOKIE), false);
+});
+
+function persistent(s) {
+  let rows = [];
+  const oldConfig = s.runner.xOAuthReadConfig;
+  s.runner.xOAuthReadConfig = async () => ({ ...await oldConfig(), persistenceConfigured: true });
+  s.runner.xOAuthConnectionsRead = async () => ({ success: true, data: rows, postingEnabled: false, schedulingEnabled: false, PRIVATE_TOKEN: 'PRIVATE' });
+  const oldComplete = s.runner.xOAuthCompleteRead;
+  s.runner.xOAuthCompleteRead = async input => {
+    assert.equal(input.persist, true);
+    const result = await oldComplete(input);
+    if (input.expectedUserId) assert.equal(input.expectedUserId, result.data[0].id);
+    rows = [{ target: input.target, userId: result.data[0].id, username: input.target, connectedAt: result.verifiedAt, verifiedAt: result.verifiedAt, expiresAt: new Date(Date.now() + 7200000).toISOString(), status: 'connected', accessToken: 'PRIVATE' }];
+    return { ...result, tokenStored: true };
+  };
+  s.runner.xOAuthConnectionRecheckRead = async input => {
+    assert.equal(input.expectedUserId, rows[0].userId);
+    return { success: true, postingEnabled: false, schedulingEnabled: false, PRIVATE_TOKEN: 'PRIVATE' };
+  };
+  s.runner.xOAuthDisconnectRead = async input => {
+    assert.equal(input.expectedUserId, rows[0].userId); rows = [];
+    return { success: true, postingEnabled: false, schedulingEnabled: false, PRIVATE_TOKEN: 'PRIVATE' };
+  };
+}
+
+test('stored connection callback verifies readback; list and mutation responses never expose service tokens', async () => {
+  const s = await setup(); persistent(s);
+  const url = await start(s, 'MASAHIRO_501');
+  assert.match((await callback(s, url.searchParams.get('state'))).headers.get('location'), /x_oauth=connected/);
+  assert.equal(s.jar.values.has(X_OAUTH_RECEIPT_COOKIE), false);
+  const raw = await (await handleXOAuthStatus(context(s.jar, 'GET', '/api/dashboard/x-oauth/status'), s.env)).json();
+  assert.equal(raw.connections[0].target, 'MASAHIRO_501');
+  assert.equal(raw.connections[0].userId, '123456789012345678');
+  assert.ok(!JSON.stringify(raw).includes('PRIVATE'));
+  for (const action of ['recheck', 'disconnect']) {
+    const response = await handleXOAuthConnectionAction(context(s.jar, 'POST', `/api/dashboard/x-oauth/${action}`, { target: 'MASAHIRO_501' }), s.env, action);
+    assert.equal(response.status, 200); assert.ok(!JSON.stringify(await response.json()).includes('PRIVATE'));
+  }
+  const empty = await (await handleXOAuthStatus(context(s.jar, 'GET', '/api/dashboard/x-oauth/status'), s.env)).json();
+  assert.deepEqual(empty.connections, []);
+});
+
+test('new mutations enforce session, same-origin, target-only body and server numeric identity', async () => {
+  const s = await setup(); persistent(s);
+  const url = await start(s, 'MASAHIRO_501'); await callback(s, url.searchParams.get('state'));
+  for (const action of ['recheck', 'disconnect']) {
+    const path = `/api/dashboard/x-oauth/${action}`;
+    assert.equal((await handleXOAuthConnectionAction(context(s.jar, 'GET', path), s.env, action)).status, 405);
+    assert.equal((await handleXOAuthConnectionAction(context(cookies(), 'POST', path, { target: 'MASAHIRO_501' }), s.env, action)).status, 401);
+    assert.equal((await handleXOAuthConnectionAction(context(s.jar, 'POST', path, { target: 'MASAHIRO_501' }, 'https://evil.test'), s.env, action)).status, 403);
+    for (const body of [{ target: 'MASAHIRO_501', expectedUserId: '111' }, { target: 'MASAHIRO_501', persist: true }, { target: 'other' }]) {
+      assert.equal((await handleXOAuthConnectionAction(context(s.jar, 'POST', path, body), s.env, action)).status, 400);
+    }
+    assert.equal((await handleXOAuthConnectionAction(context(s.jar, 'POST', path, { target: 'sunlovesflow' }), s.env, action)).status, 404);
+  }
+});
+
+test('default rollout permits only MASA and malformed metadata fails closed without echoing tokens', async () => {
+  const s = await setup();
+  s.runner.xOAuthReadConfig = async () => ({ enabled: true, configured: true, redirectUri: origin + X_OAUTH_CALLBACK_PATH });
+  assert.equal((await handleXOAuthStart(context(s.jar, 'POST', '/api/dashboard/x-oauth/start', { target: 'aima_no_te' }), s.env)).status, 403);
+  await start(s, 'MASAHIRO_501');
+  s.runner.xOAuthConnectionsRead = async () => ({ success: true, postingEnabled: false, schedulingEnabled: false, data: [{ target: 'MASAHIRO_501', userId: 'PRIVATE' }] });
+  const raw = await (await handleXOAuthStatus(context(s.jar, 'GET', '/api/dashboard/x-oauth/status'), s.env)).json();
+  assert.equal(raw.available, false); assert.ok(!JSON.stringify(raw).includes('PRIVATE'));
+});
+
+test('reconnect sends stored user ID and refuses unexpected account numeric ID', async () => {
+  const s = await setup(); persistent(s);
+  const first = await start(s, 'MASAHIRO_501'); await callback(s, first.searchParams.get('state'));
+  const second = await start(s, 'MASAHIRO_501');
+  const pending = await openOAuthCookie(cookieKey, origin, 'pending', s.jar.values.get(X_OAUTH_PENDING_COOKIE));
+  assert.equal(pending.expectedUserId, '123456789012345678');
+  const original = s.runner.xOAuthCompleteRead;
+  s.runner.xOAuthCompleteRead = async input => { const raw = await original(input); raw.data[0].id = '999'; return raw; };
+  assert.match((await callback(s, second.searchParams.get('state'))).headers.get('location'), /x_oauth=failed/);
+});
+
+test('configured persistence with unavailable credential listing never reports an empty known state', async () => {
+  const s = await setup();
+  const config = s.runner.xOAuthReadConfig;
+  s.runner.xOAuthReadConfig = async () => ({ ...await config(), persistenceConfigured: true });
+  const raw = await (await handleXOAuthStatus(context(s.jar, 'GET', '/api/dashboard/x-oauth/status'), s.env)).json();
+  assert.equal(raw.available, false);
+  assert.equal('connections' in raw, false);
+  assert.equal((await handleXOAuthStart(context(s.jar, 'POST', '/api/dashboard/x-oauth/start', { target: 'MASAHIRO_501' }), s.env)).status, 502);
+  assert.equal(s.calls.length, 0);
 });
