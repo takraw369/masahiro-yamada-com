@@ -89,7 +89,7 @@ const kindEntries = Object.entries(kindMeta).map(([kind, meta]) => ({ kind, ...m
       <div class="graph-title">
         <p class="eyebrow-local">MASA BRAIN · LIVING GRAPH v0.4</p>
         <div class="title-row"><h1>つながりから、次の一手を見つける。</h1><span class="status-badge">{peopleMode ? "People Lens · DEMO" : `${nodes.length} nodes · ${edges.length} edges`}</span></div>
-        <nav class="graph-view-tabs" aria-label="Graphの表示切り替え"><a class:list={["graph-view-tab",{active:!peopleMode}]} href="/dashboard/graph" aria-current={!peopleMode ? "page" : undefined}>Knowledge</a><a class:list={["graph-view-tab",{active:peopleMode}]} href="/dashboard/graph?view=people" aria-current={peopleMode ? "page" : undefined}>People <span>DEMO</span></a></nav>
+        <nav class="graph-view-tabs" aria-label="Graphの表示切り替え"><a class:list={["graph-view-tab",{active:!peopleMode}]} href="/dashboard/graph" aria-current={!peopleMode ? "page" : undefined}>Knowledge</a><a class:list={["graph-view-tab",{active:peopleMode}]} href="/dashboard/graph?view=people" aria-current={peopleMode ? "page" : undefined}>People <span>DEMO</span></a><a class="graph-view-tab" href="/dashboard/meet-targets">🎯 会いたい人</a></nav>
         <div class="howto"><span><b>1</b>左で探す</span><span><b>2</b>中央で流れを見る</span><span><b>3</b>右で意味と次Action</span></div>
       </div>
       <div class="header-actions" style={peopleMode ? "display:none" : undefined}>
