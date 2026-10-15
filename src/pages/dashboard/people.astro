@@ -1,0 +1,5 @@
+---
+// Stable Dashboard APP entrypoint; the canonical graph remains /dashboard/graph.
+// Authentication is enforced by existing /dashboard middleware before the redirect.
+return Astro.redirect('/dashboard/graph?view=people', 302);
+---

@@ -65,6 +65,18 @@ const deepDoors = [
     </nav>
 
 
+    <section class="home-asset-nudge" aria-labelledby="home-asset-nudge-title">
+      <div class="home-asset-nudge-copy">
+        <p class="home-asset-nudge-kicker"><span aria-hidden="true">✦</span> THIS WEEK / SLIDE ASSETS</p>
+        <h2 id="home-asset-nudge-title">好きなプレゼン素材を、今週1つ残そう。</h2>
+        <p>テンプレ・画像・図解から1つ。<strong>名前・好きな理由・使い道・出典／利用権利</strong>を記録。画像原本の重複保存はしない。</p>
+      </div>
+      <div class="home-asset-nudge-actions">
+        <a class="home-asset-nudge-primary" href="https://drive.google.com/drive/folders/1JdWD5OtfIZjNhZOZsDN7HFEFOhDyxK0k" target="_blank" rel="noopener noreferrer">素材フォルダを開く <span aria-hidden="true">↗</span></a>
+        <a class="home-asset-nudge-secondary" href="https://docs.google.com/document/d/1Qapwgi6Bmc_11oP-iTkG0P7aA29Qdt1tICgpzsZwjSw/edit" target="_blank" rel="noopener noreferrer">登録ルールを見る <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
     <section class="home-app-shelf" aria-labelledby="home-app-title">
       <div class="home-app-heading">
         <div><p class="kicker">MY APPS / QUICK LAUNCH</p><h2 id="home-app-title">作ったアプリを、すぐ開く。</h2></div>
@@ -171,6 +183,21 @@ const deepDoors = [
 </script>
 
 <style>
+  /* A single, visible weekly cue. No separate workflow, fabricated status, or backend writes. */
+  #dashboard-home-shell .home-asset-nudge{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0 8px;padding:16px 18px;border:1px solid var(--preset-line,#e4ddd2);border-left:4px solid var(--preset-accent,#986525);border-radius:14px;background:var(--preset-paper,#fffcf5);color:var(--preset-ink,#242831);box-shadow:0 8px 22px rgba(27,35,44,.035)}
+  #dashboard-home-shell .home-asset-nudge-copy{min-width:0;max-width:760px}
+  #dashboard-home-shell .home-asset-nudge-kicker{margin:0;color:var(--preset-accent,#986525);font-size:.67rem;letter-spacing:.1em;font-weight:800}
+  #dashboard-home-shell .home-asset-nudge h2{margin:5px 0 4px;font-size:clamp(1rem,1.8vw,1.18rem);line-height:1.45;letter-spacing:-.025em;color:var(--preset-ink,#242831)}
+  #dashboard-home-shell .home-asset-nudge-copy>p:last-child{margin:0;font-size:.77rem;line-height:1.7;color:var(--preset-muted,#58636c)}
+  #dashboard-home-shell .home-asset-nudge-copy>p:last-child strong{color:var(--preset-ink,#242831);font-weight:700}
+  #dashboard-home-shell .home-asset-nudge-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  #dashboard-home-shell .home-asset-nudge-actions a{box-sizing:border-box;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:10px 13px;border:1px solid var(--preset-line,#e2dcd2);border-radius:10px;font-size:.78rem;font-weight:750;line-height:1.4;text-decoration:none;white-space:nowrap}
+  #dashboard-home-shell .home-asset-nudge-primary{background:var(--preset-ink,#242831);color:var(--preset-paper,#fff)}
+  #dashboard-home-shell .home-asset-nudge-secondary{background:transparent;color:var(--preset-ink,#242831)}
+  #dashboard-home-shell .home-asset-nudge-actions a:focus-visible{outline:3px solid #6b94d6;outline-offset:3px}
+  @media(hover:hover){#dashboard-home-shell .home-asset-nudge-actions a:hover{text-decoration:underline;text-underline-offset:3px}}
+  @media(max-width:850px){#dashboard-home-shell .home-asset-nudge{flex-direction:column;align-items:stretch;gap:12px}#dashboard-home-shell .home-asset-nudge-actions{flex-wrap:wrap}}
+  @media(max-width:590px){#dashboard-home-shell .home-asset-nudge{padding:14px;margin-top:12px}#dashboard-home-shell .home-asset-nudge-actions{display:grid;grid-template-columns:1fr}#dashboard-home-shell .home-asset-nudge-actions a{white-space:normal}}
   #dashboard-home-shell .home-app-shelf{margin:22px 0 20px;padding:20px;border:1px solid #e4dfd5;border-radius:20px;background:linear-gradient(115deg,#fffaf1,#fff 53%,#f8fafb)}
   #dashboard-home-shell .home-app-heading{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:14px}
   #dashboard-home-shell .home-app-heading h2{font-size:19px;letter-spacing:-.035em;margin:4px 0 0;font-weight:800}
