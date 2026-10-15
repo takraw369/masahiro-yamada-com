@@ -27,3 +27,40 @@ paths remain unchanged. Do not enable X official API posting from this panel.
 Related:
 - Flow Runner prerequisite: https://github.com/takraw369/masa-automation/pull/245
 - X Harness recovery runbook: docs/x-connection-recovery.md
+
+## 2026-10-15 resumed state
+
+Legacy Harness key recovery is on hold. This PR continues the existing private
+Flow Runner read path; it does not switch the composer to a different sender.
+Production `X_ACCESS_TOKEN` is absent on Flow Runner and `X_NATIVE_READ_ENABLED`
+is not enabled on the website. Authenticated real-account API/UI E2E is
+**UNVERIFIED**. No production deploy, secret write, OAuth, post or schedule ran.
+
+Runtime failure contracts now distinguish missing credential (503), X permission
+or auth rejection (502 with `x_401`/`x_403`, separate from Dashboard session 401),
+rate limiting (429), timeout (504) and invalid response (502). The actual handler
+is tested with a private service-binding fixture; errors never become an empty
+successful account list. The panel has a retry button and validates the success
+shape again before display. A response outside the four brands is flagged.
+
+The editorial playbook now follows BRAND_OS's 2026-10-15 charter v1.1:
+`MASAHIRO_501`, `aima_no_te`, `kodomo_athlete`, `sunlovesflow`. These are editorial
+targets, not connected-account records. The unapproved `all_are_ace` display alias
+is removed. Explicitly selecting an unconnected brand clears the old composer
+selection and blocks review, while keeping the draft. Native numeric X IDs never
+enter the legacy Harness send path.
+
+Next Human Gate: authorize the existing X app for one user-context read credential,
+register it securely on the existing Flow Runner, and approve deployment/enablement
+separately. Read scopes are `tweet.read` + `users.read`; refresh requires a separate
+`offline.access` decision. This code exposes no OAuth callback and requires no
+posting scope. Do not enter credentials into the Dashboard or chat.
+
+Only after a real `/2/users/me` receipt should four-account OAuth mapping and the
+existing Issue #217 `publish_queue` approval/scheduling/receipt bridge proceed.
+Preserve `human_approved`, idempotency, source lineage and provider-specific IDs.
+No second scheduler, account registry, CRM or LINE path is introduced.
+
+The existing SNS_ACCOUNT_REGISTRY is behind BRAND_OS. The accompanying local
+handoff proposes changes to the existing handle-matched rows only; no canonical
+Sheet update was performed. Source policy is distinct from OAuth verification.

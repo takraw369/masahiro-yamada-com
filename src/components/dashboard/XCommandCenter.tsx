@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { motionPresets } from '../../data/motionPresetCatalog';
 import { LAST_X_ACCOUNT_KEY } from '../../lib/xAccountPlaybook';
 import { getXConnectionIssue, type XConnectionIssue } from '../../lib/xConnectionIssue';
-import { X_COMPOSER_MAX_CHARS as MAX_CHARS, prepareXComposeReview, isCurrentXComposeReview, type XComposeAccount, type XComposeReview } from '../../lib/xComposerReview';
+import { X_COMPOSER_MAX_CHARS as MAX_CHARS, findConnectedXAccount, prepareXComposeReview, isCurrentXComposeReview, type XComposeAccount, type XComposeReview } from '../../lib/xComposerReview';
 
 const CATEGORIES = [
   { id: 'brain', label: '脳科学', keywords: ['前頭前野', 'ドーパミン', '神経可塑性', '集中力', 'ADHD', '記憶定着', 'ワーキングメモリ', '睡眠と脳', 'フロー状態', '認知科学'] },
@@ -36,6 +36,8 @@ export default function XCommandCenter() {
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   const draftField = useRef<HTMLTextAreaElement>(null);
   const sending = useRef(false);
+  const requestedHandle = useRef<string | null>(null);
+  const unavailableAccountMessage = '指定されたアカウントは接続一覧にありません。接続を確認してください。本文は保持しています。';
 
   async function loadAccounts() {
     setAccountState('loading');
@@ -45,11 +47,18 @@ export default function XCommandCenter() {
       if (!res.ok) { setAccountIssue(getXConnectionIssue(res.status, data)); setAccountState('error'); return; }
       if (!data) throw new Error('accounts_unavailable');
       if (!Array.isArray(data.data)) throw new Error('accounts_unavailable');
-      const active = data.data.filter(a => a.isActive);
+      const active = data.data.filter(a => a.isActive === true);
       setAccounts(active);
       let last: string | null = null;
       try { last = localStorage.getItem(LAST_X_ACCOUNT_KEY); } catch {}
-      setSelectedAccount(current => active.some(a => a.id === current) ? current : (active.find(a => a.username === last)?.id || active[0]?.id || ''));
+      if (requestedHandle.current) {
+        const requested = findConnectedXAccount(active, requestedHandle.current);
+        setSelectedAccount(requested?.id || '');
+        if (!requested) { setStatus('err'); setStatusMsg(unavailableAccountMessage); }
+        else { setStatus('idle'); setStatusMsg(''); }
+      } else {
+        setSelectedAccount(current => active.some(a => a.id === current) ? current : (active.find(a => a.username === last)?.id || active[0]?.id || ''));
+      }
       setAccountState('ready');
     } catch { setAccountIssue(getXConnectionIssue()); setAccountState('error'); }
   }
@@ -66,10 +75,21 @@ export default function XCommandCenter() {
   }
   useEffect(() => {
     void loadAccounts(); void loadScheduled();
-    const openComposer = () => { setTab('compose'); setReview(null); };
+  }, []);
+  useEffect(() => {
+    const openComposer = (event: Event) => {
+      setTab('compose'); setReview(null);
+      const username = (event as CustomEvent<{ username?: string }>).detail?.username;
+      if (typeof username !== 'string' || !username) return;
+      requestedHandle.current = username;
+      const requested = findConnectedXAccount(accounts, username);
+      setSelectedAccount(requested?.id || '');
+      if (!requested && accountState === 'ready') { setStatus('err'); setStatusMsg(unavailableAccountMessage); }
+      else { setStatus('idle'); setStatusMsg(''); }
+    };
     window.addEventListener('masa:x-compose', openComposer);
     return () => window.removeEventListener('masa:x-compose', openComposer);
-  }, []);
+  }, [accounts, accountState]);
   useEffect(() => { setReview(null); }, [text, selectedAccount, mode, scheduledAt]);
   useEffect(() => { if (review) reviewHeading.current?.focus(); }, [review]);
 
@@ -116,7 +136,8 @@ export default function XCommandCenter() {
             <div className="x-account-field">
               <label htmlFor="x-account">届けるアカウント</label>
               <div className="x-account-controls">
-              <select id="x-account" value={selectedAccount} disabled={status === 'posting' || accountState !== 'ready' || !accounts.length} onChange={e => setSelectedAccount(e.target.value)}>
+              <select id="x-account" value={selectedAccount} disabled={status === 'posting' || accountState !== 'ready' || !accounts.length} onChange={e => { requestedHandle.current = null; setSelectedAccount(e.target.value); setStatus('idle'); setStatusMsg(''); }}>
+                {!!accounts.length && !selectedAccount && <option value="">接続先を選択してください</option>}
                 {!accounts.length && <option value="">{accountState === 'loading' ? '接続先を確認中…' : accountState === 'error' ? '接続先を確認できません' : '送信できる接続先がありません'}</option>}
                 {accounts.map(a => <option key={a.id} value={a.id}>@{a.username}</option>)}
               </select>

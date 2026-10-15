@@ -49,3 +49,17 @@ export function parseNativeXReadResponse(raw: unknown): NativeXReadResponse | nu
     }],
   };
 }
+
+// Accept only the explicit non-mutating RPC error contract.
+export function nativeXReadFailure(raw: unknown): { error: string; status: number } | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const result = raw as Record<string, unknown>;
+  if (result.success !== false || result.provider !== 'x-official' || result.mode !== 'read_only'
+    || result.postingEnabled !== false || result.schedulingEnabled !== false) return null;
+  const status: Record<string, number> = {
+    missing_x_access_token: 503, x_401: 502, x_403: 502, x_429: 429,
+    x_timeout: 504, x_native_account_invalid: 502, x_read_failed: 502,
+  };
+  const code = typeof result.error === 'string' ? result.error : '';
+  return Object.hasOwn(status, code) ? { error: code, status: status[code] } : null;
+}

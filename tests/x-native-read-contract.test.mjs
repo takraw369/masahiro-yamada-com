@@ -31,14 +31,14 @@ test('Rejects write-enabled, multi-account, missing-identity and malformed upstr
 });
 
 test('Read-only route checks Dashboard session then flag and private binding', async () => {
-  const route = await readFile(new URL('../src/pages/api/dashboard/x-native-accounts.ts', import.meta.url), 'utf8');
+  const route = await readFile(new URL('../src/lib/security/native-x-read.ts', import.meta.url), 'utf8');
   const indexAuth = route.indexOf('verifyDashboardSession(');
   const indexFlag = route.indexOf('nativeXReadEnabled(env)');
   const indexRunner = route.indexOf('await env.FLOW_RUNNER.xNativeAccountsReadOnly()');
   assert.ok(indexAuth >= 0 && indexAuth < indexFlag && indexFlag < indexRunner);
   assert.match(route, /error: 'native_x_read_disabled'/);
   assert.match(route, /error: 'native_x_runner_unavailable'/);
-  assert.match(route, /export const GET/);
+  assert.match(route, /context.request.method !== 'GET'/);
   assert.doesNotMatch(route, /export const (?:POST|PUT|PATCH|DELETE)/);
   assert.doesNotMatch(route, /x-harness|POST \/2\/tweets|Bearer /i);
 });
