@@ -14,6 +14,7 @@ assert.equal(config.compatibility_date, scalar('compatibility_date'));
 assert.deepEqual(config.compatibility_flags, JSON.parse(source.match(/^compatibility_flags\s*=\s*(\[[^\n]+\])/m)[1]));
 assert.deepEqual(config.routes.map(({ pattern }) => pattern).sort(), [...source.matchAll(/^pattern\s*=\s*"([^"]+)"/gm)].map((m) => m[1]).sort());
 assert.equal(config.assets.binding, 'ASSETS');
+assert.equal(config.observability?.logs?.invocation_logs, false, 'OAuth codes/state must not enter automatic request URL logs');
 assert.ok(existsSync(resolve(dirname(configPath), config.main)), 'built Worker entrypoint exists');
 assert.ok(existsSync(resolve(dirname(configPath), config.assets.directory)), 'built assets exist');
 assert.equal(config.d1_databases.length, 1);

@@ -48,7 +48,7 @@ test('AI discovery text responses declare UTF-8 to prevent Japanese mojibake', (
   assert.ok(!existsSync(new URL('../public/llms.txt', import.meta.url)), 'avoid a competing static asset');
 });
 
-test('Cloudflare Workers invocation logs persist across GitHub deployments', () => {
+test('Cloudflare observability persists without logging OAuth callback request URLs', () => {
   assert.match(wranglerConfig, /\[observability\]\s+enabled = true\s+head_sampling_rate = 1/);
-  assert.match(wranglerConfig, /\[observability\.logs\]\s+enabled = true\s+head_sampling_rate = 1\s+invocation_logs = true\s+persist = true/);
+  assert.match(wranglerConfig, /\[observability\.logs\]\s+enabled = true\s+head_sampling_rate = 1\s+invocation_logs = false\s+persist = true/);
 });
