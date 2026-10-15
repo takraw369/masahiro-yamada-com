@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { parseNativeXReadResponse } from '../../lib/xNativeReadPolicy';
 import { X_ACCOUNT_PLAYBOOKS } from '../../lib/xAccountPlaybook';
+import XOAuthReadConnect from './XOAuthReadConnect';
 
 type Account = { id: string; username: string; displayName: string; isActive: true };
 const messages = {
@@ -50,6 +51,7 @@ export default function XNativeConnectionPanel() {
 
   const matchingBrand = account && X_ACCOUNT_PLAYBOOKS.find(item => item.username.toLowerCase() === account.username.toLowerCase());
   return (
+    <>
     <section aria-label="X公式API読み取り接続" style={{
       border: '1px solid rgba(37,33,29,.15)', borderRadius: 14,
       padding: '16px 18px', background: '#fff', marginBottom: 18,
@@ -71,5 +73,7 @@ export default function XNativeConnectionPanel() {
         接続を再確認
       </button>
     </section>
+    <XOAuthReadConnect />
+    </>
   );
 }

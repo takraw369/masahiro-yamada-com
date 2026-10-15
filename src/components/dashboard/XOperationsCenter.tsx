@@ -9,6 +9,7 @@ export default function XOperationsCenter() {
   const [tab, setTab] = useState<Tab>('publish');
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).has('x_oauth')) setTab('health');
     const openComposer = () => setTab('publish');
     window.addEventListener('masa:x-compose', openComposer);
     return () => window.removeEventListener('masa:x-compose', openComposer);
