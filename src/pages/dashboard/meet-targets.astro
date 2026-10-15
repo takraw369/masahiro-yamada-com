@@ -1,0 +1,10 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import MeetTargets from '../../components/dashboard/MeetTargets';
+---
+
+<DashboardLayout title="Meet Target｜会いたい人" eyebrow="ACE · PEOPLE GRAPH">
+  <MeetTargets client:only="react">
+    <p slot="fallback">会いたい人リストを読み込み中…</p>
+  </MeetTargets>
+</DashboardLayout>
