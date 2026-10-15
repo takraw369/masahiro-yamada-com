@@ -1,7 +1,7 @@
 import {
   createCrmContact, type CrmContact, type MeetTargetMeta,
   type MeetTargetPriority, type MeetTargetStatus,
-} from './crm';
+} from './crm.ts';
 
 export const MEET_TARGET_STATUS_LABELS: Record<MeetTargetStatus,string> = {
   WISH: '未接点',
