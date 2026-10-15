@@ -172,7 +172,7 @@ const kindEntries = Object.entries(kindMeta).map(([kind, meta]) => ({ kind, ...m
         <details class="inspector-card activity-card"><summary><span><span class="section-kicker">RECENT NOTES</span><strong>最近のGraphメモ</strong></span><span>＋</span></summary><div id="activity" class="activity"><p class="node-note">読み込み中…</p></div></details>
       </aside>
     </div>
-    {peopleMode && <div class="graph-people-mount"><PeopleGraphLens client:load /></div>}
+    {peopleMode && <div class="graph-people-mount"><PeopleGraphLens client:only="react"><p slot="fallback">People Graphを読み込み中…</p></PeopleGraphLens></div>}
   </div>
 </DashboardLayout>
 
@@ -276,5 +276,5 @@ const kindEntries = Object.entries(kindMeta).map(([kind, meta]) => ({ kind, ...m
   svg.addEventListener('wheel',e=>{e.preventDefault();const f=e.deltaY>0?1.1:.9,r=svg.getBoundingClientRect(),px=view.x+(e.clientX-r.left)/r.width*view.w,py=view.y+(e.clientY-r.top)/r.height*view.h,w=Math.max(420,Math.min(2400,view.w*f)),h=w*.625,af=w/view.w;view={x:px-(px-view.x)*af,y:py-(py-view.y)*af,w,h};setView()},{passive:false});
   svg.addEventListener('pointerdown',e=>{if(e.target.closest?.('.kg-node'))return;panStart={cx:e.clientX,cy:e.clientY,x:view.x,y:view.y};svg.classList.add('panning');svg.setPointerCapture?.(e.pointerId)});svg.addEventListener('pointermove',e=>{if(!panStart)return;const r=svg.getBoundingClientRect();view.x=panStart.x-(e.clientX-panStart.cx)/r.width*view.w;view.y=panStart.y-(e.clientY-panStart.cy)/r.height*view.h;setView()});['pointerup','pointercancel'].forEach(type=>svg.addEventListener(type,()=>{panStart=null;svg.classList.remove('panning')}));
 
-  setView();updatePair();showNode('N025');syncMotionUi();loadActivity();
+  setView();updatePair();showNode('N025');syncMotionUi();if(new URLSearchParams(window.location.search).get('view')!=='people')loadActivity();
 </script>
