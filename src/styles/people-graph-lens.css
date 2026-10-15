@@ -4,6 +4,8 @@
 .people-lens-kicker{font-weight:800;letter-spacing:.16em;font-size:10px;color:#e89d5d}
 .people-lens-head h2{font-size:21px;letter-spacing:-.02em;margin:5px 0 4px;color:#fff}
 .people-lens-head p:not(.people-lens-kicker){font-size:12px;line-height:1.6;color:#b1c0ce}
+.people-lens-head-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.people-lens-target-link{font-size:12px;background:#ee7800;color:#fff;font-weight:800;padding:9px 12px;border-radius:10px;text-decoration:none;white-space:nowrap}
 .people-lens-demo{font-size:11px;border:1px solid #a26c30;padding:8px 12px;border-radius:20px;color:#ffd1a5;background:#422b1a;white-space:nowrap}
 .people-lens-bar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 15px;background:#182430;align-items:end}
 .people-lens label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;color:#aebdcb}
