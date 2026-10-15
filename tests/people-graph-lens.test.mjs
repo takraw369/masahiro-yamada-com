@@ -24,7 +24,7 @@ test('Shortest human connection path uses the actual recorded links', () => {
 test('Existing Knowledge graph remains the primary default view', () => {
   const graph = readFileSync(new URL('../src/pages/dashboard/graph.astro', import.meta.url),'utf8');
   assert.match(graph,/get\('view'\) === 'people'/);
-  assert.match(graph,/PeopleGraphLens client:load/);
+  assert.match(graph,/PeopleGraphLens client:only="react"/);
   assert.match(graph,/href="\/dashboard\/graph" aria-current/);
   assert.match(graph,/href="\/dashboard\/graph\?view=people"/);
 });
@@ -35,4 +35,14 @@ test('Demo People lens has no hidden production data access', () => {
   assert.doesNotMatch(people,/\bfetch\s*\(/);
   assert.doesNotMatch(people,/localStorage|sessionStorage|indexedDB|SUPABASE_/);
   assert.doesNotMatch(people,/api\.x\.com|graph\.facebook\.com|open\.tiktokapis\.com/);
+});
+
+test('People Graph can be opened from the normal Dashboard MY APPS shelf', () => {
+  const catalog = readFileSync(new URL('../src/data/dashboardAppCatalog.ts', import.meta.url), 'utf8');
+  const home = readFileSync(new URL('../src/pages/dashboard/index.astro', import.meta.url), 'utf8');
+  assert.match(catalog, /"id": "ace-people-graph"/);
+  assert.match(catalog, /"href": "\/dashboard\/graph\?view=people"/);
+  assert.match(catalog, /"featured": true/);
+  assert.match(home, /featuredDashboardApps\.map\(app =>/);
+  assert.match(home, /<a href=\{app\.href\} class="home-app-card"/);
 });
