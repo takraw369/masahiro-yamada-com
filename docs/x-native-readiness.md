@@ -50,11 +50,12 @@ is removed. Explicitly selecting an unconnected brand clears the old composer
 selection and blocks review, while keeping the draft. Native numeric X IDs never
 enter the legacy Harness send path.
 
-Next Human Gate: authorize the existing X app for one user-context read credential,
-register it securely on the existing Flow Runner, and approve deployment/enablement
-separately. Read scopes are `tweet.read` + `users.read`; refresh requires a separate
-`offline.access` decision. The 2026-10-16 extension below supplies an OAuth callback and requires no
-posting scope. Do not enter credentials into the Dashboard or chat.
+Next Human Gate: inspect the existing X App settings, then approve client configuration,
+Secret registration (confidential client only), and production deployment/enablement
+separately. The 2026-10-16 extension below supplies the OAuth callback, uses an
+ephemeral user token, and does not require registration of `X_ACCESS_TOKEN`.
+Read scopes are `tweet.read` + `users.read`; no offline or posting scope is requested.
+Do not enter credentials into the Dashboard or chat.
 
 Only after a real `/2/users/me` receipt should four-account OAuth mapping and the
 existing Issue #217 `publish_queue` approval/scheduling/receipt bridge proceed.
