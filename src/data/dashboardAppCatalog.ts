@@ -306,6 +306,17 @@ export const dashboardAppCatalog: DashboardApp[] = [
     "featured": false
   },
   {
+    "id": "ace-people-graph",
+    "title": "ACE People Graph",
+    "description": "人脈のつながりを自由配置・階層・グループで探索（デモ）。",
+    "href": "/dashboard/graph?view=people",
+    "category": "think",
+    "access": "dashboard",
+    "symbol": "🕸️",
+    "tags": ["ACE", "人脈", "関係", "グラフ", "デモ"],
+    "featured": true
+  },
+  {
     "id": "graph",
     "title": "Living Graph",
     "description": "知識とプロジェクトの関係を眺める。",
