@@ -306,6 +306,17 @@ export const dashboardAppCatalog: DashboardApp[] = [
     "featured": false
   },
   {
+    "id": "meet-targets",
+    "title": "Meet Target",
+    "description": "まだ会っていないけど会いたい人を登録し、次の一手まで管理。",
+    "href": "/dashboard/meet-targets",
+    "category": "think",
+    "access": "dashboard",
+    "symbol": "🎯",
+    "tags": ["人脈", "会いたい", "目標", "紹介", "Meet Target"],
+    "featured": true
+  },
+  {
     "id": "ace-people-graph",
     "title": "ACE People Graph",
     "description": "人脈のつながりを自由配置・階層・グループで探索（デモ）。",
