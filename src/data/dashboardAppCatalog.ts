@@ -22,6 +22,17 @@ export const dashboardAppCategories: { id: DashboardAppCategory; label: string; 
 
 export const dashboardAppCatalog: DashboardApp[] = [
   {
+    "id": "habit-roi",
+    "title": "習慣の損益分岐点 | Habit ROI",
+    "description": "習慣を変えた場合の支出・時間・初期費用の損益分岐点を無料で試算。",
+    "href": "/tools/habit-roi/",
+    "category": "discover",
+    "access": "public",
+    "symbol": "⏳",
+    "tags": ["習慣", "健康", "支出", "損益分岐点", "シミュレーター"],
+    "featured": true
+  },
+  {
     "id": "food-lens",
     "title": "Food Lens",
     "description": "食品の裏面を撮影。成分を発見して図鑑を育てる。",
@@ -304,6 +315,17 @@ export const dashboardAppCatalog: DashboardApp[] = [
       "資産化"
     ],
     "featured": false
+  },
+  {
+    "id": "meet-targets",
+    "title": "Meet Target",
+    "description": "まだ会っていないけど会いたい人を登録し、次の一手まで管理。",
+    "href": "/dashboard/meet-targets",
+    "category": "think",
+    "access": "dashboard",
+    "symbol": "🎯",
+    "tags": ["人脈", "会いたい", "目標", "紹介", "Meet Target"],
+    "featured": true
   },
   {
     "id": "ace-people-graph",

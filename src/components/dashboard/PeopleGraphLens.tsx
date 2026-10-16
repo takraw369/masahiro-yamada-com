@@ -272,7 +272,7 @@ export default function PeopleGraphLens(){
     <section className="people-lens" aria-label="People Graph fictional demonstration">
       <div className="people-lens-head">
         <div><p className="people-lens-kicker">HUMAN GRAPH · PEOPLE LENS</p><h2>人と人のつながりを、見える形に。</h2><p>架空データ専用の統合プレビュー。SNSの接点と実際の交流は別の関係として表示します。</p></div>
-        <span className="people-lens-demo">架空データ・本番未接続</span>
+        <div className="people-lens-head-actions"><span className="people-lens-demo">架空データ・本番未接続</span><a className="people-lens-target-link" href="/dashboard/meet-targets">🎯 会いたい人を登録・管理 →</a></div>
       </div>
       <div className="people-lens-bar">
         <label>表示<select value={layout} onChange={e=>setLayout(e.target.value as Layout)}>
