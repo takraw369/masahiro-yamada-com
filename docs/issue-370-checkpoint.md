@@ -1,17 +1,30 @@
 # Issue #370 resume checkpoint
 
-Goal: creation-first entry into existing editors in <=2 intentional taps on 375/390px. Preserve saved themes, drafts, provenance, all publishing/auth/payment gates. Draft PR only; no merge/deployment/paid API.
+## Goal / acceptance
+Creation-first Home; reach existing editor in <=2 intentional taps at 375/390px. Preserve saved themes, current selections/drafts, source rights, auth/account/scheduling/publishing gates. Draft PR only; no merge, deployment, paid API, payment or external publication.
 
-Base: current master 786d8db229316818df0877c220665551e6863988; branch codex/issue370-creation-first-dashboard.
+## Current state
+- Repo `takraw369/masahiro-yamada-com`, base `786d8db229316818df0877c220665551e6863988`.
+- Branch `codex/issue370-creation-first-dashboard`.
+- Draft PR https://github.com/takraw369/masahiro-yamada-com/pull/371 (attached to this task).
+- UI source checkpoint: `a8bdd0b`; latest docs/tests/evidence commit follows it. Read fresh branch/CI before resuming.
 
-Discovery complete: read issue #370 and current Home, Cockpit, Studio, Flow, Post, publishingHandoff, design gallery/mobile grammar and CI. No repository AGENTS.md found. Drive DESIGN INTELLIGENCE (1897 paragraphs), PUBLISHING_FLOW_OS (1027 paragraphs), SELLABLE_BOX read via native connector 2026-10-17. Principles: one main task, task-based entry, progressive disclosure, preserve source and draft, explicit human review; research source remains Drive.
+## Completed
+Current master, routes, tests, PRs, Drive Design Intelligence / Publishing Flow / Sellable Box and four official interaction references inspected. Bounded implementation connects Home to existing editors; picker folds and focuses editor; source-bound v1 handoff preserves X draft protection; source/copy/save failures keep work and show feedback beside controls. No new backend/dependency/generation feature.
 
-PR overlap: #364 inserts status-first task navigation on Home (same insertion point, different goal; reconcile before merge). #325 owns opportunity widget/Design Studio, #345 screenshot composer, #366 video style; no cherry-pick or duplicated features. #359 app catalog and #333 Intelligence do not belong to this change. #365/#339/#357/#331 already merged on master.
+## Evidence
+- Initial implementation exact-head CI `38925566122`: 525 tests passed; release delta clean, existing repository type errors 214; production build, isolated Worker smoke, security, gitleaks passed.
+- Follow-up exact-head CI `38926667336` passed; latest-head CI must be read fresh from PR #371 after the evidence commit.
+- 26 focused tests passed after the save-feedback change, including conflicts and malformed/expired/pending handoffs. Added regression no longer relies on a focused submit button.
+- Real isolated Astro Worker browser capture, synthetic credentials/data only: Home 320/375/390/430/1440/1728 has zero page overflow. Intent cards 88–101px high; Studio mobile visible inputs 16px and measured actions >=44px. Picker closes and focus reaches editor.
+- 3 task walkthroughs plus version-conflict, source-outage and blocked-storage paths recorded in `docs/issue-370-creation-first-ux.md`; screenshots and synthetic measured receipts in `docs/reviews/issue-370/`.
+- Better Design copy checks passed for initial creation entry and selected-material handoff. Scoped spacing completed at 390/1440/1728: 0 critical, 0 serious, 3 moderate (existing/project spacing outside default tool scale). Public HTTPS final receipt UNVERIFIED; deployment was not authorized.
+- Local full-suite attempt exposed a missing/broken standalone Chromium launcher. GitHub Linux CI is the full-suite receipt; no product code or dependencies changed to bypass that local launcher. Native Node 22.23.3 used after Homebrew Node/older bundled Node issues. Do not treat local launcher failure as a product failure or a pass.
 
-Scope: Home task entry before nudge/apps/operations; reuse Post/Knowledge Studio/Publishing Flow. Studio material selection folds after a successful choice and moves focus to editor; saved drafts link and preview jump; no new ingest/generation/MP4. Unsupported article/product packaging remains explicit copy handoff in existing studio.
+## Open work / Human Gate
+Physical iPhone Safari, assistive-technology hands-on testing and MASA KEEP/REFINE/DROP remain UNVERIFIED. Four-way intent choice is the issue's required navigation, revealed only after opening the single creation action. No real Drive account contents, X publishing, LINE, payment or production state were exercised.
 
-UNVERIFIED: implementation, visual tests, CI. Local Homebrew Node is broken (missing llhttp); use bundled Node via PATH=/Users/hondod20/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH. npm ci started. Do not change dependency versions to bypass registry/runtime issues.
+Do not merge/deploy. Before any future merge, reconcile #364's competing Home insertion point. Do not cherry-pick #325/#345/#366. Research source remains Drive; implementation/evidence belongs to this PR.
 
-Next: capture matching baseline renders with synthetic data and no production credentials; implement bounded changes, run tests/typecheck-release/build/security/isolated preview and mobile task log.
-
-Human Gate: MASA KEEP/REFINE/DROP and real iPhone Safari; merge/publication/deployment not authorized. Better Design public HTTPS receipt conflicts with issue's no-deploy gate; use local rendered evidence and explicitly leave that receipt UNVERIFIED, do not publish a private dashboard to satisfy tool validation.
+## Next smallest verifiable action
+Read fresh PR #371 head + CI; open before/after images and run the three operator tasks on iPhone Safari. Obtain MASA's KEEP/REFINE/DROP and separate merge/deployment authorization if requested later.

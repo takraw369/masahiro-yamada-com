@@ -1,0 +1,380 @@
+{
+  "measurements": [
+    {
+      "width": 320,
+      "overflow": 0,
+      "title": "制作ワークスペース",
+      "create": [
+        {
+          "label": "投稿Xの本文を編集する",
+          "rect": {
+            "x": 14,
+            "y": 305.875,
+            "width": 140,
+            "height": 101,
+            "top": 305.875,
+            "right": 154,
+            "bottom": 406.875,
+            "left": 14
+          }
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー",
+          "rect": {
+            "x": 166,
+            "y": 305.875,
+            "width": 140,
+            "height": 101,
+            "top": 305.875,
+            "right": 306,
+            "bottom": 406.875,
+            "left": 166
+          }
+        },
+        {
+          "label": "教材・商品教材を編集して確認",
+          "rect": {
+            "x": 14,
+            "y": 418.875,
+            "width": 140,
+            "height": 101,
+            "top": 418.875,
+            "right": 154,
+            "bottom": 519.875,
+            "left": 14
+          }
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める",
+          "rect": {
+            "x": 166,
+            "y": 418.875,
+            "width": 140,
+            "height": 101,
+            "top": 418.875,
+            "right": 306,
+            "bottom": 519.875,
+            "left": 166
+          }
+        }
+      ],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 375,
+      "overflow": 0,
+      "title": "制作ワークスペース",
+      "create": [
+        {
+          "label": "投稿Xの本文を編集する",
+          "rect": {
+            "x": 14,
+            "y": 257.859375,
+            "width": 167.5,
+            "height": 101,
+            "top": 257.859375,
+            "right": 181.5,
+            "bottom": 358.859375,
+            "left": 14
+          }
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー",
+          "rect": {
+            "x": 193.5,
+            "y": 257.859375,
+            "width": 167.5,
+            "height": 101,
+            "top": 257.859375,
+            "right": 361,
+            "bottom": 358.859375,
+            "left": 193.5
+          }
+        },
+        {
+          "label": "教材・商品教材を編集して確認",
+          "rect": {
+            "x": 14,
+            "y": 370.859375,
+            "width": 167.5,
+            "height": 101,
+            "top": 370.859375,
+            "right": 181.5,
+            "bottom": 471.859375,
+            "left": 14
+          }
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める",
+          "rect": {
+            "x": 193.5,
+            "y": 370.859375,
+            "width": 167.5,
+            "height": 101,
+            "top": 370.859375,
+            "right": 361,
+            "bottom": 471.859375,
+            "left": 193.5
+          }
+        }
+      ],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 390,
+      "overflow": 0,
+      "title": "制作ワークスペース",
+      "create": [
+        {
+          "label": "投稿Xの本文を編集する",
+          "rect": {
+            "x": 14,
+            "y": 257.859375,
+            "width": 175,
+            "height": 101,
+            "top": 257.859375,
+            "right": 189,
+            "bottom": 358.859375,
+            "left": 14
+          }
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー",
+          "rect": {
+            "x": 201,
+            "y": 257.859375,
+            "width": 175,
+            "height": 101,
+            "top": 257.859375,
+            "right": 376,
+            "bottom": 358.859375,
+            "left": 201
+          }
+        },
+        {
+          "label": "教材・商品教材を編集して確認",
+          "rect": {
+            "x": 14,
+            "y": 370.859375,
+            "width": 175,
+            "height": 101,
+            "top": 370.859375,
+            "right": 189,
+            "bottom": 471.859375,
+            "left": 14
+          }
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める",
+          "rect": {
+            "x": 201,
+            "y": 370.859375,
+            "width": 175,
+            "height": 101,
+            "top": 370.859375,
+            "right": 376,
+            "bottom": 471.859375,
+            "left": 201
+          }
+        }
+      ],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 430,
+      "overflow": 0,
+      "title": "制作ワークスペース",
+      "create": [
+        {
+          "label": "投稿Xの本文を編集する",
+          "rect": {
+            "x": 14,
+            "y": 257.859375,
+            "width": 195,
+            "height": 88,
+            "top": 257.859375,
+            "right": 209,
+            "bottom": 345.859375,
+            "left": 14
+          }
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー",
+          "rect": {
+            "x": 221,
+            "y": 257.859375,
+            "width": 195,
+            "height": 88,
+            "top": 257.859375,
+            "right": 416,
+            "bottom": 345.859375,
+            "left": 221
+          }
+        },
+        {
+          "label": "教材・商品教材を編集して確認",
+          "rect": {
+            "x": 14,
+            "y": 357.859375,
+            "width": 195,
+            "height": 101,
+            "top": 357.859375,
+            "right": 209,
+            "bottom": 458.859375,
+            "left": 14
+          }
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める",
+          "rect": {
+            "x": 221,
+            "y": 357.859375,
+            "width": 195,
+            "height": 101,
+            "top": 357.859375,
+            "right": 416,
+            "bottom": 458.859375,
+            "left": 221
+          }
+        }
+      ],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 1440,
+      "overflow": 0,
+      "title": "制作ワークスペース",
+      "create": [
+        {
+          "label": "投稿Xの本文を編集する",
+          "rect": {
+            "x": 250,
+            "y": 291.359375,
+            "width": 281,
+            "height": 88,
+            "top": 291.359375,
+            "right": 531,
+            "bottom": 379.359375,
+            "left": 250
+          }
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー",
+          "rect": {
+            "x": 543,
+            "y": 291.359375,
+            "width": 281,
+            "height": 88,
+            "top": 291.359375,
+            "right": 824,
+            "bottom": 379.359375,
+            "left": 543
+          }
+        },
+        {
+          "label": "教材・商品教材を編集して確認",
+          "rect": {
+            "x": 836,
+            "y": 291.359375,
+            "width": 281,
+            "height": 88,
+            "top": 291.359375,
+            "right": 1117,
+            "bottom": 379.359375,
+            "left": 836
+          }
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める",
+          "rect": {
+            "x": 1129,
+            "y": 291.359375,
+            "width": 281,
+            "height": 88,
+            "top": 291.359375,
+            "right": 1410,
+            "bottom": 379.359375,
+            "left": 1129
+          }
+        }
+      ],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 1728,
+      "overflow": 0,
+      "title": "制作ワークスペース",
+      "create": [
+        {
+          "label": "投稿Xの本文を編集する",
+          "rect": {
+            "x": 354,
+            "y": 291.359375,
+            "width": 301,
+            "height": 88,
+            "top": 291.359375,
+            "right": 655,
+            "bottom": 379.359375,
+            "left": 354
+          }
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー",
+          "rect": {
+            "x": 667,
+            "y": 291.359375,
+            "width": 301,
+            "height": 88,
+            "top": 291.359375,
+            "right": 968,
+            "bottom": 379.359375,
+            "left": 667
+          }
+        },
+        {
+          "label": "教材・商品教材を編集して確認",
+          "rect": {
+            "x": 980,
+            "y": 291.359375,
+            "width": 301,
+            "height": 88,
+            "top": 291.359375,
+            "right": 1281,
+            "bottom": 379.359375,
+            "left": 980
+          }
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める",
+          "rect": {
+            "x": 1293,
+            "y": 291.359375,
+            "width": 301,
+            "height": 88,
+            "top": 291.359375,
+            "right": 1594,
+            "bottom": 379.359375,
+            "left": 1293
+          }
+        }
+      ],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "studioEditorY": 2765.640625,
+      "selectedScroll": 542
+    },
+    {
+      "handoff": {
+        "coreId": "C370",
+        "coreTitle": "検証用：最初の一歩を小さくする",
+        "audience": "練習を続けたい読者",
+        "sourceUrl": "https://docs.google.com/document/d/synthetic-example/edit",
+        "sourceRights": "合成データ・検証専用",
+        "createdAt": 1792165768885
+      },
+      "provenance": "元資料を確認 ↗ 合成データ・検証専用"
+    }
+  ],
+  "errors": []
+}

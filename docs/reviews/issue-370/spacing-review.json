@@ -1,0 +1,266 @@
+{
+  "scope": "Home creation entry only; actual measured DOM at 390/1440/1728. This is not full dashboard visual approval.",
+  "source": "a8bdd0b",
+  "status": "completed",
+  "summary": {
+    "critical": 0,
+    "serious": 0,
+    "moderate": 3,
+    "total": 3
+  },
+  "capturedWidths": [
+    390,
+    1440,
+    1728
+  ],
+  "findings": [
+    {
+      "ruleId": "spacing/off-scale-value",
+      "state": "final creation entry expanded 390",
+      "severity": "moderate",
+      "message": "final creation entry expanded 390 uses 3 off-scale spacing values across 7 elements: 6px, 26px, 54px.",
+      "fix": "Replace the measured values with the nearest project spacing token. Active scale: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128px.",
+      "elementIds": [
+        "#dashboard-home-shell",
+        "header:nth-of-type(1)@19",
+        "p:nth-of-type(1)@22",
+        "a:nth-of-type(1)@27",
+        "a:nth-of-type(2)@30",
+        "a:nth-of-type(3)@33",
+        "a:nth-of-type(4)@36"
+      ],
+      "evidence": [
+        {
+          "label": "#dashboard-home-shell padding bottom",
+          "value": 54,
+          "unit": "px"
+        },
+        {
+          "label": "header:nth-of-type(1)@19 row gap",
+          "value": 26,
+          "unit": "px"
+        },
+        {
+          "label": "header:nth-of-type(1)@19 column gap",
+          "value": 26,
+          "unit": "px"
+        },
+        {
+          "label": "p:nth-of-type(1)@22 margin top",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "投稿Xの本文を編集する row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "投稿Xの本文を編集する column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "教材・商品教材を編集して確認 row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "教材・商品教材を編集して確認 column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める column gap",
+          "value": 6,
+          "unit": "px"
+        }
+      ],
+      "id": "spacing-1"
+    },
+    {
+      "ruleId": "spacing/off-scale-value",
+      "state": "final creation entry expanded 1440",
+      "severity": "moderate",
+      "message": "final creation entry expanded 1440 uses 3 off-scale spacing values across 7 elements: 6px, 26px, 54px.",
+      "fix": "Replace the measured values with the nearest project spacing token. Active scale: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128px.",
+      "elementIds": [
+        "#dashboard-home-shell",
+        "header:nth-of-type(1)@49",
+        "p:nth-of-type(1)@52",
+        "a:nth-of-type(1)@60",
+        "a:nth-of-type(2)@63",
+        "a:nth-of-type(3)@66",
+        "a:nth-of-type(4)@69"
+      ],
+      "evidence": [
+        {
+          "label": "#dashboard-home-shell padding bottom",
+          "value": 54,
+          "unit": "px"
+        },
+        {
+          "label": "header:nth-of-type(1)@49 row gap",
+          "value": 26,
+          "unit": "px"
+        },
+        {
+          "label": "header:nth-of-type(1)@49 column gap",
+          "value": 26,
+          "unit": "px"
+        },
+        {
+          "label": "p:nth-of-type(1)@52 margin top",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "投稿Xの本文を編集する row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "投稿Xの本文を編集する column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "教材・商品教材を編集して確認 row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "教材・商品教材を編集して確認 column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める column gap",
+          "value": 6,
+          "unit": "px"
+        }
+      ],
+      "id": "spacing-2"
+    },
+    {
+      "ruleId": "spacing/off-scale-value",
+      "state": "final creation entry expanded 1728",
+      "severity": "moderate",
+      "message": "final creation entry expanded 1728 uses 4 off-scale spacing values across 7 elements: 6px, 26px, 40px, 54px.",
+      "fix": "Replace the measured values with the nearest project spacing token. Active scale: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128px.",
+      "elementIds": [
+        "#dashboard-home-shell",
+        "header:nth-of-type(1)@49",
+        "p:nth-of-type(1)@52",
+        "a:nth-of-type(1)@60",
+        "a:nth-of-type(2)@63",
+        "a:nth-of-type(3)@66",
+        "a:nth-of-type(4)@69"
+      ],
+      "evidence": [
+        {
+          "label": "#dashboard-home-shell padding bottom",
+          "value": 54,
+          "unit": "px"
+        },
+        {
+          "label": "#dashboard-home-shell margin right",
+          "value": 40,
+          "unit": "px"
+        },
+        {
+          "label": "#dashboard-home-shell margin left",
+          "value": 40,
+          "unit": "px"
+        },
+        {
+          "label": "header:nth-of-type(1)@49 row gap",
+          "value": 26,
+          "unit": "px"
+        },
+        {
+          "label": "header:nth-of-type(1)@49 column gap",
+          "value": 26,
+          "unit": "px"
+        },
+        {
+          "label": "p:nth-of-type(1)@52 margin top",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "投稿Xの本文を編集する row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "投稿Xの本文を編集する column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "記事・動画素材から制作指示をコピー column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "教材・商品教材を編集して確認 row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "教材・商品教材を編集して確認 column gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める row gap",
+          "value": 6,
+          "unit": "px"
+        },
+        {
+          "label": "導線相手・届け先・次の一手を決める column gap",
+          "value": 6,
+          "unit": "px"
+        }
+      ],
+      "id": "spacing-3"
+    }
+  ],
+  "publicFinalReceipt": "UNVERIFIED: Issue #370 prohibits deployment without approval."
+}

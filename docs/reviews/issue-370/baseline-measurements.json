@@ -1,0 +1,51 @@
+{
+  "measurements": [
+    {
+      "width": 320,
+      "overflow": 0,
+      "title": "Flow Cockpit",
+      "create": [],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 375,
+      "overflow": 0,
+      "title": "Flow Cockpit",
+      "create": [],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 390,
+      "overflow": 0,
+      "title": "Flow Cockpit",
+      "create": [],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 430,
+      "overflow": 0,
+      "title": "Flow Cockpit",
+      "create": [],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 1440,
+      "overflow": 0,
+      "title": "Flow Cockpit",
+      "create": [],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "width": 1728,
+      "overflow": 0,
+      "title": "Flow Cockpit",
+      "create": [],
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif"
+    },
+    {
+      "studioEditorY": 2699.828125,
+      "selectedScroll": 608
+    }
+  ],
+  "errors": []
+}
