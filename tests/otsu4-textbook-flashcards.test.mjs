@@ -19,9 +19,9 @@ test("flashcard screen links from the existing study home and retains six main s
  assert.equal((home.match(/class="study-launch-link"/g) || []).length, 6);
 });
 test("all textbook chapters have unique compact cards", () => {
- assert.equal(cards.length,69);
+ assert.equal(cards.length,100);
  assert.equal(new Set(cards.map(x=>x.id)).size,cards.length);
- for(const category of ["system","receiver","detector","detail","transmitter","calibration"]) {
+ for(const category of ["system","receiver","detector","detail","testtools","testmeaning","transmitter","calibration"]) {
   assert.ok(cards.filter(x=>x.group===category).length>=4, category);
  }
  for(const c of cards) {
@@ -62,4 +62,30 @@ test("photo p168/p187: fixed-temperature increments and air-tube size are exact"
  assert.match(byId.tube10,/短くなり.*誤報/);
  assert.ok(page.includes('option value="detail"'));
  assert.ok(page.includes('new URLSearchParams(window.location.search)'));
+});
+
+test("photo: inspection test instrument matching and exact purposes",()=>{
+ const byId=Object.fromEntries(cards.map(c=>[c.id,c.a]));
+ assert.equal(cards.filter(c=>c.group==="testtools").length,16);
+ assert.equal(cards.filter(c=>c.group==="testmeaning").length,15);
+ assert.equal(byId.exam01,"加熱試験器");
+ assert.match(byId.exam02,/テストポンプ/);
+ assert.match(byId.exam03,/テストポンプ/);
+ assert.match(byId.exam04,/マノメーター/);
+ assert.match(byId.exam05,/マノメーター/);
+ assert.equal(byId.exam07,"メーターリレー試験器");
+ assert.equal(byId.exam09,"回路試験器");
+ assert.equal(byId.exam10,"加煙試験器");
+ assert.equal(byId.exam11,"煙感知器感度試験器");
+ assert.equal(byId.exam12,"減光フィルター");
+ assert.match(byId.purpose03,/接点が開くまでの時間/);
+ assert.match(byId.purpose04,/水位が一定量下がる時間/);
+ assert.match(byId.purpose06,/接点閉鎖時のマノメーター水位/);
+ assert.match(byId.purpose10,/断線/);
+ assert.match(byId.purpose11,/複数回線/);
+ assert.match(byId.purpose12,/7警戒区域以下/);
+ assert.match(byId.purpose14,/6か月.*1年/);
+ for(const c of cards)assert.equal(typeof c.a,"string");
+ assert.ok(page.includes('option value="testtools"'));
+ assert.ok(page.includes('option value="testmeaning"'));
 });
