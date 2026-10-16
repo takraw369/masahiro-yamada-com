@@ -27,6 +27,7 @@ function renderStudio({ pending = null, storageFails = false, confirm = true, pr
   }
   const element = id => { if (!elements.has(id)) elements.set(id, new Element()); return elements.get(id); };
   element('product-form').elements = { namedItem: name => element('field-' + name) };
+  element('product-form').reset = () => { for (const [id, control] of elements) if (id.startsWith('field-') || id === 'product-body') control.value = ''; };
   const context = {
     document: { getElementById: element, createElement: () => new Element(), querySelector: () => element('lesson-editor') },
     HTMLInputElement: Element, HTMLTextAreaElement: Element,
@@ -230,4 +231,20 @@ test('existing core needs explicit replacement consent and failure offers a real
   failed.context.fetch = view.context.fetch;
   await failed.element('studio-resume-status').children[1].events.click();
   assert.match(failed.element('product-list').children[0].textContent, /まだ教材の下書きはありません/);
+  failed.element('source-picker').open = false;
+  failed.element('product-list').children[1].click();
+  assert.equal(failed.element('source-picker').open, true);
+  assert.equal(failed.element('source-query').focused, true);
+});
+
+test('starting a new lesson requires explicit discard consent and never changes work on cancel', async () => {
+  for (const confirm of [false, true]) {
+    const view = renderStudio({ confirm });await tick();view.context.chooseSource(asset);
+    view.element('product-body').value = '保存・書き出し前の原稿';view.element('product-form').events.input();
+    view.element('new-product').click();
+    assert.equal(view.confirmations(), 1);
+    assert.equal(view.element('product-body').value, confirm ? '' : '保存・書き出し前の原稿');
+    assert.equal(hasUnsavedWork(view), !confirm);
+    assert.equal(view.element('source-to-post').hidden, confirm);
+  }
 });
