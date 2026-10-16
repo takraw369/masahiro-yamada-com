@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#28648b" />
+<meta name="robots" content="noindex,nofollow" />
+<meta name="description" content="消防設備士乙種第4類。受信機・感知器・発信機・試験器校正時期を一覧と暗記カードで反復学習。" />
+<title>乙4｜写真教材の暗記カード</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;color:#193649;background:#f0f5f8}*{box-sizing:border-box}body{margin:0}main{max-width:780px;margin:auto;padding:16px 15px calc(64px + env(safe-area-inset-bottom))}a{color:#23628c}nav{display:flex;justify-content:space-between;gap:12px;font-size:14px;align-items:center}h1{font-size:clamp(26px,6vw,35px);line-height:1.3;margin:16px 0 8px}h2{font-size:19px;margin:0 0 12px}p{line-height:1.7}.lead{color:#526d7f;margin:0 0 17px}.panel{background:#fff;border:1px solid #d5e3eb;border-radius:19px;padding:18px;margin:14px 0;box-shadow:0 5px 26px #17324d08}button,select{font:inherit}button{min-height:45px;padding:10px 14px;border:1px solid #b5cfdf;border-radius:12px;background:#f0f7fb;color:#194765;font-weight:750;cursor:pointer}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #e9a33d;outline-offset:3px}.primary{color:#fff;background:#28648b;border-color:#28648b}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tabs button[aria-pressed=true]{color:white;background:#28648b}.filters{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin:15px 0}.filters label{display:grid;gap:6px;font-size:14px;font-weight:750}.filters select{width:100%;min-height:46px;padding:9px;border:1px solid #b5cfdf;background:#fff;color:#173a50;border-radius:11px}.topline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.muted{color:#577182;font-size:13px}.stats{font-weight:750}.track{height:8px;border-radius:20px;background:#e0eaf0;overflow:hidden;margin:12px 0}.track span{display:block;height:100%;background:#28648b;width:0}.list{margin-top:12px}.group-title{color:#28648b;margin:22px 0 8px;font-weight:850;font-size:16px}.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:13px 8px;border-bottom:1px solid #e2edf3;font-size:14px;line-height:1.55}.row strong{font-weight:750}.row .answer{font-weight:750;color:#164d70}.row .answer.masked{background:#e9f0f4;border-radius:7px;color:transparent;user-select:none;cursor:pointer}.row .answer.masked:focus-visible{outline:3px solid #e9a33d}.actions{display:flex;gap:8px;flex-wrap:wrap}.mini{font-size:13px;padding:7px 9px;min-height:38px}.card{min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;background:#f4f9fc;border:1px solid #c9dfec;border-radius:17px;gap:10px;margin:16px 0}.card small{color:#5c7889}.card h2{font-size:clamp(21px,5vw,28px);line-height:1.55}.back{font-weight:800;color:#174c69;font-size:clamp(20px,5vw,27px);line-height:1.5}.grades{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.grades button{font-size:14px;padding:10px 5px}.grades button[data-grade=ok]{background:#e6f4e9;border-color:#9cd4ae;color:#24643b}.grades button[data-grade=unsure]{background:#fff5e1;border-color:#e6cd95;color:#855d14}.grades button[data-grade=miss]{background:#fdebea;border-color:#edb9b5;color:#8d3c36}.wide{width:100%}.note{padding:12px;border-radius:12px;background:#edf6fb;border:1px solid #d2e5f1;color:#365b71;font-size:13px}.footer{font-size:13px;color:#577182;line-height:1.8;margin-top:20px}.empty{padding:22px;text-align:center;color:#516d7e} [hidden]{display:none!important}@media(max-width:520px){.panel{padding:14px}.filters{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:3px}.grades{gap:5px}.grades button{font-size:12px}}
+</style>
+</head>
+<body>
+<main>
+<nav><a href="/otsu4/">← 乙4アプリに戻る</a><a href="/otsu4/symbols/">図記号33種類 ↗</a></nav>
+<h1>暗記カード＆一覧</h1>
+<p class="lead">講習写真の受信機・感知器・発信機・自火報の構成・試験器校正時期。<strong>まず一覧で理解 → 答えを隠して思い出す → ○△×で繰り返す。</strong></p>
+<section class="panel" aria-label="学習設定">
+<div class="tabs"><button type="button" id="tab-list" aria-pressed="true">📋 一覧で覚える</button><button type="button" id="tab-card" aria-pressed="false">🗂 暗記カード</button></div>
+<div class="filters">
+<label for="category">範囲を選ぶ<select id="category"><option value="all">全部をまとめて</option><option value="system">自火報の構成</option><option value="receiver">受信機</option><option value="detector">感知器</option><option value="transmitter">発信機</option><option value="calibration">試験器の校正時期</option></select></label>
+<label for="scope">カードの出題<select id="scope"><option value="priority">△・×・未出を優先（10枚）</option><option value="weak">△・×だけ</option><option value="all">選んだ範囲すべて</option></select></label>
+</div>
+<div class="topline"><strong id="totals" class="stats"></strong><span id="rating-summary" class="muted"></span></div>
+<div class="track" aria-hidden="true"><span id="track"></span></div>
+<p class="muted">暗記カードの○△×は、この端末に保存します。既存の四択テストの得点・正誤履歴は変更しません。</p>
+</section>
+<section id="list-panel" class="panel" aria-labelledby="list-heading">
+<div class="topline"><h2 id="list-heading">覚える内容の一覧</h2><button class="mini" id="mask" type="button">答えを隠す</button></div>
+<p class="muted">答えを隠した状態では、答え欄をタップするとその行だけ確認できます。</p>
+<div id="list" class="list"></div>
+<button id="start-from-list" type="button" class="primary wide" style="margin-top:16px">この範囲の暗記カードを始める →</button>
+</section>
+<section id="card-panel" class="panel" aria-labelledby="card-heading" hidden>
+<div class="topline"><h2 id="card-heading">暗記カード</h2><span class="muted" id="card-counter"></span></div>
+<div class="track"><span id="session-track"></span></div>
+<div id="card-body">
+<div class="card"><small id="card-category"></small><h2 id="front"></h2><div id="back" class="back" hidden></div></div>
+<button class="primary wide" type="button" id="reveal">答えを見る →</button>
+<div id="grade-block" hidden><p class="muted" style="text-align:center">思い出せた？自分で判定して次へ</p><div class="grades"><button data-grade="ok" type="button">○ 覚えた</button><button data-grade="unsure" type="button">△ あやしい</button><button data-grade="miss" type="button">× もう一度</button></div></div>
+</div>
+<div id="complete" class="empty" hidden><h2>今回の暗記は完了！</h2><p id="complete-detail"></p><button id="restart" type="button" class="primary wide">次の10枚を復習する ↻</button></div>
+</section>
+<p class="note">受信機の1・2・3級の機能は、写真の表の「必須／条件付き／不要」を区別して整理。校正時期は講習資料に記載された目安であり、実務では使用機器のメーカー指定も確認してください。</p>
+<p class="footer">教材の内容を要点から独自に再構成した暗記用データです。原本のページや図版は転載していません。図記号は既存の <a href="/otsu4/symbols/">図記号暗記トレーナー</a> で練習できます。受信機などの四択練習は <a href="/otsu4/tests/?topic=receiver">受信機テスト</a> へ。</p>
+</main>
+<script is:inline>
+(function () {
+"use strict";
+const KEY = "otsu4-knowledge-cards-v1";
+const groups = {system:"自火報の構成", receiver:"受信機", detector:"感知器", transmitter:"発信機", calibration:"試験器の校正時期"};
+const cards = [
+{id:"sys01",group:"system",q:"自動火災報知設備の基本的な働きは？",a:"火災を感知して、建物内に音響などで知らせる"},
+{id:"sys02",group:"system",q:"自火報の主な構成機器は？",a:"感知器・発信機・受信機・音響装置など"},
+{id:"sys03",group:"system",q:"感知器の役割は？",a:"熱・煙・炎などの火災現象を検知する"},
+{id:"sys04",group:"system",q:"受信機の役割は？",a:"火災信号を受け、火災表示や警報を行う"},
+{id:"sys05",group:"system",q:"音響装置の役割は？",a:"ベルやサイレンなどで火災を知らせる"},
+{id:"sys06",group:"system",q:"中継器の役割は？",a:"感知器などからの信号を中継して受信機へ伝える"},
+{id:"sys07",group:"system",q:"受信機の設置場所の代表例は？",a:"建物の管理事務所や守衛室など"},
+{id:"rec01",group:"receiver",q:"P型受信機の信号方式は？",a:"共通の信号として受信する"},
+{id:"rec02",group:"receiver",q:"R型受信機の信号方式は？",a:"固有の信号として受信する"},
+{id:"rec03",group:"receiver",q:"P型1級の回線数は？",a:"回線数の制限なし"},
+{id:"rec04",group:"receiver",q:"P型2級の回線数は？",a:"5回線以下"},
+{id:"rec05",group:"receiver",q:"P型3級の回線数は？",a:"1回線"},
+{id:"rec06",group:"receiver",q:"P型1・2級の主音響の音圧は？",a:"85dB以上"},
+{id:"rec07",group:"receiver",q:"P型3級の主音響の音圧は？",a:"70dB以上"},
+{id:"rec08",group:"receiver",q:"地区音響装置の音圧は？",a:"90dB以上（写真の比較表）"},
+{id:"rec09",group:"receiver",q:"火災表示状態の保持が必要なP型は？",a:"1級と2級。3級は不要"},
+{id:"rec10",group:"receiver",q:"導通試験装置を備えるP型は？",a:"1級。2級・3級は不要"},
+{id:"rec11",group:"receiver",q:"電話連絡装置を備えるP型は？",a:"1級。2級・3級は不要"},
+{id:"rec12",group:"receiver",q:"火災灯を備えるP型は？",a:"1級。2級・3級は不要"},
+{id:"rec13",group:"receiver",q:"地区表示灯が必要なP型は？",a:"1級・2級（1回線のみの場合は不要）"},
+{id:"rec14",group:"receiver",q:"P型2級の予備電源の扱いは？",a:"1回線のみの場合は不要。1級は必要"},
+{id:"rec15",group:"receiver",q:"GP型受信機は何を兼ねる？",a:"P型受信機とガス漏れ火災警報用受信機"},
+{id:"rec16",group:"receiver",q:"GR型受信機は何を兼ねる？",a:"R型受信機とガス漏れ火災警報用受信機"},
+{id:"rec17",group:"receiver",q:"P型3級で地区音響装置は？",a:"不要"},
+{id:"det01",group:"detector",q:"感知器の大分類は？",a:"熱感知器・煙感知器・炎感知器"},
+{id:"det02",group:"detector",q:"差動式熱感知器は何で作動？",a:"周囲の温度上昇率"},
+{id:"det03",group:"detector",q:"定温式熱感知器は何で作動？",a:"一定の温度に達すること"},
+{id:"det04",group:"detector",q:"差動式スポット型の代表的な原理は？",a:"空気の膨張・温度検知素子"},
+{id:"det05",group:"detector",q:"差動式分布型の代表的な方式は？",a:"空気管式・熱電対式・熱半導体式"},
+{id:"det06",group:"detector",q:"定温式スポット型の原理の例は？",a:"バイメタル・温度検知素子・金属の膨張差"},
+{id:"det07",group:"detector",q:"熱複合式感知器は何を組み合わせる？",a:"複数の熱感知原理"},
+{id:"det08",group:"detector",q:"煙感知器の代表的な検知方式は？",a:"イオン化式・光電式"},
+{id:"det09",group:"detector",q:"光電式煙感知器の代表的な形は？",a:"スポット型・分離型"},
+{id:"det10",group:"detector",q:"炎感知器が利用する光は？",a:"紫外線・赤外線など"},
+{id:"det11",group:"detector",q:"紫外線と赤外線を併用する炎感知器は？",a:"紫外線赤外線併用式スポット型"},
+{id:"tra01",group:"transmitter",q:"発信機の役割は？",a:"人が手動操作して火災信号を送る"},
+{id:"tra02",group:"transmitter",q:"P型1級発信機の写真の特徴は？",a:"確認ランプと電話ジャックがある"},
+{id:"tra03",group:"transmitter",q:"P型2級発信機との見分け方は？",a:"1級の電話ジャックなどの有無に注目"},
+{id:"tra04",group:"transmitter",q:"図面のP入り丸は何の記号？",a:"P型発信機"},
+{id:"cal01",group:"calibration",q:"加熱試験器の校正時期は？",a:"10年"},
+{id:"cal02",group:"calibration",q:"加煙試験器の校正時期は？",a:"10年"},
+{id:"cal03",group:"calibration",q:"炎感知器用作動試験器の校正時期は？",a:"10年"},
+{id:"cal04",group:"calibration",q:"煙感知器用感度試験器の校正時期は？",a:"3年"},
+{id:"cal05",group:"calibration",q:"加ガス試験器の校正時期は？",a:"3年"},
+{id:"cal06",group:"calibration",q:"メーターリレー試験器の校正時期は？",a:"5年"},
+{id:"cal07",group:"calibration",q:"減光フィルターの校正時期は？",a:"5年"},
+{id:"cal08",group:"calibration",q:"外部試験器の校正時期は？",a:"5年"},
+{id:"cal09",group:"calibration",q:"騒音計の校正時期の目安は？",a:"5年（写真ではメーカー推奨）"}
+];
+const $ = (id) => document.getElementById(id);
+const grades = (() => {try {const value=JSON.parse(localStorage.getItem(KEY));return value && typeof value==="object" && !Array.isArray(value)?value:{};} catch {return {};}})();
+let mode = "list", masked = false, queue = [], cursor = 0, revealed = false;
+function scopeCards(){const c=$("category").value;return cards.filter(x=>c==="all"||x.group===c);}
+function getGrade(id){return ["ok","unsure","miss"].includes(grades[id])?grades[id]:null;}
+function summary(){
+ const rows=scopeCards(), ok=rows.filter(x=>getGrade(x.id)==="ok").length, unsure=rows.filter(x=>getGrade(x.id)==="unsure").length, miss=rows.filter(x=>getGrade(x.id)==="miss").length;
+ $("totals").textContent = rows.length + "項目";
+ $("rating-summary").textContent = "○ "+ok+" / △ "+unsure+" / × "+miss+" / 未出 "+(rows.length-ok-unsure-miss);
+ $("track").style.width = (rows.length?100*ok/rows.length:0)+"%";
+}
+function renderList(){
+ const root=$("list");root.replaceChildren();
+ const rows=scopeCards();
+ for(const [key,label] of Object.entries(groups)){
+  const sub=rows.filter(x=>x.group===key);if(!sub.length)continue;
+  const title=document.createElement("h3");title.className="group-title";title.textContent=label+"（"+sub.length+"項目）";root.appendChild(title);
+  for(const item of sub){
+   const line=document.createElement("div");line.className="row";
+   const q=document.createElement("strong");q.textContent=item.q;
+   const a=document.createElement("span");a.textContent=item.a;a.className="answer"+(masked?" masked":"");
+   a.setAttribute("role","button");a.tabIndex=0;a.setAttribute("aria-label",masked?"答えを確認":"答え: "+item.a);
+   const toggle=()=>{if(masked){a.classList.toggle("masked");a.setAttribute("aria-label",a.classList.contains("masked")?"答えを確認":"答え: "+item.a);}};
+   a.addEventListener("click",toggle);
+   a.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();}});
+   line.append(q,a);root.appendChild(line);
+  }
+ }
+ $("mask").textContent=masked?"答えを全部表示":"答えを隠す";
+ summary();
+}
+function openMode(target){
+ mode=target;
+ $("tab-list").setAttribute("aria-pressed",String(mode==="list"));
+ $("tab-card").setAttribute("aria-pressed",String(mode==="card"));
+ $("list-panel").hidden=mode!=="list";
+ $("card-panel").hidden=mode!=="card";
+ if(mode==="list"){renderList();} else {begin();}
+}
+function begin(){
+ const rows=scopeCards(), choice=$("scope").value;
+ const ranked=[...rows].sort((a,b)=>{
+  const weight=x=>({miss:4,unsure:3,ok:0}[getGrade(x.id)]??2);
+  return weight(b)-weight(a)||cards.indexOf(a)-cards.indexOf(b);
+ });
+ queue=choice==="weak"?ranked.filter(x=>["miss","unsure"].includes(getGrade(x.id))):choice==="all"?ranked:ranked.slice(0,10);
+ cursor=0;renderCard();
+}
+function renderCard(){
+ $("card-body").hidden=cursor>=queue.length;
+ $("complete").hidden=cursor<queue.length;
+ $("card-counter").textContent=Math.min(cursor+1,queue.length)+" / "+queue.length+"枚";
+ $("session-track").style.width=(queue.length?100*cursor/queue.length:0)+"%";
+ if(cursor>=queue.length){
+  $("complete-detail").textContent=queue.length?"○△×を保存しました。△・×は次回の復習で優先されます。":"この条件に該当するカードはまだありません。";
+  $("restart").textContent=queue.length?"もう一度カードを学ぶ ↻":"全カードを選んで始める";
+  summary();return;
+ }
+ revealed=false;const item=queue[cursor];
+ $("card-category").textContent=groups[item.group];
+ $("front").textContent=item.q;
+ $("back").textContent=item.a;
+ $("back").hidden=true;
+ $("reveal").hidden=false;
+ $("grade-block").hidden=true;
+}
+$("reveal").addEventListener("click",()=>{revealed=true;$("back").hidden=false;$("reveal").hidden=true;$("grade-block").hidden=false;});
+document.querySelectorAll("[data-grade]").forEach(btn=>btn.addEventListener("click",()=>{
+ if(!revealed||cursor>=queue.length)return;
+ grades[queue[cursor].id]=btn.dataset.grade;
+ try{localStorage.setItem(KEY,JSON.stringify(grades));}catch{}
+ cursor++;renderCard();summary();
+}));
+$("tab-list").addEventListener("click",()=>openMode("list"));
+$("tab-card").addEventListener("click",()=>openMode("card"));
+$("start-from-list").addEventListener("click",()=>openMode("card"));
+$("restart").addEventListener("click",()=>{if(!queue.length)$("scope").value="priority";begin();});
+$("mask").addEventListener("click",()=>{masked=!masked;renderList();});
+$("category").addEventListener("change",()=>{if(mode==="list")renderList();else begin();});
+$("scope").addEventListener("change",()=>{if(mode==="card")begin();});
+renderList();
+})();
+</script>
+</body>
+</html>
