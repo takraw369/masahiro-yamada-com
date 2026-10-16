@@ -93,3 +93,15 @@ test('a source change cannot silently detach an existing manuscript from its sou
   view.element('source-to-post').click();
   assert.equal(JSON.parse(view.storage.get('masa-publishing-handoff-v1')).coreId, 'C370');
 });
+
+test('save conflict is shown beside the editor controls while preserving manuscript', async () => {
+  const view = renderStudio();
+  await new Promise(resolve => setImmediate(resolve));
+  view.element('product-body').value = '競合時も残す原稿';
+  view.context.document.activeElement = { closest: selector => selector === '#product-form' };
+  view.context.fetch = async () => ({ ok: false, json: async () => ({ ok: false, error: 'version_conflict' }) });
+  await view.element('product-form').events.submit({ preventDefault() {} });
+  assert.equal(view.element('studio-save-status').hidden, false);
+  assert.match(view.element('studio-save-status').textContent, /別の更新があります/);
+  assert.equal(view.element('product-body').value, '競合時も残す原稿');
+});
