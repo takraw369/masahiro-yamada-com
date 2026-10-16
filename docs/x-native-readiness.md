@@ -15,17 +15,17 @@ Initial binding requires an exact selected handle match from `/2/users/me`; the 
 ## Inspected fresh on 2026-10-16
 
 - Both PR heads inspected before changes: Runner `e3125c4`, website `1d5ccb6`.
-- `https://console.x.com/` redirected to the X login screen. Existing App name/ID/type, OAuth2 status and Callback allowlist are **UNVERIFIED**, not absent. Do not create a replacement App.
+- Initial Console inspection required login. After MASA logged in, the existing App settings were read directly: OAuth2 **Native App / public client** selected, OAuth1 **Read only**, exact callback below already present, website URL correct. No settings were edited or saved. Do not create a replacement App or switch its client type.
 - Cloudflare Secret **names only** were listed: Runner has no X OAuth2 client/secret/encryption key; website already has `DASHBOARD_SESSION_SECRET`. No values were retrieved.
 - Existing Harness D1 identity-only SELECT found one `kodomo_athlete` account. No canonical task/account writes or D1 writes occurred.
 - Baseline active production versions: Runner `b1a40680-1c2a-4abd-8796-f39178a5aedb`; website `6fcdcafb-c14b-4510-99aa-268995dc068a`. Deployment verification is tracked in the checkpoint.
 
 ## MASA's Developer Portal screen
 
-Open [X Developer Console](https://console.x.com/) and sign in personally. Select the **existing App**, then open its authentication settings (legacy portal labels: **Settings → User authentication settings → Edit**). Inspect these labels in the current portal; navigation behind login has not been verified here.
+Open [X Developer Console](https://console.x.com/) and sign in personally. Select the **existing App**, then open its authentication settings (legacy portal labels: **Settings → User authentication settings → Edit**). The current portal uses **アプリ → existing App → 設定 → 認証設定**; this path and the selected fields were observed after MASA logged in.
 
-1. Confirm **OAuth 2.0** and current **Type of App**. Web App / Automated App or Bot are confidential clients; Native App / Single Page App are public clients. Keep the existing type unless its change is approved.
-2. Inspect **Callback URI / Redirect URL**. After separate approval, append this exact URL, preserving every existing callback:
+1. The existing **Type of App** is **ネイティブアプリ / 公開クライアント**. Configure the Runner as `X_OAUTH_CLIENT_TYPE=public`; no Client Secret is required for this App. OAuth 2.0 and the exact Callback are already configured. Confirm **OAuth 2.0** and current **Type of App**. Web App / Automated App or Bot are confidential clients; Native App / Single Page App are public clients. Keep the existing type unless its change is approved.
+2. **Callback URI / Redirect URL** already contains this exact URL. No edit or Save action is required:
 
    `https://masahiroyamada.com/api/dashboard/x-oauth/callback`
 
@@ -36,13 +36,13 @@ Secrets must be entered directly through the approved Cloudflare Worker Secret i
 
 ## Separate production approval packet
 
-No listed production action has been executed. Approve the intended changes together only after reviewing both PR diffs and CI:
+Only read-only App inspection has been executed; no listed production mutation has been executed. Approve the intended changes together only after reviewing both PR diffs and CI:
 
 | Existing component | Proposed approved setup |
 | --- | --- |
-| X Developer App | Inspect OAuth2/client type, append exact callback above, preserve existing configuration |
-| `masa-flow-runner` settings | `X_OAUTH_READ_ENABLED=true`, existing App's `X_OAUTH_CLIENT_ID`, matching `X_OAUTH_CLIENT_TYPE`, `X_OAUTH_REDIRECT_URI` |
-| Runner Worker Secrets | `X_OAUTH_CLIENT_SECRET` only if confidential; new independent 32-byte base64url `X_OAUTH_TOKEN_ENCRYPTION_KEY` |
+| X Developer App | Already inspected: public Native App + exact callback; preserve existing configuration, no change required |
+| `masa-flow-runner` settings | `X_OAUTH_READ_ENABLED=true`, existing App's `X_OAUTH_CLIENT_ID`, `X_OAUTH_CLIENT_TYPE=public`, `X_OAUTH_REDIRECT_URI` |
+| Runner Worker Secrets | New independent 32-byte base64url `X_OAUTH_TOKEN_ENCRYPTION_KEY`; existing public App needs no Client Secret |
 | Runner persistence | `X_OAUTH_PERSIST_ENABLED=true`, apply the added credential migration to existing `FLOW_DB` only after approval; optional partial immutable ID pins via `X_OAUTH_EXPECTED_USER_IDS_JSON` |
 | Initial rollout | Omit `X_OAUTH_ENABLED_TARGETS_JSON` so only MASAHIRO_501 is enabled |
 | Website | Reuse existing `DASHBOARD_SESSION_SECRET`, enable `X_NATIVE_READ_ENABLED=true` |
@@ -58,7 +58,7 @@ After approved setup/deployment:
 
 1. Open [Dashboard 投稿](https://masahiroyamada.com/dashboard/post), sign in, then **接続と分析 → Xアカウント接続**. In the **MASA @MASAHIRO_501** row, press **Xアカウントを接続**.
 2. On X verify the signed-in account is **@MASAHIRO_501** and permissions contain only reading account/posts. Wrong account: cancel, switch X account, retry. No posting, scheduling or DM test.
-3. Back on Dashboard verify **接続中**, exact handle, actual numeric X user ID and expiry. Press **読み取りを再確認** once. Capture only these safe results; never capture callback URL, code, cookie, token or Secret.
+3. Back on Dashboard verify **接続済み**, exact handle, actual numeric X user ID and expiry. Press **読み取りを再確認** once. Capture only these safe results; never capture callback URL, code, cookie, token or Secret.
 
 Acceptance requires direct real `/2/users/me` identity proof through the actual deployed Callback and stored credential recheck. Unit tests, synthetic browser states and editorial playbooks are not real account E2E. After this receipt passes, separately approve enabling the remaining three handles and authorize **each account independently**. Repeat identity and expiry checks for each. All native send/schedule/DM capabilities remain unavailable.
 

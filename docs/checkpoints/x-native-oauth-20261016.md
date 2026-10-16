@@ -22,3 +22,18 @@ Complete shared RPC contract and execute handler/Runner synthetic /me acceptance
 
 ## Human Gate
 Separate approval required for production Secret entry, X App settings and callback allowlist changes, database migration, production deployment/flags. X identity consent is MASA-operated. Dashboard public HTTPS design finalization remains UNVERIFIED without approved exact-source preview. Never copy credentials, tokens, OAuth codes, cookies or private logs into checkpoints/PRs.
+
+## Checkpoint 2 — implementation verification in progress
+- Cloudflare deployed-version binding-name read-back also confirms absence of X_OAUTH_* Runner settings and X_NATIVE_READ_ENABLED website flag; not inferred from Secret listing alone.
+- Dashboard focused OAuth tests 11/11 and production build including callback URL-log guard passed; full local suite 497 pass / 1 environment failure (missing installed Chromium app), not a clean full-suite PASS.
+- Runner local suite 184 tests, static checks and generated typecheck passed; regression for persistence-disabled ephemeral mode added after review (final rerun pending).
+- Independent reviewer executing actual handler-to-Runner integration against isolated local D1. No real X network authorization.
+- Public HTTPS Better Design final receipt remains UNVERIFIED; no Dashboard auth bypass or production deployment authorized.
+- Next smallest action: complete final builder/reviewer receipts, push exact existing PR branches, observe head CI, then record deployment read-back and concrete MASA gate.
+
+## Portal gate cleared by MASA login (read-only inspection)
+- Existing App found; OAuth2 Native App / public client selected. OAuth1 Read only.
+- Exact callback https://masahiroyamada.com/api/dashboard/x-oauth/callback already configured; website URL correct. No App setting change/save/credential generation/reveal occurred.
+- Use X_OAUTH_CLIENT_TYPE=public, no Client Secret. Production encryption-key Secret and Runner/site configuration/deployment still require separate approval.
+- Parent measured changed connected panel DOM controls/articles/headings at390/1440/1728: Better Design inspect-spacing completed,0 findings. Mobile screenshot reviewed and local disconnect confirmation/cancel verified. This is scoped geometry, not public HTTPS dashboard finalization.
+- Runner first remote CI found undeclared Node test types masked by shared local node_modules. Fix requires direct @types/node devdependency and clean npm ci; no weakening tests.
