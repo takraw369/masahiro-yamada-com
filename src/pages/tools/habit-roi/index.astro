@@ -1,6 +1,6 @@
 ---
-import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
-import { habitRoiPresets } from '../../lib/habitRoi';
+import PublicPageLayout from '../../../layouts/PublicPageLayout.astro';
+import { habitRoiPresets } from '../../../lib/habitRoi';
 ---
 
 <PublicPageLayout
@@ -117,7 +117,7 @@ import { habitRoiPresets } from '../../lib/habitRoi';
 </style>
 
 <script>
-  import { calculateHabitRoi, habitRoiPresets } from '../../lib/habitRoi';
+  import { calculateHabitRoi, habitRoiPresets } from '../../../lib/habitRoi';
 
   const form = document.querySelector<HTMLFormElement>('#habit-form');
   const presetField = document.querySelector<HTMLSelectElement>('#habit');
