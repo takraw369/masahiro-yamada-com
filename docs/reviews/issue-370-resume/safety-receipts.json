@@ -1,0 +1,37 @@
+{
+  "writes": [
+    {
+      "slug": "synthetic-lesson",
+      "title": "合成教材：小さな一歩を始める",
+      "summary": "自分の一歩を選べる",
+      "body": "保存リクエスト時点の原稿",
+      "priceYen": 0,
+      "sourceAssetId": "QA1",
+      "expectedVersion": 3
+    },
+    {
+      "slug": "synthetic-lesson",
+      "title": "合成教材：小さな一歩を始める",
+      "summary": "自分の一歩を選べる",
+      "body": "保存中に追記した内容も残す",
+      "priceYen": 0,
+      "sourceAssetId": "QA1",
+      "expectedVersion": 4
+    },
+    {
+      "slug": "missing-source",
+      "title": "合成教材：原典を再確認する",
+      "summary": "出典を確認する",
+      "body": "",
+      "priceYen": 0,
+      "sourceAssetId": "MISSING-QA",
+      "expectedVersion": 2
+    }
+  ],
+  "tests": [
+    "追記を未保存として保持し、再保存は受信した次のversionを使用",
+    "一覧から消えた出典IDを実際の保存リクエストへ保持",
+    "503再試行→空状態→実際の素材選択へ",
+    "Night/Tiles/Soft/Chips/Solidとお気に入りを保持"
+  ]
+}

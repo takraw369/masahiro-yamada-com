@@ -1,0 +1,172 @@
+{
+  "assets": [
+    {
+      "id": "QA1",
+      "title": "合成教材：小さな一歩を始める",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA2",
+      "title": "合成素材 2",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA3",
+      "title": "合成素材 3",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA4",
+      "title": "合成素材 4",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA5",
+      "title": "合成素材 5",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA6",
+      "title": "合成素材 6",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA7",
+      "title": "合成素材 7",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA8",
+      "title": "合成素材 8",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA9",
+      "title": "合成素材 9",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA10",
+      "title": "合成素材 10",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA11",
+      "title": "合成素材 11",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    },
+    {
+      "id": "QA12",
+      "title": "合成素材 12",
+      "genre": "EDUCATION",
+      "target": "最初の一歩で迷う読者",
+      "next": "教材",
+      "source_url": "https://docs.google.com/document/d/synthetic-example/edit",
+      "status": "READY",
+      "project": "QA",
+      "format": "TEXT",
+      "rights": "合成データ・検証専用"
+    }
+  ],
+  "knowledge": [],
+  "products": [
+    {
+      "slug": "synthetic-lesson",
+      "title": "合成教材：小さな一歩を始める",
+      "summary": "自分の一歩を選べる",
+      "body": "## 今日試すこと\n三分だけ試して振り返ります。",
+      "source_asset_id": "QA1",
+      "version": 3,
+      "price_jpy": 0,
+      "status": "draft"
+    },
+    {
+      "slug": "missing-source",
+      "title": "合成教材：原典を再確認する",
+      "summary": "出典を確認する",
+      "body": "",
+      "source_asset_id": "MISSING-QA",
+      "version": 2,
+      "price_jpy": 0,
+      "status": "draft"
+    }
+  ],
+  "captured_at": "2026-10-17T00:00:00Z"
+}
