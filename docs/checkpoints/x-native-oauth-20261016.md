@@ -37,3 +37,15 @@ Separate approval required for production Secret entry, X App settings and callb
 - Use X_OAUTH_CLIENT_TYPE=public, no Client Secret. Production encryption-key Secret and Runner/site configuration/deployment still require separate approval.
 - Parent measured changed connected panel DOM controls/articles/headings at390/1440/1728: Better Design inspect-spacing completed,0 findings. Mobile screenshot reviewed and local disconnect confirmation/cancel verified. This is scoped geometry, not public HTTPS dashboard finalization.
 - Runner first remote CI found undeclared Node test types masked by shared local node_modules. Fix requires direct @types/node devdependency and clean npm ci; no weakening tests.
+
+## Production activation approved by MASA
+
+MASA replied 「うい」 to the explicit approval request for Cloudflare encryption-key registration, existing FLOW_DB credential migration, runtime configuration and reviewed Runner/site production deployment. This clears those gates; no need to request them again. First OAuth identity consent remains MASA-operated, and the other three brands stay disabled until the first real acceptance.
+
+Fresh state: PR245 source30b4ee5 CI190 PASS; PR356 source3b52a68 CI509 PASS. Website has since merged current master to preserve new Meet Target and habit ROI changes before deployment. App remains public Native App with exact callback, public Client ID reread, no Secret reveal.
+
+Before production changes: private settings readback found Runner15e3aa75, website46e78a58, LINE cron628e3c81; no native OAuth flags/key installed; workers logpush=false and tail_consumers=[] for all three. Account/zone Logpush listing is403 (UNVERIFIED; no settings changed). Add supported query-string redaction plus existing invocation-log suppression to the website before real consent. Upgrade only Wrangler4.129→4.130 to support the source setting.
+
+Local disk pressure prevented a receipt write; removed only this task's regenerable Runner node_modules and reused existing tools. No source/credential/database content deleted. Capacity recovered before further work.
+
+Next smallest action: verify local approved config/CI, inspect pending migrations, install new key without output/log persistence, apply only credential migration, merge reviewed existing PRs, deploy existing services, read back. Preserve every pre-existing binding/Secret, existing X radar settings, LINE and publish_queue.

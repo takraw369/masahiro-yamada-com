@@ -49,6 +49,6 @@ test('AI discovery text responses declare UTF-8 to prevent Japanese mojibake', (
 });
 
 test('Cloudflare observability persists without logging OAuth callback request URLs', () => {
-  assert.match(wranglerConfig, /\[observability\]\s+enabled = true\s+head_sampling_rate = 1/);
+  assert.match(wranglerConfig, /\[observability\]\s+redact_query_string = true\s+enabled = true\s+head_sampling_rate = 1/);
   assert.match(wranglerConfig, /\[observability\.logs\]\s+enabled = true\s+head_sampling_rate = 1\s+invocation_logs = false\s+persist = true/);
 });
