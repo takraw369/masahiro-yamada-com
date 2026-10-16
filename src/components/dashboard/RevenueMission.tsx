@@ -3,7 +3,7 @@ import { createFlowBoardSnapshot, type BoardSnapshot } from '../../lib/flowBoard
 import {
   REVENUE_FIELDS, REVENUE_STAGES, createRevenueMission, getRevenueMission,
   getRevenueReadiness, transitionRevenueMission, updateRevenueFields, withRevenueMission,
-  type RevenueMission as Mission, type RevenueStage,
+  type RevenueFieldKey, type RevenueMission as Mission, type RevenueStage,
 } from '../../lib/revenueMission';
 import '../../styles/revenue-mission.css';
 
@@ -62,12 +62,29 @@ export default function RevenueMission({readOnly=false}:{readOnly?:boolean}={}) 
   const [error, setError] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [pendingField, setPendingField] = useState<RevenueFieldKey | null>(null);
   const readiness = getRevenueReadiness(mission);
   const changed = JSON.stringify(draft) !== JSON.stringify(mission);
   const stageIndex = REVENUE_STAGES.indexOf(mission.state);
   const afterLive = stageIndex >= REVENUE_STAGES.indexOf('LIVE');
   const nextStage = REVENUE_STAGES[stageIndex + 1];
   const disabled = readOnly || busy || !board || conflict;
+  // Lucian #042 inspiration: focus on the next real work item, not a separate wizard state.
+  const firstMissing = !afterLive ? readiness.missing[0] : undefined;
+
+  function openEditorAt(field?: RevenueFieldKey) {
+    setPendingField(field || null);
+    setExpanded(true);
+  }
+
+  useEffect(() => {
+    if (!expanded || !pendingField) return;
+    const input = document.getElementById(`revenue-field-${pendingField}`) as HTMLInputElement | HTMLTextAreaElement | null;
+    if (!input) return;
+    input.scrollIntoView({ block: 'center', behavior: 'auto' });
+    if (!input.disabled) input.focus({ preventScroll: true });
+    setPendingField(null);
+  }, [expanded, pendingField]);
 
   async function load() {
     setBusy(true); setError(''); setStatus('共有 FLOW Board を読み込み中…');
@@ -143,7 +160,11 @@ export default function RevenueMission({readOnly=false}:{readOnly?:boolean}={}) 
     <div className="revenue-summary">
       <div><span>現在地</span><strong>{board ? mission.state : 'UNVERIFIED'}</strong><small>{board ? stageNames[mission.state] : '共有データの取得が必要'}</small></div>
       <div><span>販売準備の記録</span><strong>{board ? `${readiness.complete} / ${readiness.total}` : '—'}</strong><small>{board ? (readiness.ready ? 'READY 条件の記録あり' : `残り ${readiness.missing.length} 項目`) : '未確認'}</small></div>
-      <div className="revenue-next"><span>次の一手</span><strong>{board ? readiness.nextAction : '共有 FLOW Board を再読込する。'}</strong></div>
+      <div className="revenue-next"><span>次の一手</span><strong>{board ? readiness.nextAction : '共有 FLOW Board を再読込する。'}</strong>
+        {board && firstMissing && <button type="button" className="revenue-step-cta" aria-controls="revenue-editor" aria-expanded={expanded} onClick={() => openEditorAt(firstMissing.key)}>
+          {firstMissing.label}へ進む
+        </button>}
+      </div>
     </div>
     <ol className="revenue-stages" aria-label="Revenue Flow">
       {REVENUE_STAGES.map((stage, index) => <li key={stage} aria-current={board && stage === mission.state ? 'step' : undefined} data-complete={board && index < stageIndex}>
@@ -153,7 +174,7 @@ export default function RevenueMission({readOnly=false}:{readOnly?:boolean}={}) 
     {board && readiness.missing.length > 0 && <p className="revenue-missing"><b>残っているもの：</b>{readiness.missing.map(item => item.label).join(' / ')}</p>}
     {error && <p className="revenue-error" role="alert">{error}</p>}
     <div className="revenue-actions">
-      <button type="button" className="revenue-primary" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls="revenue-editor">{expanded ? '準備項目を閉じる' : '準備項目と証跡を開く'}</button>
+      <button type="button" onClick={() => { setExpanded(!expanded); setPendingField(null); }} aria-expanded={expanded} aria-controls="revenue-editor">{expanded ? '準備項目を閉じる' : '準備項目一覧を開く'}</button>
       <a href="/dashboard/board?mission=revenue">FLOW Board で見る ↗</a>
       <button type="button" onClick={copyResume}>AI の再開メモをコピー</button>
       <button type="button" disabled={busy} onClick={() => void load()}>{changed || conflict ? '共有版を再読込（入力を戻す）' : '再読込'}</button>
@@ -169,8 +190,8 @@ export default function RevenueMission({readOnly=false}:{readOnly?:boolean}={}) 
           {REVENUE_FIELDS.filter(field => field.group === group).map(field => <label key={field.key}>
             <span>{field.label}{field.key === 'publishGate' && <em>MASA の判断記録</em>}</span>
             {field.kind === 'textarea'
-              ? <textarea rows={3} value={draft[field.key]} maxLength={4000} disabled={afterLive && group !== 'signal'} onChange={event => setDraft({ ...draft, [field.key]: event.target.value })} />
-              : <input type="text" inputMode={field.kind === 'url' ? 'url' : 'text'} value={draft[field.key]} maxLength={field.kind === 'url' ? 1500 : 400} disabled={afterLive && (group !== 'signal' || field.key === 'liveUrl' || field.key === 'liveEvidence')} placeholder={field.kind === 'url' ? 'https://… または /dashboard/evidence#記録ID' : undefined} onChange={event => setDraft({ ...draft, [field.key]: event.target.value })} />}
+              ? <textarea id={`revenue-field-${field.key}`} rows={3} value={draft[field.key]} maxLength={4000} disabled={afterLive && group !== 'signal'} onChange={event => setDraft({ ...draft, [field.key]: event.target.value })} />
+              : <input id={`revenue-field-${field.key}`} type="text" inputMode={field.kind === 'url' ? 'url' : 'text'} value={draft[field.key]} maxLength={field.kind === 'url' ? 1500 : 400} disabled={afterLive && (group !== 'signal' || field.key === 'liveUrl' || field.key === 'liveEvidence')} placeholder={field.kind === 'url' ? 'https://… または /dashboard/evidence#記録ID' : undefined} onChange={event => setDraft({ ...draft, [field.key]: event.target.value })} />}
             {hints[field.key] && <small>{hints[field.key]}</small>}
           </label>)}
         </div>

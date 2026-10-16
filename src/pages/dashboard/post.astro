@@ -69,19 +69,8 @@ import '../../styles/x-composer.css';
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
-    if (detail.username) {
-      const target = detail.username.replace(/^@/, '').toLowerCase();
-      const select = Array.from(document.querySelectorAll('select')).find((node) =>
-        Array.from(node.options).some((option) => option.textContent?.replace(/^@/, '').toLowerCase() === target)
-      );
-      if (select) {
-        const option = Array.from(select.options).find((item) => item.textContent?.replace(/^@/, '').toLowerCase() === target);
-        if (option) {
-          select.value = option.value;
-          select.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      }
-    }
+    // XCommandCenter resolves explicit destinations against live connections.
+    // DOM option matching here used to retain the previous account on a miss.
 
     textarea.focus();
     textarea.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });

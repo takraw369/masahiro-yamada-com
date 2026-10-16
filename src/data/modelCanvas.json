@@ -1,0 +1,406 @@
+{
+  "version": "0.2",
+  "updated": "2026-10-16",
+  "mode": "設計モデル（実DBの反映ではありません）",
+  "purpose": "体験・知識を、実践・教育・価値・継承へ循環させる",
+  "groups": [
+    {
+      "id": "core",
+      "label": "核・意思決定",
+      "color": "#ee7800"
+    },
+    {
+      "id": "knowledge",
+      "label": "知識・制作",
+      "color": "#27887e"
+    },
+    {
+      "id": "experience",
+      "label": "体験・成長",
+      "color": "#6559b5"
+    },
+    {
+      "id": "business",
+      "label": "価値・運用",
+      "color": "#ac7a3c"
+    }
+  ],
+  "objects": [
+    {
+      "id": "purpose",
+      "label": "Purpose",
+      "jp": "目的・思想",
+      "group": "core",
+      "desc": "何のために存在するか、何を優先するか",
+      "attributes": [
+        "id (概念ID)",
+        "statement",
+        "decision_principles",
+        "source_ref"
+      ],
+      "source": "Drive / MASA CORE MAP"
+    },
+    {
+      "id": "project",
+      "label": "Project",
+      "jp": "プロジェクト",
+      "group": "core",
+      "desc": "Purposeに向かう複数の活動とその進行",
+      "attributes": [
+        "id (概念ID)",
+        "purpose_ref",
+        "outcome",
+        "status",
+        "next_action"
+      ],
+      "source": "MASA TASK BOARD"
+    },
+    {
+      "id": "source",
+      "label": "Source",
+      "jp": "一次情報・原本",
+      "group": "knowledge",
+      "desc": "外部資料・自身の体験・判断の由来",
+      "attributes": [
+        "id (概念ID)",
+        "original_url",
+        "source_type",
+        "captured_at"
+      ],
+      "source": "Drive / Knowledge OS"
+    },
+    {
+      "id": "knowledge",
+      "label": "Knowledge",
+      "jp": "知識・原則",
+      "group": "knowledge",
+      "desc": "再利用可能な学びや知的資産",
+      "attributes": [
+        "id (概念ID)",
+        "source_ref",
+        "canonical_ref",
+        "status"
+      ],
+      "source": "Drive / Knowledge Fabric"
+    },
+    {
+      "id": "content",
+      "label": "Content",
+      "jp": "発信・教材",
+      "group": "knowledge",
+      "desc": "知識を伝わる形に変換した成果",
+      "attributes": [
+        "id (概念ID)",
+        "knowledge_ref",
+        "channel",
+        "status",
+        "cta_ref"
+      ],
+      "source": "CONTENT OS"
+    },
+    {
+      "id": "member",
+      "label": "Member",
+      "jp": "利用者・学習者",
+      "group": "experience",
+      "desc": "本人の選択と学びの主体",
+      "attributes": [
+        "id (概念ID)",
+        "display_name",
+        "consent_state",
+        "access_level"
+      ],
+      "source": "ACE / SLF（DB照合前）"
+    },
+    {
+      "id": "quest",
+      "label": "Quest",
+      "jp": "実践クエスト",
+      "group": "experience",
+      "desc": "理解を行動へ橋渡しする体験",
+      "attributes": [
+        "id (概念ID)",
+        "project_ref",
+        "knowledge_ref",
+        "difficulty",
+        "status"
+      ],
+      "source": "ACE Quest Board"
+    },
+    {
+      "id": "progress",
+      "label": "Progress",
+      "jp": "実践記録",
+      "group": "experience",
+      "desc": "行動・振り返り・状態変化の記録",
+      "attributes": [
+        "id (概念ID)",
+        "member_ref",
+        "quest_ref",
+        "observed_at",
+        "status"
+      ],
+      "source": "ACE / FLOW Check（DB照合前）"
+    },
+    {
+      "id": "feedback",
+      "label": "Feedback",
+      "jp": "気づき・改善",
+      "group": "experience",
+      "desc": "体験から生まれる評価と次の学習",
+      "attributes": [
+        "id (概念ID)",
+        "progress_ref",
+        "insight",
+        "action_candidate",
+        "review_status"
+      ],
+      "source": "Quest → Feedback Loop"
+    },
+    {
+      "id": "offer",
+      "label": "Offer",
+      "jp": "商品・提案",
+      "group": "business",
+      "desc": "価値を必要な人へ届ける提案",
+      "attributes": [
+        "id (概念ID)",
+        "name",
+        "content_ref",
+        "purchase_link",
+        "visibility"
+      ],
+      "source": "SLF / Revenue Flow"
+    },
+    {
+      "id": "purchase",
+      "label": "Purchase",
+      "jp": "購入・契約",
+      "group": "business",
+      "desc": "収益とアクセス権への接続",
+      "attributes": [
+        "id (概念ID)",
+        "member_ref",
+        "offer_ref",
+        "status",
+        "provider_ref"
+      ],
+      "source": "Stripe（実テーブル未照合）"
+    },
+    {
+      "id": "automation",
+      "label": "Automation",
+      "jp": "自動化",
+      "group": "business",
+      "desc": "正本を参照し業務を連携させる処理",
+      "attributes": [
+        "id (概念ID)",
+        "trigger",
+        "source_ref",
+        "target_ref",
+        "review_gate"
+      ],
+      "source": "masa-automation"
+    }
+  ],
+  "relations": [
+    {
+      "from": "purpose",
+      "to": "project",
+      "label": "方向を決める"
+    },
+    {
+      "from": "project",
+      "to": "knowledge",
+      "label": "知識を活用する"
+    },
+    {
+      "from": "source",
+      "to": "knowledge",
+      "label": "根拠になる"
+    },
+    {
+      "from": "knowledge",
+      "to": "content",
+      "label": "素材になる"
+    },
+    {
+      "from": "knowledge",
+      "to": "quest",
+      "label": "実践に変える"
+    },
+    {
+      "from": "project",
+      "to": "quest",
+      "label": "設計する"
+    },
+    {
+      "from": "member",
+      "to": "progress",
+      "label": "記録を持つ"
+    },
+    {
+      "from": "quest",
+      "to": "progress",
+      "label": "実践される"
+    },
+    {
+      "from": "progress",
+      "to": "feedback",
+      "label": "振り返る"
+    },
+    {
+      "from": "feedback",
+      "to": "knowledge",
+      "label": "学びに戻す"
+    },
+    {
+      "from": "content",
+      "to": "offer",
+      "label": "提案につなぐ"
+    },
+    {
+      "from": "offer",
+      "to": "purchase",
+      "label": "購入へつなぐ"
+    },
+    {
+      "from": "member",
+      "to": "purchase",
+      "label": "購入する"
+    },
+    {
+      "from": "automation",
+      "to": "source",
+      "label": "取り込む"
+    },
+    {
+      "from": "automation",
+      "to": "content",
+      "label": "配信を支える"
+    },
+    {
+      "from": "automation",
+      "to": "quest",
+      "label": "体験を補助する"
+    }
+  ],
+  "screens": [
+    {
+      "id": "dashboard",
+      "label": "MASA Dashboard",
+      "subtitle": "今日の判断と全体像",
+      "lane": "private",
+      "objects": [
+        "purpose",
+        "project",
+        "knowledge",
+        "quest",
+        "offer",
+        "automation"
+      ],
+      "href": "/dashboard",
+      "implementation": "verified"
+    },
+    {
+      "id": "knowledge_library",
+      "label": "Knowledge / Brain Graph",
+      "subtitle": "Source → Knowledge → 応用",
+      "lane": "private",
+      "objects": [
+        "source",
+        "knowledge",
+        "project",
+        "content",
+        "quest"
+      ],
+      "href": "/dashboard/graph",
+      "implementation": "verified"
+    },
+    {
+      "id": "design_lab",
+      "label": "MASA Design Lab",
+      "subtitle": "参照 → 分解 → 試作 → 検証",
+      "lane": "private",
+      "objects": [
+        "source",
+        "project",
+        "feedback",
+        "knowledge"
+      ],
+      "href": "/dashboard/design-lab",
+      "implementation": "verified"
+    },
+    {
+      "id": "content_studio",
+      "label": "Content Studio",
+      "subtitle": "知識 → 多媒体表現",
+      "lane": "private",
+      "objects": [
+        "source",
+        "knowledge",
+        "content",
+        "offer",
+        "automation"
+      ],
+      "href": "/dashboard/content-studio",
+      "implementation": "verified"
+    },
+    {
+      "id": "ace_board",
+      "label": "ACE Quest Board",
+      "subtitle": "知識 → 実践 → 気づき",
+      "lane": "experience",
+      "objects": [
+        "member",
+        "knowledge",
+        "quest",
+        "progress",
+        "feedback"
+      ],
+      "href": "/dashboard/quest",
+      "implementation": "verified"
+    },
+    {
+      "id": "flow_check",
+      "label": "FLOW Check",
+      "subtitle": "状態と選択を支援する公開画面",
+      "lane": "experience",
+      "objects": [
+        "member",
+        "quest",
+        "progress",
+        "feedback"
+      ],
+      "href": "/flow-check.html",
+      "implementation": "verified"
+    },
+    {
+      "id": "offer_flow",
+      "label": "SLF Offer / Purchase Flow",
+      "subtitle": "購入導線の構想・設計上の画面",
+      "lane": "public",
+      "objects": [
+        "content",
+        "offer",
+        "purchase",
+        "member"
+      ],
+      "href": null,
+      "implementation": "proposed"
+    },
+    {
+      "id": "ops",
+      "label": "GitHub Workboard",
+      "subtitle": "Issue / PR / CIの実記録を確認",
+      "lane": "private",
+      "objects": [
+        "project",
+        "source",
+        "automation"
+      ],
+      "href": "/dashboard/github-issues",
+      "implementation": "verified"
+    }
+  ]
+}

@@ -1,0 +1,301 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const modes = [
+  { id:'core', name:'CORE', subtitle:'本人が選びそうな判断', detail:'現在の本人回答・一次経験と判断原則に基づき、MASAが選ぶ結論を理由と反転条件つきで予測する。' },
+  { id:'alt', name:'ALT', subtitle:'別の合理的選択', detail:'Purposeは維持し、時間・リスク・負荷・長期資産などの重みを変えた代案を提示する。' },
+  { id:'2035', name:'2035', subtitle:'未来から逆算', detail:'2035年を仮想的な視点として、健康・関係・長期の自由・社会的価値から現在の選択を評価する。' },
+  { id:'challenge', name:'Challenge', subtitle:'前提と盲点を検査', detail:'反証、機会損失、失敗条件、想定外コストを挙げ、原案が強ければ支持条件も示す。' },
+];
+---
+
+<DashboardLayout title="Decision Lens" eyebrow="MASA Cognitive OS">
+  <main class="decision-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">CHOICE LAB · COGNITIVE JUDGMENT ENGINE</p>
+        <h1>判断を、<em>学習に変える。</em></h1>
+        <p>AI予測を先に固定し、そのあとMASAの実判断と比較。矛盾も差分も消さず、次の意思決定の材料にする。</p>
+      </div>
+      <a class="back" href="/dashboard/choice-lab">← Choice Lab</a>
+    </header>
+    <div class="flowline" aria-label="Decision flow"><span>CASE</span><b>→</b><span>LENS</span><b>→</b><span>LOCK</span><b>→</b><span>ACTUAL</span><b>→</b><span>LEARN</span></div>
+    <div id="storage-alert" class="notice" role="status">Supabaseの保存状態を確認中…</div>
+    <div class="layout">
+      <section class="workspace">
+        <div class="card">
+          <div class="card-head"><span class="step">01 / CASE</span><strong id="stage-label">NEW CASE</strong></div>
+          <label>何を判断する？ <input id="case-title" maxlength="180" placeholder="例：今月は新企画より既存商品を磨くべきか" /></label>
+          <label>状況・目的・制約 <small>分かる場合だけ入力。AIが補助します</small><textarea id="case-context" maxlength="6000" rows="5" placeholder="空欄でOK。分かっている制約があれば記載。"></textarea></label>
+          <label>候補の選択肢 <small>AIが自動で作成。分かる場合だけ入力</small><textarea id="case-options" maxlength="3000" rows="2" placeholder="空欄でOK。AIが比較候補を生成します"></textarea></label>
+          <div class="actions"><button id="auto-predict" type="button" class="primary">AIで候補・予測を作って確定する</button></div>
+          <p class="footnote">テーマだけで開始できます。予測は本人の判断前に自動固定。重要な外部行動は実行しません。</p>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="step">02 / LENS</span><small>人格ではなく、判断のレンズ</small></div>
+          <div class="modes" role="radiogroup" aria-label="判断レンズ">
+            {modes.map((mode,i) => (
+              <label class="mode">
+                <input type="radio" name="decision-mode" value={mode.id} checked={i===0} />
+                <strong>{mode.name}</strong>
+                <span>{mode.subtitle}</span>
+              </label>
+            ))}
+          </div>
+          <p class="mode-hint" id="mode-hint">{modes[0].detail}</p>
+          <details><summary class="footnote">手動でAI指示をコピーする（代替手順）</summary>
+            <button id="copy-prompt" class="secondary" type="button">AI指示をコピー</button>
+          </details>
+          <small class="footnote">通常は01 / CASEのボタンからAIが自動生成します。COREは本人の実判断ではなく予測仮説です。</small>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="step">03 / PREDICTION</span><span id="locked-time"></span></div>
+          <label>AIの予測・提案<textarea id="prediction" rows="4" maxlength="6000" placeholder="本人の答えを見る前に、AIの予測や別案を貼り付ける"></textarea></label>
+          <label>その根拠・不確実性・判断反転条件<textarea id="rationale" rows="3" maxlength="4000" placeholder="何を重視し、何が判明したら結論が変わるか"></textarea></label>
+          <div class="actions">
+            <button id="save-draft" type="button" class="secondary">下書き保存</button>
+            <button id="lock-prediction" type="button" class="primary">予測を確定（後から変更不可）</button>
+          </div>
+          <p class="footnote">確定時刻をサーバーで記録。確定前にMASA本人の答えを参照した場合は、純粋な事前予測ではなく既存判断の説明として扱う。</p>
+        </div>
+        <div class="card" id="actual-card" hidden>
+          <div class="card-head"><span class="step">04 / ACTUAL</span><small>予測を固定してから記録</small></div>
+          <label>MASA本人の判断・実際の選択<textarea id="actual" rows="3" maxlength="6000" placeholder="最終的にどれを選んだ？ どのような条件で？"></textarea></label>
+          <label>予測との差分・その理由 <small>AIが自動作成します</small><textarea id="difference" rows="3" maxlength="4000" placeholder="AIが比較して記録します。編集する場合のみ入力。"></textarea></label>
+          <div class="actions"><button id="auto-compare" class="primary" type="button">AIに差分を分析させて記録</button><button id="record-actual" class="secondary" type="button">手動記録</button></div>
+        </div>
+        <div class="card" id="outcome-card" hidden>
+          <div class="card-head"><span class="step">05 / LEARN</span><small>Outcome ≠ prediction accuracy</small></div>
+          <label>実行後の結果・学び<textarea id="outcome" rows="3" maxlength="4000" placeholder="成果、予期しない結果、次回変える判断基準。未検証なら未検証と書く。"></textarea></label>
+          <div class="actions"><button id="record-outcome" class="primary" type="button">結果・振り返りを更新</button></div>
+          <p class="footnote">これはSupabase上の実践記録。長期原則として確定する前に、別途ReviewしてDrive正本へ反映する。</p>
+        </div>
+      </section>
+      <aside class="side">
+        <div class="card sticky">
+          <div class="card-head"><span class="step">CASE HISTORY</span><button id="new-case" type="button" class="secondary">＋ 新しい判断</button></div>
+          <p class="footnote">直近25件まで。保存・予測の確定・本人回答を時系列で振り返る。</p>
+          <div id="case-list" class="case-list" aria-live="polite"><p class="footnote">読み込み中…</p></div>
+          <div class="sources">
+            <span>LONG-TERM CANONICAL</span>
+            <a target="_blank" rel="noopener noreferrer" href="https://docs.google.com/document/d/1gl5CJx1g_MIFA2SHj-Vw3eeUus28f9AOVmUvocz_Ig0/edit">MASA CORE MAP ↗</a>
+            <a target="_blank" rel="noopener noreferrer" href="https://docs.google.com/document/d/1rVTD8ZbttZldsO0cbV6ffnM6FFtSbIueVN-a5JD8glY/edit">DECISION LOG ↗</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</DashboardLayout>
+
+<script>
+  type LensRecord = {
+    id:string;title:string;context_text:string;options_text:string;lens:string;
+    prediction_text:string;rationale_text:string;actual_text:string;
+    difference_text:string;outcome_text:string;stage:'draft'|'locked'|'reviewed';
+    locked_at:string|null;updated_at:string;
+  };
+  const labels:Record<string,string> = {
+    core:'MASA CORE',alt:'MASA ALT','2035':'MASA 2035',challenge:"Devil's Advocate",
+  };
+  const explanations:Record<string,string> = {
+    core:'現在の本人回答・一次経験・判断原則に基づき、MASAが選ぶ結論を理由と反転条件つきで予測する。',
+    alt:'Purposeは維持し、時間・リスク・負荷・長期資産などの重みを変えた代案を提示する。',
+    '2035':'2035年を仮想的な視点として、健康・関係・長期の自由・社会的価値から現在の選択を評価する。',
+    challenge:'反証、機会損失、失敗条件、想定外コストを挙げ、原案が強ければ支持条件も示す。',
+  };
+  const get = <T extends HTMLElement>(id:string) => document.getElementById(id) as T;
+  const fields:Record<string,string> = {
+    title:'case-title', context_text:'case-context', options_text:'case-options',
+    prediction_text:'prediction', rationale_text:'rationale', actual_text:'actual',
+    difference_text:'difference', outcome_text:'outcome',
+  };
+  let items:LensRecord[]=[];
+  let selected:LensRecord|null=null;
+  let busy=false;
+  const value=(id:string)=>(get<HTMLInputElement|HTMLTextAreaElement>(id).value||'').trim();
+  const lens=()=>document.querySelector<HTMLInputElement>('input[name="decision-mode"]:checked')?.value||'core';
+  const notice=(message:string, failed=false)=>{
+    const el=get<HTMLDivElement>('storage-alert');
+    el.textContent=message;el.dataset.error=String(failed);
+  };
+  const fmt=(stamp:string|null)=>stamp?new Date(stamp).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'}):'';
+  function stageRender(){
+    const stage=selected?.stage||'draft';
+    const locked=stage!=='draft';
+    get('stage-label').textContent=!selected?'NEW CASE':stage.toUpperCase();
+    get('locked-time').textContent=locked?`固定：${fmt(selected?.locked_at||null)}`:'未確定';
+    for(const id of ['case-title','case-context','case-options','prediction','rationale']){
+      get<HTMLInputElement|HTMLTextAreaElement>(id).disabled=locked||busy;
+    }
+    document.querySelectorAll<HTMLInputElement>('input[name="decision-mode"]').forEach(x=>x.disabled=locked||busy);
+    get<HTMLButtonElement>('auto-predict').disabled=locked||busy;
+    get<HTMLButtonElement>('auto-compare').disabled=stage!=='locked'||busy;
+    get<HTMLButtonElement>('save-draft').disabled=locked||busy;
+    get<HTMLButtonElement>('lock-prediction').disabled=locked||busy||!selected?.id;
+    get<HTMLButtonElement>('record-actual').disabled=stage!=='locked'||busy;
+    get<HTMLButtonElement>('record-outcome').disabled=stage!=='reviewed'||busy;
+    get<HTMLTextAreaElement>('actual').disabled=stage!=='locked'||busy;
+    get<HTMLTextAreaElement>('difference').disabled=stage!=='locked'||busy;
+    get<HTMLTextAreaElement>('outcome').disabled=stage!=='reviewed'||busy;
+    get('actual-card').hidden=!locked;
+    get('outcome-card').hidden=stage!=='reviewed';
+  }
+  function choose(item:LensRecord|null){
+    selected=item;
+    for(const [key,id] of Object.entries(fields)){
+      get<HTMLInputElement|HTMLTextAreaElement>(id).value=item?.[key as keyof LensRecord] as string||'';
+    }
+    document.querySelectorAll<HTMLInputElement>('input[name="decision-mode"]').forEach(x=>{
+      x.checked=x.value===(item?.lens||'core');
+    });
+    get('mode-hint').textContent=explanations[lens()];
+    stageRender(); renderList();
+  }
+  function renderList(){
+    const el=get('case-list');el.replaceChildren();
+    if(!items.length){const p=document.createElement('p');p.className='footnote';p.textContent='まだ判断ケースはありません。';el.append(p);return;}
+    for(const item of items){
+      const button=document.createElement('button');
+      button.className='case-item'+(selected?.id===item.id?' is-current':'');
+      button.type='button';
+      const header=document.createElement('strong'), footer=document.createElement('span');
+      header.textContent=item.title;
+      footer.textContent=`${labels[item.lens]||item.lens} · ${item.stage.toUpperCase()} · ${fmt(item.updated_at)}`;
+      button.append(header,footer);button.addEventListener('click',()=>choose(item));el.append(button);
+    }
+  }
+  async function load(){
+    try{
+      const response=await fetch('/api/dashboard/decision-lens',{credentials:'same-origin',cache:'no-store'});
+      const data=await response.json();
+      if(!response.ok||!data.ok||!Array.isArray(data.items))throw new Error('unavailable');
+      items=data.items;renderList();notice('Cloud接続済み。予測は確定後に書き換えできません。');
+    }catch{notice('Supabaseへ接続できません。未保存の内容はこの画面に留まります。',true);}
+  }
+  const pick=()=>({
+    ...(selected?.id?{id:selected.id}:{}),
+    title:value('case-title'),context_text:value('case-context'),
+    options_text:value('case-options'),lens:lens(),
+    prediction_text:value('prediction'),rationale_text:value('rationale'),
+    actual_text:value('actual'),difference_text:value('difference'),
+    outcome_text:value('outcome')
+  });
+  async function save(action:'draft'|'lock'|'actual'|'outcome'){
+    if(busy)return;
+    if(action==='draft'&&(!value('case-title')||!value('case-context'))){notice('タイトルと状況・目的を入力してね。',true);return;}
+    if(action==='lock'&&!value('prediction')){notice('先にAIの予測を入力してね。',true);return;}
+    if(action==='actual'&&!value('actual')){notice('MASAの実判断を入力してね。',true);return;}
+    busy=true;stageRender();notice('Supabaseに記録中…');
+    try{
+      const res=await fetch('/api/dashboard/decision-lens',{
+        method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action,case:pick()}),
+      });
+      const body=await res.json();
+      if(!res.ok||!body.ok||!body.item)throw new Error('save_failed');
+      const saved=body.item as LensRecord;
+      items=[saved,...items.filter(x=>x.id!==saved.id)].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,25);
+      selected=saved;
+      notice(({draft:'下書きを保存しました。',lock:'予測を固定しました。ここから本人の実判断を記録できます。',actual:'実判断と差分を記録しました。',outcome:'結果を更新しました。'})[action]);
+    }catch{notice('保存できませんでした。入力を保持しています。接続を確認して再試行してください。',true);}
+    finally{busy=false;stageRender();renderList();}
+  }
+  // Server-side owner HMAC is never exposed to the browser. All generation is
+  // proxied through the authenticated Dashboard API; no provider keys in JS.
+  async function runAuto(mode:'compose'|'compare'){
+    if(busy)return;
+    if(mode==='compose'&&value('case-title').length<3){notice('判断テーマを3文字以上で入力してね。',true);return;}
+    if(mode==='compare'&&(!selected?.id||!value('actual'))){notice('本人の実判断だけ入力してください。',true);return;}
+    busy=true;stageRender();
+    notice(mode==='compose'?'AIが候補・予測を作成し、先に固定しています…':'AIが予測と実判断の差分を調べています…');
+    try {
+      const cleanOptional=(s:string)=>/^(あ){3,}$/.test(s)||/^test$/i.test(s)?'':s;
+      const response=await fetch('/api/dashboard/decision-auto',{
+        method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({mode,title:value('case-title'),lens:lens(),
+          ...(mode==='compose'
+            ? {context_text:cleanOptional(value('case-context')),options_text:cleanOptional(value('case-options'))}
+            : {id:selected!.id,actual_text:value('actual')})
+        }),
+      });
+      const data=await response.json().catch(()=>null);
+      if(!response.ok||!data?.ok||!data.item)throw new Error(data?.error||'unavailable');
+      const saved=data.item as LensRecord;
+      items=[saved,...items.filter(x=>x.id!==saved.id)].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,25);
+      choose(saved);
+      notice(mode==='compose'?'AIが予測を生成・固定しました。MASAの判断だけ記録してください。':'AIが差分を分析して保存しました。結果は後から記録できます。');
+    } catch {
+      notice('AI自動処理に失敗しました。入力は保持。時間を置いて再試行してください。',true);
+      await load();
+    } finally {busy=false;stageRender();}
+  }
+  function makePrompt(){
+    const d=pick();
+    if(!d.title||!d.context_text){notice('指示をコピーする前にタイトルと状況を入力してね。',true);return '';}
+    return `MASA Agent OS / Cognitive Judgment Engine
+視点：${labels[d.lens]}
+役割：${explanations[d.lens]}
+
+判断テーマ：${d.title}
+判断前に分かっていた状況：
+${d.context_text}
+候補：
+${d.options_text||'未列挙'}
+
+DriveのMASA_CORE_MAP / Agent OS / DECISION_LOGの関連情報を参照できる場合は現在の正本を優先。本人の答えをまだ知らない前提で、①結論または別案 ②最重視した変数 ③捨てる選択肢 ④理由・反証 ⑤判断が覆る条件 ⑥確信度と情報不足を示して。
+本人の発言・実行記録・AI仮説を分離し、架空の体験や判断を作らない。予測一致と判断の良さを混同しない。`;
+  }
+  document.querySelectorAll<HTMLInputElement>('input[name="decision-mode"]').forEach(x=>x.addEventListener('change',()=>{
+    get('mode-hint').textContent=explanations[lens()];
+  }));
+  get('copy-prompt').addEventListener('click',async()=>{
+    const prompt=makePrompt();if(!prompt)return;
+    try{await navigator.clipboard.writeText(prompt);notice('指示をコピーしました。AIの回答を貼り、予測を先に確定してください。');}
+    catch{notice('自動コピーできませんでした。ブラウザの権限を確認してください。',true);}
+  });
+  get('auto-predict').addEventListener('click',()=>void runAuto('compose'));
+  get('auto-compare').addEventListener('click',()=>void runAuto('compare'));
+  get('save-draft').addEventListener('click',()=>void save('draft'));
+  get('lock-prediction').addEventListener('click',()=>void save('lock'));
+  get('record-actual').addEventListener('click',()=>void save('actual'));
+  get('record-outcome').addEventListener('click',()=>void save('outcome'));
+  get('new-case').addEventListener('click',()=>{choose(null);notice('新しい判断ケース。まずタイトルと状況を入力してね。');});
+  choose(null);void load();
+</script>
+
+<style>
+  .decision-shell{max-width:1260px;margin:auto;padding:0 0 46px;color:var(--text-primary)}
+  .hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding-bottom:17px}
+  .hero h1{font-size:clamp(2rem,5vw,3.6rem);font-weight:600;line-height:1.14;letter-spacing:-.03em;margin:8px 0}
+  .hero h1 em{font-style:normal;color:#b26818}.hero p{max-width:690px;color:var(--text-muted);line-height:1.8}
+  .hero .back{flex-shrink:0;font-size:.85rem;color:#8b5b2c;text-decoration:none;padding:10px}
+  .eyebrow,.step{font-size:.7rem;letter-spacing:.1em;color:#956026;font-weight:750}
+  .flowline{display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:#fbf6ed;border:1px solid #ebddc8;border-radius:12px;padding:12px;margin:8px 0 15px;font-size:.68rem;letter-spacing:.08em;color:#79583c}
+  .flowline b{color:#b6a999;font-weight:400}
+  .notice{padding:12px 14px;margin-bottom:16px;border:1px solid #d8ded9;border-radius:10px;background:#f1f7f2;font-size:.83rem;color:#255f43}
+  .notice[data-error="true"]{color:#8a3d2b;background:#fff4ed;border-color:#efd2c4}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,310px);gap:16px;align-items:start}
+  .workspace{min-width:0;display:grid;gap:14px}.card{background:white;border:1px solid #ddd8d0;border-radius:14px;padding:20px;min-width:0}
+  .card-head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding-bottom:14px}.card-head>strong,.card-head>small,.card-head>span:last-child{font-size:.7rem;color:#707c82}
+  label:not(.mode){display:grid;gap:6px;font-size:.8rem;font-weight:650;color:#485059;margin-bottom:14px}
+  input:not([type="radio"]),textarea{width:100%;max-width:100%;min-height:42px;border:1px solid #d2d2d0;border-radius:8px;background:#fdfcf9;padding:11px 12px;color:#2b3135;font:inherit;font-size:.9rem}
+  textarea{resize:vertical;line-height:1.6}.mode-hint,.footnote{font-size:.76rem;line-height:1.65;color:#707984}.footnote{display:block;margin-top:11px}
+  .modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:10px}
+  .mode{display:grid;gap:2px;grid-template-columns:auto 1fr;align-items:start;cursor:pointer;border:1px solid #dad4ca;border-radius:10px;padding:13px 12px;background:#faf9f6}
+  .mode:has(input:checked){border-color:#c98d47;background:#fff4e5}.mode input{margin:4px 7px 0 0;accent-color:#b26818}
+  .mode strong{font-size:.84rem;color:#2e3438}.mode span{grid-column:2;font-size:.68rem;color:#707984}
+  .mode-hint{margin:8px 0 12px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+  button{font:inherit;cursor:pointer;min-height:42px;border-radius:9px;padding:10px 15px}
+  button.primary{border:1px solid #a96625;background:#ae691f;color:#fff;font-weight:700}
+  button.secondary{border:1px solid #cfbdab;background:#faf6ed;color:#805126}
+  button:disabled,input:disabled,textarea:disabled{opacity:.64;cursor:not-allowed}
+  .sticky{position:sticky;top:90px}.case-list{display:grid;gap:8px;margin-top:14px}
+  .case-item{width:100%;text-align:left;display:grid;gap:7px;border:1px solid #ebe4da;background:#faf9f7}
+  .case-item strong{font-size:.84rem;color:#343c42}.case-item span{font-size:.69rem;color:#7b8186}
+  .case-item.is-current{border-color:#ca954d;background:#fff3e3}
+  .sources{display:grid;gap:9px;margin-top:18px;padding-top:15px;border-top:1px solid #e7dfd4}
+  .sources span{font-size:.64rem;letter-spacing:.09em;color:#8a9298}.sources a{font-size:.75rem;color:#845321;text-decoration:none}
+  [hidden]{display:none!important}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}.sticky{position:static}.hero{flex-direction:column}.side{order:2}}
+  @media(max-width:570px){.modes{grid-template-columns:1fr}.card{padding:15px}.hero h1{font-size:2.15rem}.actions button{width:100%}}
+</style>

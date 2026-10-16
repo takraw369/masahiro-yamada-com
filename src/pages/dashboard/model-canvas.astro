@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import ModelCanvas from '../../components/dashboard/ModelCanvas';
+import '../../styles/model-canvas.css';
+---
+<DashboardLayout title="MASA Model Canvas" eyebrow="DESIGN INTELLIGENCE · MODEL MAP">
+  <ModelCanvas client:load />
+</DashboardLayout>

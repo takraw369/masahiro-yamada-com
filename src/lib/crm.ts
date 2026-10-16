@@ -13,6 +13,21 @@ export const CRM_STAGES = [
 
 export type CrmStage = typeof CRM_STAGES[number];
 
+export const MEET_TARGET_PRIORITIES = ['S', 'A', 'B', 'C'] as const;
+export type MeetTargetPriority = typeof MEET_TARGET_PRIORITIES[number];
+export const MEET_TARGET_STATUSES = [
+  'WISH', 'ROUTE_FOUND', 'INTRO_REQUESTED', 'CONTACTED',
+  'SCHEDULED', 'MET', 'PAUSED',
+] as const;
+export type MeetTargetStatus = typeof MEET_TARGET_STATUSES[number];
+export type MeetTargetMeta = {
+  version: 1;
+  priority: MeetTargetPriority;
+  status: MeetTargetStatus;
+  purpose: string;
+  introductionVia: string;
+};
+
 export type CrmContact = {
   version: 1;
   id: string;
@@ -30,6 +45,7 @@ export type CrmContact = {
   tags: string[];
   notes: string;
   referenceUrl: string;
+  meetTarget?: MeetTargetMeta;
   updatedAt: string;
 };
 
@@ -121,10 +137,22 @@ export function validateCrmContact(value: unknown): asserts value is CrmContact 
   if (new Set(value.tags as string[]).size !== value.tags.length) fail('crm_duplicate_tags');
   if (!Number.isFinite(Date.parse(value.updatedAt as string))) fail('crm_invalid_updated_at');
 
+  if (value.meetTarget !== undefined) {
+    const target = value.meetTarget;
+    if (!record(target) || target.version !== 1) fail('crm_invalid_meet_target');
+    if (!MEET_TARGET_PRIORITIES.includes(target.priority as MeetTargetPriority)) fail('crm_invalid_meet_priority');
+    if (!MEET_TARGET_STATUSES.includes(target.status as MeetTargetStatus)) fail('crm_invalid_meet_status');
+    cleanText(target.purpose, 'meetPurpose', 600);
+    cleanText(target.introductionVia, 'meetIntroductionVia', 200);
+    if (Object.keys(target).some(key => !['version', 'priority', 'status', 'purpose', 'introductionVia'].includes(key))) {
+      fail('crm_unknown_meet_target_field');
+    }
+  }
+
   const allowed = new Set([
     'version', 'id', 'name', 'organization', 'role', 'relation', 'stage', 'opportunity',
     'nextAction', 'nextAt', 'lastContactAt', 'valueYen', 'source', 'tags', 'notes',
-    'referenceUrl', 'updatedAt',
+    'referenceUrl', 'updatedAt', 'meetTarget',
   ]);
   if (Object.keys(value).some(key => !allowed.has(key))) fail('crm_unknown_contact_field');
 }
