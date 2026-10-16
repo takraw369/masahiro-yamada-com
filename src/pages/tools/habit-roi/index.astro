@@ -1,0 +1,202 @@
+---
+import PublicPageLayout from '../../layouts/PublicPageLayout.astro';
+import { habitRoiPresets } from '../../lib/habitRoi';
+---
+
+<PublicPageLayout
+  title="習慣の損益分岐点"
+  eyebrow="HABIT ROI / YOUR EVERYDAY INVESTMENT"
+  description="今の習慣を変えたら、1年・5年・10年でお金と時間がどう変わる？支出・代替費用・初期投資から無料で試算する習慣ROIツール。"
+>
+  <p slot="lead" class="public-lead">1日数百円の選択が、未来にどれだけの差を生む？ まずはお金と時間の「変化」を、あなたの数字で見てみよう。</p>
+
+  <section class="hero-panel public-section">
+    <div class="eyebrow">SMALL HABITS, LONG HORIZONS</div>
+    <div class="hero-grid">
+      <div>
+        <h2>未来は、<br /><em>日々の選択</em>から。</h2>
+        <p>計算は無料・登録不要。金額はあくまで入力条件に基づく試算で、医療効果や将来の結果を保証しません。</p>
+      </div>
+      <div class="hero-emblem" aria-hidden="true"><span>1</span><small>DAY</small><i>→</i><span>10</span><small>YEARS</small></div>
+    </div>
+  </section>
+
+  <div class="tool-grid">
+    <section class="calculator public-section" aria-labelledby="calculator-heading">
+      <div class="section-heading"><span>01 / INPUT</span><h2 id="calculator-heading">習慣を選ぶ</h2></div>
+      <form id="habit-form">
+        <label class="field full">
+          <span>見直したい習慣</span>
+          <select id="habit" name="habit">
+            {Object.entries(habitRoiPresets).map(([key, value]) => <option value={key}>{value.label}</option>)}
+          </select>
+        </label>
+        <p id="preset-note" class="field-note full">例：1日600円のたばこ代をゼロに</p>
+        <div class="form-grid">
+          <label class="field">
+            <span>いまの支出 <small>1回あたり・円</small></span>
+            <input id="before" name="before" type="number" min="0" max="1000000" step="10" value="600" inputmode="decimal" />
+          </label>
+          <label class="field">
+            <span>変更後の支出 <small>1回あたり・円</small></span>
+            <input id="after" name="after" type="number" min="0" max="1000000" step="10" value="0" inputmode="decimal" />
+          </label>
+          <label class="field">
+            <span>1週間の回数 <small>0〜7回</small></span>
+            <input id="frequency" name="frequency" type="number" min="0" max="7" step="0.5" value="7" inputmode="decimal" />
+          </label>
+          <label class="field">
+            <span>変更の初期費用 <small>円・1度だけ</small></span>
+            <input id="initial" name="initial" type="number" min="0" max="10000000" step="1000" value="20000" inputmode="decimal" />
+          </label>
+        </div>
+        <details class="time-details">
+          <summary>時間の変化も計算する <span>任意</span></summary>
+          <div class="form-grid time-grid">
+            <label class="field"><span>いま使う時間 <small>分／回</small></span><input id="minutes-before" type="number" min="0" max="1440" step="1" value="0" /></label>
+            <label class="field"><span>変更後に使う時間 <small>分／回</small></span><input id="minutes-after" type="number" min="0" max="1440" step="1" value="0" /></label>
+          </div>
+        </details>
+      </form>
+    </section>
+
+    <section class="result public-section" aria-labelledby="result-heading">
+      <div class="section-heading"><span>02 / RESULT</span><h2 id="result-heading">未来の差額</h2></div>
+      <div class="result-main">
+        <span>10年間の差額（初期費用を差し引いた金額）</span>
+        <strong id="ten-year" aria-live="polite">—</strong>
+        <small id="net-label">支出削減の概算</small>
+      </div>
+      <div class="metrics">
+        <div><span>年間の支出削減額</span><strong id="annual">—</strong></div>
+        <div><span>初期費用の回収</span><strong id="break-even">—</strong></div>
+        <div><span>年間の時間差</span><strong id="hours">—</strong></div>
+        <div><span>1年間の差額</span><strong id="one-year">—</strong></div>
+      </div>
+      <div class="timeline" aria-label="年数別の累積差額">
+        <div class="timeline-row"><span>1年後</span><div class="track"><i id="bar-one"></i></div><strong id="year-one">—</strong></div>
+        <div class="timeline-row"><span>5年後</span><div class="track"><i id="bar-five"></i></div><strong id="year-five">—</strong></div>
+        <div class="timeline-row"><span>10年後</span><div class="track"><i id="bar-ten"></i></div><strong id="year-ten">—</strong></div>
+      </div>
+      <button id="share" type="button" class="share-button">診断結果をコピー ↗</button>
+      <p id="share-status" class="share-status" role="status" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <section class="public-section explainer" aria-labelledby="method-heading">
+    <div class="section-heading"><span>03 / HOW IT WORKS</span><h2 id="method-heading">この数字の読み方</h2></div>
+    <div class="steps">
+      <div><span>01</span><h3>金銭差額</h3><p>（変更前 − 変更後の費用）× 年間回数 − 初期費用。変更後にかかるお金も差し引くため、単純な「使わなかった総額」とは異なります。</p></div>
+      <div><span>02</span><h3>損益分岐点</h3><p>初期費用を、毎月の支出削減で取り戻すまでの目安。削減額が0円以下なら回収しません。</p></div>
+      <div><span>03</span><h3>時間の差</h3><p>1回あたりの時間差×年間回数。時間をお金に換算せず、時間として別に表示します。</p></div>
+    </div>
+    <p class="disclaimer"><strong>この試算について</strong>：初期費用は1回のみ、週あたりの実施回数は年間を通じて一定（365日／7日換算）、価格・頻度・効果は変わらないと仮定しています。物価変動、税金、割引率、継続率、代替行動による追加費用は自動計算しません。入力した情報はこのページ内で計算し、サーバーには送信しません。ここで表示するのは金銭と時間の計算だけです。疾病リスク・医療費削減額・健康改善を推定または保証するものではありません。</p>
+    <div class="next-action"><div><span>FROM INSIGHT TO ACTION</span><h3>気づきを、次の習慣へ。</h3><p>試算で終わらせず、小さな実践につなげよう。</p></div><a class="next-link" href="/flow-life/">FLOW LIFEで実践 →</a></div>
+  </section>
+</PublicPageLayout>
+
+<style>
+  :global(body){background:radial-gradient(circle at 75% -8%,#211b12 0,#0d0b08 38%,#090806 100%)}
+  .hero-panel{border:1px solid #42331e;background:linear-gradient(135deg,rgba(201,169,110,.1),rgba(18,14,10,.75));padding:clamp(22px,5vw,38px);border-radius:22px}
+  .eyebrow,.section-heading>span,.next-action span{display:block;color:#b3976a;font-size:.68rem;letter-spacing:.2em}
+  .hero-grid{display:flex;align-items:center;justify-content:space-between;gap:20px}.hero-grid h2{font:300 clamp(2.3rem,6vw,4.2rem)/1.22 'Cormorant Garamond',serif;color:#eadcc6;margin:10px 0}.hero-grid h2 em{font-style:normal;color:#f0c27c}.hero-grid p{font-size:.8rem;max-width:440px;margin:8px 0;color:#a89983}
+  .hero-emblem{display:flex;align-items:baseline;justify-content:center;gap:5px;flex-shrink:0;min-width:155px;color:#d1b382}.hero-emblem span{font:400 3.3rem 'Cormorant Garamond',serif}.hero-emblem small{font-size:.5rem;letter-spacing:.11em}.hero-emblem i{font-style:normal;margin:0 8px}
+  .tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.calculator,.result{min-width:0;padding:25px;background:#16120e;border:1px solid #392d21;border-radius:20px}
+  .section-heading{margin-bottom:18px}.section-heading h2{font:300 1.9rem 'Cormorant Garamond',serif;margin:3px 0;color:#ecd3a6}
+  .field{display:grid;gap:7px;font-size:.79rem;color:#cfbca5}.field small{font-size:.67rem;color:#94836e}.field input,.field select{min-width:0;width:100%;padding:12px;border:1px solid #51402d;border-radius:9px;background:#231c15;color:#f0e2cc;outline:none}.field input:focus,.field select:focus{border-color:#e7b96f}.field-note{color:#aa967b;font-size:.7rem;margin:7px 0 19px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}
+  .time-details{margin-top:21px;border-top:1px solid #3b3024;padding-top:16px}.time-details summary{cursor:pointer;color:#e3c492;font-size:.8rem}.time-details summary span{font-size:.68rem;color:#93816c}.time-grid{padding-top:16px}
+  .result-main{padding:22px 18px;background:radial-gradient(ellipse at 100% 0,rgba(236,156,48,.12),transparent 65%),#201911;border:1px solid #594126;border-radius:15px}.result-main>span{display:block;color:#bba789;font-size:.74rem}.result-main strong{display:block;font:500 clamp(1.95rem,4.4vw,2.65rem)/1.3 'Zen Kaku Gothic New',sans-serif;color:#f5cb86;margin:8px 0;overflow-wrap:anywhere}.result-main small{color:#ac936e}
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.metrics>div{border:1px solid #3c3025;border-radius:12px;padding:13px 10px;min-width:0}.metrics span{display:block;font-size:.67rem;color:#9e907b}.metrics strong{display:block;font-size:1.05rem;color:#ead2af;font-weight:500;margin-top:5px;overflow-wrap:anywhere}
+  .timeline{border-top:1px solid #443526;padding-top:16px}.timeline-row{display:grid;grid-template-columns:43px 1fr 82px;gap:9px;align-items:center;margin:10px 0}.timeline-row span{font-size:.71rem;color:#c1a881}.timeline-row strong{font-size:.7rem;text-align:right;color:#edd1a5;white-space:nowrap}.track{height:7px;background:#33291e;border-radius:6px;overflow:hidden}.track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#987349,#f0bf74);border-radius:6px;transition:width .25s}.track i.negative{background:linear-gradient(90deg,#674e47,#cc8880)}
+  .share-button{width:100%;border:1px solid #e8ad63;background:#c18b48;color:#15100a;border-radius:10px;padding:13px 12px;cursor:pointer;font-weight:700;margin-top:16px}.share-button:hover{background:#e9b976}.share-status{font-size:.74rem;color:#b8c6a1;min-height:1.3em;margin:7px 0 0}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.steps>div{border:1px solid #392e23;background:#17130f;border-radius:14px;padding:20px}.steps span{font:400 1.3rem 'Cormorant Garamond',serif;color:#b78b50}.steps h3{margin:6px 0;font-size:.93rem}.steps p{font-size:.77rem;line-height:1.85;margin:0}
+  .disclaimer{border-left:2px solid #896b46;padding:12px 18px;margin:24px 0;color:#978b7b;font-size:.73rem;line-height:1.9}.disclaimer strong{color:#cebb9f}
+  .next-action{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:22px;border:1px solid #554028;border-radius:14px;background:#1b150f}.next-action h3{font-size:1.2rem;color:#f0d3aa;margin:5px 0}.next-action p{margin:0;font-size:.77rem}.next-link{display:inline-block;text-decoration:none;white-space:nowrap;background:#bd8b4d;color:#18100a;padding:12px 17px;border-radius:10px;font-size:.8rem;font-weight:700}
+  @media(max-width:750px){.tool-grid,.steps{grid-template-columns:1fr}.hero-emblem{display:none}.calculator,.result{padding:20px}.next-action{flex-direction:column;align-items:stretch}.next-link{text-align:center}}
+  @media(max-width:360px){.form-grid{grid-template-columns:1fr}.timeline-row{grid-template-columns:38px 1fr 74px}.timeline-row strong{font-size:.62rem}}
+</style>
+
+<script>
+  import { calculateHabitRoi, habitRoiPresets } from '../../lib/habitRoi';
+
+  const form = document.querySelector<HTMLFormElement>('#habit-form');
+  const presetField = document.querySelector<HTMLSelectElement>('#habit');
+  const presetNote = document.getElementById('preset-note');
+  const currency = (value: number) => Math.round(value).toLocaleString('ja-JP') + '円';
+  const valueOf = (id: string) => {
+    const input = document.getElementById(id) as HTMLInputElement | null;
+    return Number(input?.value ?? '0');
+  };
+  const setText = (id: string, value: string) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+  const setNumber = (id: string, value: number) => {
+    const element = document.getElementById(id) as HTMLInputElement | null;
+    if (element) element.value = String(value);
+  };
+  const signCurrency = (value: number) => (value > 0 ? '+' : '') + currency(value);
+  const render = () => {
+    const result = calculateHabitRoi({
+      beforeYen: valueOf('before'),
+      afterYen: valueOf('after'),
+      occurrencesPerWeek: valueOf('frequency'),
+      initialYen: valueOf('initial'),
+      minutesBefore: valueOf('minutes-before'),
+      minutesAfter: valueOf('minutes-after'),
+    });
+    setText('ten-year', signCurrency(result.tenYearNet));
+    setText('net-label', result.tenYearNet >= 0 ? '変更による支出削減の概算' : '変更に伴う追加支出の概算');
+    setText('annual', signCurrency(result.annualNetSavings));
+    setText('break-even', result.breakEvenMonths === null ? '回収不可' : result.breakEvenMonths === 0 ? '初期費用なし' : '約' + result.breakEvenMonths.toLocaleString('ja-JP') + 'か月');
+    setText('hours', (result.annualHoursReclaimed > 0 ? '+' : '') + result.annualHoursReclaimed.toLocaleString('ja-JP') + '時間');
+    setText('one-year', signCurrency(result.oneYearNet));
+    const timeline = [
+      { suffix: 'one', value: result.oneYearNet },
+      { suffix: 'five', value: result.fiveYearNet },
+      { suffix: 'ten', value: result.tenYearNet },
+    ];
+    const largest = Math.max(1, ...timeline.map(row => Math.abs(row.value)));
+    for (const row of timeline) {
+      setText('year-' + row.suffix, signCurrency(row.value));
+      const bar = document.getElementById('bar-' + row.suffix);
+      if (bar) {
+        bar.style.width = (Math.abs(row.value) / largest * 100).toFixed(1) + '%';
+        bar.classList.toggle('negative', row.value < 0);
+      }
+    }
+  };
+  presetField?.addEventListener('change', () => {
+    const preset = habitRoiPresets[presetField.value] ?? habitRoiPresets.custom;
+    setNumber('before', preset.beforeYen);
+    setNumber('after', preset.afterYen);
+    setNumber('frequency', preset.occurrencesPerWeek);
+    setNumber('initial', preset.initialYen);
+    setNumber('minutes-before', preset.minutesBefore);
+    setNumber('minutes-after', preset.minutesAfter);
+    if (presetNote) presetNote.textContent = preset.note;
+    render();
+  });
+  form?.addEventListener('input', render);
+  form?.addEventListener('submit', event => event.preventDefault());
+  document.getElementById('share')?.addEventListener('click', async () => {
+    const habit = habitRoiPresets[presetField?.value ?? 'custom']?.label ?? '自分の習慣';
+    const result = calculateHabitRoi({
+      beforeYen: valueOf('before'), afterYen: valueOf('after'), occurrencesPerWeek: valueOf('frequency'),
+      initialYen: valueOf('initial'), minutesBefore: valueOf('minutes-before'), minutesAfter: valueOf('minutes-after'),
+    });
+    const message = ['習慣の損益分岐点｜Habit ROI', '習慣：' + habit,
+      '1年の差額：' + signCurrency(result.oneYearNet),
+      '5年の差額：' + signCurrency(result.fiveYearNet),
+      '10年の差額：' + signCurrency(result.tenYearNet),
+      '※入力条件に基づく支出・時間の試算。健康・医療効果の推定ではありません。',
+      location.origin + '/tools/habit-roi/'].join('\n');
+    try {
+      await navigator.clipboard.writeText(message);
+      setText('share-status', '結果をコピーしました。SNSやメッセージに貼り付けられます。');
+    } catch {
+      setText('share-status', 'コピーできませんでした。ブラウザの共有機能をご利用ください。');
+    }
+  });
+  render();
+</script>
