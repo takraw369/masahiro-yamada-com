@@ -15,11 +15,11 @@
 <main>
 <nav><a href="/otsu4/">← 乙4アプリに戻る</a><a href="/otsu4/symbols/">図記号33種類 ↗</a></nav>
 <h1>暗記カード＆一覧</h1>
-<p class="lead">講習写真の受信機・感知器・発信機・自火報の構成・試験器校正時期に加え、定温式と空気管式の数字・構造。<strong>まず一覧で理解 → 答えを隠して思い出す → ○△×で繰り返す。</strong></p>
+<p class="lead">講習写真の受信機・感知器・発信機・自火報の構成・試験器校正時期に加え、定温式と空気管式の数字・構造、試験の種類・使用器具・目的。<strong>まず一覧で理解 → 答えを隠して思い出す → ○△×で繰り返す。</strong></p>
 <section class="panel" aria-label="学習設定">
 <div class="tabs"><button type="button" id="tab-list" aria-pressed="true">📋 一覧で覚える</button><button type="button" id="tab-card" aria-pressed="false">🗂 暗記カード</button></div>
 <div class="filters">
-<label for="category">範囲を選ぶ<select id="category"><option value="all">全部をまとめて</option><option value="system">自火報の構成</option><option value="receiver">受信機</option><option value="detector">感知器</option><option value="detail">★ 感知器の数字・空気管（新）</option><option value="transmitter">発信機</option><option value="calibration">試験器の校正時期</option></select></label>
+<label for="category">範囲を選ぶ<select id="category"><option value="all">全部をまとめて</option><option value="system">自火報の構成</option><option value="receiver">受信機</option><option value="detector">感知器</option><option value="detail">感知器の数字・空気管</option><option value="testtools">★ 試験項目と試験器具（新）</option><option value="testmeaning">★ 試験で何を調べる？（新）</option><option value="transmitter">発信機</option><option value="calibration">試験器の校正時期</option></select></label>
 <label for="scope">カードの出題<select id="scope"><option value="priority">△・×・未出を優先（10枚）</option><option value="weak">△・×だけ</option><option value="all">選んだ範囲すべて</option></select></label>
 </div>
 <div class="topline"><strong id="totals" class="stats"></strong><span id="rating-summary" class="muted"></span></div>
@@ -49,8 +49,40 @@
 (function () {
 "use strict";
 const KEY = "otsu4-knowledge-cards-v1";
-const groups = {system:"自火報の構成", receiver:"受信機", detector:"感知器", detail:"感知器｜温度・空気管", transmitter:"発信機", calibration:"試験器の校正時期"};
+const groups = {system:"自火報の構成", receiver:"受信機", detector:"感知器", detail:"感知器｜温度・空気管", testtools:"自火報試験｜種類と器具", testmeaning:"自火報試験｜目的と判定", transmitter:"発信機", calibration:"試験器の校正時期"};
 const cards = [
+// 講習写真 自火報試験項目表・まとめ p244：種類と器具、目的を別々に反復。
+{id:"exam01",group:"testtools",q:"差動式・補償式・定温式スポット型の作動試験に使う器具は？",a:"加熱試験器"},
+{id:"exam02",group:"testtools",q:"空気管式の作動試験に使う器具は？",a:"テストポンプ（空気注入試験器）"},
+{id:"exam03",group:"testtools",q:"空気管式の作動継続試験に使う器具は？",a:"テストポンプ（空気注入試験器）"},
+{id:"exam04",group:"testtools",q:"空気管式の流通試験に使う器具は？",a:"テストポンプとマノメーター"},
+{id:"exam05",group:"testtools",q:"空気管式の接点水高試験に使う器具は？",a:"テストポンプとマノメーター"},
+{id:"exam06",group:"testtools",q:"空気管式で覚える4試験は？",a:"作動・作動継続・流通・接点水高"},
+{id:"exam07",group:"testtools",q:"熱電対式・熱半導体式の差動式分布型に使う試験器は？",a:"メーターリレー試験器"},
+{id:"exam08",group:"testtools",q:"熱電対式・熱半導体式で作動試験以外に行うのは？",a:"回路合成抵抗試験"},
+{id:"exam09",group:"testtools",q:"定温式感知線型の作動・合成抵抗試験に使う器具は？",a:"回路試験器"},
+{id:"exam10",group:"testtools",q:"分離型以外の煙感知器の作動試験に使うのは？",a:"加煙試験器"},
+{id:"exam11",group:"testtools",q:"煙感知器の感度試験に使う器具は？",a:"煙感知器感度試験器"},
+{id:"exam12",group:"testtools",q:"光電式分離型の作動試験に使うのは？",a:"減光フィルター"},
+{id:"exam13",group:"testtools",q:"炎感知器の作動試験は何を使用？",a:"その感知器に適応する試験器"},
+{id:"exam14",group:"testtools",q:"受信機の代表的な3試験は？",a:"火災表示・回路導通・同時作動"},
+{id:"exam15",group:"testtools",q:"自火報の配線に対して行う2種類の試験は？",a:"共通線試験・送り配線試験"},
+{id:"exam16",group:"testtools",q:"自火報の試験は大きく何に分かれる？",a:"外観試験と機能試験"},
+{id:"purpose01",group:"testmeaning",q:"自動試験機能の役割は？",a:"対応する試験項目を自動または簡単な操作で行う"},
+{id:"purpose02",group:"testmeaning",q:"作動試験で確かめることは？",a:"感知器が火災現象の模擬に応じて作動するか"},
+{id:"purpose03",group:"testmeaning",q:"空気管式の作動継続試験で何を測る？",a:"作動後、接点が開くまでの時間"},
+{id:"purpose04",group:"testmeaning",q:"空気管式の流通試験で何を測る？",a:"マノメーターの水位が一定量下がる時間"},
+{id:"purpose05",group:"testmeaning",q:"空気管式の流通試験で分かる異常は？",a:"空気管の漏れや詰まり"},
+{id:"purpose06",group:"testmeaning",q:"空気管式の接点水高試験で何を測る？",a:"接点閉鎖時のマノメーター水位"},
+{id:"purpose07",group:"testmeaning",q:"接点水高試験は何を確かめる？",a:"接点の間隔に異常がないか"},
+{id:"purpose08",group:"testmeaning",q:"回路合成抵抗試験で調べることは？",a:"感知器回路の合成抵抗"},
+{id:"purpose09",group:"testmeaning",q:"火災表示試験で確認する内容は？",a:"各回線の火災表示が正常か"},
+{id:"purpose10",group:"testmeaning",q:"回路導通試験で確認する内容は？",a:"感知器回路に断線がないか"},
+{id:"purpose11",group:"testmeaning",q:"同時作動試験で確認する内容は？",a:"複数回線から信号を受けても正常に動くか"},
+{id:"purpose12",group:"testmeaning",q:"共通線試験で確認する上限は？",a:"共通線1本につき7警戒区域以下"},
+{id:"purpose13",group:"testmeaning",q:"送り配線試験で何を確認する？",a:"感知器の配線が送り配線かどうか"},
+{id:"purpose14",group:"testmeaning",q:"定期点検の代表的な実施間隔は？",a:"6か月ごと（機器点検）。総合点検は1年ごと"},
+{id:"purpose15",group:"testmeaning",q:"受信機の非常電源・予備電源試験で何を確認？",a:"停電などに備えた電源側の機能"},
 // 講習写真 p168 / p187 の数字・構造を重点復習（2026-10-16）。
 {id:"temp01",group:"detail",q:"定温式感知器の公称作動温度の範囲は？",a:"60℃以上150℃以下"},
 {id:"temp02",group:"detail",q:"公称作動温度が80℃以下の場合は何℃刻み？",a:"5℃刻み"},
