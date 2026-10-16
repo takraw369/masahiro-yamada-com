@@ -81,7 +81,7 @@ function renderPost(savedHandoff, clock = now) {
     localStorage: { getItem: () => JSON.stringify(savedHandoff) },
     document: { getElementById: element, querySelectorAll: (selector) => selector === 'textarea' ? [textarea] : [] },
     window: { addEventListener: (type, fn) => listeners.set(type, fn), dispatchEvent: (event) => { events.push(event); listeners.get(event.type)?.(event); } },
-    HTMLTextAreaElement: Textarea,
+    HTMLTextAreaElement: Textarea, URL,
     CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
     Event: class { constructor(type) { this.type = type; } },
   });
@@ -216,4 +216,22 @@ test('Recovered Flow preserves current-master revenue, relationship and X Health
     assert.match(css, /\.results article/);
     assert.match(css, /@scope \(\.flow-shell\)/);
   });
+});
+
+
+test('Studio provenance stays outside Composer and unsafe source URLs never become links', () => {
+  const sourceRights = '合成データ・権利を確認';
+  const sourceUrl = 'https://docs.google.com/document/d/synthetic-example/edit';
+  const view = renderPost({ ...handoff, sourceUrl, sourceRights });
+  assert.equal(view.element('handoff-provenance').hidden, false);
+  assert.equal(view.element('handoff-source').href, sourceUrl);
+  assert.equal(view.element('handoff-rights').textContent, sourceRights);
+  view.element('handoff-to-composer').click();
+  assert.equal(view.textarea.value, publishingHandoffSeed(handoff));
+  assert.ok(!view.textarea.value.includes(sourceRights));
+  for (const sourceUrl of ['javascript:alert(1)', 'data:text/html,unsafe', 'http://example.test/source', 'broken']) {
+    const unsafe = renderPost({ ...handoff, sourceUrl, sourceRights });
+    assert.equal(unsafe.element('handoff-source').hidden, true);
+    assert.equal(unsafe.element('handoff-source').href, undefined);
+  }
 });

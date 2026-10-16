@@ -6,11 +6,12 @@ const home = await readFile(new URL('../src/pages/dashboard/index.astro', import
 const nudge = home.match(/<section class="home-asset-nudge"[^]*?<\/section>/)?.[0] || '';
 const styles = home.match(/<style>[^]*?<\/style>/)?.[0] || '';
 
-test('slide-asset nudge appears visibly above the app shelf, even on mobile', () => {
+test('slide-asset nudge remains accessible below creation and operations, above the app shelf', () => {
   assert.ok(nudge, 'expected a single visible home-asset-nudge section');
   assert.equal((home.match(/<section class="home-asset-nudge"/g) || []).length, 1);
   assert.ok(home.indexOf('<section class="home-asset-nudge"') < home.indexOf('<section class="home-app-shelf"'));
-  assert.ok(home.indexOf('<section class="home-asset-nudge"') < home.indexOf('class="home-layout-grid"'));
+  assert.ok(home.indexOf('<section class="home-asset-nudge"') > home.indexOf('class="home-layout-grid"'));
+  assert.ok(home.indexOf('class="home-create"') < home.indexOf('class="home-layout-grid"'));
   assert.match(nudge, /aria-labelledby="home-asset-nudge-title"/);
   assert.match(nudge, /id="home-asset-nudge-title"/);
   assert.match(styles, /@media\(max-width:590px\)/);

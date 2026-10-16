@@ -45,12 +45,24 @@ const deepDoors = [
   <div class="dash-shell" id="dashboard-home-shell">
     <header class="dash-head">
       <div>
-        <p class="kicker">MASA OS · TODAY</p>
-        <h1>Flow Cockpit</h1>
-        <p class="intro">左は全体の地図。ここには、今日触るものだけ置く。見る → 軽く動かす → 必要な時だけ詳細へ。</p>
+        <h1>制作ワークスペース</h1>
+        <p class="intro">素材から下書きを作り、表示を確認します。</p>
       </div>
       <div class="date-chip"><span>TODAY</span><strong>{dateLabel}</strong></div>
     </header>
+
+    <details class="home-create-entry"><summary>つくる <span aria-hidden="true">＋</span></summary>
+    <nav class="home-create" aria-label="制作を始める">
+      <a class="home-create-primary" href="/dashboard/post"><strong>投稿</strong><span>Xの本文を編集する</span></a>
+      <a href="/dashboard/content-studio?intent=article-video"><strong>記事・動画</strong><span>素材から制作指示をコピー</span></a>
+      <a href="/dashboard/content-studio?intent=lesson-product"><strong>教材・商品</strong><span>教材を編集して確認</span></a>
+      <a href="/dashboard/content-flow"><strong>導線</strong><span>相手・届け先・次の一手を決める</span></a>
+    </nav>
+    </details>
+    <div class="home-create-secondary">
+      <a href="/dashboard/content-studio?intent=post">Drive素材から投稿をつくる →</a>
+      <a href="/dashboard/content-studio#products-title">教材の下書きを開く →</a>
+    </div>
 
     <div class="home-design-indicator" id="home-design-indicator" hidden>
       <span id="home-design-label">表示スタイルを変更中</span>
@@ -64,6 +76,26 @@ const deepDoors = [
       <a href="/mind?action=capture">Capture</a>
     </nav>
 
+
+    <div class="home-layout-grid">
+      <div class="home-unit home-unit--cockpit">
+        <DashboardCockpit client:load readOnly={!!previewConfig} />
+      </div>
+
+      <div class="home-unit home-unit--revenue">
+        <RevenueMission client:only="react" readOnly={!!previewConfig}>
+          <p slot="fallback">First Product の共有進捗を読み込み中…</p>
+        </RevenueMission>
+      </div>
+
+      <div class="home-unit home-unit--flow">
+        <HomeFlowMap />
+      </div>
+
+      <div class="home-unit home-unit--output">
+        <HomeOutputDoors />
+      </div>
+    </div>
 
     <section class="home-asset-nudge" aria-labelledby="home-asset-nudge-title">
       <div class="home-asset-nudge-copy">
@@ -92,26 +124,6 @@ const deepDoors = [
         ))}
       </div>
     </section>
-
-    <div class="home-layout-grid">
-      <div class="home-unit home-unit--cockpit">
-        <DashboardCockpit client:load readOnly={!!previewConfig} />
-      </div>
-
-      <div class="home-unit home-unit--revenue">
-        <RevenueMission client:only="react" readOnly={!!previewConfig}>
-          <p slot="fallback">First Product の共有進捗を読み込み中…</p>
-        </RevenueMission>
-      </div>
-
-      <div class="home-unit home-unit--flow">
-        <HomeFlowMap />
-      </div>
-
-      <div class="home-unit home-unit--output">
-        <HomeOutputDoors />
-      </div>
-    </div>
 
     <section class="home-style-section" aria-labelledby="home-style-title">
       <div class="home-style-heading">
@@ -183,6 +195,25 @@ const deepDoors = [
 </script>
 
 <style>
+  #dashboard-home-shell .dash-head{display:flex;align-items:center;margin-bottom:16px}
+  #dashboard-home-shell .dash-head h1{font-size:1.5rem;line-height:1.4;color:var(--preset-ink,#242831)}
+  #dashboard-home-shell .dash-head .intro{margin-top:6px;color:var(--preset-muted,#58636c);font-size:1rem}
+  .home-create-entry{margin-bottom:8px}
+  .home-create-entry>summary{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:12px 16px;border-radius:14px;background:var(--preset-ink,#242831);color:var(--preset-paper,#fff);font-size:1.125rem;font-weight:700;cursor:pointer;list-style:none}
+  .home-create-entry>summary::-webkit-details-marker{display:none}.home-create-entry[open]>summary{margin-bottom:12px}
+  .home-create-entry[open]>summary span{transform:rotate(45deg)}
+  .home-create-entry>summary:focus-visible{outline:3px solid var(--preset-accent,#986525);outline-offset:3px}
+  .home-create{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .home-create a{box-sizing:border-box;min-width:0;min-height:88px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:16px;border:1px solid var(--preset-line,#e4ddd2);border-radius:14px;background:var(--preset-paper,#fff);color:var(--preset-ink,#242831);text-decoration:none;overflow-wrap:anywhere}
+  .home-create strong{font-size:1.125rem;line-height:1.5}
+  .home-create span{font-size:.875rem;line-height:1.5}
+  .home-create .home-create-primary{background:var(--preset-ink,#242831);color:var(--preset-paper,#fff)}
+  .home-create-secondary{display:flex;flex-wrap:wrap;gap:8px 24px;margin:8px 0 16px}
+  .home-create-secondary a{display:inline-flex;align-items:center;min-height:44px;color:var(--preset-ink,#242831);font-size:.875rem;text-underline-offset:4px}
+  .home-create a:focus-visible,.home-create-secondary a:focus-visible{outline:3px solid var(--preset-accent,#986525);outline-offset:3px}
+  @media(hover:hover){.home-create a:hover{text-decoration:underline;text-underline-offset:4px}}
+  @media(max-width:650px){.home-create{grid-template-columns:repeat(2,minmax(0,1fr))}.home-create a{padding:12px}#dashboard-home-shell .date-chip{display:none}}
+
   /* A single, visible weekly cue. No separate workflow, fabricated status, or backend writes. */
   #dashboard-home-shell .home-asset-nudge{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0 8px;padding:16px 18px;border:1px solid var(--preset-line,#e4ddd2);border-left:4px solid var(--preset-accent,#986525);border-radius:14px;background:var(--preset-paper,#fffcf5);color:var(--preset-ink,#242831);box-shadow:0 8px 22px rgba(27,35,44,.035)}
   #dashboard-home-shell .home-asset-nudge-copy{min-width:0;max-width:760px}

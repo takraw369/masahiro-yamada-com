@@ -7,6 +7,8 @@ export type PublishingHandoff = {
   audience?: string;
   channel?: string;
   cta?: string;
+  sourceUrl?: string;
+  sourceRights?: string;
   createdAt?: number;
 };
 
@@ -19,7 +21,7 @@ export function readPublishingHandoff(raw: string | null): PublishingHandoff | n
     if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
     const record = value as Record<string, unknown>;
     const handoff: PublishingHandoff = {};
-    for (const key of ['phase', 'theme', 'question', 'coreId', 'coreTitle', 'audience', 'channel', 'cta'] as const) {
+    for (const key of ['phase', 'theme', 'question', 'coreId', 'coreTitle', 'audience', 'channel', 'cta', 'sourceUrl', 'sourceRights'] as const) {
       if (typeof record[key] === 'string') handoff[key] = record[key].trim();
     }
     if (typeof record.createdAt === 'number') handoff.createdAt = record.createdAt;
