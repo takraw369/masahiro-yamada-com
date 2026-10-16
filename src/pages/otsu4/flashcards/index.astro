@@ -15,11 +15,11 @@
 <main>
 <nav><a href="/otsu4/">← 乙4アプリに戻る</a><a href="/otsu4/symbols/">図記号33種類 ↗</a></nav>
 <h1>暗記カード＆一覧</h1>
-<p class="lead">講習写真の受信機・感知器・発信機・自火報の構成・試験器校正時期に加え、定温式と空気管式の数字・構造、試験の種類・使用器具・目的。<strong>まず一覧で理解 → 答えを隠して思い出す → ○△×で繰り返す。</strong></p>
+<p class="lead">講習写真の受信機・感知器・発信機・自火報の構成・試験器校正時期に加え、定温式と空気管式の数字・構造、試験器具・目的、感知器の構造図と空気管の付属品。<strong>まず一覧で理解 → 答えを隠して思い出す → ○△×で繰り返す。</strong></p>
 <section class="panel" aria-label="学習設定">
 <div class="tabs"><button type="button" id="tab-list" aria-pressed="true">📋 一覧で覚える</button><button type="button" id="tab-card" aria-pressed="false">🗂 暗記カード</button></div>
 <div class="filters">
-<label for="category">範囲を選ぶ<select id="category"><option value="all">全部をまとめて</option><option value="system">自火報の構成</option><option value="receiver">受信機</option><option value="detector">感知器</option><option value="detail">感知器の数字・空気管</option><option value="testtools">★ 試験項目と試験器具（新）</option><option value="testmeaning">★ 試験で何を調べる？（新）</option><option value="transmitter">発信機</option><option value="calibration">試験器の校正時期</option></select></label>
+<label for="category">範囲を選ぶ<select id="category"><option value="all">全部をまとめて</option><option value="system">自火報の構成</option><option value="receiver">受信機</option><option value="detector">感知器</option><option value="detail">感知器の数字・空気管</option><option value="testtools">★ 試験項目と試験器具（新）</option><option value="testmeaning">試験で何を調べる？</option><option value="structureparts">★ 鑑別：感知器の構造（新）</option><option value="pipeaccessories">★ 鑑別：空気管の付属品（新）</option><option value="transmitter">発信機</option><option value="calibration">試験器の校正時期</option></select></label>
 <label for="scope">カードの出題<select id="scope"><option value="priority">△・×・未出を優先（10枚）</option><option value="weak">△・×だけ</option><option value="all">選んだ範囲すべて</option></select></label>
 </div>
 <div class="topline"><strong id="totals" class="stats"></strong><span id="rating-summary" class="muted"></span></div>
@@ -43,14 +43,45 @@
 <div id="complete" class="empty" hidden><h2>今回の暗記は完了！</h2><p id="complete-detail"></p><button id="restart" type="button" class="primary wide">次の10枚を復習する ↻</button></div>
 </section>
 <p class="note">受信機の1・2・3級の機能は、写真の表の「必須／条件付き／不要」を区別して整理。校正時期は講習資料に記載された目安であり、実務では使用機器のメーカー指定も確認してください。</p>
-<p class="footer">教材の内容を要点から独自に再構成した暗記用データです。原本のページや図版は転載していません。図記号は既存の <a href="/otsu4/symbols/">図記号暗記トレーナー</a> で練習できます。受信機などの四択練習は <a href="/otsu4/tests/?topic=receiver">受信機テスト</a> へ。</p>
+<p class="footer">教材の内容を要点から独自に再構成した暗記用データです。原本のページや図版は転載していません。図のア・イ・ウ・エは講習教材p296の番号に対応。ここでは図版を転載せず、場所の説明と名称を対応させています。図記号は既存の <a href="/otsu4/symbols/">図記号暗記トレーナー</a> で練習できます。受信機などの四択練習は <a href="/otsu4/tests/?topic=receiver">受信機テスト</a> へ。</p>
 </main>
 <script is:inline>
 (function () {
 "use strict";
 const KEY = "otsu4-knowledge-cards-v1";
-const groups = {system:"自火報の構成", receiver:"受信機", detector:"感知器", detail:"感知器｜温度・空気管", testtools:"自火報試験｜種類と器具", testmeaning:"自火報試験｜目的と判定", transmitter:"発信機", calibration:"試験器の校正時期"};
+const groups = {system:"自火報の構成", receiver:"受信機", detector:"感知器", detail:"感知器｜温度・空気管", testtools:"自火報試験｜種類と器具", testmeaning:"自火報試験｜目的と判定", structureparts:"鑑別｜感知器の構造図", pipeaccessories:"鑑別｜空気管の付属品", transmitter:"発信機", calibration:"試験器の校正時期"};
 const cards = [
+// 写真 p296 構造図①②③、および空気管の付属品：独自の鑑別暗記カード（写真転載なし）。
+{id:"str01",group:"structureparts",q:"図①「ア」：空気をためる空間の名称は？",a:"空気室"},
+{id:"str02",group:"structureparts",q:"図①「イ」：圧力をゆっくり逃がす孔は？",a:"リーク孔"},
+{id:"str03",group:"structureparts",q:"図①「ウ」：空気圧でたわむ膜は？",a:"ダイヤフラム"},
+{id:"str04",group:"structureparts",q:"図①「エ」：電気回路を開閉する部分は？",a:"接点"},
+{id:"str05",group:"structureparts",q:"空気式差動スポット型の急上昇時の作動順序は？",a:"空気室膨張→ダイヤフラム変形→接点閉鎖"},
+{id:"str06",group:"structureparts",q:"リーク孔は緩やかな温度変化にどう働く？",a:"空気を逃がし、不要な作動を抑える"},
+{id:"str07",group:"structureparts",q:"図②「ア」：電子式で温度を検知する素子は？",a:"温度検知素子（サーミスタ）"},
+{id:"str08",group:"structureparts",q:"図②「イ」：温度上昇の速さを調べる回路は？",a:"温度上昇率検知回路"},
+{id:"str09",group:"structureparts",q:"図②「ウ」：検知信号を判定する回路は？",a:"比較回路"},
+{id:"str10",group:"structureparts",q:"図②「エ」：出力を切り替える回路は？",a:"スイッチング回路"},
+{id:"str11",group:"structureparts",q:"電子式差動スポット型の信号処理の順は？",a:"サーミスタ→上昇率検知→比較→スイッチング"},
+{id:"str12",group:"structureparts",q:"図③「ア」：天井に広く配管する部分は？",a:"空気管"},
+{id:"str13",group:"structureparts",q:"図③「イ」：電気信号を出す接触部分は？",a:"接点"},
+{id:"str14",group:"structureparts",q:"図③「ウ」：空気圧で変形する膜は？",a:"ダイヤフラム"},
+{id:"str15",group:"structureparts",q:"図③「エ」：圧力を逃がす孔は？",a:"リーク孔"},
+{id:"str16",group:"structureparts",q:"図③「オ」：試験コックを取り付ける台は？",a:"コックスタンド"},
+{id:"str17",group:"structureparts",q:"図③「カ」：試験時に操作するコックは？",a:"試験コック"},
+{id:"str18",group:"structureparts",q:"図③「キ」：試験器具を接続する孔は？",a:"試験孔"},
+{id:"str19",group:"structureparts",q:"空気管式差動分布型は何の膨張で作動する？",a:"空気管内の空気が膨張し、検出部を作動させる"},
+{id:"str20",group:"structureparts",q:"空気式のスポット型と分布型の違いは？",a:"スポット型は一局所、分布型は空気管で広範囲"},
+{id:"acc01",group:"pipeaccessories",q:"鑑別写真：長く細い金属製の管材は？",a:"空気管"},
+{id:"acc02",group:"pipeaccessories",q:"空気管同士をつなぐ筒状部品は？",a:"スリーブ"},
+{id:"acc03",group:"pipeaccessories",q:"空気管と検出部を接続する部品は？",a:"銅管端子"},
+{id:"acc04",group:"pipeaccessories",q:"U字形で管を固定する金具の名称は？",a:"止め金具（ステップル）"},
+{id:"acc05",group:"pipeaccessories",q:"板状の管固定具の名称は？",a:"クリップ"},
+{id:"acc06",group:"pipeaccessories",q:"空気管が壁を貫通する箇所の部品は？",a:"貫通キャップ"},
+{id:"acc07",group:"pipeaccessories",q:"スリーブによる接続部分はどう密閉する？",a:"はんだ付けなどで気密を保つ"},
+{id:"acc08",group:"pipeaccessories",q:"ステップルとクリップの共通する用途は？",a:"空気管を造営材に固定する"},
+{id:"acc09",group:"pipeaccessories",q:"スリーブと銅管端子の接続先の違いは？",a:"スリーブ＝管同士／銅管端子＝検出部と管"},
+{id:"acc10",group:"pipeaccessories",q:"貫通キャップはどんな場所で使う？",a:"空気管が造営材を貫通する場所"},
 // 講習写真 自火報試験項目表・まとめ p244：種類と器具、目的を別々に反復。
 {id:"exam01",group:"testtools",q:"差動式・補償式・定温式スポット型の作動試験に使う器具は？",a:"加熱試験器"},
 {id:"exam02",group:"testtools",q:"空気管式の作動試験に使う器具は？",a:"テストポンプ（空気注入試験器）"},
