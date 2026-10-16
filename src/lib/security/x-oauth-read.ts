@@ -2,6 +2,7 @@ import type { APIContext } from 'astro';
 import { verifyDashboardSession } from '../dashboardAuth.ts';
 import { isSameOriginRequest, jsonResponse, privateHeaders } from './request.mjs';
 import { nativeXReadEnabled, parseNativeXReadResponse } from '../xNativeReadPolicy.ts';
+import { xOAuthReadFailure, type XOAuthReadNotice } from '../xOAuthReadFeedback.ts';
 
 const targets = ['MASAHIRO_501', 'aima_no_te', 'kodomo_athlete', 'sunlovesflow'];
 export const X_OAUTH_CALLBACK_PATH = '/api/dashboard/x-oauth/callback';
@@ -149,7 +150,7 @@ export async function handleXOAuthStart(context: APIContext, env: XOAuthEnv) {
   } catch { return jsonResponse({ error: 'x_oauth_start_failed' }, 502); }
 }
 
-function finish(context: APIContext, result: string) {
+function finish(context: APIContext, result: XOAuthReadNotice | 'verified') {
   return new Response(null, { status: 303, headers: privateHeaders({ Location: `/dashboard/post?x_oauth=${result}#x-oauth-read` }) });
 }
 export async function handleXOAuthCallback(context: APIContext, env: XOAuthEnv) {
@@ -160,6 +161,7 @@ export async function handleXOAuthCallback(context: APIContext, env: XOAuthEnv) 
   context.cookies.delete(X_OAUTH_RECEIPT_COOKIE, { path: cookieOptions(context).path });
   // Cookie consumption plus the provider's single-use PKCE code prevents replay.
   context.cookies.delete(X_OAUTH_PENDING_COOKIE, { path: cookieOptions(context).path });
+  let failure: XOAuthReadNotice = 'configuration_required';
   try {
     const pending = await openOAuthCookie(env.DASHBOARD_SESSION_SECRET || '', origin, 'pending', stored);
     const params = new URL(context.request.url).searchParams;
@@ -169,30 +171,35 @@ export async function handleXOAuthCallback(context: APIContext, env: XOAuthEnv) 
     if (params.getAll('code').length !== 1 || !params.get('code')) return finish(context, 'failed');
     const config = await settings(env, origin);
     if (!config.redirectUri || config.redirectUri !== pending.redirectUri || !config.enabledTargets!.includes(String(pending.target))
-      || (pending.persist === true && config.persistenceConfigured !== true)) return finish(context, 'failed');
+      || (pending.persist === true && config.persistenceConfigured !== true)) return finish(context, 'configuration_required');
+    failure = 'storage_failed';
     const existing = (await connections(env, pending.persist === true)).find(row => row.target === pending.target);
     if (existing && pending.expectedUserId && existing.userId !== pending.expectedUserId) return finish(context, 'identity_mismatch');
     const expectedUserId = existing?.userId || (numericId(pending.expectedUserId) ? pending.expectedUserId : undefined);
+    failure = 'service_unavailable';
     const raw = await env.FLOW_RUNNER!.xOAuthCompleteRead({ target: String(pending.target), code: params.get('code')!, verifier: pending.verifier, redirectUri: config.redirectUri,
       ...(pending.persist === true ? { persist: true } : {}), ...(expectedUserId ? { expectedUserId } : {}) });
     const safe = parseNativeXReadResponse(raw);
     const result = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
+    if (result.success === false) return finish(context, xOAuthReadFailure(raw));
     const scopes = result.scopes;
     if (!safe || safe.data[0].username.toLowerCase() !== String(pending.target).toLowerCase()
       || (expectedUserId && safe.data[0].id !== expectedUserId)
       || result.proof !== 'oauth_callback' || result.tokenStored !== (pending.persist === true) || typeof result.verifiedAt !== 'string' || Math.abs(Date.now() - Date.parse(result.verifiedAt)) > 60000 || !Number.isFinite(Date.parse(String(result.verifiedAt)))
       || !Array.isArray(scopes) || scopes.length !== 2 || !['users.read', 'tweet.read'].every(scope => scopes.includes(scope))) {
-      return finish(context, result.error === 'x_oauth_identity_mismatch' ? 'identity_mismatch' : 'failed');
+      return finish(context, 'verification_failed');
     }
     if (pending.persist === true) {
+      failure = 'storage_failed';
       const stored = (await connections(env, true)).find(row => row.target === pending.target);
-      return finish(context, stored?.userId === safe.data[0].id && stored.status === 'connected' ? 'connected' : 'failed');
+      return finish(context, stored?.userId === safe.data[0].id && stored.status === 'connected' ? 'connected' : 'storage_failed');
     }
+    failure = 'storage_failed';
     await context.cookies.set(X_OAUTH_RECEIPT_COOKIE, await sealOAuthCookie(env.DASHBOARD_SESSION_SECRET!, origin, 'receipt', {
       target: pending.target, result: safe, verifiedAt: result.verifiedAt, expires: Date.now() + ttl * 1000,
     }), cookieOptions(context));
     return finish(context, 'verified');
-  } catch { return finish(context, 'failed'); }
+  } catch { return finish(context, failure); }
 }
 
 export async function handleXOAuthConnectionAction(context: APIContext, env: XOAuthEnv, action: 'recheck' | 'disconnect') {

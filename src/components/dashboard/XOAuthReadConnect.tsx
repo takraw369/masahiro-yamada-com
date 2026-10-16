@@ -1,16 +1,10 @@
 import { useEffect, useState } from 'react';
 import { X_ACCOUNT_PLAYBOOKS } from '../../lib/xAccountPlaybook';
 import { parseNativeXReadResponse } from '../../lib/xNativeReadPolicy';
+import { xOAuthReadNotice } from '../../lib/xOAuthReadFeedback';
 
 type Connection = { target: string; userId: string; username: string; connectedAt: string; verifiedAt: string; expiresAt: string; status: 'connected' | 'expired' | 'reauthorization_required' };
 type Proof = { username: string; id: string; verifiedAt: string };
-const results: Record<string, string> = {
-  connected: '読み取り専用の接続を保存しました。',
-  cancelled: 'Xで認可がキャンセルされました。',
-  expired: '認可の確認期限が切れました。最初からやり直してください。',
-  failed: '読み取りを確認できませんでした。接続設定を確認してやり直してください。',
-  identity_mismatch: 'ブランドとXアカウントが一致しません。対象アカウントでXにログインし直してください。',
-};
 const statusLabels = { connected: '接続済み', expired: '期限切れ · 再認可が必要', reauthorization_required: '再認可が必要' };
 const time = (value: string) => new Date(value).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 const control = { minHeight: 44, padding: '8px 12px', font: 'inherit', maxWidth: '100%' };
@@ -44,11 +38,12 @@ export default function XOAuthReadConnect() {
         setEnabled(Array.isArray(raw.enabledTargets) ? raw.enabledTargets : []);
         setConnections(response.ok && Array.isArray(raw.connections) ? raw.connections : []);
         const result = new URLSearchParams(window.location.search).get('x_oauth') || '';
+        const feedback = xOAuthReadNotice(result);
         const receipt = response.ok ? parseNativeXReadResponse(raw.receipt) : null;
-        if (receipt && raw.receipt.proof === 'oauth_callback' && raw.receipt.tokenStored === false && typeof raw.receipt.verifiedAt === 'string' && !results[result]) {
+        if (receipt && raw.receipt.proof === 'oauth_callback' && raw.receipt.tokenStored === false && typeof raw.receipt.verifiedAt === 'string' && !feedback) {
           setProof({ id: receipt.data[0].id, username: receipt.data[0].username, verifiedAt: raw.receipt.verifiedAt });
         }
-        if (!attempt) setNotice(response.status === 401 ? 'Dashboardに再ログインしてください。' : results[result] || '');
+        if (!attempt) setNotice(response.status === 401 ? 'Dashboardに再ログインしてください。' : feedback);
       }).catch(() => { if (!disposed) { setAvailable(false); setNotice('接続状態を確認できませんでした。「状態を再取得」でやり直してください。'); } })
       .finally(() => { clearTimeout(timer); if (!disposed) setChecking(false); });
     return () => { disposed = true; clearTimeout(timer); controller.abort(); };
