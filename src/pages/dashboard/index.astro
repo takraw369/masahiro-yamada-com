@@ -1,6 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import DashboardCockpit from '../../components/dashboard/DashboardCockpit';
+import StatusFirstActions from '../../components/dashboard/StatusFirstActions.astro';
 import { featuredDashboardApps, dashboardAppCatalog } from '../../data/dashboardAppCatalog';
 import RevenueMission from '../../components/dashboard/RevenueMission';
 import '../../styles/dashboard-home-presets.css';
@@ -64,6 +65,8 @@ const deepDoors = [
       <a href="/mind?action=capture">Capture</a>
     </nav>
 
+
+    <StatusFirstActions />
 
     <section class="home-asset-nudge" aria-labelledby="home-asset-nudge-title">
       <div class="home-asset-nudge-copy">
