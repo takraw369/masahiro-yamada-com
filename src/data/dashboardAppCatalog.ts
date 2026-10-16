@@ -339,6 +339,17 @@ export const dashboardAppCatalog: DashboardApp[] = [
     "featured": true
   },
   {
+    "id": "model-canvas",
+    "title": "MASA Model Canvas",
+    "description": "概念・ERモデル・画面の関係と変更影響を一枚で確認。",
+    "href": "/dashboard/model-canvas",
+    "category": "think",
+    "access": "dashboard",
+    "symbol": "🧭",
+    "tags": ["設計", "関係", "ER", "画面", "MASA OS"],
+    "featured": false
+  },
+  {
     "id": "graph",
     "title": "Living Graph",
     "description": "知識とプロジェクトの関係を眺める。",
