@@ -19,9 +19,9 @@ test("flashcard screen links from the existing study home and retains six main s
  assert.equal((home.match(/class="study-launch-link"/g) || []).length, 6);
 });
 test("all textbook chapters have unique compact cards", () => {
- assert.equal(cards.length,100);
+ assert.equal(cards.length,130);
  assert.equal(new Set(cards.map(x=>x.id)).size,cards.length);
- for(const category of ["system","receiver","detector","detail","testtools","testmeaning","transmitter","calibration"]) {
+ for(const category of ["system","receiver","detector","detail","testtools","testmeaning","structureparts","pipeaccessories","transmitter","calibration"]) {
   assert.ok(cards.filter(x=>x.group===category).length>=4, category);
  }
  for(const c of cards) {
@@ -88,4 +88,30 @@ test("photo: inspection test instrument matching and exact purposes",()=>{
  for(const c of cards)assert.equal(typeof c.a,"string");
  assert.ok(page.includes('option value="testtools"'));
  assert.ok(page.includes('option value="testmeaning"'));
+});
+
+test("photo p296 detector schematics and air-tube accessory identification",()=>{
+ const byId=Object.fromEntries(cards.map(c=>[c.id,c.a]));
+ assert.equal(cards.filter(c=>c.group==="structureparts").length,20);
+ assert.equal(cards.filter(c=>c.group==="pipeaccessories").length,10);
+ assert.deepEqual(
+   ["str01","str02","str03","str04"].map(id=>byId[id]),
+   ["空気室","リーク孔","ダイヤフラム","接点"]
+ );
+ assert.deepEqual(
+   ["str07","str08","str09","str10"].map(id=>byId[id]),
+   ["温度検知素子（サーミスタ）","温度上昇率検知回路","比較回路","スイッチング回路"]
+ );
+ assert.deepEqual(
+   ["str12","str13","str14","str15","str16","str17","str18"].map(id=>byId[id]),
+   ["空気管","接点","ダイヤフラム","リーク孔","コックスタンド","試験コック","試験孔"]
+ );
+ assert.equal(byId.acc02,"スリーブ");
+ assert.equal(byId.acc03,"銅管端子");
+ assert.equal(byId.acc04,"止め金具（ステップル）");
+ assert.equal(byId.acc05,"クリップ");
+ assert.equal(byId.acc06,"貫通キャップ");
+ assert.match(byId.acc09,/管同士.*検出部と管/);
+ assert.ok(page.includes('option value="structureparts"'));
+ assert.ok(page.includes('option value="pipeaccessories"'));
 });
