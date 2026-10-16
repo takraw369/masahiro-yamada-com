@@ -1,0 +1,49 @@
+---
+interface Action { label: string; href: string; description: string; icon: string; }
+const actions: Action[] = [
+  { label: 'タスクの現在地', href: '/dashboard/pipeline', description: '完了・進行中・判断待ちを確認', icon: '☷' },
+  { label: 'GitHubの確認待ち', href: '/dashboard/github-issues', description: 'PR・CI・Human Gateを確認', icon: '⑂' },
+  { label: '知識を資産化', href: '/dashboard/ace-assets', description: 'ACE Assetsの保存状況を確認', icon: '◇' },
+];
+---
+<section class="status-first" aria-labelledby="status-first-heading">
+  <div class="status-first__head">
+    <div>
+      <p class="status-first__eyebrow">SEE → DECIDE → ACT</p>
+      <h2 id="status-first-heading">今の状態から、次の一手へ。</h2>
+      <p>実測の件数は各画面で確認。ここには推測した完了数や未確認のステータスを表示しません。</p>
+    </div>
+    <a class="status-first__primary" href="/dashboard/tasks">次の一手を確認 <span aria-hidden="true">→</span></a>
+  </div>
+  <div class="status-first__grid">
+    {actions.map(action => (
+      <a class="status-first__card" href={action.href}>
+        <span class="status-first__icon" aria-hidden="true">{action.icon}</span>
+        <span class="status-first__body">
+          <strong>{action.label}</strong>
+          <small>{action.description}</small>
+        </span>
+        <span class="status-first__arrow" aria-hidden="true">↗</span>
+      </a>
+    ))}
+  </div>
+</section>
+<style>
+  .status-first{margin:16px 0 20px;padding:20px;border:1px solid var(--preset-line,#e5e0d7);border-radius:18px;background:var(--preset-paper,#fff);color:var(--preset-ink,#252a30)}
+  .status-first__head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:16px}
+  .status-first__eyebrow{margin:0 0 5px;font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--preset-accent,#986525)}
+  .status-first h2{margin:0 0 6px;font-size:clamp(17px,2vw,22px);line-height:1.4}
+  .status-first__head p:last-child{margin:0;font-size:12px;line-height:1.7;color:var(--preset-muted,#64707a)}
+  .status-first__primary{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 15px;border-radius:11px;background:var(--preset-ink,#252a30);color:var(--preset-paper,#fff);font-size:13px;font-weight:750;text-decoration:none}
+  .status-first__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .status-first__card{min-width:0;display:flex;align-items:center;gap:11px;min-height:70px;padding:12px;border:1px solid var(--preset-line,#e5e0d7);border-radius:12px;color:inherit;text-decoration:none}
+  .status-first__icon{flex:none;display:grid;place-items:center;width:35px;height:35px;border-radius:10px;background:var(--preset-soft,#fff3e4);font-size:20px;color:var(--preset-accent,#986525)}
+  .status-first__body{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+  .status-first__body strong{font-size:13px;line-height:1.35}
+  .status-first__body small{font-size:11px;line-height:1.5;color:var(--preset-muted,#64707a)}
+  .status-first__arrow{align-self:flex-start;color:var(--preset-accent,#986525)}
+  .status-first a:focus-visible{outline:3px solid #4d86d4;outline-offset:3px}
+  @media(hover:hover){.status-first a:hover{border-color:var(--preset-accent,#986525);text-decoration:underline;text-underline-offset:3px}}
+  @media(max-width:850px){.status-first__head{align-items:stretch;flex-direction:column;gap:12px}.status-first__grid{grid-template-columns:1fr}}
+  @media(max-width:590px){.status-first{padding:15px}.status-first__primary{width:100%;box-sizing:border-box}}
+</style>
