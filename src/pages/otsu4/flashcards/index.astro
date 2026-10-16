@@ -15,11 +15,11 @@
 <main>
 <nav><a href="/otsu4/">← 乙4アプリに戻る</a><a href="/otsu4/symbols/">図記号33種類 ↗</a></nav>
 <h1>暗記カード＆一覧</h1>
-<p class="lead">講習写真の受信機・感知器・発信機・自火報の構成・試験器校正時期。<strong>まず一覧で理解 → 答えを隠して思い出す → ○△×で繰り返す。</strong></p>
+<p class="lead">講習写真の受信機・感知器・発信機・自火報の構成・試験器校正時期に加え、定温式と空気管式の数字・構造。<strong>まず一覧で理解 → 答えを隠して思い出す → ○△×で繰り返す。</strong></p>
 <section class="panel" aria-label="学習設定">
 <div class="tabs"><button type="button" id="tab-list" aria-pressed="true">📋 一覧で覚える</button><button type="button" id="tab-card" aria-pressed="false">🗂 暗記カード</button></div>
 <div class="filters">
-<label for="category">範囲を選ぶ<select id="category"><option value="all">全部をまとめて</option><option value="system">自火報の構成</option><option value="receiver">受信機</option><option value="detector">感知器</option><option value="transmitter">発信機</option><option value="calibration">試験器の校正時期</option></select></label>
+<label for="category">範囲を選ぶ<select id="category"><option value="all">全部をまとめて</option><option value="system">自火報の構成</option><option value="receiver">受信機</option><option value="detector">感知器</option><option value="detail">★ 感知器の数字・空気管（新）</option><option value="transmitter">発信機</option><option value="calibration">試験器の校正時期</option></select></label>
 <label for="scope">カードの出題<select id="scope"><option value="priority">△・×・未出を優先（10枚）</option><option value="weak">△・×だけ</option><option value="all">選んだ範囲すべて</option></select></label>
 </div>
 <div class="topline"><strong id="totals" class="stats"></strong><span id="rating-summary" class="muted"></span></div>
@@ -49,8 +49,30 @@
 (function () {
 "use strict";
 const KEY = "otsu4-knowledge-cards-v1";
-const groups = {system:"自火報の構成", receiver:"受信機", detector:"感知器", transmitter:"発信機", calibration:"試験器の校正時期"};
+const groups = {system:"自火報の構成", receiver:"受信機", detector:"感知器", detail:"感知器｜温度・空気管", transmitter:"発信機", calibration:"試験器の校正時期"};
 const cards = [
+// 講習写真 p168 / p187 の数字・構造を重点復習（2026-10-16）。
+{id:"temp01",group:"detail",q:"定温式感知器の公称作動温度の範囲は？",a:"60℃以上150℃以下"},
+{id:"temp02",group:"detail",q:"公称作動温度が80℃以下の場合は何℃刻み？",a:"5℃刻み"},
+{id:"temp03",group:"detail",q:"公称作動温度が80℃を超える場合は何℃刻み？",a:"10℃刻み"},
+{id:"temp04",group:"detail",q:"公称作動温度は80℃の次に何℃がある？",a:"90℃（85℃ではない）"},
+{id:"temp05",group:"detail",q:"定温式スポット型はどこで温度を検知？",a:"一局所で検知する"},
+{id:"temp06",group:"detail",q:"定温式スポット型の代表的な3構造は？",a:"バイメタル・サーミスタ・金属の膨張係数差"},
+{id:"temp07",group:"detail",q:"バイメタルが温度変化で曲がる理由は？",a:"熱膨張率の異なる2枚の金属を貼り合わせているため"},
+{id:"temp08",group:"detail",q:"バイメタル式の接点は温度上昇でどうなる？",a:"たわみが反転し、接点が閉じる"},
+{id:"temp09",group:"detail",q:"サーミスタ式の回路の順序は？",a:"温度検知→比較→スイッチング回路"},
+{id:"temp10",group:"detail",q:"金属膨張係数の差を利用する方式の原理は？",a:"膨張率が異なる金属の伸びの差で作動する"},
+{id:"tube01",group:"detail",q:"空気管式差動式分布型の空気管1本の長さは？",a:"20m以上（継ぎ目のない1本）"},
+{id:"tube02",group:"detail",q:"空気管式で空気管の肉厚は何mm以上？",a:"0.3mm以上"},
+{id:"tube03",group:"detail",q:"空気管式で空気管の外径は何mm以上？",a:"1.94mm以上。内径ではない"},
+{id:"tube04",group:"detail",q:"空気管の内径・肉厚に求められる条件は？",a:"均一であること"},
+{id:"tube05",group:"detail",q:"空気管の異常として防ぐべきものは？",a:"傷・割れ・ねじれ・腐食など"},
+{id:"tube06",group:"detail",q:"空気管式で試験しやすくすべき2つの数値は？",a:"リーク抵抗と接点水高"},
+{id:"tube07",group:"detail",q:"空気管式で試験しやすくすべき配管状態は？",a:"空気管の漏れ・つまり"},
+{id:"tube08",group:"detail",q:"空気管式で試験後の戻し忘れを防ぐ措置は？",a:"試験装置を定位に復するための措置"},
+{id:"tube09",group:"detail",q:"リーク孔が詰まるとリーク抵抗は？",a:"高くなる"},
+{id:"tube10",group:"detail",q:"リーク孔が詰まると作動時間と誤報は？",a:"作動時間が短くなり、非火災報（誤報）の原因になる"},
+{id:"temp11",group:"detail",q:"同じ公称作動温度区分となる他の感知器は？",a:"定温式感知線型・熱複合式スポット型"},
 {id:"sys01",group:"system",q:"自動火災報知設備の基本的な働きは？",a:"火災を感知して、建物内に音響などで知らせる"},
 {id:"sys02",group:"system",q:"自火報の主な構成機器は？",a:"感知器・発信機・受信機・音響装置など"},
 {id:"sys03",group:"system",q:"感知器の役割は？",a:"熱・煙・炎などの火災現象を検知する"},
@@ -101,6 +123,9 @@ const cards = [
 {id:"cal09",group:"calibration",q:"騒音計の校正時期の目安は？",a:"5年（写真ではメーカー推奨）"}
 ];
 const $ = (id) => document.getElementById(id);
+// 学習リンクから特定の写真教材へ直接移動できる。
+const selectedCategory = new URLSearchParams(window.location.search).get("category");
+if (selectedCategory && Object.prototype.hasOwnProperty.call(groups, selectedCategory)) $("category").value = selectedCategory;
 const grades = (() => {try {const value=JSON.parse(localStorage.getItem(KEY));return value && typeof value==="object" && !Array.isArray(value)?value:{};} catch {return {};}})();
 let mode = "list", masked = false, queue = [], cursor = 0, revealed = false;
 function scopeCards(){const c=$("category").value;return cards.filter(x=>c==="all"||x.group===c);}
