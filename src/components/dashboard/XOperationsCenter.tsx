@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import XCommandCenter from './XCommandCenter';
 import XHealthPanel from './XHealthPanel';
+import XNativeConnectionPanel from './XNativeConnectionPanel';
 
 type Tab = 'publish' | 'health';
 
@@ -8,6 +9,7 @@ export default function XOperationsCenter() {
   const [tab, setTab] = useState<Tab>('publish');
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).has('x_oauth')) setTab('health');
     const openComposer = () => setTab('publish');
     window.addEventListener('masa:x-compose', openComposer);
     return () => window.removeEventListener('masa:x-compose', openComposer);
@@ -32,7 +34,7 @@ export default function XOperationsCenter() {
           接続と分析
         </button>
       </div>
-      {tab === 'health' && <XHealthPanel />}
+      {tab === 'health' && <><XNativeConnectionPanel /><XHealthPanel /></>}
     </section>
   );
 }
