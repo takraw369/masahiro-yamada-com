@@ -19,9 +19,9 @@ test("flashcard screen links from the existing study home and retains six main s
  assert.equal((home.match(/class="study-launch-link"/g) || []).length, 6);
 });
 test("all textbook chapters have unique compact cards", () => {
- assert.equal(cards.length,48);
+ assert.equal(cards.length,69);
  assert.equal(new Set(cards.map(x=>x.id)).size,cards.length);
- for(const category of ["system","receiver","detector","transmitter","calibration"]) {
+ for(const category of ["system","receiver","detector","detail","transmitter","calibration"]) {
   assert.ok(cards.filter(x=>x.group===category).length>=4, category);
  }
  for(const c of cards) {
@@ -45,4 +45,21 @@ test("existing quiz records and symbol card records are not modified by flashcar
  assert.match(page,/id="mask"/);
  assert.match(page,/id="scope"/);
  assert.match(page,/aria-pressed/);
+});
+
+test("photo p168/p187: fixed-temperature increments and air-tube size are exact",()=>{
+ const byId=Object.fromEntries(cards.map(c=>[c.id,c.a]));
+ assert.equal(cards.filter(c=>c.group==="detail").length,21);
+ assert.equal(byId.temp01,"60℃以上150℃以下");
+ assert.equal(byId.temp02,"5℃刻み");
+ assert.equal(byId.temp03,"10℃刻み");
+ assert.match(byId.temp04,/90℃/);
+ assert.match(byId.temp06,/バイメタル.*サーミスタ.*膨張係数/);
+ assert.match(byId.tube01,/20m以上/);
+ assert.equal(byId.tube02,"0.3mm以上");
+ assert.match(byId.tube03,/1\.94mm以上。内径ではない/);
+ assert.match(byId.tube06,/リーク抵抗と接点水高/);
+ assert.match(byId.tube10,/短くなり.*誤報/);
+ assert.ok(page.includes('option value="detail"'));
+ assert.ok(page.includes('new URLSearchParams(window.location.search)'));
 });
