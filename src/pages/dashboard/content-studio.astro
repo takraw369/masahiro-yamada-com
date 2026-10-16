@@ -25,6 +25,7 @@ const intro = intent === 'post' ? ['素材から、投稿をつくる。', '素�
     <a class={intent === 'post' ? 'studio-primary' : 'studio-secondary'} id="source-to-post" href="/dashboard/post" hidden>この素材で投稿の下書きへ</a>
     <button type="button" class={intent === 'article-video' ? 'studio-primary' : 'studio-secondary'} id="copy-creation-brief" disabled>記事・商品企画の制作指示をコピー</button>
    </div>
+   <p id="studio-editor-status" class="studio-note" hidden></p>
    <details class="studio-video-handoff"><summary>動画試作の制作指示</summary>
     <div><strong>VIDEO / 試作へ渡す</strong><p>選んだDrive素材を、台本 → 5〜10秒の縦型T1プレビューへ。まず制作指示をコピーしてCodexで実行します。動画生成・公開はこのボタンだけでは行いません。</p></div>
     <button type="button" class="studio-secondary" id="copy-video-prototype" disabled>動画試作の指示をコピー</button>
@@ -40,6 +41,7 @@ const intro = intent === 'post' ? ['素材から、投稿をつくる。', '素�
     <a class="studio-secondary studio-preview-link" href="#studio-preview">プレビューを見る ↓</a>
     <label>教材の原稿<textarea id="product-body" name="body" rows="16" maxlength="100000" placeholder="見出し・説明・実践・振り返りを編集。構成を作るとここへ入ります。"></textarea></label>
     <div class="studio-editor-actions"><button class="studio-primary" type="submit">教材の下書きを保存</button><button class="studio-secondary" id="download-draft" type="button">原稿を書き出す</button><button class="studio-secondary" id="new-product" type="button">新しい教材を作る</button></div>
+    <p id="studio-save-status" class="studio-note" hidden></p>
     <p class="studio-note">保存先は制作中の教材です。保存だけでは販売・公開されません。</p>
    </form><aside class="studio-reader" id="studio-preview" tabindex="-1"><div class="studio-reader-label">READING PREVIEW</div><h3 id="preview-title">読む人の画面</h3><div id="body-preview"><p>原稿を整えると、ここで読み心地を確認できます。</p></div></aside></div>
    </details>
@@ -61,7 +63,7 @@ const intro = intent === 'post' ? ['素材から、投稿をつくる。', '素�
  const value=(name:string)=>String(new FormData(form).get(name)||'').trim();
  const setValue=(name:string,text:string)=>{const input=form.elements.namedItem(name);if(input instanceof HTMLInputElement||input instanceof HTMLTextAreaElement)input.value=text;};
  const safeUrl=(url:unknown)=>{try{return typeof url==='string'&&new URL(url).protocol==='https:';}catch{return false;}};
- const status=(text:string)=>{const e=byId('studio-status');if(e)e.textContent=text;};
+ const status=(text:string)=>{const e=byId('studio-status');if(e)e.textContent=text;const nearby=byId(document.activeElement?.closest('#product-form')?'studio-save-status':'studio-editor-status');if(nearby){nearby.textContent=text;nearby.hidden=false;}};
  function choose(asset:Asset){
   if(bodyInput.value.trim()&&asset.id!==selected?.id){status('原稿と出典を保持しています。別の教材を作る場合は、保存・書き出しの後に「新しい教材を作る」を選んでください。');return;}
   selected=asset;drawSelected();
