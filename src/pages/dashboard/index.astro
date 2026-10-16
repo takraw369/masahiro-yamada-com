@@ -62,13 +62,10 @@ const deepDoors = [
     <div class="home-create-secondary">
       <a href="/dashboard/content-studio?intent=post">Drive素材から投稿をつくる →</a>
     </div>
-    <details class="home-resume-entry">
-      <summary>つづきから <span aria-hidden="true">＋</span></summary>
-      <nav class="home-create-secondary" aria-label="保存した制作を再開する">
-        <a href="/dashboard/content-studio?view=drafts#saved-drafts">教材の下書きを選ぶ →</a>
-        <a href="/dashboard/content-flow">発信の選択内容を開く →</a>
-      </nav>
-    </details>
+    <nav class="home-create-secondary home-resume-entry" aria-label="保存した制作を再開する">
+      <a href="/dashboard/content-studio?view=drafts#saved-drafts">つづきから · 教材の下書き →</a>
+      <a href="/dashboard/content-flow">発信の選択内容を開く →</a>
+    </nav>
 
     <div class="home-design-indicator" id="home-design-indicator" hidden>
       <span id="home-design-label">表示スタイルを変更中</span>
@@ -216,11 +213,7 @@ const deepDoors = [
   .home-create .home-create-primary{background:var(--preset-ink,#242831);color:var(--preset-paper,#fff)}
   .home-create-secondary{display:flex;flex-wrap:wrap;gap:8px 24px;margin:8px 0 16px}
   .home-create-secondary a{display:inline-flex;align-items:center;min-height:44px;color:var(--preset-ink,#242831);font-size:.875rem;text-underline-offset:4px}
-  .home-resume-entry{margin-bottom:16px;border-bottom:1px solid var(--preset-line,#e4ddd2)}
-  .home-resume-entry>summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;color:var(--preset-ink,#242831);font-size:1rem;list-style:none}
-  .home-resume-entry>summary::-webkit-details-marker{display:none}
-  .home-resume-entry[open]>summary span{transform:rotate(45deg)}
-  .home-resume-entry>summary:focus-visible{outline:3px solid var(--preset-accent,#986525);outline-offset:3px}
+  .home-resume-entry{padding-bottom:8px;border-bottom:1px solid var(--preset-line,#e4ddd2)}
   .home-create a:focus-visible,.home-create-secondary a:focus-visible{outline:3px solid var(--preset-accent,#986525);outline-offset:3px}
   @media(hover:hover){.home-create a:hover{text-decoration:underline;text-underline-offset:4px}}
   @media(max-width:650px){.home-create{grid-template-columns:repeat(2,minmax(0,1fr))}.home-create a{padding:12px}#dashboard-home-shell .date-chip{display:none}}
