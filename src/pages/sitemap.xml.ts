@@ -10,6 +10,7 @@ const routes = [
   '/library',
   '/tips',
   '/mental-check',
+  '/tools/habit-roi/',
   '/trinity',
   '/faq',
   '/contact',
