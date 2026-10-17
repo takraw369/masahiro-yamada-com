@@ -1,0 +1,102 @@
+{
+  "corpus": "synthetic-only",
+  "platform": "darwin",
+  "node": "v24.19.0",
+  "count": 500,
+  "scanMs": 14587,
+  "searchP95Ms": 1.41,
+  "peakRssMiB": 103,
+  "catalogMiB": 1.58,
+  "resume": "PASS",
+  "review": "PASS",
+  "privateViewer": "PASS",
+  "incrementalReuse": 500,
+  "sourceIntegrity": "all generated media and sidecars SHA256 unchanged",
+  "formats": [
+    "JPEG",
+    "HEIC",
+    "MP4",
+    "MOV",
+    "PNG"
+  ],
+  "metadata": "missing/malformed/date-fallback exercised",
+  "confirmedDuplicateGroups": 5,
+  "handoffPlan": "one synthetic item; idempotent; execution disabled",
+  "codecPlayback": "UNVERIFIED (synthetic container labels only)",
+  "realTakeout": "UNVERIFIED",
+  "realEagle": "UNVERIFIED",
+  "eaglePreflight": {
+    "state": "available",
+    "version": "4.0.0",
+    "platform": "darwin",
+    "method": "GET /api/application/info",
+    "libraryRead": false,
+    "writes": 0
+  },
+  "focusedTests": {
+    "passed": 28,
+    "failed": 0,
+    "exfatAppleDoubleRegression": "PASS"
+  },
+  "sourceHashes": {
+    "scripts/media-hub/scanner.mjs": "b8c09e1332529f58f52ce12463f51bf29a83e3cf1999dd347dc6542b6d8319f7",
+    "scripts/media-hub/catalog.mjs": "51a3dc53e336c7bd9927e0c060f41707c3dddd59e0e0e10ef2162bfb20802702",
+    "scripts/media-hub/cli.mjs": "9d2256a5e50027aa525d48209901fec97d989fecfe7a20325c5eb06bd6d110f1",
+    "scripts/media-hub/eagle.mjs": "cb7ea2955b88e1d25ecacae8bc076891b55da2d333423bc2b443d011412e4df3",
+    "scripts/media-hub/canary.mjs": "61d10bdd84e93f53ed19d45973747136b355625b2c6b15edbc6800430d944a77"
+  },
+  "crossRecovery20261017": {
+    "corpus": "synthetic-only",
+    "platform": "darwin",
+    "node": "v24.19.0",
+    "count": 500,
+    "scanMs": 5157,
+    "searchP95Ms": 2.91,
+    "peakRssMiB": 100.6,
+    "catalogMiB": 1.59,
+    "resume": "PASS",
+    "review": "PASS",
+    "privateViewer": "PASS",
+    "incrementalReuse": 500,
+    "sourceIntegrity": "all generated media and sidecars SHA256 unchanged",
+    "formats": [
+      "JPEG",
+      "HEIC",
+      "MP4",
+      "MOV",
+      "PNG"
+    ],
+    "metadata": "missing/malformed/date-fallback exercised",
+    "confirmedDuplicateGroups": 5,
+    "handoffPlan": "one synthetic item; idempotent; execution disabled",
+    "codecPlayback": "UNVERIFIED (synthetic container labels only)",
+    "realTakeout": "UNVERIFIED",
+    "realEagle": "UNVERIFIED",
+    "focusedTests": {
+      "passed": 28,
+      "failed": 0
+    },
+    "eaglePreflight": {
+      "state": "available",
+      "version": "4.0.0",
+      "platform": "darwin",
+      "checkedAt": "2026-10-17T13:48:42.510Z",
+      "method": "GET /api/application/info",
+      "libraryRead": false,
+      "writes": 0
+    },
+    "disk": {
+      "systemBeforeGiBApprox": 1.4,
+      "systemAfterMiBApprox": 727,
+      "externalFreeTiBApprox": 1.6,
+      "scanReserveMiB": 512
+    },
+    "takeoutDiscovery": {
+      "scope": "top-level directory names of mounted external root/Downloads/Pictures/Desktop only",
+      "namedCandidates": 0,
+      "approvedRealSource": false,
+      "realMediaBytesRead": 0
+    },
+    "implementationChanged": false
+  }
+}

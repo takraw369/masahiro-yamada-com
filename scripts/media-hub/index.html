@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MASA Media Hub — ローカル素材台帳</title>
+  <link rel="stylesheet" href="./app.css" />
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header><div class="brand"><span class="brand-icon" aria-hidden="true">◉</span><h1>Media Hub</h1></div><span class="pill">Mac ローカル / 原本は読み取り専用</span></header>
+    <main>
+      <section class="intro"><div><h2>画像・動画を検索</h2><p>ファイル名・フォルダ・説明・確認済みタグから探せます。原本は変更しません。</p><p id="scan-status" role="status">走査状況を確認中...</p></div><div class="stats" id="stats" aria-live="polite"><span>台帳を読み込み中...</span></div></section>
+      <section class="workspace" aria-label="画像・動画一覧"><div class="toolbar"><label class="search"><span>検索</span><input id="search" type="search" autocomplete="off" placeholder="ファイル名・フォルダ・説明から探す" /></label><div class="filters"><label>役割 <select id="category"><option value="">すべて</option><option>KNOWLEDGE</option><option>CREATIVE</option><option>EVIDENCE</option><option>LIFE</option><option>UNSORTED</option></select></label><label>種別 <select id="kind"><option value="">すべて</option><option value="photo">写真</option><option value="video">動画</option></select></label><label class="toggle"><input id="duplicates" type="checkbox" /> 重複候補のみ</label></div></div><div class="heading"><h3>ライブラリ</h3><span id="count" aria-live="polite"></span></div><div id="gallery" class="gallery" aria-live="polite"></div><div class="page-actions"><button id="previous" type="button">前へ</button><span id="page"></span><button id="next" type="button">次へ</button></div></section>
+      <p class="privacy">分類候補はファイル名等からの推定です。内容解析・Eagle取り込み・Googleフォト同期は未実装です。</p>
+    </main>
+  </div>
+</body>
+</html>
