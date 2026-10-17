@@ -175,7 +175,7 @@ export default function XCommandCenter() {
       const completedDraft = currentDraft.current;
       currentDraft.current = null; savedText.current = '';
       if (completedDraft && completedDraft.text === review.text) {
-        try { mergeContentLibrary(localStorage, [completedDraft], [{ ...completedDraft, status: 'sent' }]); refreshDrafts(); }
+        try { mergeContentLibrary(localStorage, [completedDraft], [{ ...completedDraft, status: mode === 'schedule' ? 'scheduled' : 'sent' }]); refreshDrafts(); }
         catch { setDraftNotice('送信は完了しましたが、端末の下書き状態を更新できません。再送せず、投稿・予約一覧で確認してください。'); }
       }
       if (mode === 'schedule') void loadScheduled();
