@@ -1,0 +1,269 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+const compact = Astro.url.searchParams.get('compact') === '1';
+---
+
+<DashboardLayout title="Shared Monitor" eyebrow="MASA OS · MONITOR" focusMode={compact}>
+  <div class="monitor">
+    <header class="monitor-header">
+      <div>
+        <p class="monitor-kicker">MASA OS / SHARED MONITOR</p>
+        <h1>今の状況を、どの端末でも。</h1>
+        <p class="monitor-note">Web・Mac・iPhoneが同じ共有データを参照する閲覧専用モニターです。</p>
+      </div>
+      <div class="monitor-actions">
+        <button id="monitor-refresh" type="button">更新を確認</button>
+        <a href={compact ? '/dashboard/monitor' : '/dashboard/monitor?compact=1'}>{compact ? '通常表示' : 'コンパクト表示'}</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </header>
+
+    <div class="monitor-connection" role="status" aria-live="polite">
+      <span id="monitor-state">共有データを確認中…</span>
+      <span id="monitor-checked">更新確認前</span>
+    </div>
+
+    <section class="monitor-grid" aria-label="共有タスクの状況">
+      <article class="monitor-stat"><span>NOW / 優先</span><strong id="monitor-now">—</strong><small>現在進行中</small></article>
+      <article class="monitor-stat"><span>NEXT / 次</span><strong id="monitor-next">—</strong><small>次に進める</small></article>
+      <article class="monitor-stat"><span>HUMAN GATE</span><strong id="monitor-gates">—</strong><small>本人の判断待ち</small></article>
+      <article class="monitor-stat"><span>WAIT / 停滞</span><strong id="monitor-wait">—</strong><small>外部待ち・停止</small></article>
+      <article class="monitor-stat"><span>REVIEW / 確認</span><strong id="monitor-review">—</strong><small>検証や確認待ち</small></article>
+    </section>
+
+    <div class="monitor-columns">
+      <section class="monitor-card" aria-labelledby="monitor-priority-title">
+        <div class="monitor-card-head">
+          <div><p class="monitor-kicker">EXECUTE</p><h2 id="monitor-priority-title">今日の一手</h2></div>
+          <a href="/dashboard/tasks">Task Flow ↗</a>
+        </div>
+        <ul class="monitor-list" id="monitor-priority-list"><li>共有タスクを確認中…</li></ul>
+      </section>
+
+      <section class="monitor-card" aria-labelledby="monitor-gate-title">
+        <div class="monitor-card-head">
+          <div><p class="monitor-kicker">DECIDE</p><h2 id="monitor-gate-title">判断・詰まり</h2></div>
+          <a href="/dashboard/pipeline">Pipeline ↗</a>
+        </div>
+        <ul class="monitor-list" id="monitor-gate-list"><li>共有タスクを確認中…</li></ul>
+      </section>
+
+      <section class="monitor-card monitor-revenue" aria-labelledby="monitor-revenue-title">
+        <div class="monitor-card-head">
+          <div><p class="monitor-kicker">FIRST PRODUCT / SHARED FLOW BOARD</p><h2 id="monitor-revenue-title">商品化の現在地</h2></div>
+          <a href="/dashboard#revenue-mission">編集画面 ↗</a>
+        </div>
+        <p class="monitor-stage" id="monitor-revenue-state">共有FLOW Boardを確認中…</p>
+        <p class="monitor-secondary" id="monitor-revenue-revision"></p>
+        <h3>次の一手</h3>
+        <p class="monitor-next-action" id="monitor-revenue-next">確認中…</p>
+        <p class="monitor-caution">※ 実売上の自動集計ではありません。商品進捗と証跡の登録状態です。</p>
+      </section>
+
+      <section class="monitor-card" aria-labelledby="monitor-door-title">
+        <div class="monitor-card-head"><div><p class="monitor-kicker">QUICK ACCESS</p><h2 id="monitor-door-title">すぐ開く</h2></div></div>
+        <nav class="monitor-links" aria-label="主要機能">
+          <a href="/dashboard/github-issues">GitHub / Agent・PR・CI ↗</a>
+          <a href="/dashboard/treasury">Treasury / 資金 ↗</a>
+          <a href="/dashboard/schedule">Calendar / 予定 ↗</a>
+          <a href="/mind?action=capture">Capture / 残す ↗</a>
+        </nav>
+        <p class="monitor-caution">他端末で変更した情報は再取得後に反映。閲覧専用・60秒ごとと画面復帰時に再確認します。</p>
+      </section>
+    </div>
+    <p class="monitor-footer">Drive = 知識・方針の正本 / Supabase = 共有状態 / MASA OS = 表示と操作。オフラインでは最新状態を保証しません。</p>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { getRevenueMission, getRevenueReadiness } from '../../lib/revenueMission';
+
+  type Task = {
+    taskId?: string;
+    task?: string | null;
+    project?: string | null;
+    status?: string | null;
+    nextAction?: string | null;
+    executionLane?: string | null;
+    dueDate?: string | null;
+  };
+  type TaskResponse = { ok: boolean; items?: Task[] };
+  type BoardResponse = { ok: boolean; data?: { revision: number; snapshot: { nodes: unknown[]; edges: unknown[] } | null } };
+
+  const element = (id: string) => document.getElementById(id);
+  const label = (id: string, value: string) => {
+    const node = element(id);
+    if (node) node.textContent = value;
+  };
+  const isOpen = (task: Task) => task.status !== 'DONE';
+  const isGate = (task: Task) => task.executionLane === 'MASA_GATE' && isOpen(task);
+
+  async function readShared<T extends { ok: boolean }>(path: string): Promise<T> {
+    const response = await fetch(path, { credentials: 'same-origin', cache: 'no-store' });
+    if (response.status === 401) throw new Error('セッション期限切れ。Dashboardから再ログインしてください。');
+    if (!response.ok) throw new Error('共有データ取得に失敗しました (' + response.status + ')');
+    const payload = await response.json() as T;
+    if (!payload || payload.ok !== true) throw new Error('共有データを確認できません。');
+    return payload;
+  }
+
+  function renderList(id: string, tasks: Task[], empty: string) {
+    const list = element(id);
+    if (!list) return;
+    list.replaceChildren();
+    if (!tasks.length) {
+      const item = document.createElement('li');
+      item.textContent = empty;
+      list.append(item);
+      return;
+    }
+    for (const task of tasks.slice(0, 5)) {
+      const item = document.createElement('li');
+      const name = document.createElement('strong');
+      name.textContent = task.task || '無題タスク';
+      item.append(name);
+      const detail = [task.project, task.nextAction, task.dueDate ? '期限 ' + task.dueDate : null]
+        .filter(Boolean).join(' · ');
+      if (detail) {
+        const small = document.createElement('span');
+        small.textContent = detail;
+        item.append(small);
+      }
+      list.append(item);
+    }
+  }
+
+  function renderTasks(payload: TaskResponse) {
+    if (!Array.isArray(payload.items)) throw new Error('タスク一覧の形式が不正です。');
+    const tasks = payload.items;
+    const now = tasks.filter(task => task.status === 'NOW');
+    const next = tasks.filter(task => task.status === 'NEXT');
+    const gates = tasks.filter(isGate);
+    const wait = tasks.filter(task => task.status === 'WAIT');
+    const review = tasks.filter(task => task.status === 'REVIEW');
+    label('monitor-now', String(now.length));
+    label('monitor-next', String(next.length));
+    label('monitor-gates', String(gates.length));
+    label('monitor-wait', String(wait.length));
+    label('monitor-review', String(review.length));
+    renderList('monitor-priority-list', [...now, ...next].slice(0, 5), 'NOW・NEXT の共有タスクはありません。');
+    renderList('monitor-gate-list', [...gates, ...wait.filter(task => !isGate(task)), ...review.filter(task => !isGate(task))], '判断・停滞・確認待ちはありません。');
+  }
+
+  function markTaskUnavailable() {
+    for (const id of ['monitor-now', 'monitor-next', 'monitor-gates', 'monitor-wait', 'monitor-review']) label(id, '—');
+    renderList('monitor-priority-list', [], 'タスクを取得できません。表示は未確認です。');
+    renderList('monitor-gate-list', [], '判断待ちを取得できません。表示は未確認です。');
+  }
+
+  function renderRevenue(payload: BoardResponse) {
+    const data = payload.data;
+    if (!data || !Number.isSafeInteger(data.revision) || data.revision < 0) throw new Error('FLOW Boardの共有状態を確認できません。');
+    if (data.revision === 0 && !data.snapshot) {
+      label('monitor-revenue-state', '共有保存前');
+      label('monitor-revenue-revision', 'リビジョン 0');
+      label('monitor-revenue-next', 'Dashboardで商品進捗の共有保存状態を確認する。');
+      return;
+    }
+    if (!data.snapshot || !Array.isArray(data.snapshot.nodes) || !Array.isArray(data.snapshot.edges)) {
+      throw new Error('FLOW Boardの形式を確認できません。');
+    }
+    const mission = getRevenueMission(data.snapshot);
+    label('monitor-revenue-revision', '共有リビジョン ' + data.revision);
+    if (!mission) {
+      label('monitor-revenue-state', '商品進捗は未登録');
+      label('monitor-revenue-next', 'Dashboardで商品進捗の保存を確認する。');
+      return;
+    }
+    const readiness = getRevenueReadiness(mission);
+    label('monitor-revenue-state', mission.state + ' · READY ' + readiness.complete + '/' + readiness.total);
+    label('monitor-revenue-next', readiness.nextAction);
+  }
+
+  let busy = false;
+  async function refresh() {
+    if (busy) return;
+    busy = true;
+    const button = element('monitor-refresh') as HTMLButtonElement | null;
+    if (button) button.disabled = true;
+    label('monitor-state', '共有データを確認中…');
+    const [taskResult, revenueResult] = await Promise.allSettled([
+      readShared<TaskResponse>('/api/dashboard/task-execution?limit=300'),
+      readShared<BoardResponse>('/api/dashboard/board?scene=main'),
+    ]);
+    const failures: string[] = [];
+    try {
+      if (taskResult.status === 'fulfilled') renderTasks(taskResult.value);
+      else throw taskResult.reason;
+    } catch (error) {
+      markTaskUnavailable();
+      failures.push(error instanceof Error ? error.message : 'タスク取得不可');
+    }
+    try {
+      if (revenueResult.status === 'fulfilled') renderRevenue(revenueResult.value);
+      else throw revenueResult.reason;
+    } catch (error) {
+      label('monitor-revenue-state', '未確認');
+      label('monitor-revenue-revision', '');
+      label('monitor-revenue-next', '共有FLOW Boardを取得できません。');
+      failures.push(error instanceof Error ? error.message : '商品進捗取得不可');
+    }
+    label('monitor-state', failures.length ? '一部または全体が未確認：' + failures.join(' / ') : '共有データを確認済み');
+    label('monitor-checked', '確認時刻 ' + new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date()) + ' JST');
+    if (button) button.disabled = false;
+    busy = false;
+  }
+
+  element('monitor-refresh')?.addEventListener('click', () => { void refresh(); });
+  window.addEventListener('focus', () => { if (document.visibilityState === 'visible') void refresh(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void refresh(); });
+  window.setInterval(() => { if (document.visibilityState === 'visible') void refresh(); }, 60_000);
+  void refresh();
+</script>
+
+<style>
+  .monitor { max-width: 1180px; margin: 0 auto; color: var(--text-primary); }
+  .monitor-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-default); }
+  .monitor-kicker { color: var(--gold-muted); font-size: .67rem; letter-spacing: .1em; font-weight: 700; }
+  .monitor-header h1 { margin: 6px 0 9px; font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.4; }
+  .monitor-note,.monitor-secondary,.monitor-caution,.monitor-footer { color: var(--text-muted); font-size: .77rem; line-height: 1.7; }
+  .monitor-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .monitor-actions a,.monitor-actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-default); background: #fff; color: #784e18; text-decoration: none; font: inherit; font-size: .77rem; cursor: pointer; }
+  .monitor-actions button { background: #754a16; color: #fff; }
+  .monitor-actions button:disabled { opacity: .6; cursor: wait; }
+  .monitor-connection { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 13px 0 16px; color: var(--text-muted); font-size: .76rem; overflow-wrap: anywhere; }
+  .monitor-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 10px; }
+  .monitor-stat,.monitor-card { background: #fff; border: 1px solid var(--border-default); border-radius: 9px; min-width: 0; }
+  .monitor-stat { padding: 15px; display: flex; flex-direction: column; }
+  .monitor-stat span { color: #78511f; font-size: .72rem; font-weight: 700; }
+  .monitor-stat strong { font-size: clamp(1.7rem,3vw,2.3rem); line-height: 1.4; font-variant-numeric: tabular-nums; }
+  .monitor-stat small { color: var(--text-muted); font-size: .7rem; }
+  .monitor-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 14px; }
+  .monitor-card { padding: 19px; }
+  .monitor-card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .monitor-card h2 { margin: 5px 0 0; font-size: 1.1rem; }
+  .monitor-card h3 { margin: 20px 0 6px; font-size: .82rem; }
+  .monitor-card-head > a { color: #78511f; font-size: .75rem; padding: 8px 0; text-decoration: underline; }
+  .monitor-list { margin: 17px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .monitor-list li { padding: 11px 0 0; border-top: 1px solid #ebe7e1; line-height: 1.6; font-size: .82rem; overflow-wrap: anywhere; }
+  .monitor-list strong { display: block; }
+  .monitor-list span { display: block; margin-top: 3px; color: var(--text-muted); font-size: .74rem; }
+  .monitor-stage { margin-top: 19px; font-weight: 700; font-size: 1rem; }
+  .monitor-next-action { font-size: .85rem; line-height: 1.75; }
+  .monitor-caution { margin-top: 18px; }
+  .monitor-links { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+  .monitor-links a { display: flex; align-items: center; min-height: 50px; border: 1px solid #e2ded7; background: #fbfaf8; padding: 12px; font-size: .75rem; text-decoration: none; color: #744b18; }
+  .monitor-footer { margin: 24px 0 10px; }
+  @media (max-width: 1050px) { .monitor-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+  @media (max-width: 700px) {
+    .monitor-header { display: block; }
+    .monitor-actions { margin-top: 15px; }
+    .monitor-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .monitor-columns { grid-template-columns: 1fr; }
+    .monitor-stat { padding: 12px; }
+    .monitor-card { padding: 15px; }
+    .monitor-links { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 360px) { .monitor-actions a,.monitor-actions button { flex: 1; } }
+</style>

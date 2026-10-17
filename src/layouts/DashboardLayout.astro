@@ -29,7 +29,9 @@ const defaultAppMeta = {
   appleTitle: 'MASA OS',
 };
 const appMeta =
-  pathname === '/dashboard/post' || pathname.startsWith('/dashboard/post/')
+  pathname === '/dashboard/monitor' || pathname.startsWith('/dashboard/monitor/')
+    ? { manifest: '/monitor.webmanifest', icon: '/app-icons/masa-os-512.png', appleTitle: 'MONITOR' }
+    : pathname === '/dashboard/post' || pathname.startsWith('/dashboard/post/')
     ? { manifest: '/post.webmanifest', icon: '/app-icons/post-512.png', appleTitle: 'POST' }
     : pathname === '/dashboard/intelligence' || pathname.startsWith('/dashboard/intelligence/')
       ? { manifest: '/intel.webmanifest', icon: '/app-icons/intel-512.png', appleTitle: 'INTEL' }
@@ -39,6 +41,7 @@ const appMeta =
 
 const coreLinks = [
   { href: '/dashboard', label: 'Today', purpose: '今やること', kind: 'today' },
+  { href: '/dashboard/monitor', label: 'Monitor', purpose: 'Mac・iPhoneから確認', kind: 'monitor' },
   { href: '/mind?action=capture', label: 'Capture', purpose: '残す', kind: 'capture' },
   { href: '/dashboard#output', label: 'Output', purpose: '外へ出す', kind: 'output' },
   { href: '/mind?view=review', label: 'Review', purpose: '再会する', kind: 'review' },
@@ -98,7 +101,8 @@ function isToolActive(href: string): boolean {
   return pathname === route || pathname.startsWith(`${route}/`);
 }
 function isCoreActive(kind: string): boolean {
-  return kind === 'today' && (pathname === '/dashboard' || pathname === '/dashboard/');
+  return (kind === 'today' && (pathname === '/dashboard' || pathname === '/dashboard/'))
+    || (kind === 'monitor' && (pathname === '/dashboard/monitor' || pathname.startsWith('/dashboard/monitor/')));
 }
 const toolsActive = toolGroups.some(group => group.items.some(item => isToolActive(item.href)));
 const commandItems = [
@@ -325,7 +329,7 @@ const commandItems = [
     </div>
 
     <dialog class="mobile-nav" id="dashboard-mobile-nav" aria-labelledby="mobile-nav-title">
-      <div class="brand mobile-brand"><div><h2 class="brand-title" id="mobile-nav-title">MASA OS</h2><p class="brand-sub">4 core doors + more tools</p></div><button class="close-button" type="button" data-nav-close aria-label="ナビゲーションを閉じる" autofocus>×</button></div>
+      <div class="brand mobile-brand"><div><h2 class="brand-title" id="mobile-nav-title">MASA OS</h2><p class="brand-sub">5 core doors + more tools</p></div><button class="close-button" type="button" data-nav-close aria-label="ナビゲーションを閉じる" autofocus>×</button></div>
       <nav class="nav" aria-label="モバイル Dashboard ナビゲーション">
         <div class="core-nav">
           {coreLinks.map(item => <a href={item.href} class:list={['core-link', { active: isCoreActive(item.kind) }]}><strong>{item.label}</strong><small>{item.purpose}</small></a>)}

@@ -1,0 +1,31 @@
+{
+  "id": "/dashboard/monitor",
+  "name": "MASA MONITOR — Shared Command View",
+  "short_name": "MONITOR",
+  "description": "Read-only shared status view for Mac, web and iPhone.",
+  "start_url": "/dashboard/monitor",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f1ed",
+  "theme_color": "#f3f1ed",
+  "icons": [
+    {
+      "src": "/app-icons/masa-os-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Full Dashboard",
+      "short_name": "Dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "name": "Compact View",
+      "short_name": "Compact",
+      "url": "/dashboard/monitor?compact=1"
+    }
+  ]
+}

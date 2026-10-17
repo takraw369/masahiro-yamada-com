@@ -24,6 +24,11 @@
       "url": "/dashboard/apps"
     },
     {
+      "name": "Shared Monitor",
+      "short_name": "Monitor",
+      "url": "/dashboard/monitor"
+    },
+    {
       "name": "Capture",
       "short_name": "Capture",
       "url": "/mind?action=capture"
