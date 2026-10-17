@@ -7,7 +7,15 @@ Google Photos is MASA's primary library: personal life photos, screenshots, desi
 
 As of March 31, 2025 the official Google Photos Library API cannot read/edit the user's entire pre-existing library. Picker API works for user-selected media. The goal of Google Photos-side write-back remains gated; do not promise automatic two-way synchronization.
 
-## Start on a Mac (Node 22+)
+## One-command Mac launcher (Node 22+)
+
+After extracting Google Takeout, open Terminal from the checked-out repository and run:
+
+    node scripts/media-hub/mac-start.mjs
+
+This opens a native folder picker, scans **up to 500 media files** read-only, writes a private report to `~/Library/Application Support/MASA-Media-Hub/`, starts the loopback-only viewer, and opens Safari/default browser. To intentionally scan every supported item, use `node scripts/media-hub/mac-start.mjs --full`. A real Takeout sample and macOS launching behavior still require on-device testing.
+
+## Start on a Mac (manual mode, Node 22+)
 
 1. Export a small representative Google Photos album or period via https://takeout.google.com/ and unzip it **locally**. Google Photos originals stay unchanged.
 2. Use the actual extracted path, not the example path below:
