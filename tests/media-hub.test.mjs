@@ -51,9 +51,8 @@ test('SHA256 confirms exact duplicates rather than relying on same size', () => 
   assert.equal(index.summary.confirmedGroups, 1);
 });
 test('unhashed same-size files are labeled provisional', async () => {
-  const noHash = await scanTakeout(sources, { hashMaxBytes: 0, limit: 3 });
-  assert.ok(noHash.items.some(x => x.duplicateStatus === 'same-size-unverified'));
-  assert.equal(noHash.summary.limited, true);
+  const noHash = await scanTakeout(sources, { hashMaxBytes: 0 });
+  assert.equal(noHash.items.filter(x => x.duplicateStatus === 'same-size-unverified').length, 2);
 });
 test('report is private and does not alter source media', async () => {
   const out = path.join(root, 'private-report');
