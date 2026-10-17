@@ -31,6 +31,7 @@ const routes: Array<{ route: string; cockpit: DashboardCockpit }> = [
   { route: '/dashboard/schedule', cockpit: { see: '予定・制約・空白', decide: '時間をどこへ配るか', act: '次の予定を確定する' } },
   { route: '/dashboard/content-flow', cockpit: { see: 'Journey・Core・Where・CTA・反応', decide: '次に出す1本と次の状態変化', act: 'ScheduleかDraftへ送る' } },
   { route: '/dashboard/profile-import', cockpit: { see: '入力文・抽出候補・確度', decide: '何をプロフィールに採用するか', act: '確認済み項目だけ反映する' } },
+  { route: '/dashboard/kei-portfolio', cockpit: { see: '依頼できる能力・状態・目的', decide: '今頼む機能を選ぶ', act: '依頼文をコピーして慧に渡す' } },
   { route: '/dashboard/ai-commands', cockpit: { see: '目的・使える指示・対象', decide: '今使う思考モード', act: 'カードを選びPromptを確定する' } },
   { route: '/dashboard/post', cockpit: { see: '素材・目的・CTA', decide: '今出す1本', act: '下書きからHuman Gateへ' } },
   { route: '/dashboard/visual-prompt', cockpit: { see: '用途・画・感情', decide: '伝える構図', act: '生成用Promptを確定する' } },
