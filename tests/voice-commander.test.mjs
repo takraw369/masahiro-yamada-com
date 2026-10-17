@@ -16,7 +16,7 @@ test('Japanese voice routing is bounded and deterministic', () => {
 
 test('capture never saves a bare imperative as a knowledge item', () => {
   assert.deepEqual(routeVoiceCommand('慧、これ覚えて'), { kind: 'capture', text: '' });
-  assert.deepEqual(routeVoiceCommand('覚えて：身体感覚を言語化する'), { kind: 'capture', text: '：身体感覚を言語化する' });
+  assert.deepEqual(routeVoiceCommand('覚えて：身体感覚を言語化する'), { kind: 'capture', text: '身体感覚を言語化する' });
 });
 
 test('voice composer is owner-gated and routes only through existing APIs', async () => {
