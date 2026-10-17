@@ -1,60 +1,104 @@
-# MASA Media Hub — Mac-first media inventory P0
+# MASA Media Hub — Mac-first local inventory
 
-Status: **Feature-branch prototype; not deployed; no Google Photos or Eagle sync.**
+Status: **Draft PR #374; not deployed or merged.** Local metadata catalog and review; Google Photos originals remain read-only. This extends the existing Media Hub, not a second MASA OS or mobile capture system. IMAGE_ASSET_OS / VIDEO OS / CONTENT_OS in Drive remain canonical; reuse #216 Playground for deliberate Knowledge/Content capture. This catalog is not uploaded to the Dashboard, Drive or an AI provider.
 
-## Intent
-Google Photos is MASA's primary library: personal life photos, screenshots, design references and athlete history are mixed together. This P0 adds a **local read-only index and gallery** from an *extracted Google Takeout export*, so no bulk data is uploaded to GitHub, MASA Dashboard, or an AI provider.
+## Mac pilot (Node 22.18+)
 
-As of March 31, 2025 the official Google Photos Library API cannot read/edit the user's entire pre-existing library. Picker API works for user-selected media. The goal of Google Photos-side write-back remains gated; do not promise automatic two-way synchronization.
+```sh
+node scripts/media-hub/mac-start.mjs
+```
 
-## One-command Mac launcher (Node 22+)
+Choose an **extracted** Takeout directory. Default: first 500 supported media in deterministic path order. Reports are private, source-specific directories under `~/Library/Application Support/MASA-Media-Hub/`. Existing sources are never renamed, moved, deleted, re-encoded or uploaded. ZIP input is not supported.
 
-After extracting Google Takeout, open Terminal from the checked-out repository and run:
+Use explicit paths for reproducible canaries (examples are placeholders):
 
-    node scripts/media-hub/mac-start.mjs
+```sh
+node scripts/media-hub/cli.mjs scan "/path/to/Takeout/Google Photos" --out "/path/to/private/report" --limit 500
+node scripts/media-hub/cli.mjs status "/path/to/private/report/media-index.sqlite"
+node scripts/media-hub/cli.mjs audit "/path/to/private/report/media-index.sqlite" --limit 100
+node scripts/media-hub/cli.mjs serve "/path/to/private/report/media-index.sqlite"
+```
 
-This opens a native folder picker, scans **up to 500 media files** read-only, writes a private report to `~/Library/Application Support/MASA-Media-Hub/`, starts the loopback-only viewer, and opens Safari/default browser. To intentionally scan every supported item, use `node scripts/media-hub/mac-start.mjs --full`. A real Takeout sample and macOS launching behavior still require on-device testing.
+The viewer uses the same existing local gallery, random per-session URL and loopback binding. Never share the session URL or private catalog. Absolute source root and database are not served. HEIC/TIFF and some video codecs depend on browser support; thumbnails, transcoding, OCR, duration extraction and semantic/vision search remain **unimplemented**.
 
-## Start on a Mac (manual mode, Node 22+)
+## Resume / incremental scans
 
-1. Export a small representative Google Photos album or period via https://takeout.google.com/ and unzip it **locally**. Google Photos originals stay unchanged.
-2. Use the actual extracted path, not the example path below:
+Ctrl+C or SIGTERM checkpoints the current scan. Continue with the same source and report directory:
 
-    node scripts/media-hub/cli.mjs scan "/Volumes/takraw555/Takeout/Google Photos" --out "/Volumes/takraw555/MASA-Media-Hub-Private" --limit 500
-    node scripts/media-hub/cli.mjs serve "/Volumes/takraw555/MASA-Media-Hub-Private/media-index.json"
+```sh
+node scripts/media-hub/cli.mjs scan "/path/to/Takeout/Google Photos" --out "/path/to/private/report" --resume --limit 0
+```
 
-3. Open the printed **http://127.0.0.1/...** URL in the same Mac's browser. Ctrl+C stops the server.
+`--limit` is the total media count for this scan, not an additional batch size. `--limit 0` intentionally opts into the complete extracted source. Mac picker equivalent: `mac-start.mjs --resume --full`. After a completed scan, omit `--resume` to incrementally rescan: unchanged file fingerprints reuse SHA256; metadata edits are re-read and manual classifications survive. Missing files are retained internally with their reviews, counted as missing after a full completed scan and omitted from normal search. Partial scans do not prove absence.
 
-The sample paths are illustrative; local directories have NOT been verified. Only unpacked Takeout directories are supported, not ZIP input. Omit --limit after the pilot; use --no-hash for faster scanning if same-sized files may remain unverified duplicates.
+A hard kill/power loss may leave `media-index.sqlite.scan.lock`. After **verifying no scanner is running**, remove only that lock inside the private report directory, then `--resume`. Never remove the catalog or originals for recovery. Do not run concurrent scanners against one catalog. A different source requires a different report directory.
 
-## Implemented
-- Recursive read-only scan of photos/videos, no symlinks, no source rename/move/delete.
-- Exact supported Takeout sidecar names: <filename>.json and <filename>.supplemental-metadata.json.
-- Capture-time metadata where present; otherwise **file mtime clearly labeled as fallback**.
-- Export-supplied photos.google.com URL recorded only as **unverified**, not a guaranteed durable link.
-- Heuristic LIFE / KNOWLEDGE / CREATIVE / EVIDENCE suggestions; UNSORTED if uncertain. Image-content AI recognition is NOT implemented.
-- SHA256 exact duplicates among same-size candidates <=128MB; larger same-size candidates remain unverified.
-- File-count/size summary, mobile-responsive local gallery with filename/description search, filters, paginated cards, manual video-preview click and a duplicate filter.
-- Private JSON report file (0600) and directory (0700); random per-session URL token; HTTP bound strictly to 127.0.0.1; no remote CDN or network ingestion; no Eagle or Google credentials.
+SQLite keeps traversal tasks, metadata and the trigram search index on disk. Discovery batches hold at most 256 records; search returns at most 72 records. A single very large folder is enumerated fully to establish deterministic order and metadata matches before its media is scanned; a 500-item pilot therefore does not promise only 500 sidecar reads. Sidecar reads are capped at 2 MiB. SQLite cache is 8 MiB, database limit approximately 2 GiB, free-space floor 64 MiB; sorting uses disk. These bound application buffers, not a fixed process RSS. Hashing is sequential, 256 KiB stream buffers, at most 128 MiB per file and **1 GiB total per invocation** by default. `--no-hash` or `--hash-budget-mb 256` lowers that work; unverified equal sizes remain candidates. No near-duplicate recognition is claimed.
 
-## Gaps / non-goals at P0
-- No Google Photos OAuth, existing album changes, deletions, or claims of synchronization.
-- No Eagle API calls yet; this is a safe prerequisite for verified bookmark linking.
-- No persistent user-edited tags, OCR, embeddings, video transcription, incremental resume, bulk archive reading, AI facial processing, or full 100K-file performance claims.
-- Google Takeout sometimes truncates filenames and varies sidecar naming; unmatched metadata deliberately falls back to file timestamps. When different albums contain duplicates, exact file hashes are not identical Google Photos IDs.
-- Previews of HEIC, TIFF, MOV and unusual video codecs depend on browser support.
-- Index root path and filenames are private and must not be checked into GitHub or uploaded to public services.
+## Classification and retrieval
 
-## Next engineering slices
-1. P0.2: real small Takeout pilot on MASA's Mac, performance profiling and improved sidecar matching; make scan resumable, add human-review tags and evidence.
-2. P0.3: Mac-only authenticated Eagle adapter on one user-selected asset. The app must not expose Eagle token to a public website. Confirm any Google Photos URL before creating bookmarks; otherwise use approved local file handoff.
-3. P1: Google Photos **native-action review queue** for existing files, with manual confirmation rather than false 'synced' status; direct API changes only for app-created items.
-4. P2: reuse existing #216 mobile Share Sheet / private Playground rather than constructing duplicate Inbox or mobile-first architecture.
+```sh
+node scripts/media-hub/cli.mjs query "/path/to/private/report/media-index.sqlite" --q "研究資料"
+node scripts/media-hub/cli.mjs review "/path/to/private/report/media-index.sqlite" --id ITEM_ID --category KNOWLEDGE --priority A --tags "論文,参考画像" --project "MASA OS" --privacy PRIVATE --rights REVIEW_REQUIRED
+node scripts/media-hub/cli.mjs query "/path/to/private/report/media-index.sqlite" --priority A
+```
 
-## Verify
-Run: node --test tests/media-hub.test.mjs
+LIFE / KNOWLEDGE / CREATIVE / EVIDENCE are filename/folder **suggestions**, otherwise UNSORTED. S/A/B/C, tags, project/topic, privacy, rights and useStatus are manually reviewed fields stored only in the private catalog. Reviews override suggestions and enter search immediately; the current gallery is still read-only, so corrections use the CLI. Japanese substring search uses trigram FTS for 3+ characters and SQL substring matching for shorter terms. This searches text metadata, not image meaning. Reviews and handoff receipts must be backed up with the database before rebuilding it.
 
-Repository-level suite: npm test
-GitHub: #373 MASA Media Hub; #216 Mobile Capture Bridge.
+## Metadata / audit contract
 
-Guardrail: private media never leaves the device, no automatic delete/share/post/deploy, and no unconditional 2-way Google Photos sync.
+- Exact `<filename>.json` and `<filename>.supplemental-metadata.json`; explicit duplicate variant `photo.jpg(1).json` for `photo(1).jpg`.
+- Truncated filenames matched only by an exact, unique sidecar title within the same folder. Ambiguous titles stay unmatched. Edited-file mappings are not guessed.
+- Valid capture timestamp, then creation timestamp, then file mtime; the actual selected date source is stored. Invalid timestamp text never earns a Takeout date label.
+- Folder context is recorded separately. Album membership is claimed only when that folder's `metadata.json` contains exported album title/access evidence. A year folder alone is not an album claim.
+- Audit reports include missing/ambiguous/unmatched or malformed/oversized sidecars, unsupported files, skipped symlinks, read/hash/directory failures. Private relative paths appear only in local audit output. A successful scan can still have audit findings requiring review.
+- Exact SHA256 proof is distinct from same-size candidates. Cached hashes are invalidated by source fingerprint changes; failures do not become proof. Hash equality is not a Google Photos media ID.
+- Export-supplied Photos links remain **unverified**. No transient Picker baseUrl is persisted as a durable source link.
+
+## Synthetic Mac verification
+
+One command, no private archive needed:
+
+```sh
+node scripts/media-hub/canary.mjs
+# Optional scale check (synthetic files + sidecars only):
+node scripts/media-hub/canary.mjs --count 10000
+node --test tests/media-hub*.test.mjs
+```
+
+The canary retains only its own synthetic temp fixture/report and prints timing, peak RSS, search latency, permissions/API/review/resume evidence. It is **not real Takeout or Eagle acceptance**. Real corpus throughput, macOS folder-picker interaction, HEIC/codec playback and private-library metadata variants remain UNVERIFIED until an approved representative export is checked.
+
+## Google Photos reflection boundary
+
+[Official scope change](https://developers.google.com/photos/support/updates): since March 31, 2025 Library API lists/searches/edits only app-created content. [Picker](https://developers.google.com/photos/picker/guides/get-started-picker) is user selection, not unattended whole-library enumeration. Do not re-upload originals to bypass this restriction or claim two-way sync.
+
+Existing-media actions must be proposals with `proposed → opened → manually-confirmed → completed` (or skipped/error); opening a link is not evidence of a change. Direct official writes, OAuth scopes and native UI assistance are separate future work requiring meaningful value and approval. There is no Google Photos write transport in this implementation.
+
+## Human gates / remaining acceptance
+
+No merge, production deploy, original deletion/move, Google Photos changes, external personal-photo transmission or public local-media exposure without specific approval. Eagle handoff must use official APIs, one manually selected asset first, without editing internal library files. No live import is accepted until the real small Takeout canary and Eagle receipt are observed. See Issue #373 and `docs/checkpoints/media-hub-20261017.md` for fresh evidence and the next verifiable action.
+
+## Eagle connection and preparation (no live writes yet)
+
+Eagle 4.0.0 is installed on the checked Mac; its localhost API was unavailable during initial checks. `eagle-check` calls only the documented [application info](https://api.eagle.cool/application/info) endpoint on `127.0.0.1:41595`. It returns availability/version/platform and strips executable paths and raw errors. There is no browser credential or remote endpoint override. Authentication-required responses stay explicit; credential setup is not guessed.
+
+```sh
+node scripts/media-hub/cli.mjs eagle-check
+node scripts/media-hub/cli.mjs eagle-prepare "/path/to/private/report/media-index.sqlite" --id ITEM_ID --mode local-original --approve-local-copy
+node scripts/media-hub/cli.mjs eagle-queue "/path/to/private/report/media-index.sqlite"
+```
+
+Preparation requires reviewed priority/privacy/rights and an unchanged source fingerprint. It creates a durable, idempotent **pending plan**, with bytes-to-copy estimate and a source-specific marker for future receipt reconciliation. `--approve-local-copy` selects that one original for the plan; it does not execute a copy. `executionEnabled` is always false. No Eagle POST, library mutation or duplicate full-resolution storage occurs in this iteration. Stale plans must be re-prepared after source/review changes.
+
+A bookmark plan instead uses `--mode bookmark --verified-url "https://photos.google.com/photo/VERIFIED_ID"`. The supplied URL must be manually verified by the user, exactly match the exported source URL, and have no query/fragment/credentials; temporary media URLs are rejected. The plan targets the documented [Plugin API `eagle.item.addBookmark`](https://developer.eagle.cool/plugin-api/api/item#atulp), which supports bookmarks; no nonexistent HTTP bookmark endpoint is invented. A local-original plan records the documented [HTTP `addFromPath`](https://api.eagle.cool/item/add-from-path). Its success response lacks an item ID, so a future write adapter must reconcile the marker through bounded item queries and persist a real receipt. A timeout must never trigger a blind second import. That executor, retry/reconciliation and a real Eagle receipt remain **unimplemented** until a real canary and single-item review.
+
+## Local Google Photos action proposals
+
+```sh
+node scripts/media-hub/cli.mjs photos-propose "/path/to/private/report/media-index.sqlite" --id ITEM_ID --action add-to-album --note "Review album in native Photos"
+node scripts/media-hub/cli.mjs photos-transition "/path/to/private/report/media-index.sqlite" --id PROPOSAL_ID --state opened
+node scripts/media-hub/cli.mjs photos-transition "/path/to/private/report/media-index.sqlite" --id PROPOSAL_ID --state manually-confirmed --confirmation "I checked the album in Photos"
+node scripts/media-hub/cli.mjs photos-transition "/path/to/private/report/media-index.sqlite" --id PROPOSAL_ID --state completed
+```
+
+These commands only record the user's manual report in the same private database. They do not open links or change Photos. Supported proposal types: add-to-album, favorite, archive, review-metadata; deletion is excluded. `opened` cannot transition directly to `completed`. A nonempty manual confirmation is required, retained as `manual-user-report-only`, never API sync proof. Skipped/error states remain explicit. There is no OAuth transport or claim that the actual remote state was independently verified.

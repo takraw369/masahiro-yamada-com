@@ -1,9 +1,10 @@
 import http from 'node:http';
-import { createReadStream } from 'node:fs';
-import { readFile, realpath, stat } from 'node:fs/promises';
+import { readFile, realpath } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { LIMITATIONS } from './catalog.mjs';
+import { openSource } from './files.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const contentTypes = {
@@ -16,9 +17,10 @@ const contentTypes = {
 const json = (r, status, obj) => { r.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); r.end(JSON.stringify(obj)); };
 
 export async function startLocalMediaHub(index, { port = 0 } = {}) {
-  const rootReal = await realpath(index.root);
+  const isCatalog = typeof index.query === 'function';
+  const rootReal = await realpath(isCatalog ? index.getSetting('root') : index.root);
   const token = randomBytes(24).toString('hex');
-  const itemById = new Map(index.items.map(x => [x.id, x]));
+  const itemById = isCatalog ? null : new Map(index.items.map(x => [x.id, x]));
   const base = '/' + token;
   const server = http.createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'private, no-store');
@@ -44,7 +46,8 @@ export async function startLocalMediaHub(index, { port = 0 } = {}) {
         return;
       }
       if (endpoint === '/api/summary') return json(res, 200, {
-        summary: index.summary, limitations: index.limitations, createdAt: index.createdAt, warnings: index.warnings.slice(0, 20)
+        summary: isCatalog ? index.summary() : index.summary, limitations: isCatalog ? LIMITATIONS : index.limitations,
+        createdAt: isCatalog ? index.getSetting('scan')?.startedAt : index.createdAt, warnings: isCatalog ? [] : index.warnings.slice(0, 20)
       });
       if (endpoint === '/api/items') {
         const q = (url.searchParams.get('q') || '').toLocaleLowerCase().slice(0, 180);
@@ -53,6 +56,7 @@ export async function startLocalMediaHub(index, { port = 0 } = {}) {
         const dup = url.searchParams.get('duplicates') || '';
         const offset = Math.max(0, Math.min(1000000, Number.parseInt(url.searchParams.get('offset') || '0', 10) || 0));
         const limit = Math.max(1, Math.min(72, Number.parseInt(url.searchParams.get('limit') || '48', 10) || 48));
+        if (isCatalog) return json(res, 200, index.query({ q, category, kind, duplicates: dup, offset, limit, priority: url.searchParams.get('priority') || '' }));
         const filtered = index.items.filter(item => (!q || (item.filename + ' ' + item.relativePath + ' ' + item.description).toLocaleLowerCase().includes(q))
           && (!category || item.category === category) && (!kind || item.kind === kind)
           && (!dup || item.duplicateStatus !== 'none'));
@@ -61,29 +65,33 @@ export async function startLocalMediaHub(index, { port = 0 } = {}) {
       if (endpoint.startsWith('/media/')) {
         const id = endpoint.slice('/media/'.length);
         if (!/^[a-f0-9]{24}$/.test(id)) return json(res, 400, { error: 'Invalid ID' });
-        const item = itemById.get(id);
+        const item = isCatalog ? index.getItem(id) : itemById.get(id);
         if (!item) return json(res, 404, { error: 'Not found' });
-        const full = await realpath(path.resolve(rootReal, item.relativePath));
-        if (!full.startsWith(rootReal + path.sep)) return json(res, 403, { error: 'Outside source directory' });
-        const fileStat = await stat(full);
-        if (!fileStat.isFile()) return json(res, 404, { error: 'Not a file' });
-        const mime = contentTypes[path.extname(full).toLowerCase()];
+        const mime = contentTypes[path.extname(item.relativePath).toLowerCase()];
         if (!mime) return json(res, 415, { error: 'Unsupported preview' });
+        const { handle, info: fileStat } = await openSource(rootReal, item.relativePath);
+        // Stream the verified open descriptor, not a path that can be replaced between checks.
+        const stream = options => {
+          const source = handle.createReadStream(options);
+          res.once('close', () => source.destroy());
+          source.on('error', () => res.destroy()).pipe(res);
+        };
         const size = fileStat.size;
         const range = req.headers.range;
         if (range) {
           const match = /^bytes=(\d+)-(\d*)$/.exec(range);
-          if (!match || size === 0) { res.writeHead(416, { 'Content-Range': 'bytes */' + size }); return res.end(); }
+          if (!match || size === 0) { await handle.close(); res.writeHead(416, { 'Content-Range': 'bytes */' + size }); return res.end(); }
           const start = Number(match[1]);
           const end = match[2] ? Math.min(size - 1, Number(match[2])) : size - 1;
           if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start >= size || end < start) {
+            await handle.close();
             res.writeHead(416, { 'Content-Range': 'bytes */' + size }); return res.end();
           }
           res.writeHead(206, { 'Content-Type': mime, 'Content-Range': 'bytes ' + start + '-' + end + '/' + size, 'Content-Length': end - start + 1, 'Accept-Ranges': 'bytes' });
-          return createReadStream(full, { start, end }).on('error', () => res.destroy()).pipe(res);
+          return stream({ start, end });
         }
         res.writeHead(200, { 'Content-Type': mime, 'Content-Length': size, 'Accept-Ranges': 'bytes' });
-        return createReadStream(full).on('error', () => res.destroy()).pipe(res);
+        return stream({});
       }
       json(res, 404, { error: 'Not found' });
     } catch (e) { if (!res.headersSent) json(res, 500, { error: 'Local file unavailable' }); else res.destroy(); }

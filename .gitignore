@@ -13,3 +13,4 @@ dist/
 work/
 media-hub-private/
 **/media-index.json
+**/media-index.sqlite*

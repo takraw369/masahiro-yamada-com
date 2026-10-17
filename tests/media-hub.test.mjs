@@ -3,7 +3,9 @@ import { after, test } from 'node:test';
 import { mkdtemp, mkdir, readFile, stat, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { scanTakeout, saveIndex, sourceUrlFromSidecar, categorySuggestion } from '../scripts/media-hub/core.mjs';
+import { sourceUrlFromSidecar, categorySuggestion } from '../scripts/media-hub/core.mjs';
+import { scanCatalog } from '../scripts/media-hub/scanner.mjs';
+import { MediaCatalog } from '../scripts/media-hub/catalog.mjs';
 import { startLocalMediaHub } from '../scripts/media-hub/server.mjs';
 
 const root = await mkdtemp(path.join(tmpdir(), 'masa-media-hub-tests-'));
@@ -20,7 +22,10 @@ await writeFile(path.join(sources, '家族', 'bad.json'), '{not json');
 await symlink(path.join(root, 'secret.txt'), path.join(sources, '家族', 'outside.jpg'));
 await writeFile(path.join(root, 'secret.txt'), 'private-unrelated-data');
 
-const index = await scanTakeout(sources);
+const result = await scanCatalog(sources, { outDir: path.join(root, 'private-report'), limit: 0 });
+const catalog = new MediaCatalog(result.filename);
+after(() => catalog.close());
+const index = { root: sources, summary: result.summary, items: catalog.query({ limit: 72 }).items };
 const asset = name => index.items.find(item => item.filename === name);
 
 test('read-only scan finds images and videos, skips sidecars and symlinks', async () => {
@@ -51,21 +56,22 @@ test('SHA256 confirms exact duplicates rather than relying on same size', () => 
   assert.equal(index.summary.confirmedGroups, 1);
 });
 test('unhashed same-size files are labeled provisional', async () => {
-  const noHash = await scanTakeout(sources, { hashMaxBytes: 0 });
+  const result = await scanCatalog(sources, { outDir: path.join(root, 'no-hash'), hashMaxBytes: 0, limit: 0 });
+  const db = new MediaCatalog(result.filename);
+  const noHash = { items: db.query({ limit: 72 }).items }; db.close();
   assert.equal(noHash.items.filter(x => x.duplicateStatus === 'same-size-unverified').length, 2);
 });
 test('report is private and does not alter source media', async () => {
   const out = path.join(root, 'private-report');
-  const file = await saveIndex(index, out);
-  const saved = JSON.parse(await readFile(file, 'utf8'));
-  assert.equal(saved.summary.count, 4);
+  const file = result.filename;
+  assert.equal(catalog.summary().count, 4);
   if (process.platform !== 'win32') {
     assert.equal((await stat(file)).mode & 0o777, 0o600);
     assert.equal((await stat(out)).mode & 0o777, 0o700);
   }
 });
 test('localhost API requires random token; media range is read only', async () => {
-  const { server, url } = await startLocalMediaHub(index);
+  const { server, url } = await startLocalMediaHub(catalog);
   after(async () => { await new Promise(resolve => server.close(resolve)); });
   assert.equal((await fetch(new URL('/api/summary', url))).status, 404);
   const summary = await fetch(new URL('api/summary', url));
