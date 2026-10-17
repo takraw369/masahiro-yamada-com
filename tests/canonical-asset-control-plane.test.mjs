@@ -8,8 +8,8 @@ const automation = await readFile(
 );
 
 test('canonical asset control plane reuses the existing private automation route', () => {
-  assert.match(automation, /canonicalAssetPreview\(sourceId: number\)/);
-  assert.match(automation, /canonicalAssetWrite\(sourceId: number, confirmation: string\)/);
+  assert.match(automation, /canonicalAssetPreview\(sourceId: number, target\?/);
+  assert.match(automation, /canonicalAssetWrite\(sourceId: number, confirmation: string, target\?/);
   assert.match(automation, /case 'canonical\.preview'/);
   assert.match(automation, /case 'canonical\.write'/);
 });
