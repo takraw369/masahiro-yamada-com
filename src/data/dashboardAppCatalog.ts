@@ -22,6 +22,17 @@ export const dashboardAppCategories: { id: DashboardAppCategory; label: string; 
 
 export const dashboardAppCatalog: DashboardApp[] = [
   {
+    id: 'masa-voice-commander',
+    title: 'MASA Voice Commander',
+    description: 'iPhoneの音声入力からKnowledge OSとTask Flowへ。実行前に内容を確認。',
+    href: '/dashboard/voice-commander',
+    category: 'operate',
+    access: 'dashboard',
+    symbol: '🎙️',
+    tags: ['iPhone', '音声', 'AI秘書', 'Siri', 'Task'],
+    featured: true,
+  },
+  {
     "id": "habit-roi",
     "title": "習慣の損益分岐点 | Habit ROI",
     "description": "習慣を変えた場合の支出・時間・初期費用の損益分岐点を無料で試算。",
