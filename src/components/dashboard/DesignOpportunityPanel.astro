@@ -1,0 +1,52 @@
+---
+import { activeDesignOpportunities } from '../../data/designOpportunities';
+---
+
+<section class="opportunity-panel" aria-labelledby="opportunity-panel-title" id="design-opportunities">
+  <div class="opportunity-head">
+    <div>
+      <p class="eyebrow">OPPORTUNITY · DESIGN INTELLIGENCE</p>
+      <h2 id="opportunity-panel-title">「これができるなら、何を作れる？」</h2>
+      <p>新しい能力を、既存の制作や事業で試せる1アクションに翻訳。表示内容はDrive正本に基づく手動スナップショットです。</p>
+    </div>
+    <a href="https://docs.google.com/document/d/1R6wZnUzXO4YPsbm-MJ2OMfL4f0BvVy7PUlKUG6Y9N6M/edit" target="_blank" rel="noopener noreferrer">判断・学習の正本 ↗</a>
+  </div>
+  <div class="opportunity-list">
+    {activeDesignOpportunities.map(item => (
+      <article class="opportunity-card">
+        <div class="status"><span>{item.status} · NEW CAPABILITY</span><small>{item.method}</small></div>
+        <h3>{item.title}</h3>
+        <p>{item.ability}</p>
+        <div class="uses">{item.uses.map(use => <span>{use}</span>)}</div>
+        <p class="action"><strong>最初の1手：</strong>{item.nextAction}</p>
+        <div class="links">
+          <a class="action-link" href={item.destination}>試作する →</a>
+          <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer">発見元 ↗</a>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .opportunity-panel{margin:24px 0;padding:24px;border:1px solid #dbd7d1;border-radius:20px;background:#fff}
+  .opportunity-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .opportunity-head .eyebrow{margin:0;color:#8b5b2c;font-weight:800;font-size:.74rem;letter-spacing:.08em}
+  .opportunity-head h2{margin:6px 0 0;font-size:1.28rem;line-height:1.4}
+  .opportunity-head p:not(.eyebrow){max-width:720px;margin:7px 0 0;font-size:.85rem;line-height:1.7;color:#606a74}
+  .opportunity-head>a{font-size:.82rem;color:#795025}
+  .opportunity-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px;margin-top:16px}
+  .opportunity-card{padding:19px;border:1px solid #e3dfd9;border-radius:14px;background:#fbfaf8}
+  .status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.7rem;color:#7c511e}
+  .status>span{font-weight:900}.status>small{color:#727a83}
+  .opportunity-card h3{font-size:1.07rem;margin:10px 0 5px}
+  .opportunity-card p{color:#59646d;font-size:.84rem;line-height:1.65}
+  .uses{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+  .uses span{padding:4px 7px;border-radius:20px;background:#efece7;color:#565e66;font-size:.7rem}
+  .opportunity-card .action{margin-top:12px}
+  .links{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:13px;font-size:.82rem}
+  .links a{color:#765026;text-decoration:none}
+  .links .action-link{min-height:44px;display:inline-flex;align-items:center;padding:0 14px;border-radius:10px;background:#20242a;color:white;font-weight:700}
+  .links a:focus-visible,.opportunity-head a:focus-visible{outline:3px solid #eaa852;outline-offset:3px}
+  @media(max-width:600px){.opportunity-panel{margin:15px 0;padding:16px}.opportunity-card{padding:15px}}
+</style>
