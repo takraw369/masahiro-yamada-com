@@ -23,6 +23,7 @@ import '../../styles/x-composer.css';
       <button type="button" id="handoff-to-composer" disabled aria-describedby="handoff-status">素材を本文へ取り込む</button>
     </div>
     <p id="handoff-status" role="status"></p>
+    <p id="handoff-provenance" hidden><a id="handoff-source" target="_blank" rel="noopener noreferrer" hidden>元資料を確認 ↗</a> <span id="handoff-rights"></span></p>
     <details><summary>素材の狙いを確認する<span aria-hidden="true">＋</span></summary>
       <p id="handoff-question"></p>
       <div class="handoff-grid">
@@ -69,19 +70,8 @@ import '../../styles/x-composer.css';
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
-    if (detail.username) {
-      const target = detail.username.replace(/^@/, '').toLowerCase();
-      const select = Array.from(document.querySelectorAll('select')).find((node) =>
-        Array.from(node.options).some((option) => option.textContent?.replace(/^@/, '').toLowerCase() === target)
-      );
-      if (select) {
-        const option = Array.from(select.options).find((item) => item.textContent?.replace(/^@/, '').toLowerCase() === target);
-        if (option) {
-          select.value = option.value;
-          select.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      }
-    }
+    // XCommandCenter resolves explicit destinations against live connections.
+    // DOM option matching here used to retain the previous account on a miss.
 
     textarea.focus();
     textarea.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
@@ -110,6 +100,17 @@ import '../../styles/x-composer.css';
     text('handoff-channel', handoff.channel);
     text('handoff-cta', handoff.cta);
     text('handoff-question', handoff.question ? `今週の問い：${handoff.question}` : '');
+    const provenance = document.getElementById('handoff-provenance');
+    const sourceLink = document.getElementById('handoff-source') as HTMLAnchorElement | null;
+    let sourceUrl: URL | null = null;
+    try { if (handoff.sourceUrl) sourceUrl = new URL(handoff.sourceUrl); } catch {}
+    if (sourceLink && sourceUrl?.protocol === 'https:') {
+      sourceLink.href = sourceUrl.href;
+      sourceLink.hidden = false;
+    }
+    text('handoff-rights', handoff.sourceRights);
+    if (provenance) provenance.hidden = !handoff.sourceRights && sourceUrl?.protocol !== 'https:';
+
 
     const button = document.getElementById('handoff-to-composer') as HTMLButtonElement | null;
     const scaffold = publishingHandoffSeed(handoff);

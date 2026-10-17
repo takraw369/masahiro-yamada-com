@@ -3,6 +3,12 @@ export type XComposeValue = { text: string; accountId: string; mode: 'now' | 'sc
 export type XComposeAccount = { id: string; username: string; isActive: boolean };
 export type XComposeReview = XComposeValue & { username: string };
 
+// Editorial brands are not evidence of an authenticated Harness connection.
+export function findConnectedXAccount(accounts: XComposeAccount[], username: string) {
+  const handle = username.replace(/^@/, '').toLowerCase();
+  return accounts.find(account => account.isActive === true && account.username.toLowerCase() === handle);
+}
+
 export function prepareXComposeReview(value: XComposeValue, accounts: XComposeAccount[], now = Date.now()): XComposeReview {
   if (!value.text.trim()) throw new Error('投稿本文を入力してください。');
   if (value.text.length > X_COMPOSER_MAX_CHARS) throw new Error('本文を280文字以内に整えてください。');

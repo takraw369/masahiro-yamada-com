@@ -46,6 +46,13 @@ try {
     assert.match(res.headers.get('content-type'), /text\/html/, path);
     assert.ok((await res.text()).includes('<html'), path);
   }
+  // GEO foundation: the public llms.txt must be served by the Worker with
+  // an explicit UTF-8 charset, not merely by a static _headers assertion.
+  const llmsResponse = await previewFetch(base + '/llms.txt');
+  assert.equal(llmsResponse.status, 200, '/llms.txt must be public');
+  assert.match(llmsResponse.headers.get('content-type') || '', /^text\/plain;\s*charset=utf-8/i);
+  assert.ok((await llmsResponse.text()).startsWith('# MASA / 山田昌寛 — ACE METHOD\n'));
+
   // Revenue entrance (Issue #215): verify actual rendered Worker HTML, not only source text.
   // The isolated preview has no production Supabase/LINE access; never POST a lead here.
   const landingHtml = await (await previewFetch(base)).text();
@@ -66,6 +73,11 @@ try {
     assert.match(res.headers.get('content-type') || '', /text\/css/, path);
     assert.match(await res.text(), /@scope\s*\(\./, path);
   }
+  // Task Pipeline is private and must not leak a task board to anonymous users.
+  const privatePipeline = await previewFetch(base + '/dashboard/pipeline', { redirect: 'manual' });
+  assert.equal(privatePipeline.status, 302, 'Pipeline is a private Dashboard route');
+  assert.equal(privatePipeline.headers.get('location'), '/dashboard/login');
+  assert.match(privatePipeline.headers.get('cache-control'), /no-store/);
   const dashboard = await previewFetch(base + '/dashboard', { redirect: 'manual' });
   assert.equal(dashboard.status, 302);
   assert.equal(dashboard.headers.get('location'), '/dashboard/login');

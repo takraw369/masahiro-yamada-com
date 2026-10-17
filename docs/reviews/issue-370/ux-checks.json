@@ -1,0 +1,221 @@
+{
+  "checks": [
+    {
+      "state": "lesson selected",
+      "width": 320,
+      "overflow": 0,
+      "focus": "create-title",
+      "pickerOpen": false,
+      "inputSizes": [
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px"
+      ],
+      "smallButtons": [],
+      "statusRect": {
+        "x": 14,
+        "y": -80.78125,
+        "width": 292,
+        "height": 75.59375,
+        "top": -80.78125,
+        "right": 306,
+        "bottom": -5.1875,
+        "left": 14
+      },
+      "statusPosition": "static"
+    },
+    {
+      "state": "lesson selected",
+      "width": 375,
+      "overflow": 0,
+      "focus": "create-title",
+      "pickerOpen": false,
+      "inputSizes": [
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px"
+      ],
+      "smallButtons": [],
+      "statusRect": {
+        "x": 14,
+        "y": -80.390625,
+        "width": 347,
+        "height": 75.59375,
+        "top": -80.390625,
+        "right": 361,
+        "bottom": -4.796875,
+        "left": 14
+      },
+      "statusPosition": "static"
+    },
+    {
+      "state": "lesson selected",
+      "width": 390,
+      "overflow": 0,
+      "focus": "create-title",
+      "pickerOpen": false,
+      "inputSizes": [
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px"
+      ],
+      "smallButtons": [],
+      "statusRect": {
+        "x": 14,
+        "y": -80.390625,
+        "width": 362,
+        "height": 75.59375,
+        "top": -80.390625,
+        "right": 376,
+        "bottom": -4.796875,
+        "left": 14
+      },
+      "statusPosition": "static"
+    },
+    {
+      "state": "lesson selected",
+      "width": 430,
+      "overflow": 0,
+      "focus": "create-title",
+      "pickerOpen": false,
+      "inputSizes": [
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px",
+        "16px"
+      ],
+      "smallButtons": [],
+      "statusRect": {
+        "x": 14,
+        "y": -80.21875,
+        "width": 402,
+        "height": 75.59375,
+        "top": -80.21875,
+        "right": 416,
+        "bottom": -4.625,
+        "left": 14
+      },
+      "statusPosition": "static"
+    },
+    {
+      "state": "lesson selected",
+      "width": 1440,
+      "overflow": 0,
+      "focus": "create-title",
+      "pickerOpen": false,
+      "inputSizes": [
+        "15px",
+        "15px",
+        "15px",
+        "15px",
+        "15px",
+        "15px",
+        "15px",
+        "15px"
+      ],
+      "smallButtons": [],
+      "statusRect": {
+        "x": 250,
+        "y": -76.5,
+        "width": 1160,
+        "height": 51.796875,
+        "top": -76.5,
+        "right": 1410,
+        "bottom": -24.703125,
+        "left": 250
+      },
+      "statusPosition": "static"
+    },
+    {
+      "state": "lesson selected",
+      "width": 1728,
+      "overflow": 0,
+      "focus": "create-title",
+      "pickerOpen": false,
+      "inputSizes": [
+        "15px",
+        "15px",
+        "15px",
+        "15px",
+        "15px",
+        "15px",
+        "15px",
+        "15px"
+      ],
+      "smallButtons": [],
+      "statusRect": {
+        "x": 394,
+        "y": -76.5,
+        "width": 1160,
+        "height": 51.796875,
+        "top": -76.5,
+        "right": 1554,
+        "bottom": -24.703125,
+        "left": 394
+      },
+      "statusPosition": "static"
+    },
+    {
+      "keyboardOpened": true
+    },
+    {
+      "outlineContainsCore": true
+    },
+    {
+      "savedStatus": "教材の下書きを保存しました。販売や公開はまだ行っていません。",
+      "draftBody": "# 検証用：最初の一歩を小さくする\n\n## この教材で持ち帰ること\n今日一つ試せるようになる\n\n## こんなときに使う\n練習を続けたい読者\n\n## 核となる考え方\n合成教材の核\n\n## 自分の状況に当てはめる\nいま起きていることを、事実・解釈・選べることに分けて書き出します。\n\n## 今日の小さな実践\n今日、一つだけ試す行動を決めます。\n\n## 振り返り\n何を試したか。何が起きたか。次は何を変えるか。\n\n## 次の一歩\nこの教材で残った問いを一つ書き、次に試す場面を選びます。"
+    },
+    {
+      "state": "version-conflict",
+      "status": "別の更新があります。原稿を書き出してから最新の保存内容を確認してください。",
+      "body": "保存に失敗しても消さない",
+      "statusRect": {
+        "x": 14,
+        "y": 596.140625,
+        "width": 362,
+        "height": 50.375,
+        "top": 596.140625,
+        "right": 376,
+        "bottom": 646.515625,
+        "left": 14
+      },
+      "nearbyStatus": "別の更新があります。原稿を書き出してから最新の保存内容を確認してください。",
+      "viewport": 844
+    },
+    {
+      "state": "product-concept",
+      "brief": "既存のPUBLISHING_FLOW_OS / SELLABLE_BOXで、記事または商品企画の下書きを作る。新しいStudioは作らない。\n素材ID: C370\n題名: 検証用：最初の一歩を小さくする\n出典: https://docs.google.com/document/d/synthetic-example/edit\n利用権利: 合成データ・検証専用\n届けたい相手: 練習を続けたい読者\n持ち帰る変化: \n核: \n編集中の原稿: \n原典を読み、事実と提案を分ける。本人経験・科学的効果・成果を創作しない。\n記事: 編集できる本文と確認項目。商品企画: 相手・変化・提供内容・次の一手を提案。\n公開・販売・決済・有料API実行は人の明示承認まで行わない。",
+      "status": "制作指示をコピーしました。Codexへ貼り、記事または商品企画を指定してください。まだ生成・公開されていません。"
+    },
+    {
+      "state": "saved-night",
+      "preset": "night",
+      "overflow": 0
+    },
+    {
+      "state": "source-outage",
+      "message": "元資料へ接続できません。ログイン状態と接続を確認してください。",
+      "retryEnabled": true
+    }
+  ],
+  "errors": []
+}

@@ -1,6 +1,7 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import DashboardCockpit from '../../components/dashboard/DashboardCockpit';
+import { featuredDashboardApps, dashboardAppCatalog } from '../../data/dashboardAppCatalog';
 import RevenueMission from '../../components/dashboard/RevenueMission';
 import '../../styles/dashboard-home-presets.css';
 import { HomeFlowMap, HomeOutputDoors } from '../../components/dashboard/HomeFlowSurfaces';
@@ -17,6 +18,7 @@ const dateLabel = new Intl.DateTimeFormat('ja-JP', {
 }).format(new Date());
 
 const deepDoors = [
+  { group:'EXECUTE', title:'Task Pipeline', detail:'フェーズ別の停滞・期限・判断待ちを俯瞰', href:'/dashboard/pipeline' },
   { group:'EXECUTE', title:'Task Flow', detail:'Project・Task・WAITの詳細', href:'/dashboard/tasks' },
   { group:'EXECUTE', title:'GitHub Workboard', detail:'Issue・PR・CIの現在地とHuman Gateを確認', href:'/dashboard/github-issues' },
   { group:'SPRINT', title:'72H Flow Build', detail:'既存資産を72時間で現実へ流す', href:'/dashboard/sprint' },
@@ -26,6 +28,7 @@ const deepDoors = [
   { group:'RELATE', title:'Relationship OS', detail:'人・商談・次Action・購入後をつなぐ', href:'/dashboard/relationships' },
   { group:'LEARN', title:'Evidence Lab', detail:'結果を学習へ戻す', href:'/dashboard/evidence' },
   { group:'DECIDE', title:'Choice Lab', detail:'横断判断が必要な時だけ', href:'/dashboard/choice-lab' },
+  { group:'DECIDE', title:'Decision Lens', detail:'CORE / ALT / 2035 / Challenge と事前予測の記録', href:'/dashboard/decision-lens' },
   { group:'SYSTEM', title:'Chat Sweep', detail:'Chatを診断してPROJECT / 資産化 / Archiveへ', href:'/dashboard/chat-sweep' },
   { group:'CREATE', title:'Publishing Flow', detail:'JourneyからResultまで1本で決める', href:'/dashboard/content-flow' },
   { group:'AI', title:'AI Commands', detail:'Driveの指示を目的から選ぶ', href:'/dashboard/ai-commands' },
@@ -42,12 +45,26 @@ const deepDoors = [
   <div class="dash-shell" id="dashboard-home-shell">
     <header class="dash-head">
       <div>
-        <p class="kicker">MASA OS · TODAY</p>
-        <h1>Flow Cockpit</h1>
-        <p class="intro">左は全体の地図。ここには、今日触るものだけ置く。見る → 軽く動かす → 必要な時だけ詳細へ。</p>
+        <h1>制作ワークスペース</h1>
+        <p class="intro">素材から下書きを作り、表示を確認します。</p>
       </div>
       <div class="date-chip"><span>TODAY</span><strong>{dateLabel}</strong></div>
     </header>
+
+    <details class="home-create-entry"><summary>つくる <span aria-hidden="true">＋</span></summary>
+    <nav class="home-create" aria-label="制作を始める">
+      <a class="home-create-primary" href="/dashboard/post"><strong>投稿</strong><span>Xの本文を編集する</span></a>
+      <a href="/dashboard/content-studio?intent=article-video"><strong>記事・動画</strong><span>素材から制作指示をコピー</span></a>
+      <a href="/dashboard/content-studio?intent=lesson-product"><strong>教材・商品</strong><span>教材を編集して確認</span></a>
+      <a href="/dashboard/content-flow"><strong>導線</strong><span>発信の選択を開き、次の一手へ</span></a>
+    </nav>
+    </details>
+    <div class="home-create-secondary">
+      <a href="/dashboard/content-studio?intent=post">Drive素材から投稿をつくる →</a>
+    </div>
+    <nav class="home-create-secondary home-resume-entry" aria-label="保存した制作を再開する">
+      <a href="/dashboard/content-studio?view=drafts#saved-drafts">つづきから · 教材の下書き →</a>
+    </nav>
 
     <div class="home-design-indicator" id="home-design-indicator" hidden>
       <span id="home-design-label">表示スタイルを変更中</span>
@@ -60,6 +77,7 @@ const deepDoors = [
       <a href="/dashboard/ace-assets">ACE Assets</a>
       <a href="/mind?action=capture">Capture</a>
     </nav>
+
 
     <div class="home-layout-grid">
       <div class="home-unit home-unit--cockpit">
@@ -80,6 +98,34 @@ const deepDoors = [
         <HomeOutputDoors />
       </div>
     </div>
+
+    <section class="home-asset-nudge" aria-labelledby="home-asset-nudge-title">
+      <div class="home-asset-nudge-copy">
+        <p class="home-asset-nudge-kicker"><span aria-hidden="true">✦</span> THIS WEEK / SLIDE ASSETS</p>
+        <h2 id="home-asset-nudge-title">好きなプレゼン素材を、今週1つ残そう。</h2>
+        <p>テンプレ・画像・図解から1つ。<strong>名前・好きな理由・使い道・出典／利用権利</strong>を記録。画像原本の重複保存はしない。</p>
+      </div>
+      <div class="home-asset-nudge-actions">
+        <a class="home-asset-nudge-primary" href="https://drive.google.com/drive/folders/1JdWD5OtfIZjNhZOZsDN7HFEFOhDyxK0k" target="_blank" rel="noopener noreferrer">素材フォルダを開く <span aria-hidden="true">↗</span></a>
+        <a class="home-asset-nudge-secondary" href="https://docs.google.com/document/d/1Qapwgi6Bmc_11oP-iTkG0P7aA29Qdt1tICgpzsZwjSw/edit" target="_blank" rel="noopener noreferrer">登録ルールを見る <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="home-app-shelf" aria-labelledby="home-app-title">
+      <div class="home-app-heading">
+        <div><p class="kicker">MY APPS / QUICK LAUNCH</p><h2 id="home-app-title">作ったアプリを、すぐ開く。</h2></div>
+        <a href="/dashboard/apps" class="home-app-all">アプリ一覧 <span>（{dashboardAppCatalog.length}件）</span> ↗</a>
+      </div>
+      <div class="home-app-grid">
+        {featuredDashboardApps.map(app => (
+          <a href={app.href} class="home-app-card" aria-label={app.title + 'を開く'}>
+            <span class="home-app-symbol" aria-hidden="true">{app.symbol}</span>
+            <span class="home-app-info"><strong>{app.title}</strong><small>{app.description}</small></span>
+            <span class="home-app-arrow" aria-hidden="true">↗</span>
+          </a>
+        ))}
+      </div>
+    </section>
 
     <section class="home-style-section" aria-labelledby="home-style-title">
       <div class="home-style-heading">
@@ -149,3 +195,57 @@ const deepDoors = [
     // Invalid/unavailable storage never breaks the original home layout.
   }
 </script>
+
+<style>
+  #dashboard-home-shell .dash-head{display:flex;align-items:center;margin-bottom:16px}
+  #dashboard-home-shell .dash-head h1{font-size:1.5rem;line-height:1.4;color:var(--preset-ink,#242831)}
+  #dashboard-home-shell .dash-head .intro{margin-top:6px;color:var(--preset-muted,#58636c);font-size:1rem}
+  .home-create-entry{margin-bottom:8px}
+  .home-create-entry>summary{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:12px 16px;border-radius:14px;background:var(--preset-ink,#242831);color:var(--preset-paper,#fff);font-size:1.125rem;font-weight:700;cursor:pointer;list-style:none}
+  .home-create-entry>summary::-webkit-details-marker{display:none}.home-create-entry[open]>summary{margin-bottom:12px}
+  .home-create-entry[open]>summary span{transform:rotate(45deg)}
+  .home-create-entry>summary:focus-visible{outline:3px solid var(--preset-accent,#986525);outline-offset:3px}
+  .home-create{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .home-create a{box-sizing:border-box;min-width:0;min-height:88px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:16px;border:1px solid var(--preset-line,#e4ddd2);border-radius:14px;background:var(--preset-paper,#fff);color:var(--preset-ink,#242831);text-decoration:none;overflow-wrap:anywhere}
+  .home-create strong{font-size:1.125rem;line-height:1.5}
+  .home-create span{font-size:.875rem;line-height:1.5}
+  .home-create .home-create-primary{background:var(--preset-ink,#242831);color:var(--preset-paper,#fff)}
+  .home-create-secondary{display:flex;flex-wrap:wrap;gap:8px 24px;margin:8px 0 16px}
+  .home-create-secondary a{display:inline-flex;align-items:center;min-height:44px;color:var(--preset-ink,#242831);font-size:.875rem;text-underline-offset:4px}
+  .home-resume-entry{padding-bottom:8px;border-bottom:1px solid var(--preset-line,#e4ddd2)}
+  .home-create a:focus-visible,.home-create-secondary a:focus-visible{outline:3px solid var(--preset-accent,#986525);outline-offset:3px}
+  @media(hover:hover){.home-create a:hover{text-decoration:underline;text-underline-offset:4px}}
+  @media(max-width:650px){.home-create{grid-template-columns:repeat(2,minmax(0,1fr))}.home-create a{padding:12px}#dashboard-home-shell .date-chip{display:none}}
+
+  /* A single, visible weekly cue. No separate workflow, fabricated status, or backend writes. */
+  #dashboard-home-shell .home-asset-nudge{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0 8px;padding:16px 18px;border:1px solid var(--preset-line,#e4ddd2);border-left:4px solid var(--preset-accent,#986525);border-radius:14px;background:var(--preset-paper,#fffcf5);color:var(--preset-ink,#242831);box-shadow:0 8px 22px rgba(27,35,44,.035)}
+  #dashboard-home-shell .home-asset-nudge-copy{min-width:0;max-width:760px}
+  #dashboard-home-shell .home-asset-nudge-kicker{margin:0;color:var(--preset-accent,#986525);font-size:.67rem;letter-spacing:.1em;font-weight:800}
+  #dashboard-home-shell .home-asset-nudge h2{margin:5px 0 4px;font-size:clamp(1rem,1.8vw,1.18rem);line-height:1.45;letter-spacing:-.025em;color:var(--preset-ink,#242831)}
+  #dashboard-home-shell .home-asset-nudge-copy>p:last-child{margin:0;font-size:.77rem;line-height:1.7;color:var(--preset-muted,#58636c)}
+  #dashboard-home-shell .home-asset-nudge-copy>p:last-child strong{color:var(--preset-ink,#242831);font-weight:700}
+  #dashboard-home-shell .home-asset-nudge-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  #dashboard-home-shell .home-asset-nudge-actions a{box-sizing:border-box;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:10px 13px;border:1px solid var(--preset-line,#e2dcd2);border-radius:10px;font-size:.78rem;font-weight:750;line-height:1.4;text-decoration:none;white-space:nowrap}
+  #dashboard-home-shell .home-asset-nudge-primary{background:var(--preset-ink,#242831);color:var(--preset-paper,#fff)}
+  #dashboard-home-shell .home-asset-nudge-secondary{background:transparent;color:var(--preset-ink,#242831)}
+  #dashboard-home-shell .home-asset-nudge-actions a:focus-visible{outline:3px solid #6b94d6;outline-offset:3px}
+  @media(hover:hover){#dashboard-home-shell .home-asset-nudge-actions a:hover{text-decoration:underline;text-underline-offset:3px}}
+  @media(max-width:850px){#dashboard-home-shell .home-asset-nudge{flex-direction:column;align-items:stretch;gap:12px}#dashboard-home-shell .home-asset-nudge-actions{flex-wrap:wrap}}
+  @media(max-width:590px){#dashboard-home-shell .home-asset-nudge{padding:14px;margin-top:12px}#dashboard-home-shell .home-asset-nudge-actions{display:grid;grid-template-columns:1fr}#dashboard-home-shell .home-asset-nudge-actions a{white-space:normal}}
+  #dashboard-home-shell .home-app-shelf{margin:22px 0 20px;padding:20px;border:1px solid #e4dfd5;border-radius:20px;background:linear-gradient(115deg,#fffaf1,#fff 53%,#f8fafb)}
+  #dashboard-home-shell .home-app-heading{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:14px}
+  #dashboard-home-shell .home-app-heading h2{font-size:19px;letter-spacing:-.035em;margin:4px 0 0;font-weight:800}
+  #dashboard-home-shell .home-app-all{color:#986525;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap;padding:8px 0}
+  #dashboard-home-shell .home-app-all span{font-weight:500;color:#71767a}
+  #dashboard-home-shell .home-app-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  #dashboard-home-shell .home-app-card{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:14px 12px;border:1px solid #e7e4df;border-radius:14px;background:#fff;text-decoration:none;color:#20242a;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+  #dashboard-home-shell .home-app-card:hover{border-color:#c7a678;box-shadow:0 9px 24px rgba(39,40,47,.055);transform:translateY(-2px)}
+  #dashboard-home-shell .home-app-symbol{flex:none;display:grid;place-items:center;width:39px;height:39px;background:#fff4e4;border-radius:11px;font-size:22px}
+  #dashboard-home-shell .home-app-info{display:flex;min-width:0;flex:1;flex-direction:column;gap:7px}
+  #dashboard-home-shell .home-app-info strong{font-size:13px;letter-spacing:-.02em;overflow-wrap:anywhere}
+  #dashboard-home-shell .home-app-info small{font-size:11px;line-height:1.6;color:#747d86}
+  #dashboard-home-shell .home-app-arrow{font-size:14px;color:#a7783b}
+  @media(max-width:1100px){#dashboard-home-shell .home-app-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:590px){#dashboard-home-shell .home-app-shelf{padding:15px;margin-top:9px}#dashboard-home-shell .home-app-heading{align-items:flex-start}#dashboard-home-shell .home-app-heading h2{font-size:16px}#dashboard-home-shell .home-app-all{font-size:12px}#dashboard-home-shell .home-app-all span{display:none}#dashboard-home-shell .home-app-grid{grid-template-columns:1fr}#dashboard-home-shell .home-app-card{padding:12px}#dashboard-home-shell .home-app-info small{font-size:11px}}
+  @media(prefers-reduced-motion:reduce){#dashboard-home-shell .home-app-card{transition:none}#dashboard-home-shell .home-app-card:hover{transform:none}}
+</style>

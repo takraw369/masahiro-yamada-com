@@ -17,6 +17,7 @@ const fallback: DashboardCockpit = {
 };
 
 const routes: Array<{ route: string; cockpit: DashboardCockpit }> = [
+  { route: '/dashboard/apps', cockpit: { see: '使えるアプリと入口', decide: '今使いたい道具', act: 'ワンタップで開く' } },
   { route: '/mind', cockpit: { see: '素材・再会候補・つながり', decide: '残す・つなぐ・育てる', act: '次の資産へ送る' } },
   { route: '/dashboard/intelligence', cockpit: { see: '外部シグナルと変化', decide: '信頼・再利用する価値', act: 'EvidenceかOutputへ送る' } },
   { route: '/dashboard/evidence', cockpit: { see: '根拠・反証・確度', decide: '何を採用するか', act: '判断へ反映する' } },
