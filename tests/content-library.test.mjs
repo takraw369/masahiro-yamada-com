@@ -103,6 +103,8 @@ test('Composer save/restore stays local and keeps the existing explicit publicat
   assert.match(composer,/setReview\(null\); setText\(latest.text\)/);
   assert.match(composer,/beforeunload/);
   assert.match(composer,/isCurrentXComposeReview\(review, value, accounts\)/);
+  // A successful remote reservation stays scheduled; it is never labelled as published.
+  assert.match(composer,/status: mode === 'schedule' \? 'scheduled' : 'sent'/);
   assert.doesNotMatch(composer.slice(composer.indexOf('function saveLocalDraft'),composer.indexOf('const value =')),/fetch\(/);
   assert.match(scheduler,/mergeContentLibrary\(localStorage, base, next\)/);
   assert.match(scheduler,/if \(!updateLib\(\[item, \.\.\.lib\]\)\) return/);
