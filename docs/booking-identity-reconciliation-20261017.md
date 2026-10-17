@@ -1,0 +1,27 @@
+# Booking identity and canonical purchase milestone — NOT RELEASED
+
+Continuation of Draft PR334 and paired backend Draft PR236. All public/payment readiness switches remain off. The public booking page does not yet supply LINE identity proof and must not be activated with this milestone alone.
+
+The request handler now verifies a LINE ID token with LINE's provider endpoint using the same public Login channel as deployed `line-pwa-bootstrap` v12. The service-only SQL admission resolves the existing contact/LINE identity mappings, rejects ambiguous or unconsented customers, and binds the fixed active `winning_os_90` offer (19,800 JPY) before Checkout. Binding cannot be reassigned after verification. Client contact IDs, email matches, decoded JWTs and Flow Check link tokens are not accepted as proof. ID tokens are never stored, logged, added to Stripe metadata or passed in URLs.
+
+For a signature-verified live paid event, `ace_booking_purchase_v1` atomically transitions the hold and records the existing canonical purchase keyed by payment intent, plus one `booking_payment_received` funnel receipt. Confirmed retries also reconcile before acknowledgement. Historical/foreign purchase collisions fail closed without relinking. Late payment retains a paid purchase and `refund_required` booking; a refunded/cancelled purchase cannot be restored to paid by replay. Refund execution remains a human operation. Calendar/Meet work starts only after this transaction succeeds.
+
+The existing unlaunched booking migration is extended in place; no second purchase table or infrastructure is introduced. It now requires the existing contacts/person_identities/offers/purchases/funnel schema. Apply only after the paired outbox/booking migrations and actual production triggers have passed approved staging. No production schema or credentials were modified.
+
+## Evidence observed on 2026-10-17
+
+- Read-only deployed source: LINE bootstrap v12; legacy Stripe webhook v6. Read-only schema: contact/identity uniqueness, required purchase foreign keys, unique external payment ID, valid status values, active `winning_os_90`/19800 and existing service-role read/insert access. No customer rows or token values were copied.
+- Actual isolated PostgreSQL/PGlite: 10 new SQL/handler cases pass, including one signed real handler → actual SQL → fake Calendar → confirmed retry. Tests cover immutable identity, wrong customer/offer, test-mode rejection, duplicates, payment collision, late payment/refund review, rollback and RPC ACLs. These fixtures omit deployed entitlement triggers and do not establish independent-connection concurrency or live Stripe delivery.
+- Legacy backend actual handler/SQL regression: 14/14 pass with mocked external delivery.
+- Local website full suite: 591/592 pass. The remaining unrelated Pipeline browser test produces DOM but the installed macOS Chrome process fails during headless teardown; no booking test fails. No test was skipped or weakened. Linux hosted CI must provide the full-suite receipt.
+- Production build and dependency security gate pass. The existing upstream audit exception for http-cache-semantics remains visible and expires 2026-10-31. Type-delta, preview and current-head hosted CI receipts are recorded in PR334 when available.
+- Latest master was merged into the existing draft branch. Independent design review was completed; the independent code review lane hit a usage limit. An explicit second code/diff review and executable checks were used; independent final code review is still outstanding.
+
+## Exact remaining boundary
+
+1. Reuse the approved existing LINE PWA's live, in-memory ID token for the booking request and explicit consent. Neither repo provides a LIFF app ID/approved endpoint configuration. Do not invent a new login app or transmit tokens through redirects/storage. `/booking` currently lacks this handoff; backend implementation does not make it usable for verified public bookings.
+2. Stage both existing migrations against the actual schema, purchase entitlement triggers and service-role permissions. Check separate-connection races and real signed Stripe test deliveries, merchant/Price ownership, endpoint-specific signing secrets, legacy historical receipt recovery, actual Calendar/Meet and approved test LINE delivery. Missing/test-mode paid events deliberately cannot mutate the live canonical purchase path; sandbox testing must remain isolated from production.
+3. Keep `BOOKING_PUBLIC_ENABLED`, `BOOKING_PAYMENT_WEBHOOK_READY`, `BOOKING_LEGACY_STRIPE_ROUTER_READY` and `BOOKING_REVENUE_RECONCILIATION_READY` off until the complete client/staging/configuration receipts and independent release review exist. This change does not implement live LINE booking confirmations or automatic refunds.
+4. Merge, deployment, production migrations, credentials/permissions, live messages, payment and public launch each retain their existing human approval boundary. Before release record the actual active versions; roll back by disabling intake and retaining purchase evidence for reconciliation, never by replaying payments or reverting to unsafe legacy delivery.
+
+References: [Stripe fulfillment and idempotency](https://docs.stripe.com/checkout/fulfillment?payment-ui=stripe-hosted), [Supabase API grants and RLS](https://supabase.com/docs/guides/api/securing-your-api), [paired backend PR236](https://github.com/takraw369/masa-automation/pull/236).

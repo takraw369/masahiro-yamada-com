@@ -2,6 +2,7 @@ import type { APIContext } from 'astro';
 import { getSiteStorageEnv } from '../../../lib/siteStorage';
 import { getLiveBusy, slotIsFree, type PublicArea } from '../../../lib/smartBookingIntegrations';
 import { evaluateTravelAroundAppointment } from '../../../lib/smartBookingAdjacentEvents';
+import { verifyBookingLineIdentity } from '../../../lib/smartBookingIdentity';
 import {
   bookingEnabled, bookingDb, createVerifiedStripeCheckout, readBooking, validJstSession,
   verifyHuman, type BookingPaymentEnv,
@@ -36,6 +37,8 @@ export const POST = async ({ request, locals }: APIContext) => {
   const human = await verifyHuman(turnstile, env.BOOKING_TURNSTILE_SECRET || '', request.headers.get('cf-connecting-ip'));
   if (!human) return json({ ok: false, error: 'anti_bot_verification_failed' }, 403);
   try {
+    const lineSubject = await verifyBookingLineIdentity(body.lineIdToken);
+    if (!lineSubject || body.consent !== true) return json({ ok: false, error: 'verified_customer_required' }, 403);
     // Client never chooses the price or unverified hotel/venue. Online only initially.
     const prior = await readBookingByRequestKey(env, requestKey);
     if (prior) return json({ ok: false, error: 'request_key_already_used', bookingState: prior.state }, 409);
@@ -46,11 +49,12 @@ export const POST = async ({ request, locals }: APIContext) => {
     const transit = await evaluateTravelAroundAppointment(env, start, end, env.BOOKING_ONLINE_VENUE_AREA as PublicArea);
     if (!transit.complete || transit.feasible !== true) return json({ ok: false, error: 'travel_not_verified' }, 409);
 
-    const hold = await bookingDb<{ id?: string; state?: string; error?: string }>(env, 'ace_booking_hold_create_v1', {
+    const hold = await bookingDb<{ id?: string; state?: string; identityBound?: boolean; error?: string }>(env, 'ace_booking_hold_verified_v1', {
       p_request_key: requestKey, p_start_at: start, p_end_at: end,
       p_mode: 'online', p_location_id: 'online-private', p_client_area: clientArea,
+      p_line_subject: lineSubject,
     });
-    if (!hold.id || hold.error) return json({ ok: false, error: 'slot_unavailable' }, 409);
+    if (!hold.id || hold.error || hold.identityBound !== true) return json({ ok: false, error: 'slot_unavailable' }, 409);
     if (hold.state !== 'held') return json({ ok: false, error: 'request_not_active' }, 409);
     // Recheck busy windows immediately before opening payment.
     const again = await getLiveBusy(env,

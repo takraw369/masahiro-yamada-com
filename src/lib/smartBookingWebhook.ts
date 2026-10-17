@@ -17,11 +17,11 @@ export async function parseBookingPayment(
     if (await verifyStripeSignature(raw, header, candidate)) { valid = true; break; }
   }
   if (!valid) throw new Error('invalid_signature');
-  const event = JSON.parse(raw) as { type?: string; data?: { object?: Record<string, any> } };
+  const event = JSON.parse(raw) as { type?: string; livemode?: boolean; data?: { object?: Record<string, any> } };
   if (event?.type !== 'checkout.session.completed' && event?.type !== 'checkout.session.async_payment_succeeded') return null;
   const session = event.data?.object;
   if (!session?.metadata || !['booking_id', 'booking_request_key', 'booking_flow'].some(key => key in session.metadata)) return null;
-  if (session.mode !== 'payment' || session.payment_status !== 'paid'
+  if (event.livemode !== true || session.mode !== 'payment' || session.payment_status !== 'paid'
       || session.currency !== 'jpy' || session.amount_total !== 19800
       || typeof session.payment_intent !== 'string' || typeof session.id !== 'string'
       || session.metadata.booking_flow !== 'smart_booking_v1'

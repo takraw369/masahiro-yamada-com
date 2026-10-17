@@ -60,6 +60,7 @@ export async function bookingDb<T>(env: BookingPaymentEnv, action: string, input
   const whitelist = new Set([
     'ace_booking_hold_create_v1', 'ace_booking_attach_checkout_v1',
     'ace_booking_paid_v1', 'ace_booking_confirm_v1', 'ace_booking_review_v1',
+    'ace_booking_hold_verified_v1', 'ace_booking_purchase_v1',
   ]);
   if (!whitelist.has(action)) throw new Error('booking_db_action_denied');
   if (!env.SUPABASE_URL || !env.BOOKING_SUPABASE_SERVICE_KEY) throw new Error('booking_db_not_configured');
@@ -135,7 +136,6 @@ export async function createVerifiedStripeCheckout(
     mode: 'payment',
     'line_items[0][price]': env.BOOKING_STRIPE_PRICE_ID,
     'line_items[0][quantity]': '1',
-    'payment_method_types[0]': 'card',
     client_reference_id: bookingId,
     'metadata[booking_id]': bookingId,
     'metadata[booking_request_key]': requestKey,

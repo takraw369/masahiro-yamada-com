@@ -3,12 +3,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist';
+import { bookingSchema } from './helpers/booking-schema.mjs';
 
 // Execute the actual proposed migration in isolated PostgreSQL; never remote DB.
 test('booking migration executes with private ACLs, overlap protection, expiry and payment replay', async () => {
   const db = new PGlite({ extensions: { btree_gist } });
   try {
     await db.exec('create schema extensions; create role anon; create role authenticated; create role service_role;');
+    await db.exec(bookingSchema);
     const sql = await readFile(new URL('../migrations/20261014_smart_booking_holds.sql', import.meta.url), 'utf8');
     await db.exec(sql);
     const acl = await db.query("select has_table_privilege('anon','public.ace_booking_holds','select') as readable, has_function_privilege('authenticated','public.ace_booking_paid_v1(uuid,text,text)','execute') as callable");

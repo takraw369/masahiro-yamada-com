@@ -33,12 +33,15 @@ export const POST = async ({ request, locals }: APIContext) => {
     if (booking.stripe_payment_intent_id && booking.stripe_payment_intent_id !== payment.paymentIntentId) {
       return reply({ ok: false, reason: 'payment_reference_mismatch' }, 503);
     }
-    if (booking.state === 'confirmed') return reply({ ok: true, duplicate: true });
-    const paid = await bookingDb<{ state?: string; error?: string }>(env, 'ace_booking_paid_v1', {
+    // Even confirmed retries must prove the same canonical purchase before ACK.
+    // This RPC records money received and the booking state atomically.
+    const paid = await bookingDb<{ state?: string; purchaseId?: string; error?: string }>(env, 'ace_booking_purchase_v1', {
       p_booking_id: booking.id, p_stripe_session_id: payment.sessionId,
-      p_payment_intent_id: payment.paymentIntentId,
+      p_request_key: payment.requestKey, p_payment_intent_id: payment.paymentIntentId,
+      p_livemode: true,
     });
-    if (paid.error) return reply({ ok: false, reason: 'payment_state_conflict' }, 503);
+    if (paid.error || !paid.purchaseId) return reply({ ok: false, reason: 'payment_state_conflict' }, 503);
+    if (paid.state === 'confirmed') return reply({ ok: true, duplicate: true });
     if (paid.state === 'refund_required') {
       console.error('booking_paid_expired_refund_review');
       return reply({ ok: true, needsReview: true });

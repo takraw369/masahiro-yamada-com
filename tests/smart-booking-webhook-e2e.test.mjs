@@ -13,7 +13,7 @@ const record = {
   mode: 'online', location_id: 'online-private', state: 'checkout_started',
 };
 const event = {
-  type: 'checkout.session.completed',
+  livemode: true, type: 'checkout.session.completed',
   data: { object: {
     id: 'cs_test_case', mode: 'payment', payment_status: 'paid', amount_total: 19800,
     currency: 'jpy', payment_intent: 'pi_test_one',
@@ -58,7 +58,7 @@ function fakeServices(t, opts={}) {
     const target = String(url);
     history.push({url:target,method:init.method||'GET'});
     if (target.includes('/rest/v1/ace_booking_holds')) return Response.json(opts.badRef ? [{...record,request_key:'wrong'}] : [{...record,state:opts.state||record.state,stripe_payment_intent_id:opts.intent||null}]);
-    if (target.includes('/rest/v1/rpc/ace_booking_paid_v1')) return Response.json({state:opts.paidState||'paid'});
+    if (target.includes('/rest/v1/rpc/ace_booking_purchase_v1')) return opts.purchaseError ? new Response(null,{status:500}) : Response.json({state:opts.paidState||opts.state||'paid',purchaseId:'purchase-fixture'});
     if (target.includes('/rest/v1/rpc/ace_booking_confirm_v1')) return Response.json({state:'confirmed'});
     if (target.includes('/rest/v1/rpc/ace_booking_review_v1')) return Response.json({state:'needs_review'});
     if (target.includes('oauth2.googleapis.com/token')) return Response.json({ access_token:'test-oauth' });
@@ -85,7 +85,7 @@ test('valid paid webhook creates calendar event and records confirmation',async 
   assert.equal(res.status,200);
   assert.deepEqual(await res.json(),{ok:true,confirmed:true});
   assert.ok(calls.some(x=>x.url.includes('/calendar/v3/freeBusy')));
-  assert.ok(calls.some(x=>x.url.includes('/rest/v1/rpc/ace_booking_paid_v1')));
+  assert.ok(calls.some(x=>x.url.includes('/rest/v1/rpc/ace_booking_purchase_v1')));
   assert.ok(calls.some(x=>x.url.includes('/rest/v1/rpc/ace_booking_confirm_v1')));
   assert.equal(calls.filter(x=>x.method==='POST' && x.url.includes('/calendars/primary/events?')).length,1);
 });
@@ -95,6 +95,17 @@ test('duplicate webhook is idempotent and never creates another meeting',async t
   assert.equal(res.status,200);
   assert.deepEqual(await res.json(),{ok:true,duplicate:true});
   assert.ok(!calls.some(x=>x.url.includes('oauth2.googleapis.com')));
+  assert.ok(calls.some(x=>x.url.includes('ace_booking_purchase_v1')));
+});
+test('confirmed booking never ACKs or touches Google when canonical purchase reconciliation fails',async t=>{
+  const calls=fakeServices(t,{state:'confirmed',purchaseError:true});
+  const res=await invoke();assert.equal(res.status,503);
+  assert.ok(!calls.some(x=>x.url.includes('googleapis.com')));
+});
+test('test and missing livemode events cannot read/write bookings or invite customers',async t=>{
+  const calls=fakeServices(t);
+  for(const livemode of [false,undefined])assert.equal((await invoke({...event,livemode})).status,400);
+  assert.equal(calls.length,0);
 });
 test('conflicting event after payment triggers review, not automatic invitation',async t=>{
   const calls=fakeServices(t,{busy:[{start,end}]});
@@ -121,7 +132,7 @@ test('incorrect request binding blocks fulfillment',async t=>{
   const calls=fakeServices(t,{badRef:true});
   const res=await invoke();
   assert.equal(res.status,503);
-  assert.ok(!calls.some(x=>x.url.includes('ace_booking_paid_v1')));
+  assert.ok(!calls.some(x=>x.url.includes('ace_booking_purchase_v1')));
 });
 test('forwarded original endpoint signature works only with its separately configured secret', async t => {
   const calls = fakeServices(t);

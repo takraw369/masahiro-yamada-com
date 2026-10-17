@@ -14,7 +14,7 @@ function makeRequest(fields={}) {
     body:JSON.stringify({
       start:day+'T10:00:00+09:00', end:day+'T11:30:00+09:00',
       requestKey:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
-      clientArea:'kunitachi',turnstileToken:'test-turnstile',...fields,
+      clientArea:'kunitachi',turnstileToken:'test-turnstile',lineIdToken:'fixture-line-id-token',consent:true,...fields,
     }),
   });
 }
@@ -46,14 +46,15 @@ function fakeDependencies(t, opts={}) {
     const address=String(url);
     seen.push({address,method:init.method||'GET'});
     if(address.includes('turnstile/v0/siteverify'))return Response.json({success:opts.human!==false});
+    if(address.includes('api.line.me/oauth2/v2.1/verify'))return Response.json({sub:'U'+'a'.repeat(32),aud:'2009606403',iss:'https://access.line.me',exp:Math.floor(Date.now()/1000)+300});
     if(address.includes('/ace_booking_holds?request_key='))return Response.json([]);
     if(address.includes('oauth2.googleapis.com/token'))return Response.json({access_token:'test-google-token'});
     if(address.includes('/calendar/v3/freeBusy'))return Response.json({
       calendars:{primary:{busy:opts.busy||[]}},
     });
     if(address.includes('/calendar/v3/calendars/primary/events?'))return Response.json({items:[]});
-    if(address.includes('/rest/v1/rpc/ace_booking_hold_create_v1'))return Response.json({
-      id:'550e8400-e29b-41d4-a716-446655440000',state:'held',
+    if(address.includes('/rest/v1/rpc/ace_booking_hold_verified_v1'))return Response.json({
+      id:'550e8400-e29b-41d4-a716-446655440000',state:'held',identityBound:true,
     });
     if(address.includes('/rest/v1/rpc/ace_booking_attach_checkout_v1'))return Response.json({
       id:'550e8400-e29b-41d4-a716-446655440000',state:'checkout_started',
@@ -83,6 +84,15 @@ test('anti-bot rejection happens before calendar/checkout calls',async t=>{
   assert.equal(res.status,403);
   assert.ok(!seen.some(x=>x.address.includes('checkout')));
 });
+test('missing LINE proof or consent blocks the hold and checkout despite client supplied contact/email',async t=>{
+  Object.assign(env,baseConfig);
+  const seen=fakeDependencies(t);
+  const res=await POST({locals:{},request:makeRequest({lineIdToken:null,contact_id:'forged',email:'same@example.test'})});
+  assert.equal(res.status,403);
+  assert.ok(!seen.some(x=>x.address.includes('/rpc/')||x.address.includes('googleapis')||x.address.includes('stripe.com')));
+  const noConsent=await POST({locals:{},request:makeRequest({consent:false})});
+  assert.equal(noConsent.status,403);
+});
 test('fresh calendar conflict blocks checkout even if bot verification succeeds',async t=>{
   Object.assign(env,baseConfig);
   const day=futureJstDay();
@@ -102,7 +112,7 @@ test('only matching original merchant and amount can create Stripe-hosted checko
   assert.ok(body.checkoutUrl.startsWith('https://checkout.stripe.com/'));
   assert.ok(seen.some(x=>x.address.includes('/calendar/v3/freeBusy')));
   assert.ok(seen.some(x=>x.address.includes('/calendar/v3/calendars/primary/events?')));
-  assert.ok(seen.some(x=>x.address.includes('/rest/v1/rpc/ace_booking_hold_create_v1')));
+  assert.ok(seen.some(x=>x.address.includes('/rest/v1/rpc/ace_booking_hold_verified_v1')));
   assert.ok(seen.some(x=>x.address.includes('/rest/v1/rpc/ace_booking_attach_checkout_v1')));
 });
 test('wrong Stripe merchant refuses checkout after hold, no funds captured',async t=>{
