@@ -58,6 +58,7 @@ async function jsonResponse(url, options = {}) {
   return data;
 }
 async function taskSummary() {
+  // The canonical Task Board read model and Calendar snapshot are separate sources.
   const payload = await jsonResponse('/api/dashboard/task-execution?limit=120');
   const items = Array.isArray(payload.items) ? payload.items : [];
   const active = items.filter((item) => ['NOW', 'NEXT', 'REVIEW'].includes(item.status));
@@ -66,13 +67,43 @@ async function taskSummary() {
     return score(a.priority) - score(b.priority);
   });
   const top = ordered.slice(0, 3);
-  const lines = top.map((item, i) =>
+  const taskLines = top.map((item, i) =>
     String(i + 1) + '．' + String(item.task || '無題').slice(0, 120) +
     (item.nextAction ? '。次：' + String(item.nextAction).slice(0, 130) : '')
   );
-  output('MASA TASK BOARD由来の現在のタスク上位' + top.length + '件。\n' +
-    (lines.length ? lines.join('\n') : 'NOW/NEXT/REVIEWのタスクは見つかりませんでした。') +
-    '\n※カレンダーの予定とは別です。予定はCalendarで確認してください。');
+  const parts = ['MASA TASK BOARD｜現在のタスク上位' + top.length + '件',
+    taskLines.length ? taskLines.join('\n') : 'NOW/NEXT/REVIEWのタスクは見つかりませんでした。'];
+  const tokyoDay = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const startMs = Date.parse(tokyoDay + 'T00:00:00+09:00');
+  const from = new Date(startMs).toISOString();
+  const to = new Date(startMs + 86_400_000).toISOString();
+  try {
+    const calendar = await jsonResponse('/api/dashboard/calendar?from=' +
+      encodeURIComponent(from) + '&to=' + encodeURIComponent(to));
+    const events = (Array.isArray(calendar.events) ? calendar.events : [])
+      .filter((event) => {
+        const begin = Date.parse(event.start_at);
+        const finish = Date.parse(event.end_at);
+        return Number.isFinite(begin) && Number.isFinite(finish)
+          && begin < startMs + 86_400_000 && finish > startMs;
+      })
+      .sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)));
+    const times = events.slice(0, 4).map((event) => {
+      const clock = event.all_day ? '終日' : new Date(event.start_at)
+        .toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit' });
+      return clock + ' ' + String(event.title || '無題の予定').slice(0, 100);
+    });
+    const updated = calendar.sync?.synced_at
+      ? '\n最終同期：' + new Date(calendar.sync.synced_at)
+          .toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
+      : '\n同期日時：未確認';
+    parts.push('Google Calendar同期スナップショット｜' + tokyoDay +
+      (events.length ? '\n' + times.join('\n') : '\n予定なし（同期スナップショット上）') +
+      (events.length > 4 ? '\nほか' + String(events.length - 4) + '件' : '') + updated);
+  } catch {
+    parts.push('Google Calendar同期スナップショット｜現在照会できません。Calendar画面で確認してください。');
+  }
+  output(parts.join('\n\n'));
   nextLink('Task Flow', '/dashboard/tasks');
 }
 async function askKnowledge(question) {
