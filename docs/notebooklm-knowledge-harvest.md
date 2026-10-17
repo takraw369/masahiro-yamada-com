@@ -1,0 +1,94 @@
+# NotebookLM Knowledge Harvest P0
+
+Existing ownership: Drive / MASA_OS is canonical; Supabase is the integrated query/knowledge model; GitHub stores code and rules. This importer produces a **private intermediate review packet**, not a second database or Dashboard. Source exports are read only.
+
+## Run
+
+Use Node 22+; no packages, login or network are needed.
+
+```sh
+node scripts/notebooklm-harvest.mjs --input /private/export/index.json --source-id SOURCE_ID --dry-run
+node scripts/notebooklm-harvest.mjs --input /private/export/index.json --source-id SOURCE_ID \
+  --annotations /private/annotations.json --existing /private/existing.json --dry-run
+# Parent directory must exist. Output is a NEW private directory, never alongside inputs.
+node scripts/notebooklm-harvest.mjs --input /private/export/index.json --source-id SOURCE_ID \
+  --annotations /private/annotations.json --write-local --out /private/review/batch-001
+node scripts/notebooklm-harvest.mjs --input /private/export/index.json --source-id SOURCE_ID \
+  --annotations /private/annotations.json --previous /private/review/batch-001/receipt.json --dry-run
+node --test tests/notebooklm-harvest.test.mjs
+```
+
+Repeat `--input` and `--source-id` for a bounded batch. Without IDs, the entire specified manifest is read. Pass index.json explicitly; there is no recursive drive scan. Missing/failed/unavailable rows are counted separately and never become knowledge. A selected missing ID fails. Unsupported inputs fail closed.
+
+Inputs: existing NotebookLM readonly exporter index.json + sources/notes Markdown; individual Markdown/text with optional `file.md.source.json`; Google Docs exported plain text with that metadata sidecar; readable Drive connector JSON `{title,content,id,url}`. The importer does not download Google Docs, extract cookies, or call unofficial NotebookLM APIs. Use the authorized Drive connector or the ordinary export UI to obtain readable text. HTML, PDF and binary DOCX require an explicit text export first.
+
+Sidecar metadata uses `title, source_url, source_id, notebook_id, notebook_title, kind`. A URL or NotebookLM notebook/entity ID pair is required. NotebookLM index text is not the original binary. Notes/reports may be authored or AI generated and stay unverified.
+
+## Structured annotations
+
+Annotations are keyed by stable candidate ID, original source ID, or normalized source URL. They are editorial input, kept outside Git. The importer does **not** fabricate summaries or claim extraction.
+
+```json
+{
+  "SOURCE_ID": {
+    "summary": "The author proposes practising a task and then reflecting.",
+    "principles": ["Connect practice to feedback."],
+    "statements": [
+      {"kind":"claim","text":"The author proposes feedback after practice.","quote":"Feedback follows practice."}
+    ],
+    "relations": [
+      {"targetId":"OBSERVED_EXISTING_ID","title":"Education","relation":"applies_to","rationale":"A proposed learning design connection."}
+    ],
+    "reuse": [{"area":"education","idea":"One practice attempt followed by reflection."}],
+    "openQuestions": ["Does the proposal transfer to this learner group?"]
+  }
+}
+```
+
+Every statement requires an exact quote from the preserved body. UTF-16 offsets and source hash are included. Allowed kinds: claim, hypothesis, interpretation, experience, fact. FACT is limited to `scope: document_observation`; it means the text was observed, never that an external claim is true. World facts require a separate verification workflow. Summaries/principles/relations/reuse remain unreviewed annotations/proposals. Raw source text is retained separately.
+
+For a partial export or a selective reading, supply optional `coverage` on the annotation:
+
+```json
+{"scope":"partial_export","limitations":["The original remainder was not acquired."],"evidenceQuote":"The rest of this article is available to members."}
+```
+
+Scopes: `exported_text_only`, `partial_export`, `selected_passages`. The last two require nonempty limitations. An optional boundary quote must occur exactly in the source; its UTF-16 span and hash are preserved. `originalCompleteness` is always `unverified`; attempts to assert verified completeness are rejected. Markdown/capture previews display the scope and limitations. Omitted coverage means exported text only, with original completeness unverified, and keeps older v1 receipt revision hashes compatible. Coverage survives annotation-free resume and changes are diffed. A boundary marker is evidence of the export's contents, not evidence that any unseen material was acquired. Multiple reviews derived from one book remain dependent sources, not independent validation of its claims.
+
+For a concrete semantic duplicate or canonical connection, add an optional `canonicalTarget` to the source annotation:
+
+```json
+{"action":"LINK","targetId":"OBSERVED_EXISTING_ID","targetUrl":"https://example.org/canon","title":"Existing Canon","section":"Learning","rationale":"The core already exists; attach this source as a reference.","evidenceQuote":"Existing learning principle."}
+```
+
+Actions are LINK / MERGE / UPDATE / REFERENCE proposals. Supply the observed target in `--existing` as `{id,title,source_url,content}`. Both ID and normalized URL must match, and the exact evidence quote must occur in that target's text. Missing/mismatched targets fail closed. The packet preserves the target content hash and evidence offsets. This verifies the observed target text, not permission to write. Any supplied canonical target suppresses new capture previews; no original/canonical document is modified. A live write still requires current revision/authorization checks and human approval.
+
+## Duplicates and differences
+
+Canonical URL joins YouTube watch/short/live/share variants and Drive/Docs file variants. Original URLs, notebook/source IDs and all batch occurrences remain in the packet. Source-file export time and index scan time are separate; an already-local file is not relabelled as freshly exported. Same URL with different bodies is a conflict requiring review; both bodies are retained. URL-less notes use notebook + note IDs. Content hash ignores export wrapper timestamps. Revision hash also detects annotation/metadata changes.
+
+`--previous` compares a previous transfer receipt: create/update/unchanged/conflict and changed fields. An absent source in a partial batch is never a deletion: it is carried in `deferredCandidates`, so a later partial reimport cannot create it again. Prior annotations are retained only when the body hash is unchanged. New provenance is added to existing occurrences; later URL enrichment preserves a previously seen notebook/source identity. Conflicts remain held across reimports until reviewed; P0 has no automatic conflict resolution. `--existing` accepts a local array `[{id,title,source_url}]` from a fresh authorized read; exact source URL matches propose LINK/MERGE. This is bounded snapshot matching, not proof that all existing canonical assets were checked. Semantic duplicates and canonical target choice require review. Local receipts do not mean a live import happened; applied/liveWrites remain zero.
+
+## Existing integration boundary
+
+Observed master API: `POST /api/dashboard/knowledge` accepts `{kind:"capture",text}`, up to 12,000 JS code units and 32,000 body bytes. The owner-guarded `masa_flow_mind_capture_v1` creates a **private draft self_note in masa_lens**, suitable for an explicitly labelled source-linked interpretation. It does not create an external source, knowledge_sources links, or graph relations.
+
+Eligible new structured candidates contain a size-checked `integration.capturePreview` with this exact request shape. The tool never sends it. Repeated, updated, conflicting, unstructured, existing-matched or canonical-targeted records do not contain insert previews. Capture is insert-only; updates must use reviewed UPDATE/MERGE/LINK through the canonical owner, not another capture. Full structured data stays in the review packet; source relationships must later be materialized through existing authorized contracts.
+
+`source_intake_v1` in masa-automation currently consumes Raindrop source IDs/inbox, not arbitrary NotebookLM text. No fictional text payload is emitted for that workflow. No new public API, schema, auth path or UI is introduced.
+
+Next Human Gate: confirm rights and canonical target; review claims/interpretations and proposed relations; verify the current owner guard, grants/RLS and authenticated negative cases; then authorize the intended existing write path and read it back. Merely observing RLS enabled is not full permission validation. No live registration or canonical promotion is performed in P0.
+
+## Privacy and verification
+
+Dry-run is default and writes nothing, including receipts. Explicit `--write-local` writes JSON + Markdown into a new directory with mode 700/600. Outputs inside this repository are accepted only under ignored `work/`; symlink parents are resolved first. Manifest path traversal/symlink escapes and recognizable credentials are rejected. This is not a complete PII scanner: never commit source texts, annotations, snapshots or receipts. Git contains synthetic tests only.
+
+Test coverage includes source fidelity, transcript-vs-fact distinction, explicit partial/selective read coverage, duplicate provenance, content conflicts, metadata/annotation changes, skipped exports, partial-batch resume, capture contract limits, no repeat inserts, traversal/symlink rejection and no-write dry-run.
+
+### Continuation: mirror and resume integrity
+
+Identical source bodies at distinct URLs are retained with both provenances and marked `HOLD_DUPLICATE_CONTENT`; insert-only capture previews are suppressed. The check also includes deferred candidates from a partial previous batch. This is an exact normalized-body check, not a semantic duplicate decision. A prior receipt with duplicate candidate IDs or contradictory NotebookLM occurrence aliases now fails before resumption, preventing silent Map overwrite. Preserve the original receipt and resolve its conflicting identities explicitly.
+
+### Source quality and rights review
+
+A successful import verifies structure and exact spans, not readability, truth or reuse rights. During private review, heavily corrupted text must remain an explicit source-quality HOLD: preserve the original and identity, avoid substantive claims/reuse proposals, and reacquire readable evidence before promotion. A copyright notice is a document observation, not permission. Scientific uses of a term, encyclopedia descriptions and commercial sales claims must retain their context; they do not establish coaching, learning, health or earnings effects. Keep these judgments in the private packet and publish only sanitized verification counts. Consolidate overlapping proposals into existing-owner worksheets instead of requesting one Canonical write per source.
