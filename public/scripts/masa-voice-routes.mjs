@@ -28,7 +28,7 @@ export function routeVoiceCommand(input) {
   if (has(text, ['覚えて', '記録して', '資産化して', 'メモして', '保存して'])) {
     let content = text.replace(/^(?:ねえ[、, ]*)?(?:慧|けい|ケイ)[、, ]*/, '')
       .replace(/^(?:これ|この話|このアイデア|今のアイデア)を?[、, ]*/, '')
-      .replace(/^(?:覚えて|記録して|資産化して|メモして|保存して)[。.!！]*[、, ]*/, '')
+      .replace(/^(?:覚えて|記録して|資産化して|メモして|保存して)[。.!！]*[、, :：]*/, '')
       .trim();
     // A bare command needs a follow-up; do not save "remember this" as content.
     if (/^(?:これを?)?(?:覚えて|記録して|資産化して|メモして|保存して)[。.!！]*$/.test(content) || content === '') content = '';
