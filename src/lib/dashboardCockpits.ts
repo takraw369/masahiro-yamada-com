@@ -33,6 +33,7 @@ const routes: Array<{ route: string; cockpit: DashboardCockpit }> = [
   { route: '/dashboard/profile-import', cockpit: { see: '入力文・抽出候補・確度', decide: '何をプロフィールに採用するか', act: '確認済み項目だけ反映する' } },
   { route: '/dashboard/ai-commands', cockpit: { see: '目的・使える指示・対象', decide: '今使う思考モード', act: 'カードを選びPromptを確定する' } },
   { route: '/dashboard/post', cockpit: { see: '素材・目的・CTA', decide: '今出す1本', act: '下書きからHuman Gateへ' } },
+  { route: '/dashboard/flow-frame', cockpit: { see: '素材・メッセージ・出力先', decide: '何を伝える1枚にするか', act: '画像を書き出して確認する' } },
   { route: '/dashboard/visual-prompt', cockpit: { see: '用途・画・感情', decide: '伝える構図', act: '生成用Promptを確定する' } },
   { route: '/dashboard/funnel', cockpit: { see: '流入・CTA・反応', decide: '最大の漏れ', act: '1点修正して再計測する' } },
   { route: '/dashboard/distribution', cockpit: { see: 'Content Readyと配信状態', decide: 'どこで何を出すか', act: 'Human Gateへ送る' } },

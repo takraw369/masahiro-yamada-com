@@ -1,0 +1,81 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+<DashboardLayout title="FLOW FRAME" eyebrow="CREATE · IMAGE TO ASSET">
+  <div class="ff" id="flow-frame">
+    <header class="ff-hero">
+      <div>
+        <p class="ff-kicker">SUN LOVES FLOW / CREATE</p>
+        <h1>ひとつの素材から、<br/><em>伝わる6枚へ。</em></h1>
+        <p>スクリーンショットを入れて、見出しを整えて、用途別に書き出す。外部への画像送信なし・この端末のブラウザで制作します。</p>
+      </div>
+      <a class="ff-back" href="/dashboard/content-studio">Knowledge Studioへ ↗</a>
+    </header>
+
+    <div class="ff-grid">
+      <section class="ff-panel" aria-label="素材とデザインを設定">
+        <div class="ff-section-head"><span>01</span><h2>素材を入れる</h2></div>
+        <label class="ff-drop" id="ff-drop">
+          <input type="file" id="ff-file" accept="image/png,image/jpeg,image/webp,image/avif" />
+          <span class="ff-upload-icon" aria-hidden="true">＋</span>
+          <strong id="ff-file-name">画像・アプリ画面を選ぶ / ドロップ</strong>
+          <small>PNG・JPEG・WebP・AVIF（上限 18 MB）／貼り付けも可</small>
+        </label>
+        <div class="ff-section-head ff-space"><span>02</span><h2>メッセージを整える</h2></div>
+        <div class="ff-fields">
+          <label>ラベル<input id="ff-brand" maxlength="42" value="SUN LOVES FLOW" /></label>
+          <label>見出し<textarea id="ff-title" rows="2" maxlength="96">経験を、未来を動かす力に。</textarea></label>
+          <label>補足テキスト<textarea id="ff-description" rows="2" maxlength="130">小さな気づきを、今日の行動につなげよう。</textarea></label>
+          <label>署名 / CTA<input id="ff-cta" maxlength="55" value="sunlovesflow · FLOW" /></label>
+          <label>元URL（任意・画像の自動取得はしません）<input type="url" id="ff-source-url" placeholder="https://..." /></label>
+        </div>
+        <div class="ff-section-head ff-space"><span>03</span><h2>見た目を選ぶ</h2></div>
+        <div class="ff-settings">
+          <label>配色
+            <select id="ff-theme">
+              <option value="orange">SLF Orange</option>
+              <option value="cream">Warm Paper</option>
+              <option value="night">Midnight</option>
+              <option value="green">Forest</option>
+            </select>
+          </label>
+          <label>画像の収まり
+            <select id="ff-fit">
+              <option value="contain">全体を見せる（余白あり）</option>
+              <option value="cover">いっぱいに見せる（端が切れる）</option>
+            </select>
+          </label>
+          <label>フレーム
+            <select id="ff-frame">
+              <option value="auto">自動（App Storeは端末風）</option>
+              <option value="card">カード</option>
+              <option value="phone">スマートフォン風</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="ff-panel ff-preview-panel" aria-label="画像のプレビューと保存">
+        <div class="ff-section-head"><span>04</span><h2>プレビューして書き出す</h2></div>
+        <div class="ff-tabs" role="group" aria-label="出力フォーマット">
+          <button type="button" class="active" aria-pressed="true" data-ff-size="instagram">Instagram 4:5</button>
+          <button type="button" aria-pressed="false" data-ff-size="square">X / 正方形</button>
+          <button type="button" aria-pressed="false" data-ff-size="story">Story 9:16</button>
+          <button type="button" aria-pressed="false" data-ff-size="note">note 横長</button>
+          <button type="button" aria-pressed="false" data-ff-size="appstoreMedium">App Store 6.3″ 必須</button>
+          <button type="button" aria-pressed="false" data-ff-size="appstore">App Store 6.9″</button>
+        </div>
+        <div class="ff-preview-stage"><canvas id="ff-preview" width="1080" height="1350" role="img" aria-label="生成した画像のプレビュー"></canvas></div>
+        <div class="ff-preview-info"><strong id="ff-size-label">Instagram 4:5 · 1080 × 1350px</strong><span id="ff-status" role="status" aria-live="polite">素材を追加すると保存できます。</span></div>
+        <div class="ff-actions">
+          <button type="button" id="ff-export" disabled>このサイズをPNG保存 ↓</button>
+          <button type="button" class="ff-secondary" id="ff-zip" disabled>6種類をZIPで一括保存 ↓</button>
+        </div>
+        <p class="ff-note">画像は送信・保存されません。制作状態はページを閉じると消えます。App Store向けには6.3インチの必須スクリーンショットと6.9インチの追加サイズを用意しています。アプリ実画面を使い、提出前には最新の審査・サイズ要件を確認してください。AIコピー生成・Webページの自動撮影・SNS投稿は未対応です。</p>
+      </section>
+    </div>
+    <footer class="ff-footer">FLOW FRAME · Local-first MVP <span>Capture → Frame → Output → Learn</span></footer>
+  </div>
+  <link rel="stylesheet" href="/styles/flow-frame.css"/>
+  <script src="/scripts/flow-frame.js" defer></script>
+</DashboardLayout>
