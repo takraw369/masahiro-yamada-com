@@ -67,6 +67,18 @@ export function isResumableXDraft(p: ContentPost) {
   return p.platform === 'x' && p.status === 'draft' && p.scheduledHour === null && Boolean(p.text.trim());
 }
 
+export function isUnscheduledContentDraft(p: ContentPost) {
+  return p.status === 'draft' && p.scheduledHour === null;
+}
+
+// Storage events do not fire in the document that changed the library.
+// Recheck the backing row before leaving, including deletion/blocked storage.
+export function isXTextDraftSaved(storage: Pick<Storage, 'getItem'>, text: string, previous: ContentPost | null): boolean {
+  if (!previous || previous.text !== text) return false;
+  try { return same(readContentLibrary(storage).find(p => p.id === previous.id), previous); }
+  catch { return false; }
+}
+
 export function saveXTextDraft(storage: LibraryStorage, text: string, accountId: string, previous: ContentPost | null = null): ContentPost {
   if (!text.trim() || text.length > 280) throw new Error('x_draft_text_invalid');
   if (previous && !isResumableXDraft(previous)) throw new Error('x_draft_not_editable');

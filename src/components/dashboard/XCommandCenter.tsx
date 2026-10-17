@@ -3,7 +3,7 @@ import { motionPresets } from '../../data/motionPresetCatalog';
 import { LAST_X_ACCOUNT_KEY } from '../../lib/xAccountPlaybook';
 import { getXConnectionIssue, type XConnectionIssue } from '../../lib/xConnectionIssue';
 import { X_COMPOSER_MAX_CHARS as MAX_CHARS, findConnectedXAccount, prepareXComposeReview, isCurrentXComposeReview, type XComposeAccount, type XComposeReview } from '../../lib/xComposerReview';
-import { CONTENT_LIBRARY_KEY, readContentLibrary, saveXTextDraft, mergeContentLibrary, isResumableXDraft, contentLibraryError, type ContentPost } from '../../lib/contentLibrary';
+import { CONTENT_LIBRARY_KEY, readContentLibrary, saveXTextDraft, mergeContentLibrary, isResumableXDraft, isXTextDraftSaved, contentLibraryError, type ContentPost } from '../../lib/contentLibrary';
 
 const CATEGORIES = [
   { id: 'brain', label: '脳科学', keywords: ['前頭前野', 'ドーパミン', '神経可塑性', '集中力', 'ADHD', '記憶定着', 'ワーキングメモリ', '睡眠と脳', 'フロー状態', '認知科学'] },
@@ -112,11 +112,12 @@ export default function XCommandCenter() {
     refreshDrafts();
     const changed = (event: StorageEvent) => { if (event.key === CONTENT_LIBRARY_KEY || event.key === null) refreshDrafts(); };
     window.addEventListener('storage', changed);
-    return () => window.removeEventListener('storage', changed);
+    window.addEventListener('focus', refreshDrafts);
+    return () => { window.removeEventListener('storage', changed); window.removeEventListener('focus', refreshDrafts); };
   }, []);
   useEffect(() => {
     const leaving = (event: BeforeUnloadEvent) => {
-      if (text.trim() && text !== savedText.current) { event.preventDefault(); event.returnValue = ''; }
+      if (text.trim() && !isXTextDraftSaved(localStorage, text, currentDraft.current)) { event.preventDefault(); event.returnValue = ''; }
     };
     window.addEventListener('beforeunload', leaving);
     return () => window.removeEventListener('beforeunload', leaving);

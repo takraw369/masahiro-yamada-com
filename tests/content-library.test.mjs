@@ -1,13 +1,29 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { CONTENT_LIBRARY_KEY, readContentLibrary, mergeContentLibrary, saveXTextDraft, isResumableXDraft, contentLibraryError } from '../src/lib/contentLibrary.ts';
+import { CONTENT_LIBRARY_KEY, readContentLibrary, mergeContentLibrary, saveXTextDraft, isResumableXDraft, isXTextDraftSaved, isUnscheduledContentDraft, contentLibraryError } from '../src/lib/contentLibrary.ts';
 
 const row = (id, extra = {}) => ({ id, platform:'x', category:null, text:'既存の本文', title:'既存の題名', scheduledHour:null, status:'draft', createdAt:'2026-10-17T00:00:00Z', order:0, ...extra });
 function storage(posts = []) {
   const values = new Map([[CONTENT_LIBRARY_KEY, JSON.stringify(posts)]]);
   return { values, getItem(key) { return values.get(key) ?? null; }, setItem(key, value) { values.set(key, value); } };
 }
+
+test('leaving rechecks the saved row even when same-document deletion emits no storage event', () => {
+  const original = row('one'), store = storage([original]);
+  assert.equal(isXTextDraftSaved(store, original.text, original), true);
+  assert.equal(isXTextDraftSaved(store, '未保存の編集', original), false);
+  assert.equal(isXTextDraftSaved(store, original.text, null), false);
+  for (const latest of [[], [{...original,text:'別の画面の編集'}], [{...original,status:'scheduled'}]]) {
+    store.setItem(CONTENT_LIBRARY_KEY, JSON.stringify(latest));
+    assert.equal(isXTextDraftSaved(store, original.text, original), false);
+  }
+  for (const raw of ['{', 'null']) {
+    store.setItem(CONTENT_LIBRARY_KEY, raw);
+    assert.equal(isXTextDraftSaved(store, original.text, original), false);
+  }
+  assert.equal(isXTextDraftSaved({getItem(){throw Error('blocked');}}, original.text, original), false);
+});
 
 test('explicit X save uses the existing library and preserves exact text and unrelated records', () => {
   const originals = [row('line', {platform:'line', lineAccountId:'line-id'}), row('sent', {status:'sent', extraMetadata:{keep:true}})];
@@ -108,4 +124,14 @@ test('Composer save/restore stays local and keeps the existing explicit publicat
   assert.doesNotMatch(composer.slice(composer.indexOf('function saveLocalDraft'),composer.indexOf('const value =')),/fetch\(/);
   assert.match(scheduler,/mergeContentLibrary\(localStorage, base, next\)/);
   assert.match(scheduler,/if \(!updateLib\(\[item, \.\.\.lib\]\)\) return/);
+});
+
+// Remote reservations use scheduled + no local slot; they must not become sendable drafts.
+test('Scheduler pending list excludes remote scheduled, sending and sent records', async () => {
+  assert.equal(isUnscheduledContentDraft(row('draft')), true);
+  for (const status of ['scheduled','sending','sent']) assert.equal(isUnscheduledContentDraft(row(status,{status})), false);
+  assert.equal(isUnscheduledContentDraft(row('local-slot',{scheduledHour:'2030-01-01T12:00',status:'scheduled'})), false);
+  const scheduler=await readFile(new URL('../src/components/dashboard/ContentScheduler.tsx',import.meta.url),'utf8');
+  assert.match(scheduler,/if \(!isUnscheduledContentDraft\(item\)/);
+  assert.match(scheduler,/const libItems.*isUnscheduledContentDraft\(p\)/);
 });

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { readContentLibrary, mergeContentLibrary, contentLibraryError, type ContentPost as PostItem } from '../../lib/contentLibrary';
+import { readContentLibrary, mergeContentLibrary, isUnscheduledContentDraft, contentLibraryError, type ContentPost as PostItem } from '../../lib/contentLibrary';
 
 // ── Types ──────────────────────────────────────────────
 interface XAccount    { id: string; username: string; isActive: boolean; }
@@ -142,6 +142,8 @@ export default function ContentScheduler() {
 
   // ── Send ──
   const send = async (item: PostItem) => {
+    // A Composer-confirmed remote reservation has no local calendar slot.
+    if (!isUnscheduledContentDraft(item) && !(item.status === 'scheduled' && item.scheduledHour)) return;
     const inFlight = updateLib(lib.map(p=>p.id===item.id?{...p,status:'sending' as const}:p));
     if (!inFlight) return;
     try {
@@ -181,7 +183,7 @@ export default function ContentScheduler() {
   };
 
   // ── Derived ──
-  const libItems    = lib.filter(p=>p.platform===libTab && !p.scheduledHour && p.status!=='sent');
+  const libItems    = lib.filter(p=>p.platform===libTab && isUnscheduledContentDraft(p));
   const scheduled   = lib.filter(p=>!!p.scheduledHour && p.status!=='sent');
   const byHour      = (hk: string) => scheduled.filter(p=>p.scheduledHour===hk);
   const groupByCat  = (items: PostItem[]) => {
@@ -327,8 +329,8 @@ export default function ContentScheduler() {
 
         {/* Platform tabs */}
         <div style={s.tabRow}>
-          <button style={s.tab(libTab==='x','x')} onClick={()=>setLibTab('x')}>𝕏 X ({lib.filter(p=>p.platform==='x'&&!p.scheduledHour&&p.status!=='sent').length})</button>
-          <button style={s.tab(libTab==='line','line')} onClick={()=>setLibTab('line')}>LINE ({lib.filter(p=>p.platform==='line'&&!p.scheduledHour&&p.status!=='sent').length})</button>
+          <button style={s.tab(libTab==='x','x')} onClick={()=>setLibTab('x')}>𝕏 X ({lib.filter(p=>p.platform==='x'&&isUnscheduledContentDraft(p)).length})</button>
+          <button style={s.tab(libTab==='line','line')} onClick={()=>setLibTab('line')}>LINE ({lib.filter(p=>p.platform==='line'&&isUnscheduledContentDraft(p)).length})</button>
         </div>
 
         {/* Library grouped by category */}
