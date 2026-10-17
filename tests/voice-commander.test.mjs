@@ -27,6 +27,8 @@ test('voice composer is owner-gated and routes only through existing APIs', asyn
   assert.match(middleware, /pathname\.startsWith\('\/dashboard'\)/);
   assert.match(client, /\/api\/dashboard\/knowledge-ask/);
   assert.match(client, /\/api\/dashboard\/task-execution/);
+  assert.match(client, /\/api\/dashboard\/calendar/);
+  assert.match(client, /google_calendar_snapshot|Calendar同期スナップショット/);
   assert.match(client, /\/api\/dashboard\/knowledge/);
   assert.match(client, /credentials: 'same-origin'/);
   assert.match(client, /confirm-save/);
