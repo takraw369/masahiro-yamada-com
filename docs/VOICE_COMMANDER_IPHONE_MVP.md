@@ -9,7 +9,7 @@ Primary route: WRAP / UPDATE existing Dashboard, not BUILD a standalone product.
 - Authenticated /dashboard/voice-commander under the existing Dashboard session middleware.
 - User-initiated speech recognition where supported; iPhone keyboard dictation as fallback.
 - Local deterministic command classification (no LLM authority).
-- Read-only NOW/NEXT/REVIEW tasks from existing /api/dashboard/task-execution.
+- Read-only NOW/NEXT/REVIEW tasks from existing /api/dashboard/task-execution, plus a separately labeled Google Calendar snapshot from the existing /api/dashboard/calendar with latest sync timestamp.
 - Existing /api/dashboard/knowledge-ask for questions, opt-in speech synthesis.
 - Preview and explicit confirmation before writing spoken note to private Knowledge via /api/dashboard/knowledge.
 - Explicit link confirmation before navigating existing Dashboard pages.
