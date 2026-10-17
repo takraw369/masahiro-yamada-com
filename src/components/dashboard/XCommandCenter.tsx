@@ -233,10 +233,10 @@ export default function XCommandCenter() {
               <button type="button" aria-pressed={mode === 'schedule'} disabled={status === 'posting'} onClick={() => setMode('schedule')}>日時を決める</button>
             </div>
             {mode === 'schedule' && <div className="x-date"><label htmlFor="x-scheduled-at">予約日時（この端末の時間）</label><input id="x-scheduled-at" type="datetime-local" value={scheduledAt} disabled={status === 'posting'} onChange={e => setScheduledAt(e.target.value)} /></div>}
-            {!review && <div className="x-editor-actions"><button type="button" className="x-primary" onClick={showReview} disabled={!canReview || status === 'posting'}>送信前の確認へ →</button><button type="button" id="x-save-draft" onClick={() => saveLocalDraft()} disabled={!text.trim() || status === 'posting'}>下書きを保存</button><button type="button" onClick={() => void copyDraft()} disabled={!text || status === 'posting'}>本文をコピー</button></div>}
-            {!review && <p className="x-action-hint">保存・再開は本文のみ。このブラウザに残り、投稿・予約はされません。</p>}
             <p className="x-muted" role="status" id="x-local-draft-status">{draftNotice}</p>
             {draftConflict && <button type="button" onClick={() => saveLocalDraft(true)} disabled={!text.trim() || status === 'posting'}>新しい下書きとして保存</button>}
+            {!review && <div className="x-editor-actions"><button type="button" className="x-primary" onClick={showReview} disabled={!canReview || status === 'posting'}>送信前の確認へ →</button><button type="button" id="x-save-draft" onClick={() => saveLocalDraft()} disabled={!text.trim() || status === 'posting'}>下書きを保存</button><button type="button" onClick={() => void copyDraft()} disabled={!text || status === 'posting'}>本文をコピー</button></div>}
+            {!review && <p className="x-action-hint">保存・再開は本文のみ。このブラウザに残り、投稿・予約はされません。</p>}
             {(status === 'ok' || status === 'err') && <p className={`x-status x-status-${status}`} role={status === 'err' ? 'alert' : 'status'}>{statusMsg}</p>}
           </div>
           {review && <section className="x-review" aria-label="送信前の確認">

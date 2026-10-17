@@ -83,5 +83,5 @@ export function saveXTextDraft(storage: LibraryStorage, text: string, accountId:
 export function contentLibraryError(error: unknown) {
   if (error instanceof Error && error.message === 'content_library_conflict') return '別の画面で下書きが更新されました。本文をコピーして残し、保存した下書きを読み直すか、新しい下書きとして保存してください。';
   if (error instanceof Error && error.message === 'content_library_invalid') return '保存データを読み取れません。既存データは変更していません。本文をコピーして保管してください。';
-  return 'このブラウザでは下書きを保存・読込できません。本文をコピーして保管し、保存設定を確認してください。';
+  return 'このブラウザでは保存・読み込みができません。本文をコピーして保管し、保存設定を確認してください。';
 }
