@@ -1,7 +1,7 @@
 // Dashboard-only read model of GitHub's real issues, PRs and CI.
 export const ISSUE_REPOS = Object.freeze([
-  { slug: 'takraw369/masa-automation', label: 'MASA Automation', private: true },
-  { slug: 'takraw369/masahiro-yamada-com', label: 'MASA Website', private: false },
+  { slug: 'takraw369/masa-automation', label: 'MASA Automation', private: true, ciWorkflow: 'Flow Runner CI' },
+  { slug: 'takraw369/masahiro-yamada-com', label: 'MASA Website', private: false, ciWorkflow: 'CI' },
 ]);
 const isHumanGate = (labels) => labels.some((label) =>
   /^(masa[-_ ]?gate|human[-_ ]?gate|needs[-_ ]?approval|approval[-_ ]?required|human[-_ ]?review)$/i.test(label));
@@ -51,7 +51,8 @@ export function normalizePull(raw, repo, runs = []) {
     : [];
   const headSha = safeString(raw.head?.sha, 44);
   // Never confuse "latest repo CI" with a PR's actual checks.
-  const ci = runs.find((run) => run.name === 'CI' && headSha && run.headSha === headSha) || null;
+  const workflowName = ISSUE_REPOS.find((item) => item.slug === repo)?.ciWorkflow;
+  const ci = runs.find((run) => run.name === workflowName && headSha && run.headSha === headSha) || null;
   return {
     kind: 'pr',
     repo,

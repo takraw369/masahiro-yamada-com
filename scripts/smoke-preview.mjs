@@ -89,11 +89,17 @@ try {
     assert.match(res.headers.get('cache-control'), /no-store/, path);
     assert.equal(res.headers.get('referrer-policy'), 'no-referrer', path);
   }
-  for (const path of ['/api/dashboard/state', '/api/dashboard/design-state', '/api/dashboard/voice', '/api/x-harness/x-accounts', '/api/line-harness/line-accounts']) {
+  for (const path of ['/api/dashboard/state', '/api/dashboard/task-move', '/api/dashboard/design-state', '/api/dashboard/voice', '/api/x-harness/x-accounts', '/api/line-harness/line-accounts']) {
     const res = await previewFetch(base + path);
     assert.equal(res.status, 401, path);
     assert.match(res.headers.get('cache-control'), /no-store/);
   }
+  const anonymousMove = await previewFetch(base + '/api/dashboard/task-move', {
+    method:'POST', headers:{ Origin:base, 'Content-Type':'application/json' },
+    body:JSON.stringify({taskId:'T0001',fromStatus:'NEXT',toStatus:'NOW',expectedRevision:1})
+  });
+  assert.equal(anonymousMove.status,401,'anonymous users may not mutate canonical Task Sheet');
+  assert.match(anonymousMove.headers.get('cache-control'),/no-store/);
   // These exact bootstrap routes must remain reachable, without accepting auth.
   for (const path of ['/api/dashboard/google-login', '/api/dashboard/reset-password']) {
     const res = await previewFetch(base + path, { method: 'POST', headers: { Origin: base } });
