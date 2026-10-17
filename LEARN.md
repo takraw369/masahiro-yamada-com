@@ -65,3 +65,9 @@ Publishing FlowのSource QAでは16pxでも、本番の共通masa-readable.css�
 # Purchase access versus creator access
 
 For Knowledge Shelf, the purchase key belongs to customer material delivery. Creator discovery and editing use the existing Dashboard session without a second product key. Preserve private source visibility while keeping this distinction clear in the UI.
+
+
+## 2026-10-18 | ダッシュボードという保存先
+- Corrected: 「PBJシミュレーションをダッシュボードに表示」はDriveのSheetや静止画ではなく、利用中のMASA Agent OS Webの操作画面を指していた。
+- Cause: 同じ語「ダッシュボード」をファイル形式・可視化・Web機能として混同した。
+- Rule: Webダッシュボードへの表示依頼はまず稼働する正本リポジトリと画面ルートを特定し、既存機能に統合する。Driveへの資産化は参照用の補助成果物として分離して扱う。新しい公開・本番反映はHuman Gateで止める。
