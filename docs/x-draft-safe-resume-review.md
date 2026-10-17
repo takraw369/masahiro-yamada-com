@@ -1,0 +1,86 @@
+# X本文の保存・安全な再開
+
+Draft PR [#376](https://github.com/takraw369/masahiro-yamada-com/pull/376)。Issue #370の次フェーズとして実装。着手時のmaster `9fc4a23` を基準に実装しました。最終確認時、教材/Home改善 [#372](https://github.com/takraw369/masahiro-yamada-com/pull/372)は外部操作によりmaster `0a3d139` へマージ済みでした。今回のソースとは変更ファイルが重複せず、#376はMERGEABLEなDraftです。マージ・デプロイ・実投稿・実予約・LINE送信・課金API実行は行っていません。
+
+## 問題と実装
+
+既存のX編集本文はReactの画面状態だけで、再読込すると失われます。一方、既存Content Schedulerには `ace-content-lib` の投稿ライブラリがあるため、別の保存先やDBを作らず共有しました。
+
+- 「下書きを保存」で本文をそのまま保存。空白・改行・Unicodeを変更しません。保存だけで送信・予約しません。
+- 保存したX下書きを選び、内容を見てから明示的に開きます。自動復元はせず、編集中本文があれば差替え確認。キャンセルで本文を保持します。
+- 再開するのは本文のみ。現在の投稿先・予約日時を保ち、以前の送信前レビューは無効化します。再開後は一覧を閉じて本文へフォーカス。
+- 保存先はこのブラウザです。未保存の本文には離脱警告。読込・容量・保存エラーでは本文と既存データを残し、コピーで保管できます。
+- 同じ原稿が別画面で変更・削除された場合は上書きを止め、コピー・再読込・新しい原稿としての保存へ案内します。
+- 既存Schedulerにも同じ保存アダプタを接続。変更したIDだけを既存データへ反映し、古い画面の保存で他のX/LINE原稿や追加分を消さないようにしました。
+- 人が既存の送信確認を通り、投稿/予約APIが成功した場合だけ、対応する未変更の保存原稿を処理済みにします。別画面の新しい編集は処理済みに変更しません。
+
+これは既存のブラウザ内ライブラリの改善です。端末間同期やデータベースの排他トランザクションを実装したものではありません。保存済み下書きは日付順の別履歴DBに複製せず、既存原稿のIDを使います。予定・送信済み・LINE原稿はX再開対象から除外し、元のライブラリに残します。
+
+## 操作比較
+
+| 作業 | Before | After |
+| --- | --- | --- |
+| X本文を残す | コピーして別の場所へ保管 | 既存エディタで「下書きを保存」1操作 |
+| 再読込後の再開 | 外部に残した本文を探して貼り直す | 「保存した下書き」→選択→内容を確認して開く。自動上書きなし |
+| 保存後の修正 | 保存状態を判別する仕組みなし | 本文欄の下に「保存済み / 未保存」を表示 |
+| 別画面で更新された原稿を保存 | 画面の古いライブラリ全体で上書きする可能性 | 同じ原稿は競合停止。関係ない原稿の追加・更新は保持 |
+| 接続先APIが失敗 | 本文を編集・コピーするのみ | ローカル保存も可能。公開は引き続き不可 |
+
+Home→既存Postエディタの2タップ導線は変更していません。上記は操作手順の比較であり、MASA本人の所要時間やユーザーテストの計測結果ではありません。
+
+## デザイン判断
+
+既存MASAのフォント・配色・ユーザー選択テーマ・部品・公開前確認を維持。本文編集を主役にし、保存した原稿の一覧は折りたたみに置きました。新しい画面・アイコン群・依存ライブラリはありません。
+
+得られる点は、既存ライブラリで再読込後も原稿を再開でき、原稿の差替えを自分で選べることです。コストは、保存先がブラウザ内に限られ、他端末へ同期されないことです。実機での利用確認後に、既存の認証済み保存基盤へ広げるか判断します。
+
+Better Designのhierarchy/formsと既存規約を参照。文言チェックpass。変更範囲のDOM余白レビューは390/1440/1728pxでcompleted、critical/seriousは0件。moderateは既存入力・ボタンの6/10px余白です。保存エラーが画面下へ隠れる初期配置を修正し、操作ボタンの前で見えることを実測しました。
+
+## 実行証拠
+
+最終コード `8290d81` の [CI 38996739532](https://github.com/takraw369/masahiro-yamada-com/actions/runs/38996739532) が通過。テスト543件、変更ファイル型チェック、build、隔離Worker smoke、依存セキュリティとgitleaksを実施。変更対象だったSchedulerの既存型エラー2件も修正し、変更ファイルのエラー0、リポジトリ既存エラーは212件です。
+
+スクリーンショットとDOMレビューは画面ソース `6279135` に対応します。その後の変更はScheduler専用の競合メッセージとテストのみで、X画面と既定の案内文は同じです。Schedulerでは、その画面で実行できる本文保管・ページ再読込へ案内します。manifestは撮影時と最終コードのハッシュを分けて記録しています。
+
+ローカル関連31テスト・build・型チェック・依存セキュリティも通過。ローカル全体テストは535件通過と既存macOS Chromium CLI失敗1件があり、正式な全体結果はLinux CIを参照します。依存監査の既存例外（http-cache-semantics、2026-10-31期限）は追加・延長していません。
+
+実際の隔離Astro WorkerをChrome 155/Playwrightで表示。データ・認証は合成値のみ、外部APIへの書込はすべてブラウザ側で遮断。確認ボタンのテストは1回の模擬応答で、実投稿・実予約ではありません。
+
+- 320/375/390/430/1440/1728px、編集/再開の12状態で横溢れ0。本文16px、確認対象操作44px以上。日本語フォントのロードを確認。
+- 完全一致の本文保存、LINE/送信済み/予定原稿の保持、自動復元なし、現在の投稿先・予約日時の保持。
+- 差替えキャンセル、競合での保持、新規保存、容量エラー→コピー復帰。
+- 開いていたレビューを再開操作で無効化し、再確認するまで模擬送信も0回。
+- 接続先API503でも本文保存可能で、公開確認は不可。
+- 未保存本文の再読込警告、既存Night設定とお気に入りの保持。
+
+[実行・幅・操作サイズreceipt](reviews/x-draft-resume/receipts.json) / [余白レビュー](reviews/x-draft-resume/spacing-review.json) / [文言レビュー](reviews/x-draft-resume/copy-review.json)。スクリーンショットは同フォルダ、ソース/画像ハッシュはmanifestに記録します。
+
+比較用の新しいbaseline環境はディスク不足で依存インストールを中止し、その一時worktreeのみ削除しました。実装前の機能有無はmasterのコード調査、実装後の表示は実Workerで確認しています。今回の追加機能に対し、同条件の新しいbefore画像を取得できたとは扱いません。
+
+## 未確認・次の判断
+
+実機iPhone Safari、実アカウント/実データ、端末間同期、公開HTTPSでのBetter Design最終receiptはUNVERIFIED。公開HTTPSプレビューはデプロイ禁止に従って作成していません。全ダッシュボードにVALID承認が出たとは扱いません。
+
+**KEEP**: 既存ライブラリの再利用、明示保存/再開、投稿前のHuman Gate。**REFINE**: iPhone実機で選択・保存・再開を評価し、必要なら既存の認証済み保存への拡張を検討。**DROP**: 別Studio/DB、自動復元や下書き保存からの自動投稿。
+
+## 画面
+
+- [編集375px](reviews/x-draft-resume/editor-375.png) / [再開390px](reviews/x-draft-resume/resume-390.png)
+- [本文を開いた後](reviews/x-draft-resume/restored-390.png) / [競合](reviews/x-draft-resume/conflict-390.png)
+- [保存失敗とコピー](reviews/x-draft-resume/save-error-390.png) / [送信前レビュー](reviews/x-draft-resume/review-gate-390.png)
+- [Night](reviews/x-draft-resume/night-390.png) / [接続先API503](reviews/x-draft-resume/offline-draft-390.png)
+
+再開点は [checkpoint](checkpoints/x-draft-safe-resume.md)。前フェーズはマージ済みのPR #372を参照してください。本番反映の成否はこのPRの検証対象外です。
+## 2026-10-17 continuation — preservation and reservation review
+
+Fixed two practical issues on top of 7ce4f5f: beforeunload now rereads the exact saved row, protecting same-document deletions/changes and unreadable storage even without a storage event; focus refreshes saved-state feedback. Scheduler's pending list/counts and send guard now exclude remote-confirmed scheduled rows (scheduled status without a local calendar slot), so they cannot appear as fresh sendable drafts.
+
+Focused regression: 23/23 passed. Production build/config passed. Playwright on an isolated Worker with synthetic auth/data and all mutation APIs intercepted: 320/375/390/430/1440/1728px, 12 edit/resume states; zero horizontal overflow, >=16px editor and >=44px measured controls. Save/reload/explicit resume, exact text, LINE preservation, conflict/save-as-new, quota/copy, API failure, beforeunload, immediate `sent` vs reservation `scheduled` are exercised. No real publication or scheduling.
+
+Existing authenticated persistence options were inspected in code: `publish_queue` plus `masa_intelligence_get_x_draft_v1` already provide owner-guarded X drafts, provenance and humanApproved/readyForPublish flags through `/api/dashboard/intelligence`; they are tied to Intelligence IDs, not a generic arbitrary-text update API. `/api/dashboard/knowledge` capture is insert-only and cannot implement draft revision/conflict semantics. Content Studio's shelf save has expectedVersion but writes product drafts, a different domain. A future extension should reuse the session/owner boundary and existing queue with explicit revision preconditions, exact text/provenance, unapproved state after every edit, and read-back; first audit the canonical queue writer in masa-automation. Do not repurpose Knowledge capture or shelf products, create a new DB, or alter authentication to obtain sync.
+
+UNVERIFIED: physical iPhone Safari (background suspension/app termination, private browsing/quota, real clipboard and multi-tab events), real X credentials/API/remote scheduled-list consistency, device sync and atomic simultaneous localStorage writes. Browser beforeunload is best effort and cannot guarantee recovery after OS termination. No public HTTPS Better Design final receipt; no new dashboard design or deployment was performed. Existing theme/components unchanged. Current measured review is scoped to the existing save/resume controls; no critical/serious findings, four moderate existing spacing findings.
+
+KEEP: existing library, explicit resume, exact text, review gate. REFINE: physical Safari and owner-guarded queue extension after the canonical writer audit. DROP: extra DB/Studio, automatic restoration or publication. Human Gate: real publication/reservation, production write/deploy and merge.
+
+Final boundary follow-up: blocked access to window.localStorage itself now fails safely inside the saved-row validator. Physical Safari remains unverified. Final exact-source synthetic QA passed15 scenarios (including the blocked getter), 12 viewport states, no page errors; 23 focused tests and build/config PASS. Current scoped spacing review completed with critical0/serious0/moderate4.

@@ -1,0 +1,62 @@
+{
+  "sourceRevision": "62791355fa6b22907e0f760bf92ad94e67828b8c",
+  "baseRevision": "9fc4a23a252eef8365b6c3c8b0b34e2be33973b7",
+  "sourceFiles": {
+    "src/components/dashboard/XCommandCenter.tsx": "bb8ce49118c3be4be2eff78476663f852a634d8a44ca623a630091c975120947",
+    "src/components/dashboard/ContentScheduler.tsx": "a77f9e95a3336a3372b585ff952ec126e43f350617fc4e4c0af4d0476308f6ed",
+    "src/lib/contentLibrary.ts": "42109678b476c619bfd3527062766a271d01619b8323f948c483c7422d4eefdf",
+    "src/styles/x-composer.css": "a8a478ef16d7c4dd4efba1ed1be9cd3d6d72283230c56ee6545e5ca1475ae11c",
+    "tests/content-library.test.mjs": "042fb64624f56acdbbc96f72db7261b5b8e49f19eddec9d7a45393e6edca519a"
+  },
+  "images": {
+    "resume-1440.png": "94d54938e10d1ea020e33db36d0a7449912ec1e86f9272a7821957d264b6972a",
+    "review-gate-390.png": "5df5b61753c9f6db65ced80ed92cc7c46bfcdfc571b7470a411d76eeda696304",
+    "conflict-390.png": "ec5888eea92f79212958dfbc864c68879c55c3a4ff77bb8618492542825c3f1a",
+    "night-390.png": "af5c16d2ab35bad4c84c379b864ff642bc3d008408f813eac340ef07085543bc",
+    "restored-390.png": "81aaaac47feb7fc71f3349b643564ba46872585c2235a7f42759c0d51bf57fea",
+    "offline-draft-390.png": "a35cdc497015ca1544230f7fac9139511942a9a300991770ef4edab594e83fc9",
+    "resume-375.png": "100038ce6716898635fe820757d1d6d88bb0ab8ddeddb733d77f083cc70a039e",
+    "editor-375.png": "3b1fe4b8b94a843f5e5bbecd47964cdc50b5ad1fea45276b52d933aa1c0055a5",
+    "editor-1440.png": "b1a3495b5b93f39ee6b55baf40482c50ffafe3e931978fe5abadba999ce862da",
+    "resume-430.png": "2a323056a2cbf7b102bb052fac54f668c478e826730906607f9344e85c0983f6",
+    "editor-390.png": "af85133f0283a93f43b071b87d834cf4c68f14db00cd044c73bc2e87d2da0a30",
+    "resume-390.png": "43353f364bcb9e6857dc8347a86ac3f22a19a84dd3760acc3caf823d4239bfad",
+    "editor-1728.png": "7866b013cd3303d5e0f0db60f4d9664b84ff63358263151e08ad7296c7f622b7",
+    "editor-430.png": "58b3fe6b446d2f5553e270a51099d7ac85a9050aba8384e361df101389b82b79",
+    "resume-1728.png": "93e6f8251762da0896364545684121c1cb01ee99a7064fff86720a132a6298a8",
+    "resume-320.png": "843be134d4ee53e9ffbca58fc1909481245cba1afb9498fbccc840561733a385",
+    "saved-390.png": "edbc54d6ec078432a94b34da751bcf2688ec0a14917a9438cf82d329ee218bf7",
+    "editor-320.png": "7a8b4ee1faf397ba66075b0950876887c3d01868f819a74f78d9897a3dfaaa69",
+    "save-error-390.png": "dd8da206ad17a26d069f46b0846631366250a98d745f2318ae5448f878340212"
+  },
+  "sourceCI": {
+    "run": "https://github.com/takraw369/masahiro-yamada-com/actions/runs/38996396082",
+    "testsPassed": 543,
+    "changedFileTypeErrors": 0,
+    "legacyTypeErrors": 212,
+    "build": "pass",
+    "isolatedWorkerSmoke": "pass",
+    "dependencySecurity": "pass",
+    "gitleaks": "pass"
+  },
+  "environment": "Actual isolated Astro Worker, Chrome 155 through Playwright; synthetic fixtures/auth only; API mutations intercepted; no real publication or deployment",
+  "latestCodeRevision": "8290d81849ea0d44bb52def01a98db41231031a8",
+  "latestCodeFiles": {
+    "src/components/dashboard/XCommandCenter.tsx": "bb8ce49118c3be4be2eff78476663f852a634d8a44ca623a630091c975120947",
+    "src/components/dashboard/ContentScheduler.tsx": "409db355da402cc9f8a7c6aa7b1b62a76fd980340b3c39ecf10329dff3be8e3a",
+    "src/lib/contentLibrary.ts": "9b799e8d7931309046c219c9110aeafde561e5e5ab4f76d429dc0ef89d68aebb",
+    "src/styles/x-composer.css": "a8a478ef16d7c4dd4efba1ed1be9cd3d6d72283230c56ee6545e5ca1475ae11c",
+    "tests/content-library.test.mjs": "b8435176c9b852afe834754bd6f05aa53cbd589c54911af5cb565d13cd93a5ee"
+  },
+  "latestCodeCI": {
+    "run": "https://github.com/takraw369/masahiro-yamada-com/actions/runs/38996739532",
+    "testsPassed": 543,
+    "changedFileTypeErrors": 0,
+    "legacyTypeErrors": 212,
+    "build": "pass",
+    "isolatedWorkerSmoke": "pass",
+    "dependencySecurity": "pass",
+    "gitleaks": "pass"
+  },
+  "provenanceNote": "sourceRevision/sourceFiles bind the rendered X screenshots and DOM review. Latest code only adjusts Scheduler-specific conflict recovery instructions and assertions; rendered X UI and default copy are unchanged."
+}

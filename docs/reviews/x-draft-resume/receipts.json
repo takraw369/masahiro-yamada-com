@@ -1,0 +1,631 @@
+{
+  "environment": "actual isolated Astro Worker; synthetic data/auth; all API mutations intercepted",
+  "checks": [
+    "exact text saved into existing library; LINE/sent/scheduled records preserved; no API mutation",
+    "reload never auto-restores; explicit restore preserves current destination/timing and review gate",
+    "cancel protects existing text; only explicit consent replaces it",
+    "conflicting update not overwritten; explicit save-as-new keeps both",
+    "quota failure retains text and manual clipboard recovery works",
+    "restoring even the same draft invalidates an already open publication review",
+    "only explicit review confirmation triggers one mocked request; matching saved draft is retired",
+    "existing Night choice and favorites preserved",
+    "account API outage allows local draft saving while publication stays unavailable",
+    "unsaved text triggers beforeunload on reload"
+  ],
+  "measurements": [
+    {
+      "name": "editor-320",
+      "width": 320,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 421.828125,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.796875
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.796875
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "今届ける",
+          "height": 44.796875
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.796875
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 44.796875
+        },
+        {
+          "label": "本文をコピー",
+          "height": 44.796875
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "resume-320",
+      "width": 320,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 832.6875,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.796875
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.796875
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "この下書きの本文を開く",
+          "height": 44.796875
+        },
+        {
+          "label": "一覧を読み直す",
+          "height": 44.796875
+        },
+        {
+          "label": "今届ける",
+          "height": 44.796875
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.796875
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 44.796875
+        },
+        {
+          "label": "本文をコピー",
+          "height": 44.796875
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "editor-375",
+      "width": 375,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 421.828125,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.796875
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.796875
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "今届ける",
+          "height": 44.796875
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.796875
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 44.796875
+        },
+        {
+          "label": "本文をコピー",
+          "height": 44.796875
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "resume-375",
+      "width": 375,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 832.6875,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.796875
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.796875
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "この下書きの本文を開く",
+          "height": 44.796875
+        },
+        {
+          "label": "一覧を読み直す",
+          "height": 44.796875
+        },
+        {
+          "label": "今届ける",
+          "height": 44.796875
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.796875
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 44.796875
+        },
+        {
+          "label": "本文をコピー",
+          "height": 44.796875
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "editor-390",
+      "width": 390,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 421.828125,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.796875
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.796875
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "今届ける",
+          "height": 44.796875
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.796875
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 44.796875
+        },
+        {
+          "label": "本文をコピー",
+          "height": 44.796875
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "resume-390",
+      "width": 390,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 810.59375,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.796875
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.796875
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "この下書きの本文を開く",
+          "height": 44.796875
+        },
+        {
+          "label": "一覧を読み直す",
+          "height": 44.796875
+        },
+        {
+          "label": "今届ける",
+          "height": 44.796875
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.796875
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 44.796875
+        },
+        {
+          "label": "本文をコピー",
+          "height": 44.796875
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "editor-430",
+      "width": 430,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 421.828125,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.796875
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.796875
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "今届ける",
+          "height": 44.796875
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.796875
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 44.796875
+        },
+        {
+          "label": "本文をコピー",
+          "height": 44.796875
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "resume-430",
+      "width": 430,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 810.59375,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.796875
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.796875
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "この下書きの本文を開く",
+          "height": 44.796875
+        },
+        {
+          "label": "一覧を読み直す",
+          "height": 44.796875
+        },
+        {
+          "label": "今届ける",
+          "height": 44.796875
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.796875
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 44.796875
+        },
+        {
+          "label": "本文をコピー",
+          "height": 44.796875
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "editor-1440",
+      "width": 1440,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 485.78125,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.5
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.5
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "今届ける",
+          "height": 44.5
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.5
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 48
+        },
+        {
+          "label": "本文をコピー",
+          "height": 48
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "resume-1440",
+      "width": 1440,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 851.859375,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.5
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.5
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "この下書きの本文を開く",
+          "height": 44.5
+        },
+        {
+          "label": "一覧を読み直す",
+          "height": 44.5
+        },
+        {
+          "label": "今届ける",
+          "height": 44.5
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.5
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 48
+        },
+        {
+          "label": "本文をコピー",
+          "height": 48
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "editor-1728",
+      "width": 1728,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 485.78125,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.5
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.5
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "今届ける",
+          "height": 44.5
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.5
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 48
+        },
+        {
+          "label": "本文をコピー",
+          "height": 48
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    },
+    {
+      "name": "resume-1728",
+      "width": 1728,
+      "overflow": 0,
+      "fieldSize": 16,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "editorY": 851.859375,
+      "targets": [
+        {
+          "label": "本文を編集",
+          "height": 44.5
+        },
+        {
+          "label": "予約済み (0)",
+          "height": 44.5
+        },
+        {
+          "label": "保存した下書きから再開 (1件)＋",
+          "height": 58
+        },
+        {
+          "label": "この下書きの本文を開く",
+          "height": 44.5
+        },
+        {
+          "label": "一覧を読み直す",
+          "height": 44.5
+        },
+        {
+          "label": "今届ける",
+          "height": 44.5
+        },
+        {
+          "label": "日時を決める",
+          "height": 44.5
+        },
+        {
+          "label": "送信前の確認へ →",
+          "height": 48
+        },
+        {
+          "label": "下書きを保存",
+          "height": 48
+        },
+        {
+          "label": "本文をコピー",
+          "height": 48
+        },
+        {
+          "label": "ハッシュタグを添える＋",
+          "height": 58
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "mockedRequests": 1
+}

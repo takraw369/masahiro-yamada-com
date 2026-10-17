@@ -1,20 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { readContentLibrary, mergeContentLibrary, isUnscheduledContentDraft, contentLibraryError, type ContentPost as PostItem } from '../../lib/contentLibrary';
 
 // ── Types ──────────────────────────────────────────────
-interface PostItem {
-  id: string;
-  platform: 'x' | 'line';
-  category: string | null;
-  text: string;
-  title: string;
-  scheduledHour: string | null;
-  status: 'draft' | 'scheduled' | 'sent' | 'sending';
-  createdAt: string;
-  xAccountId?: string;
-  lineAccountId?: string;
-  order: number;
-}
-
 interface XAccount    { id: string; username: string; isActive: boolean; }
 interface LineAccount { id: string; name: string; channelId: string; }
 
@@ -45,9 +32,8 @@ function fmtHour(h: number) { return `${String(h).padStart(2,'0')}:00`; }
 function catOf(id: string | null) { return CATS.find(c => c.id === id) ?? null; }
 
 function loadLib(): PostItem[] {
-  try { return JSON.parse(localStorage.getItem('ace-content-lib') ?? '[]'); } catch { return []; }
+  try { return readContentLibrary(localStorage); } catch { return []; }
 }
-function saveLib(q: PostItem[]) { localStorage.setItem('ace-content-lib', JSON.stringify(q)); }
 
 // ── Component ──────────────────────────────────────────
 export default function ContentScheduler() {
@@ -88,7 +74,10 @@ export default function ContentScheduler() {
       .catch(()=>{});
   }, []);
 
-  const updateLib = (next: PostItem[]) => { setLib(next); saveLib(next); };
+  const updateLib = (next: PostItem[], base = lib) => {
+    try { const merged = mergeContentLibrary(localStorage, base, next); setLib(merged); return merged; }
+    catch (error) { setStatusMsg(contentLibraryError(error, 'scheduler')); return null; }
+  };
 
   // ── Add to library ──
   const addToLib = () => {
@@ -101,7 +90,7 @@ export default function ContentScheduler() {
       lineAccountId: platform==='line'?lineAccId:undefined,
       order: maxOrder+1,
     };
-    updateLib([item, ...lib]);
+    if (!updateLib([item, ...lib])) return;
     setText(''); setTitle(''); setCatId(null); setComposing(false);
     setLibTab(platform);
   };
@@ -117,7 +106,7 @@ export default function ContentScheduler() {
   const onLibDrop = (targetId: string) => {
     const srcId = dragIdRef.current;
     if (!srcId || srcId===targetId) { dragIdRef.current=null; setDragOver(null); return; }
-    const next = [...lib];
+    const next = lib.map(item => ({ ...item }));
     const fi = next.findIndex(p=>p.id===srcId);
     const ti = next.findIndex(p=>p.id===targetId);
     const [m] = next.splice(fi,1); next.splice(ti,0,m);
@@ -153,7 +142,10 @@ export default function ContentScheduler() {
 
   // ── Send ──
   const send = async (item: PostItem) => {
-    updateLib(lib.map(p=>p.id===item.id?{...p,status:'sending' as const}:p));
+    // A Composer-confirmed remote reservation has no local calendar slot.
+    if (!isUnscheduledContentDraft(item) && !(item.status === 'scheduled' && item.scheduledHour)) return;
+    const inFlight = updateLib(lib.map(p=>p.id===item.id?{...p,status:'sending' as const}:p));
+    if (!inFlight) return;
     try {
       let ok = false;
       if (item.platform==='x') {
@@ -169,10 +161,11 @@ export default function ContentScheduler() {
         const r = await fetch('/api/line-harness/broadcasts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:item.title||item.text.slice(0,20),messageType:'text',messageContent:item.text,targetType:'all',lineAccountId:item.lineAccountId||lineAccId,scheduledAt:item.scheduledHour??undefined})});
         ok = ((await r.json()) as {success:boolean}).success;
       }
-      updateLib(lib.map(p=>p.id===item.id?{...p,status:(ok?'sent':'draft') as const}:p));
-      setStatusMsg(ok?'✓ 送信完了':'✗ 送信失敗');
+      const recorded = updateLib(inFlight.map(p=>p.id===item.id?{...p,status:ok?'sent' as const:'draft' as const}:p), inFlight);
+      if (recorded) setStatusMsg(ok?'✓ 送信完了':'✗ 送信失敗');
+      else if (ok) setStatusMsg('送信は完了しましたが、端末の保存状態を更新できません。再送せず、送信先で確認してください。');
     } catch(e) {
-      updateLib(lib.map(p=>p.id===item.id?{...p,status:'draft' as const}:p));
+      updateLib(inFlight.map(p=>p.id===item.id?{...p,status:'draft' as const}:p), inFlight);
       setStatusMsg('✗ '+String(e));
     }
     setTimeout(()=>setStatusMsg(''),3000);
@@ -185,12 +178,12 @@ export default function ContentScheduler() {
   const confirmSchedule = () => {
     if (!schedModal) return;
     const hk = hourKey(schedDate, schedHour);
-    updateLib(lib.map(p=>p.id===schedModal.id?{...p,scheduledHour:hk,status:'scheduled' as const}:p));
+    if (!updateLib(lib.map(p=>p.id===schedModal.id?{...p,scheduledHour:hk,status:'scheduled' as const}:p))) return;
     setSchedModal(null);
   };
 
   // ── Derived ──
-  const libItems    = lib.filter(p=>p.platform===libTab && !p.scheduledHour && p.status!=='sent');
+  const libItems    = lib.filter(p=>p.platform===libTab && isUnscheduledContentDraft(p));
   const scheduled   = lib.filter(p=>!!p.scheduledHour && p.status!=='sent');
   const byHour      = (hk: string) => scheduled.filter(p=>p.scheduledHour===hk);
   const groupByCat  = (items: PostItem[]) => {
@@ -252,7 +245,7 @@ export default function ContentScheduler() {
     hourRow: (isOver:boolean) => ({ display:'flex', alignItems:'flex-start', gap:8, padding:'5px 0', borderBottom:`1px solid ${isOver?'rgba(245,158,11,0.3)':bord+'44'}`, background:isOver?'rgba(245,158,11,0.05)':'transparent', transition:'background 0.12s', minHeight:46 }) as React.CSSProperties,
     hourLabel: { width:44, flexShrink:0, fontSize:'0.8rem', color:dim, paddingTop:6, textAlign:'right' as const, paddingRight:8 },
     hourSlot: { flex:1, display:'flex', flexWrap:'wrap' as const, gap:6, padding:'4px 0', minHeight:36 },
-    schCard: (p:PostItem) => { const m=catOf(p.category); return { background:'#1a1a2e', border:`1px solid ${m?.color+'55'??bord}`, borderRadius:8, padding:'7px 10px', cursor:'grab', maxWidth:200, userSelect:'none' as const } as React.CSSProperties; },
+    schCard: (p:PostItem) => { const m=catOf(p.category); return { background:'#1a1a2e', border:`1px solid ${m ? m.color+'55' : bord}`, borderRadius:8, padding:'7px 10px', cursor:'grab', maxWidth:200, userSelect:'none' as const } as React.CSSProperties; },
     schPf: (pl:'x'|'line') => ({ fontSize:'0.7rem', fontWeight:700, color:pl==='x'?'#1DA1F2':'#06c755', marginRight:4 }),
     schText: { fontSize:'0.78rem', color:'#c0c0d8', marginTop:3, lineHeight:1.3, overflow:'hidden', display:'-webkit-box' as const, WebkitLineClamp:2, WebkitBoxOrient:'vertical' as const } as React.CSSProperties,
     schBtns: { display:'flex', gap:4, marginTop:5 },
@@ -336,8 +329,8 @@ export default function ContentScheduler() {
 
         {/* Platform tabs */}
         <div style={s.tabRow}>
-          <button style={s.tab(libTab==='x','x')} onClick={()=>setLibTab('x')}>𝕏 X ({lib.filter(p=>p.platform==='x'&&!p.scheduledHour&&p.status!=='sent').length})</button>
-          <button style={s.tab(libTab==='line','line')} onClick={()=>setLibTab('line')}>LINE ({lib.filter(p=>p.platform==='line'&&!p.scheduledHour&&p.status!=='sent').length})</button>
+          <button style={s.tab(libTab==='x','x')} onClick={()=>setLibTab('x')}>𝕏 X ({lib.filter(p=>p.platform==='x'&&isUnscheduledContentDraft(p)).length})</button>
+          <button style={s.tab(libTab==='line','line')} onClick={()=>setLibTab('line')}>LINE ({lib.filter(p=>p.platform==='line'&&isUnscheduledContentDraft(p)).length})</button>
         </div>
 
         {/* Library grouped by category */}

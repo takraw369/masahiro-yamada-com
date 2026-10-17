@@ -3,6 +3,7 @@ import { motionPresets } from '../../data/motionPresetCatalog';
 import { LAST_X_ACCOUNT_KEY } from '../../lib/xAccountPlaybook';
 import { getXConnectionIssue, type XConnectionIssue } from '../../lib/xConnectionIssue';
 import { X_COMPOSER_MAX_CHARS as MAX_CHARS, findConnectedXAccount, prepareXComposeReview, isCurrentXComposeReview, type XComposeAccount, type XComposeReview } from '../../lib/xComposerReview';
+import { CONTENT_LIBRARY_KEY, readContentLibrary, saveXTextDraft, mergeContentLibrary, isResumableXDraft, isXTextDraftSaved, contentLibraryError, type ContentPost } from '../../lib/contentLibrary';
 
 const CATEGORIES = [
   { id: 'brain', label: '脳科学', keywords: ['前頭前野', 'ドーパミン', '神経可塑性', '集中力', 'ADHD', '記憶定着', 'ワーキングメモリ', '睡眠と脳', 'フロー状態', '認知科学'] },
@@ -37,6 +38,14 @@ export default function XCommandCenter() {
   const draftField = useRef<HTMLTextAreaElement>(null);
   const sending = useRef(false);
   const requestedHandle = useRef<string | null>(null);
+  const [localDrafts, setLocalDrafts] = useState<ContentPost[]>([]);
+  const [chosenDraftId, setChosenDraftId] = useState('');
+  const [draftNotice, setDraftNotice] = useState('');
+  const [draftReadError, setDraftReadError] = useState(false);
+  const [draftConflict, setDraftConflict] = useState(false);
+  const currentDraft = useRef<ContentPost | null>(null);
+  const savedText = useRef('');
+  const savedDraftsPanel = useRef<HTMLDetailsElement>(null);
   const unavailableAccountMessage = '指定されたアカウントは接続一覧にありません。接続を確認してください。本文は保持しています。';
 
   async function loadAccounts() {
@@ -92,6 +101,55 @@ export default function XCommandCenter() {
   }, [accounts, accountState]);
   useEffect(() => { setReview(null); }, [text, selectedAccount, mode, scheduledAt]);
   useEffect(() => { if (review) reviewHeading.current?.focus(); }, [review]);
+  function refreshDrafts() {
+    try {
+      const library = readContentLibrary(localStorage);
+      if (currentDraft.current && JSON.stringify(library.find(p => p.id === currentDraft.current?.id)) !== JSON.stringify(currentDraft.current)) savedText.current = '';
+      setLocalDrafts(library.filter(isResumableXDraft)); setDraftReadError(false);
+    } catch (error) { savedText.current = ''; setDraftReadError(true); setDraftNotice(contentLibraryError(error)); }
+  }
+  useEffect(() => {
+    refreshDrafts();
+    const changed = (event: StorageEvent) => { if (event.key === CONTENT_LIBRARY_KEY || event.key === null) refreshDrafts(); };
+    window.addEventListener('storage', changed);
+    window.addEventListener('focus', refreshDrafts);
+    return () => { window.removeEventListener('storage', changed); window.removeEventListener('focus', refreshDrafts); };
+  }, []);
+  useEffect(() => {
+    const leaving = (event: BeforeUnloadEvent) => {
+      if (text.trim() && !isXTextDraftSaved(() => localStorage, text, currentDraft.current)) { event.preventDefault(); event.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', leaving);
+    return () => window.removeEventListener('beforeunload', leaving);
+  }, [text]);
+
+  function saveLocalDraft(asNew = false) {
+    if (sending.current) return;
+    try {
+      const item = saveXTextDraft(localStorage, text, selectedAccount, asNew ? null : currentDraft.current);
+      currentDraft.current = item; savedText.current = text;
+      setChosenDraftId(item.id); setDraftConflict(false); refreshDrafts();
+      setDraftNotice('このブラウザに下書きを保存しました。投稿・予約は行っていません。');
+    } catch (error) {
+      setDraftConflict(error instanceof Error && error.message === 'content_library_conflict');
+      setDraftNotice(contentLibraryError(error));
+    }
+  }
+  function restoreLocalDraft() {
+    if (sending.current) return;
+    try {
+      const shown = localDrafts.find(p => p.id === chosenDraftId);
+      const latest = readContentLibrary(localStorage).find(p => p.id === chosenDraftId);
+      if (!shown || !latest || !isResumableXDraft(latest) || JSON.stringify(latest) !== JSON.stringify(shown)) {
+        refreshDrafts(); setDraftNotice('下書きが変更されたか、投稿・予約に進んでいます。一覧を読み直して選んでください。'); return;
+      }
+      if (text && text !== latest.text && !window.confirm('編集中の本文を、保存した下書きに差し替えますか？ 必要ならキャンセルして先に保存・コピーしてください。投稿先と予約日時は変更しません。')) return;
+      setReview(null); setText(latest.text); currentDraft.current = latest; savedText.current = latest.text;
+      setDraftConflict(false); setDraftNotice('下書きの本文を開きました。投稿先と予約日時は変更していません。');
+      if (savedDraftsPanel.current) savedDraftsPanel.current.open = false;
+      draftField.current?.focus();
+    } catch (error) { setDraftNotice(contentLibraryError(error)); }
+  }
 
   const value = { text, accountId: selectedAccount, mode, scheduledAt };
   const remaining = MAX_CHARS - text.length;
@@ -115,6 +173,12 @@ export default function XCommandCenter() {
       const json = await res.json() as { success?: boolean; error?: string };
       if (!res.ok || !json.success) throw new Error(json.error || '送信できませんでした。本文は保持しています。');
       setStatus('ok'); setStatusMsg(mode === 'now' ? '投稿しました。' : '予約しました。'); setText(''); setReview(null);
+      const completedDraft = currentDraft.current;
+      currentDraft.current = null; savedText.current = '';
+      if (completedDraft && completedDraft.text === review.text) {
+        try { mergeContentLibrary(localStorage, [completedDraft], [{ ...completedDraft, status: mode === 'schedule' ? 'scheduled' : 'sent' }]); refreshDrafts(); }
+        catch { setDraftNotice('送信は完了しましたが、端末の下書き状態を更新できません。再送せず、投稿・予約一覧で確認してください。'); }
+      }
       if (mode === 'schedule') void loadScheduled();
     } catch (error) { setStatus('err'); setStatusMsg(error instanceof Error ? error.message : '送信できませんでした。'); }
     finally { sending.current = false; }
@@ -131,6 +195,22 @@ export default function XCommandCenter() {
         <button type="button" aria-pressed={tab === 'scheduled'} onClick={() => setTab('scheduled')}>予約済み{scheduleState === 'ready' ? ` (${scheduled.length})` : ''}</button>
       </div>
       <div hidden={tab !== 'compose'}>
+        <details className="x-saved-drafts" ref={savedDraftsPanel} onToggle={event => { if (event.currentTarget.open) refreshDrafts(); }}>
+          <summary>保存した下書きから再開{!draftReadError && localDrafts.length ? ` (${localDrafts.length}件)` : ''}<span aria-hidden="true">＋</span></summary>
+          <div className="x-saved-draft-body">
+            <p className="x-muted">このブラウザの投稿ライブラリです。本文だけを開き、投稿先・予約日時は現在の選択を保ちます。</p>
+            {draftReadError ? <p>保存した下書きを読み込めません。本文をコピーして保管できます。</p> : localDrafts.length ? <>
+              <label htmlFor="x-saved-draft">開く下書き</label>
+              <select id="x-saved-draft" value={chosenDraftId} onChange={event => setChosenDraftId(event.target.value)} disabled={status === 'posting'}>
+                <option value="">下書きを選んでください</option>
+                {localDrafts.map(p => <option key={p.id} value={p.id}>{p.title || p.text.slice(0, 40)}</option>)}
+              </select>
+              {localDrafts.find(p => p.id === chosenDraftId) && <div className="x-preview-text">{localDrafts.find(p => p.id === chosenDraftId)?.text}</div>}
+              <button type="button" id="x-restore-draft" onClick={restoreLocalDraft} disabled={!chosenDraftId || status === 'posting'}>この下書きの本文を開く</button>
+            </> : <p>保存したX下書きはまだありません。本文を入力して「下書きを保存」を選んでください。</p>}
+            <button type="button" onClick={refreshDrafts} disabled={status === 'posting'}>一覧を読み直す</button>
+          </div>
+        </details>
         <div className="x-edit-layout">
           <div className="x-writing">
             <div className="x-account-field">
@@ -148,14 +228,16 @@ export default function XCommandCenter() {
             </div>
             <label htmlFor="x-publish-text" className="x-body-label">投稿本文</label>
             <textarea ref={draftField} id="x-publish-text" value={text} onChange={e => setText(e.target.value)} placeholder="今日の気づきをシェアする…" maxLength={MAX_CHARS} disabled={status === 'posting'} aria-describedby="x-character-count x-draft-note" />
-            <div className="x-count-row"><span id="x-draft-note">編集中の本文</span><span id="x-character-count" aria-live="polite">{text.length} / {MAX_CHARS}文字</span></div>
+            <div className="x-count-row"><span id="x-draft-note">{text.trim() ? text === savedText.current ? 'このブラウザに保存済み' : '未保存の本文' : '編集中の本文'}</span><span id="x-character-count" aria-live="polite">{text.length} / {MAX_CHARS}文字</span></div>
             <div className="x-mode" aria-label="届けるタイミング">
               <button type="button" aria-pressed={mode === 'now'} disabled={status === 'posting'} onClick={() => setMode('now')}>今届ける</button>
               <button type="button" aria-pressed={mode === 'schedule'} disabled={status === 'posting'} onClick={() => setMode('schedule')}>日時を決める</button>
             </div>
             {mode === 'schedule' && <div className="x-date"><label htmlFor="x-scheduled-at">予約日時（この端末の時間）</label><input id="x-scheduled-at" type="datetime-local" value={scheduledAt} disabled={status === 'posting'} onChange={e => setScheduledAt(e.target.value)} /></div>}
-            {!review && <div className="x-editor-actions"><button type="button" className="x-primary" onClick={showReview} disabled={!canReview || status === 'posting'}>送信前の確認へ →</button><button type="button" onClick={() => void copyDraft()} disabled={!text || status === 'posting'}>本文をコピー</button></div>}
-            {!review && <p className="x-action-hint">次に本文・投稿先・日時を確認します。</p>}
+            <p className="x-muted" role="status" id="x-local-draft-status">{draftNotice}</p>
+            {draftConflict && <button type="button" onClick={() => saveLocalDraft(true)} disabled={!text.trim() || status === 'posting'}>新しい下書きとして保存</button>}
+            {!review && <div className="x-editor-actions"><button type="button" className="x-primary" onClick={showReview} disabled={!canReview || status === 'posting'}>送信前の確認へ →</button><button type="button" id="x-save-draft" onClick={() => saveLocalDraft()} disabled={!text.trim() || status === 'posting'}>下書きを保存</button><button type="button" onClick={() => void copyDraft()} disabled={!text || status === 'posting'}>本文をコピー</button></div>}
+            {!review && <p className="x-action-hint">保存・再開は本文のみ。このブラウザに残り、投稿・予約はされません。</p>}
             {(status === 'ok' || status === 'err') && <p className={`x-status x-status-${status}`} role={status === 'err' ? 'alert' : 'status'}>{statusMsg}</p>}
           </div>
           {review && <section className="x-review" aria-label="送信前の確認">

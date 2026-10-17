@@ -20,6 +20,9 @@
 .x-workspace .x-operations-nav button{background:transparent;border-color:transparent}
 .x-workspace .x-operations-nav [aria-pressed="true"]{color:var(--x-accent);border-bottom-color:var(--x-accent);border-radius:0}
 .x-workspace .x-tabs{margin-bottom:16px}.x-workspace .x-tabs button{flex:1}
+.x-workspace .x-saved-drafts{margin-bottom:16px;border:1px solid var(--x-line);border-radius:8px;background:var(--x-paper)}
+.x-workspace .x-saved-draft-body{padding:0 16px 16px;display:grid;gap:12px}
+.x-workspace .x-saved-draft-body .x-preview-text{max-height:240px;overflow:auto}
 .x-workspace :is(.x-tabs,.x-mode,.x-chips) [aria-pressed="true"]{border-color:var(--x-accent);box-shadow:inset 0 -2px var(--x-accent)}
 .x-workspace .x-composer{padding:20px;border:1px solid var(--x-line);border-radius:12px;background:var(--x-paper)}
 .x-workspace .x-edit-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
