@@ -76,7 +76,10 @@ export function parseExport(text, metadata = {}) {
     source: { system: notebookId ? 'notebooklm_export' : 'document_export', kind,
       url, originalUrl, exportedUrl: header.source_url || originalUrl, sourceId, notebookId, notebookTitle: meta.notebook_title || null,
       notebookUrl: notebookId ? `https://notebooklm.google.com/notebook/${encodeURIComponent(notebookId)}` : null,
-      sourceType: meta.source_type || meta.type || null, exportedAt: meta.exported_at_utc || null,
+      sourceType: meta.source_type || meta.type || null,
+      // already_local files can be older than the index's latest scan.
+      exportedAt: header.exported_at_utc || meta.exported_at_utc || null,
+      manifestObservedAt: metadata.exported_at_utc || null,
       representation: notebookId ? 'indexed_text_not_original_binary' : 'exported_text',
       factualStatus: kind === 'source' ? 'source_claims_unverified' : 'ai_or_authored_note_unverified' },
   };
@@ -217,16 +220,16 @@ export function buildHarvest(documents, { annotations = {}, previous = null, exi
     const occurrences = [...occurrenceMap.values()].sort((a, b) => stable([a.notebookId, a.sourceId, a.originalUrl]).localeCompare(stable([b.notebookId, b.sourceId, b.originalUrl])));
     const candidate = { id, title: doc.title, source: doc.source, occurrences, contentHash: doc.contentHash,
       sourceBody: doc.body, ...fields };
-    const revisionSource = { ...doc.source, exportedAt: null };
-    const revisionOccurrences = occurrences.map(o => ({ ...o, exportedAt: null }));
+    const revisionSource = { ...doc.source, exportedAt: null, manifestObservedAt: null };
+    const revisionOccurrences = occurrences.map(o => ({ ...o, exportedAt: null, manifestObservedAt: null }));
     candidate.revisionHash = sha(stable({ title: doc.title, source: revisionSource, occurrences: revisionOccurrences, contentHash: doc.contentHash, ...fields }));
     const matched = existing.filter(e => e.id === id || (e.source_url && doc.source.url && canonicalUrl(e.source_url) === doc.source.url));
     candidate.delta = { action: conflict ? 'conflict' : !old ? 'create' : old.revisionHash === candidate.revisionHash ? 'unchanged' : 'update',
       previousRevisionHash: old?.revisionHash || null,
       changedFields: old ? [
         ...['title', 'contentHash', 'summary', 'principles', 'statements', 'relations', 'reuse', 'openQuestions'].filter(k => stable(old[k]) !== stable(candidate[k])),
-        ...(stable({ ...old.source, exportedAt: null }) !== stable(revisionSource) ? ['source'] : []),
-        ...(stable((old.occurrences || []).map(o => ({ ...o, exportedAt: null }))) !== stable(revisionOccurrences) ? ['occurrences'] : []),
+        ...(stable({ ...old.source, exportedAt: null, manifestObservedAt: null }) !== stable(revisionSource) ? ['source'] : []),
+        ...(stable((old.occurrences || []).map(o => ({ ...o, exportedAt: null, manifestObservedAt: null }))) !== stable(revisionOccurrences) ? ['occurrences'] : []),
       ] : [] };
     candidate.integration = {
       target: '/dashboard/knowledge', canonicalOwner: 'Google Drive / MASA_OS',

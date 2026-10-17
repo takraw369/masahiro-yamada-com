@@ -21,11 +21,11 @@ Related work inspected: merged #205 and #307; open #313 (depends on masa-automat
 
 ## Verification
 
-- 25 focused importer tests PASS (including real CLI dry-run/local output, source fidelity, updates, provenance, partial-batch resume and conflict holds).
+- 26 focused importer tests PASS (including real CLI dry-run/local output, source fidelity, export-time/scan-time separation, updates, provenance, partial-batch resume and conflict holds).
 - Production build and Worker artifact configuration PASS.
 - Release-delta typecheck PASS: 0 changed-file errors; 214 existing repository Astro errors remain.
 - Production dependency security gate PASS with the repository's existing upstream exception (no dependency changes).
-- Final full repository run: 550/551 PASS; one existing browser test failed because this host's Chromium wrapper was broken / installed Chrome failed on teardown. All remaining repository tests passed when that one browser case was explicitly excluded. Browser regression remains UNVERIFIED in this host; no application/UI code changed.
+- Current local full repository run: 551/552 PASS; one existing browser test failed because this host's Chromium wrapper was broken / installed Chrome failed on teardown. All remaining cases pass. GitHub CI at the initial implementation commit `6075e8a` passed all 551 tests, including the actual browser test, plus build/preview/security checks. The additional export timestamp regression makes the suite 552 tests; consult the PR for current-head CI. Browser regression remains UNVERIFIED on this Mac; no application/UI code changed.
 
 ## Open work and Human Gate
 

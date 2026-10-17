@@ -46,6 +46,14 @@ test('wrapper metadata excluded from body; BOM and CRLF normalise',()=>{
   const d=parseExport('\uFEFF'+raw);assert.equal(d.body,'Actual body');assert.equal(d.source.sourceId,'src');
 });
 test('plain Markdown horizontal rules are retained',()=>assert.equal(parseExport('# Title\n\ntext\n\n---\n\nmore',meta).body,'# Title\n\ntext\n\n---\n\nmore'));
+test('an index rescan cannot make an already-local source look newly exported',()=>{
+  const raw='# Source\n<!-- Indexed/read-only export from NotebookLM -->\n- notebook_id: nb\n- source_id: src\n- exported_at_utc: 2025-01-01\n\n---\n\nActual body';
+  const first=parseExport(raw,{exported_at_utc:'2026-01-01'});
+  assert.equal(first.source.exportedAt,'2025-01-01');assert.equal(first.source.manifestObservedAt,'2026-01-01');
+  const previous=buildHarvest([first]);
+  const next=buildHarvest([parseExport(raw,{exported_at_utc:'2027-01-01'})],{previous});
+  assert.equal(next.counts.unchanged,1);
+});
 test('manifest cannot silently relabel a wrapped source identity',()=>{
   const raw='# Source\n<!-- Indexed/read-only export from NotebookLM -->\n- notebook_id: original\n- source_id: src\n- source_url: https://example.org/original\n\n---\n\nBody';
   assert.throws(()=>parseExport(raw,{notebook_id:'different'}),/provenance_conflict/);
