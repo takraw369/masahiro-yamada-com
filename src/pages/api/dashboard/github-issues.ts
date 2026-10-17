@@ -34,7 +34,9 @@ async function githubGet(repo: string, route: string, token: string): Promise<an
   const response = await fetch(url, {
     method: 'GET',
     headers,
-    redirect: 'error',
+    // workerd rejects redirect:error before egress. Reject non-2xx below without
+    // following redirects or forwarding the read credential to another origin.
+    redirect: 'manual',
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error('github_' + response.status);

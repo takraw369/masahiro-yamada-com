@@ -55,6 +55,18 @@ test('shown counts never silently include closed or draft as approval gate', () 
   assert.deepEqual(summarizeRepo(issues,pulls),{shownOpenIssues:1,shownOpenPRs:2,shownHumanGates:1});
 });
 
+test('Automation uses Flow Runner CI at the PR head, never an unrelated CI or deployment', () => {
+  const repo=ISSUE_REPOS[0].slug;
+  const runs=[
+    normalizeRun({id:45,name:'CI',head_sha:'abc',status:'completed',conclusion:'success'},repo),
+    normalizeRun({id:46,name:'Deploy Flow Runner to Cloudflare',head_sha:'abc',status:'completed',conclusion:'success'},repo),
+    normalizeRun({id:47,name:'Flow Runner CI',head_sha:'other',status:'completed',conclusion:'success'},repo),
+    normalizeRun({id:48,name:'Flow Runner CI',head_sha:'abc',status:'completed',conclusion:'failure'},repo),
+  ];
+  assert.equal(normalizePull({number:253,head:{sha:'abc'}},repo,runs).ci.conclusion,'failure');
+  assert.equal(normalizePull({number:253,head:{sha:'other-head'}},repo,runs).ci,null);
+});
+
 test('read-only API is protected and never sends a bearer secret to browser', () => {
   assert.match(middleware,/pathname\.startsWith\('\/api\/dashboard'\)/);
   assert.match(middleware,/verifyDashboardSession/);
