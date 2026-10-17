@@ -1,20 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { readContentLibrary, mergeContentLibrary, contentLibraryError, type ContentPost as PostItem } from '../../lib/contentLibrary';
 
 // ── Types ──────────────────────────────────────────────
-interface PostItem {
-  id: string;
-  platform: 'x' | 'line';
-  category: string | null;
-  text: string;
-  title: string;
-  scheduledHour: string | null;
-  status: 'draft' | 'scheduled' | 'sent' | 'sending';
-  createdAt: string;
-  xAccountId?: string;
-  lineAccountId?: string;
-  order: number;
-}
-
 interface XAccount    { id: string; username: string; isActive: boolean; }
 interface LineAccount { id: string; name: string; channelId: string; }
 
@@ -45,9 +32,8 @@ function fmtHour(h: number) { return `${String(h).padStart(2,'0')}:00`; }
 function catOf(id: string | null) { return CATS.find(c => c.id === id) ?? null; }
 
 function loadLib(): PostItem[] {
-  try { return JSON.parse(localStorage.getItem('ace-content-lib') ?? '[]'); } catch { return []; }
+  try { return readContentLibrary(localStorage); } catch { return []; }
 }
-function saveLib(q: PostItem[]) { localStorage.setItem('ace-content-lib', JSON.stringify(q)); }
 
 // ── Component ──────────────────────────────────────────
 export default function ContentScheduler() {
@@ -88,7 +74,10 @@ export default function ContentScheduler() {
       .catch(()=>{});
   }, []);
 
-  const updateLib = (next: PostItem[]) => { setLib(next); saveLib(next); };
+  const updateLib = (next: PostItem[], base = lib) => {
+    try { const merged = mergeContentLibrary(localStorage, base, next); setLib(merged); return merged; }
+    catch (error) { setStatusMsg(contentLibraryError(error)); return null; }
+  };
 
   // ── Add to library ──
   const addToLib = () => {
@@ -101,7 +90,7 @@ export default function ContentScheduler() {
       lineAccountId: platform==='line'?lineAccId:undefined,
       order: maxOrder+1,
     };
-    updateLib([item, ...lib]);
+    if (!updateLib([item, ...lib])) return;
     setText(''); setTitle(''); setCatId(null); setComposing(false);
     setLibTab(platform);
   };
@@ -117,7 +106,7 @@ export default function ContentScheduler() {
   const onLibDrop = (targetId: string) => {
     const srcId = dragIdRef.current;
     if (!srcId || srcId===targetId) { dragIdRef.current=null; setDragOver(null); return; }
-    const next = [...lib];
+    const next = lib.map(item => ({ ...item }));
     const fi = next.findIndex(p=>p.id===srcId);
     const ti = next.findIndex(p=>p.id===targetId);
     const [m] = next.splice(fi,1); next.splice(ti,0,m);
@@ -153,7 +142,8 @@ export default function ContentScheduler() {
 
   // ── Send ──
   const send = async (item: PostItem) => {
-    updateLib(lib.map(p=>p.id===item.id?{...p,status:'sending' as const}:p));
+    const inFlight = updateLib(lib.map(p=>p.id===item.id?{...p,status:'sending' as const}:p));
+    if (!inFlight) return;
     try {
       let ok = false;
       if (item.platform==='x') {
@@ -169,10 +159,11 @@ export default function ContentScheduler() {
         const r = await fetch('/api/line-harness/broadcasts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:item.title||item.text.slice(0,20),messageType:'text',messageContent:item.text,targetType:'all',lineAccountId:item.lineAccountId||lineAccId,scheduledAt:item.scheduledHour??undefined})});
         ok = ((await r.json()) as {success:boolean}).success;
       }
-      updateLib(lib.map(p=>p.id===item.id?{...p,status:(ok?'sent':'draft') as const}:p));
-      setStatusMsg(ok?'✓ 送信完了':'✗ 送信失敗');
+      const recorded = updateLib(inFlight.map(p=>p.id===item.id?{...p,status:(ok?'sent':'draft') as const}:p), inFlight);
+      if (recorded) setStatusMsg(ok?'✓ 送信完了':'✗ 送信失敗');
+      else if (ok) setStatusMsg('送信は完了しましたが、端末の保存状態を更新できません。再送せず、送信先で確認してください。');
     } catch(e) {
-      updateLib(lib.map(p=>p.id===item.id?{...p,status:'draft' as const}:p));
+      updateLib(inFlight.map(p=>p.id===item.id?{...p,status:'draft' as const}:p), inFlight);
       setStatusMsg('✗ '+String(e));
     }
     setTimeout(()=>setStatusMsg(''),3000);
@@ -185,7 +176,7 @@ export default function ContentScheduler() {
   const confirmSchedule = () => {
     if (!schedModal) return;
     const hk = hourKey(schedDate, schedHour);
-    updateLib(lib.map(p=>p.id===schedModal.id?{...p,scheduledHour:hk,status:'scheduled' as const}:p));
+    if (!updateLib(lib.map(p=>p.id===schedModal.id?{...p,scheduledHour:hk,status:'scheduled' as const}:p))) return;
     setSchedModal(null);
   };
 
