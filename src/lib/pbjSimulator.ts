@@ -110,6 +110,6 @@ export function calculatePbjScenario(raw: PbjScenario) {
     ownerAccountingMan,
     ownerBreakEvenHours,
     groupBreakEvenHours,
-    initialEquityMan: purchasePriceMan * (1 - debtPct / 100),
+    initialEquityMan: purchasePriceMan * (100 - debtPct) / 100,
   };
 }
