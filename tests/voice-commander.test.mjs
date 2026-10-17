@@ -10,7 +10,7 @@ test('Japanese voice routing is bounded and deterministic', () => {
   assert.equal(routeVoiceCommand('Xに投稿して').kind, 'human_gate');
   assert.equal(routeVoiceCommand('本番反映して').kind, 'human_gate');
   assert.equal(routeVoiceCommand('経営戦略を整理して').kind, 'ask');
-  assert.equal(routeVoiceCommand(''), { kind: 'empty' }.kind ? 'empty' : 'other');
+  assert.equal(routeVoiceCommand('').kind, 'empty');
   assert.equal(routeVoiceCommand('あ'.repeat(2001)).kind, 'too_long');
 });
 
