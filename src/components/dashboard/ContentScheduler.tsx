@@ -76,7 +76,7 @@ export default function ContentScheduler() {
 
   const updateLib = (next: PostItem[], base = lib) => {
     try { const merged = mergeContentLibrary(localStorage, base, next); setLib(merged); return merged; }
-    catch (error) { setStatusMsg(contentLibraryError(error)); return null; }
+    catch (error) { setStatusMsg(contentLibraryError(error, 'scheduler')); return null; }
   };
 
   // ── Add to library ──

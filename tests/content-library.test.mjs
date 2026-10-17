@@ -62,6 +62,8 @@ test('storage read/write failures remain failures and offer copy recovery', () =
   }
   assert.match(contentLibraryError(Error('quota')),/コピー/);
   assert.match(contentLibraryError(Error('content_library_conflict')),/新しい下書きとして保存/);
+  assert.match(contentLibraryError(Error('content_library_conflict'),'scheduler'),/このページを再読み込み/);
+  assert.doesNotMatch(contentLibraryError(Error('content_library_conflict'),'scheduler'),/新しい下書きとして保存/);
   for (const text of ['', ' \n ', 'あ'.repeat(281)]) assert.throws(()=>saveXTextDraft(storage(),text,'account'),/x_draft_text_invalid/);
 });
 
