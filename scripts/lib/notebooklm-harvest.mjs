@@ -137,6 +137,21 @@ function strings(value, name) {
   return value.map(v => v.trim());
 }
 
+function readCoverage(doc, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+    || !['exported_text_only', 'partial_export', 'selected_passages'].includes(value.scope)
+    || (value.originalCompleteness !== undefined && value.originalCompleteness !== 'unverified')) throw new Error('invalid_read_coverage');
+  const limitations = strings(value.limitations, 'coverage_limitations');
+  if (value.scope !== 'exported_text_only' && !limitations.length) throw new Error('coverage_limitations_required');
+  let evidence = null;
+  if (value.evidenceQuote !== undefined) {
+    const quote = required(value.evidenceQuote, 'coverage_evidence_quote'), start = doc.body.indexOf(quote);
+    if (start < 0) throw new Error('coverage_quote_not_in_source');
+    evidence = { quote, start, end: start + quote.length, offsetUnit: 'utf16_code_units', sourceHash: doc.contentHash };
+  }
+  return { scope: value.scope, originalCompleteness: 'unverified', limitations, evidence };
+}
+
 function annotate(doc, annotation) {
   if (!annotation) return { summary: null, principles: [], statements: [], relations: [], reuse: [], openQuestions: ['要約・思想・関連・転用案の編集確認が必要'], canonicalTarget: null, reviewStatus: 'needs_extraction' };
   if (secret.test(stable(annotation))) throw new Error('possible_credentials_in_annotation');
@@ -171,7 +186,9 @@ function annotate(doc, annotation) {
       section: required(t.section, 'target_section'), rationale: required(t.rationale, 'target_rationale'),
       evidenceQuote: required(t.evidenceQuote, 'target_evidence_quote') };
   }
-  return { summary, principles, statements, relations, reuse, openQuestions, canonicalTarget, reviewStatus: 'candidate_unreviewed' };
+  return { summary, principles, statements, relations, reuse, openQuestions, canonicalTarget,
+    ...(annotation.coverage !== undefined ? { coverage: readCoverage(doc, annotation.coverage) } : {}),
+    reviewStatus: 'candidate_unreviewed' };
 }
 
 export function captureText(candidate) {
@@ -182,6 +199,9 @@ export function captureText(candidate) {
     `Notebook: ${candidate.source.notebookTitle || candidate.source.notebookId || 'document export'}`,
     `Notebook URL: ${candidate.source.notebookUrl || 'not applicable'}`,
     `Source hash: ${candidate.contentHash}`, '', 'SUMMARY', candidate.summary || 'UNVERIFIED: extraction pending',
+    '', 'READ COVERAGE', `Scope: ${candidate.coverage?.scope || 'exported_text_only'}; original completeness: unverified`,
+    ...(candidate.coverage?.limitations || []).map(v => `- ${v}`),
+    ...(candidate.coverage?.evidence ? [`Coverage evidence: ${candidate.coverage.evidence.quote}`] : []),
     '', 'PRINCIPLES (annotation)', ...candidate.principles.map(v => `- ${v}`),
     '', 'STATEMENTS', ...candidate.statements.map(s => `[${s.kind}/${s.verification}] ${s.text}\nEvidence: ${s.evidence.quote}`),
     '', 'RELATION CANDIDATES', ...candidate.relations.map(r => `${r.title} (${r.targetId || r.targetUrl || 'unresolved'}): ${r.relation}; ${r.rationale}`),
@@ -218,6 +238,7 @@ export function buildHarvest(documents, { annotations = {}, previous = null, exi
     const retained = old?.contentHash === doc.contentHash && old.summary ? {
       summary: old.summary, principles: old.principles, relations: old.relations,
       reuse: old.reuse, openQuestions: old.openQuestions, canonicalTarget: old.canonicalTarget,
+      ...(old.coverage ? { coverage: { ...old.coverage, ...(old.coverage.evidence ? { evidenceQuote: old.coverage.evidence.quote } : {}) } } : {}),
       statements: old.statements.map(s => ({ ...s, quote: s.evidence.quote })),
     } : null;
     const annotation = annotations[id] || annotations[doc.source.sourceId] || annotations[doc.source.url] || retained;
@@ -247,7 +268,7 @@ export function buildHarvest(documents, { annotations = {}, previous = null, exi
     candidate.delta = { action: conflict ? 'conflict' : !old ? 'create' : old.revisionHash === candidate.revisionHash ? 'unchanged' : 'update',
       previousRevisionHash: old?.revisionHash || null,
       changedFields: old ? [
-        ...['title', 'contentHash', 'summary', 'principles', 'statements', 'relations', 'reuse', 'openQuestions', 'canonicalTarget'].filter(k => stable(old[k]) !== stable(candidate[k])),
+        ...['title', 'contentHash', 'summary', 'principles', 'statements', 'relations', 'reuse', 'openQuestions', 'canonicalTarget', 'coverage'].filter(k => stable(old[k]) !== stable(candidate[k])),
         ...(stable({ ...old.source, exportedAt: null, manifestObservedAt: null }) !== stable(revisionSource) ? ['source'] : []),
         ...(stable((old.occurrences || []).map(o => ({ ...o, exportedAt: null, manifestObservedAt: null }))) !== stable(revisionOccurrences) ? ['occurrences'] : []),
       ] : [] };

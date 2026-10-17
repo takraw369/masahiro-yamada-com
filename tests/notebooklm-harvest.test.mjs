@@ -82,6 +82,35 @@ test('document observations have a distinct scope; authored/AI notes remain unve
   assert.equal(n.source.factualStatus,'ai_or_authored_note_unverified');
   assert.notEqual(n.id,doc().id);
 });
+test('exported text never implies that the full original was acquired',()=>{
+  const c=build().candidates[0];
+  assert.ok(captureText(c).includes('Scope: exported_text_only; original completeness: unverified'));
+  assert.equal(Object.hasOwn(c,'coverage'),false); // Preserve v1 receipt compatibility.
+});
+test('partial source coverage keeps exact evidence and survives annotation-free resume',()=>{
+  const coverage={scope:'partial_export',limitations:['The original remainder was not acquired.'],evidenceQuote:'Feedback follows practice.'};
+  const first=build(undefined,{annotations:{'source-1':{...ann,coverage}}}),c=first.candidates[0];
+  assert.equal(c.coverage.originalCompleteness,'unverified');
+  assert.equal(c.sourceBody.slice(c.coverage.evidence.start,c.coverage.evidence.end),coverage.evidenceQuote);
+  assert.equal(c.coverage.evidence.sourceHash,c.contentHash);
+  assert.ok(captureText(c).includes(coverage.limitations[0]));
+  const next=build(undefined,{previous:first,annotations:{}});
+  assert.equal(next.counts.unchanged,1);assert.deepEqual(next.candidates[0].coverage,c.coverage);
+  const deferred=buildHarvest([],{previous:first});
+  assert.equal(build(undefined,{previous:deferred,annotations:{}}).counts.unchanged,1);
+});
+test('coverage-only changes are updates without another capture',()=>{
+  const coverage={scope:'selected_passages',limitations:['Only selected sections were reviewed.']};
+  const next=build(undefined,{previous:build(),annotations:{'source-1':{...ann,coverage}}});
+  assert.equal(next.counts.update,1);assert.deepEqual(next.candidates[0].delta.changedFields,['coverage']);
+  assert.equal(next.candidates[0].integration.capturePreview,null);
+});
+test('coverage rejects unsupported completeness, missing limitations and invented evidence',()=>{
+  const check=coverage=>build(undefined,{annotations:{'source-1':{...ann,coverage}}});
+  for(const coverage of [null,[],{scope:'complete_original'},{scope:'exported_text_only',originalCompleteness:'verified'}])assert.throws(()=>check(coverage),/invalid_read_coverage/);
+  assert.throws(()=>check({scope:'partial_export'}),/coverage_limitations_required/);
+  assert.throws(()=>check({scope:'selected_passages',limitations:['Read selectively'],evidenceQuote:'Invented paywall'}),/coverage_quote_not_in_source/);
+});
 test('repeat import is unchanged, body changes are updates with a stable ID',()=>{
   const first=build(),again=build(undefined,{previous:first});
   assert.equal(again.counts.unchanged,1);assert.equal(again.candidates[0].integration.capturePreview,null);

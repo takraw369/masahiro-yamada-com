@@ -47,6 +47,14 @@ Annotations are keyed by stable candidate ID, original source ID, or normalized 
 
 Every statement requires an exact quote from the preserved body. UTF-16 offsets and source hash are included. Allowed kinds: claim, hypothesis, interpretation, experience, fact. FACT is limited to `scope: document_observation`; it means the text was observed, never that an external claim is true. World facts require a separate verification workflow. Summaries/principles/relations/reuse remain unreviewed annotations/proposals. Raw source text is retained separately.
 
+For a partial export or a selective reading, supply optional `coverage` on the annotation:
+
+```json
+{"scope":"partial_export","limitations":["The original remainder was not acquired."],"evidenceQuote":"The rest of this article is available to members."}
+```
+
+Scopes: `exported_text_only`, `partial_export`, `selected_passages`. The last two require nonempty limitations. An optional boundary quote must occur exactly in the source; its UTF-16 span and hash are preserved. `originalCompleteness` is always `unverified`; attempts to assert verified completeness are rejected. Markdown/capture previews display the scope and limitations. Omitted coverage means exported text only, with original completeness unverified, and keeps older v1 receipt revision hashes compatible. Coverage survives annotation-free resume and changes are diffed. A boundary marker is evidence of the export's contents, not evidence that any unseen material was acquired. Multiple reviews derived from one book remain dependent sources, not independent validation of its claims.
+
 For a concrete semantic duplicate or canonical connection, add an optional `canonicalTarget` to the source annotation:
 
 ```json
@@ -75,4 +83,4 @@ Next Human Gate: confirm rights and canonical target; review claims/interpretati
 
 Dry-run is default and writes nothing, including receipts. Explicit `--write-local` writes JSON + Markdown into a new directory with mode 700/600. Outputs inside this repository are accepted only under ignored `work/`; symlink parents are resolved first. Manifest path traversal/symlink escapes and recognizable credentials are rejected. This is not a complete PII scanner: never commit source texts, annotations, snapshots or receipts. Git contains synthetic tests only.
 
-Test coverage includes source fidelity, transcript-vs-fact distinction, duplicate provenance, content conflicts, metadata/annotation changes, skipped exports, partial-batch resume, capture contract limits, no repeat inserts, traversal/symlink rejection and no-write dry-run.
+Test coverage includes source fidelity, transcript-vs-fact distinction, explicit partial/selective read coverage, duplicate provenance, content conflicts, metadata/annotation changes, skipped exports, partial-batch resume, capture contract limits, no repeat inserts, traversal/symlink rejection and no-write dry-run.
