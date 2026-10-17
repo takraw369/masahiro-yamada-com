@@ -88,3 +88,7 @@ Test coverage includes source fidelity, transcript-vs-fact distinction, explicit
 ### Continuation: mirror and resume integrity
 
 Identical source bodies at distinct URLs are retained with both provenances and marked `HOLD_DUPLICATE_CONTENT`; insert-only capture previews are suppressed. The check also includes deferred candidates from a partial previous batch. This is an exact normalized-body check, not a semantic duplicate decision. A prior receipt with duplicate candidate IDs or contradictory NotebookLM occurrence aliases now fails before resumption, preventing silent Map overwrite. Preserve the original receipt and resolve its conflicting identities explicitly.
+
+### Source quality and rights review
+
+A successful import verifies structure and exact spans, not readability, truth or reuse rights. During private review, heavily corrupted text must remain an explicit source-quality HOLD: preserve the original and identity, avoid substantive claims/reuse proposals, and reacquire readable evidence before promotion. A copyright notice is a document observation, not permission. Scientific uses of a term, encyclopedia descriptions and commercial sales claims must retain their context; they do not establish coaching, learning, health or earnings effects. Keep these judgments in the private packet and publish only sanitized verification counts. Consolidate overlapping proposals into existing-owner worksheets instead of requesting one Canonical write per source.
