@@ -18,11 +18,13 @@ export class MediaCatalog {
       const parent = lstatSync(path.dirname(filename));
       if (!parent.isDirectory() || parent.isSymbolicLink()) throw new Error('Catalog directory must not be a symlink');
       chmodSync(path.dirname(filename), 0o700);
+      if (process.platform !== 'win32' && (lstatSync(path.dirname(filename)).mode & 0o077)) throw new Error('Report filesystem must enforce private permissions; choose an APFS/private report directory');
       const fd = openSync(filename, constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
       try { if (!fstatSync(fd).isFile() || fstatSync(fd).nlink !== 1) throw new Error('Catalog must be a private regular file, without hard links'); }
       finally { closeSync(fd); }
       if (!lstatSync(filename).isFile()) throw new Error('Catalog must be a regular file');
       chmodSync(filename, 0o600);
+      if (process.platform !== 'win32' && (lstatSync(filename).mode & 0o077)) throw new Error('Catalog filesystem cannot enforce private permissions');
     }
     this.db = new DatabaseSync(filename);
     this.db.exec(`PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON;
@@ -74,7 +76,7 @@ export class MediaCatalog {
     const review = row.review ? JSON.parse(row.review) : null;
     return { ...JSON.parse(row.data), available: scan?.state !== 'complete' || scan.id === row.run,
       duplicateStatus: row.duplicate_status, duplicateGroup: row.duplicate_group,
-      ...(review ? { ...review, ...(review.category ? { categoryReason: '手動確認' } : {}), reviewStatus: 'reviewed' } : { reviewStatus: 'suggested' }),
+      ...(review ? { ...review, ...(review.category ? { categoryReason: '手動確認' } : {}), reviewStatus: review.reviewedFingerprint === row.fingerprint ? 'reviewed' : 'stale' } : { reviewStatus: 'suggested' }),
       categoryReviewStatus: review?.category ? 'reviewed' : 'suggested' };
   }
   reindex(id) {
@@ -95,7 +97,8 @@ export class MediaCatalog {
     for (const key of ['project','topic','privacy','rights','useStatus']) if (patch[key] !== undefined && (typeof patch[key] !== 'string' || patch[key].length > 240)) throw new Error('Invalid review text');
     this.transaction(() => {
       const previous = parse(this.db.prepare('SELECT data FROM reviews WHERE id=?').get(id)) || {};
-      this.db.prepare('INSERT OR REPLACE INTO reviews VALUES (?,?)').run(id, JSON.stringify({ ...previous, ...patch, reviewedAt: new Date().toISOString() }));
+      const { fingerprint } = this.db.prepare('SELECT fingerprint FROM assets WHERE id=?').get(id);
+      this.db.prepare('INSERT OR REPLACE INTO reviews VALUES (?,?)').run(id, JSON.stringify({ ...previous, ...patch, reviewedFingerprint: fingerprint, reviewedAt: new Date().toISOString() }));
       this.reindex(id);
     });
     return this.getItem(id);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import path from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { MediaCatalog } from './catalog.mjs';
 import { scanCatalog } from './scanner.mjs';
 import { startLocalMediaHub } from './server.mjs';
@@ -36,8 +36,28 @@ function integer(args, flag, fallback) {
 }
 async function main() {
   const [command, input, ...args] = process.argv.slice(2);
-  if (command === 'eagle-check') { console.log(JSON.stringify(await eaglePreflight(), null, 2)); return; }
+  if (command === '--help') { usage(); return; }
+  if (command === 'eagle-check') {
+    if (input || args.length) throw new Error('eagle-check takes no arguments');
+    console.log(JSON.stringify(await eaglePreflight(), null, 2)); return;
+  }
   if (!command || !input || !['scan','serve','query','review','audit','status','eagle-prepare','eagle-queue','photos-propose','photos-transition'].includes(command)) { usage(); process.exitCode = 2; return; }
+  const allowed = {
+    scan: ['--out','--limit','--resume','--no-hash','--hash-budget-mb'], serve: ['--port'],
+    query: ['--q','--category','--priority','--offset','--limit'],
+    review: ['--id','--category','--priority','--tags','--project','--topic','--privacy','--rights','--useStatus'],
+    audit: ['--offset','--limit'], status: [], 'eagle-queue': [],
+    'eagle-prepare': ['--id','--mode','--approve-local-copy','--verified-url'],
+    'photos-propose': ['--id','--action','--note'], 'photos-transition': ['--id','--state','--confirmation']
+  }[command];
+  const seen = new Set();
+  for (let i = 0; i < args.length; i++) {
+    const flag = args[i];
+    if (!allowed.includes(flag)) throw new Error('Unknown option for ' + command + ': ' + flag);
+    if (seen.has(flag)) throw new Error('Repeated option: ' + flag);
+    seen.add(flag);
+    if (!['--resume','--no-hash','--approve-local-copy'].includes(flag)) { optionValue(args, flag); i++; }
+  }
   if (command === 'scan') {
     const controller = new AbortController();
     const cancel = () => controller.abort();
@@ -51,6 +71,7 @@ async function main() {
       });
       console.log(JSON.stringify(result, null, 2));
       if (result.summary.scan.state === 'cancelled') process.exitCode = 130;
+      else if (result.summary.scan.state === 'incomplete') process.exitCode = 1;
     } finally { process.removeListener('SIGINT', cancel); process.removeListener('SIGTERM', cancel); }
     return;
   }
@@ -64,6 +85,7 @@ async function main() {
       console.log('MASA Media Hub (this Mac only; private session URL, do not share): ' + url);
       return;
     }
+    if (!(await stat(path.resolve(input))).isFile()) throw new Error('Existing catalog file required');
     catalog = new MediaCatalog(path.resolve(input));
     if (!catalog.getSetting('root')) throw new Error('No scan in catalog');
     let result;

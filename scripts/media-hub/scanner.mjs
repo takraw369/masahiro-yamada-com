@@ -119,7 +119,10 @@ export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false
         for await (const entry of directory) {
           if (signal?.aborted) break;
           const rel = task.path ? task.path + '/' + entry.name : entry.name;
-          if (entry.isSymbolicLink()) batch.push({ rel, audit: 'skipped-symlink' });
+          // macOS writes AppleDouble resource forks on ExFAT/other volumes.
+          // Their photo/JSON suffix does not make them media or Takeout sidecars.
+          if (entry.name.startsWith('._')) batch.push({ rel, audit: 'skipped-appledouble' });
+          else if (entry.isSymbolicLink()) batch.push({ rel, audit: 'skipped-symlink' });
           else if (entry.isDirectory()) {
             if (!entry.name.startsWith('.') && !SKIP_DIRS.has(entry.name)) batch.push({ rel, type: 'dir' });
           } else if (entry.isFile()) {

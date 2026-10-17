@@ -46,6 +46,8 @@ test('unverified/transient/altered URLs cannot become Eagle bookmarks', async t 
   const {catalog,id}=await fixture(t);
   catalog.review(id,{priority:'S',privacy:'PRIVATE',rights:'OWNED'});
   assert.equal(catalog.getItem(id).categoryReviewStatus,'suggested','priority review must not certify an inferred category');
+  await assert.rejects(prepareEagle(catalog,id,{mode:'bookmark',verifiedUrl:'https://photos.google.com/photo/TEST_ONLY'}),/category/);
+  catalog.review(id,{category:'CREATIVE'});
   await assert.rejects(prepareEagle(catalog,id,{mode:'bookmark'}),/manually verified/);
   for(const verifiedUrl of ['https://lh3.googleusercontent.com/transient','https://photos.google.com/photo/TEST_ONLY?token=bad','https://photos.google.com/photo/different']) await assert.rejects(prepareEagle(catalog,id,{mode:'bookmark',verifiedUrl}),/verified/);
   const plan=await prepareEagle(catalog,id,{mode:'bookmark',verifiedUrl:'https://photos.google.com/photo/TEST_ONLY'});
@@ -54,9 +56,23 @@ test('unverified/transient/altered URLs cannot become Eagle bookmarks', async t 
 
 test('source changes block previously reviewed Eagle preparation', async t => {
   const {catalog,id,source}=await fixture(t);
-  catalog.review(id,{priority:'A',privacy:'PRIVATE',rights:'OWNED'});
+  catalog.review(id,{category:'CREATIVE',priority:'A',privacy:'PRIVATE',rights:'OWNED'});
   await writeFile(path.join(source,'sample.png'),'changed-data');
   await assert.rejects(prepareEagle(catalog,id,{approveLocalCopy:true}),/Source changed/);
+});
+
+test('rescan preserves classification but invalidates approval for changed bytes', async t => {
+  const {catalog,id,source}=await fixture(t);
+  catalog.review(id,{category:'CREATIVE',priority:'A',privacy:'PRIVATE',rights:'OWNED',tags:['keep-review']});
+  const before=await prepareEagle(catalog,id,{approveLocalCopy:true});
+  await writeFile(path.join(source,'sample.png'),'different synthetic content');
+  await scanCatalog(source,{outDir:path.dirname(catalog.filename),limit:0});
+  assert.equal(catalog.getItem(id).reviewStatus,'stale');
+  assert.deepEqual(catalog.getItem(id).tags,['keep-review']);
+  await assert.rejects(prepareEagle(catalog,id,{approveLocalCopy:true}),/Review current source/);
+  catalog.review(id,{category:'CREATIVE',priority:'A',privacy:'PRIVATE',rights:'OWNED'});
+  const next=await prepareEagle(catalog,id,{approveLocalCopy:true});
+  assert.notEqual(next.fingerprint,before.fingerprint);assert.equal(next.executionEnabled,false);
 });
 
 test('Photos proposal opened state never becomes completed without explicit manual confirmation', async t => {

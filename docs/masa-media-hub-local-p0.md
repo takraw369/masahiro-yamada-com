@@ -115,3 +115,30 @@ These commands only record the user's manual report in the same private database
 - Existing gallery rendered with synthetic data at 390/1440/1728px, text search/empty state verified, no horizontal overflow. Better Design comprehension PASS; spacing: 0 critical / 0 serious / 3 moderate inherited spacing-scale findings. Status distinguishes pilot/cancel/failure/incomplete, inferred category versus explicit category review, and file-mtime fallback. No Dashboard route or public HTTPS preview was created, so no public Dashboard VALID receipt is claimed.
 
 Synthetic screenshots (no real media): [desktop](media-hub/synthetic-1440.png), [mobile](media-hub/synthetic-390.png).
+
+## MASA OS 3 continuation (2026-10-17)
+
+`node scripts/media-hub/canary.mjs --count 500 --mixed` extends the existing canary with JPEG/HEIC/MP4/MOV/PNG extension labels, Japanese names, missing/malformed sidecars and invalid-date fallback. Non-PNG containers are deliberately synthetic bytes: this validates indexing/metadata, **not codec decoding**. The mixed mode is capped at 1,000. Media and sidecar SHA256 are checked after scanning; duplicate proof, resume/reuse, search, private range transport and one idempotent disabled Eagle plan are tested. Set an OS temp directory on a disk with sufficient free space; do not weaken the 512MiB scanner reserve or repeat the 100K trial.
+
+macOS AppleDouble `._*` resource forks are now audited and skipped before media/JSON classification. On ExFAT they otherwise consumed pilot slots and produced fake photos/sidecars. This was reproduced with synthetic fixtures on the actual external disk and corrected without altering those files. Permission mode checks now verify the reported mode after chmod; this is a current-mount check, not an assertion about portable ExFAT ACLs.
+
+Reviews retain their classification/tags after rescan, but approval is tied to the observed source fingerprint. Changed bytes or legacy reviews without a fingerprint require explicit renewed review before Eagle planning. Category must be explicitly reviewed as well as priority/privacy/rights; inferred category is not exported as reviewed metadata. No Eagle executor is enabled.
+
+CLI rejects unknown/repeated flags before starting a scan, refuses to create a catalog for mistyped read-command paths, and exits nonzero for an incomplete scan while retaining `--resume`. `--help` exits successfully.
+
+Eagle's documented application-info endpoint was available in the current session (4.0.0 / darwin). This supersedes the earlier unavailable observation, not the unverified actual-import status. No library content, tokens or settings were read; no write API was called. A representative real Takeout path has not been explicitly approved in the recovered records; no real media canary was performed.
+
+### Cross-feature connection audit
+
+The existing paths can support the requested sequence, with explicit gaps:
+
+| Stage | Existing asset/path | Boundary still required |
+| --- | --- | --- |
+| Knowledge search/classification | Drive Canon and `/dashboard/knowledge`; NotebookLM offline packet | Review private source/interpretation/rights, current Canon and owner permissions before LINK/MERGE/REFERENCE |
+| Photo/video search/classification | Existing private local SQLite Media Hub, reviewed categories/tags | Approve representative Takeout path, validate 500 real files; codec/semantic recognition remains unverified/unimplemented |
+| Select production materials | Existing manual selection and #216 capture/Playground boundary | Keep media local; confirm rights and select exact source IDs/paths intentionally; there is no automatic canonical promotion |
+| Content creation | Existing Intelligence/PostDraftShelf and Content Studio | Preserve source IDs/URLs/claim labels and source rights; do not copy internal metadata as public text |
+| Save/resume | #376 existing Post editor + Content Scheduler library | Same-browser best-effort store; authenticated queue extension needs canonical writer/revision review, not a new DB |
+| Publish after personal review | Existing X compose review and remote publication APIs | Fresh account/text/time confirmation; real actions and production writes remain Human Gate |
+
+This is a connection audit, not a claim that all three unmerged branches are already integrated in production. The PRs keep separate file scopes. No new Dashboard, cloud DB or automatic transfer was added.

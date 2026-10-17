@@ -44,6 +44,20 @@ test('deterministic pilot, resume and incremental review/hash reuse survive reop
   assert.throws(() => db.review(id, JSON.parse('{"__proto__":{}}')), /fields/);
 });
 
+test('AppleDouble resource forks never consume pilot slots or become media/JSON metadata', async t => {
+  const f=await fixture(t);
+  await f.file('写真.jpeg','real synthetic bytes');
+  await f.file('写真.jpeg.json',JSON.stringify({title:'写真.jpeg',description:'正しいメタデータ'}));
+  await f.file('._写真.jpeg','synthetic resource fork');
+  await f.file('._写真.jpeg.json','not JSON; synthetic AppleDouble');
+  const result=await f.scan({limit:1}),catalog=f.open(result);
+  assert.equal(result.summary.count,1);assert.equal(result.summary.scan.state,'complete');
+  assert.equal(catalog.query().items[0].filename,'写真.jpeg');
+  assert.equal(catalog.query({q:'正しいメタデータ'}).total,1);
+  assert.equal(catalog.audits().filter(a=>a.code==='skipped-appledouble').length,2);
+  assert.equal(await readFile(path.join(f.source,'._写真.jpeg'),'utf8'),'synthetic resource fork');
+});
+
 test('cancel after a durable checkpoint then resume has no lost or repeated records', async t => {
   const f = await fixture(t);
   for (let n = 0; n < 140; n++) await f.file(`${String(n).padStart(3,'0')}.png`);
