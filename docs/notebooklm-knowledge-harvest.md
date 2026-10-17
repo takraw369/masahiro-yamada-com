@@ -47,6 +47,14 @@ Annotations are keyed by stable candidate ID, original source ID, or normalized 
 
 Every statement requires an exact quote from the preserved body. UTF-16 offsets and source hash are included. Allowed kinds: claim, hypothesis, interpretation, experience, fact. FACT is limited to `scope: document_observation`; it means the text was observed, never that an external claim is true. World facts require a separate verification workflow. Summaries/principles/relations/reuse remain unreviewed annotations/proposals. Raw source text is retained separately.
 
+For a concrete semantic duplicate or canonical connection, add an optional `canonicalTarget` to the source annotation:
+
+```json
+{"action":"LINK","targetId":"OBSERVED_EXISTING_ID","targetUrl":"https://example.org/canon","title":"Existing Canon","section":"Learning","rationale":"The core already exists; attach this source as a reference.","evidenceQuote":"Existing learning principle."}
+```
+
+Actions are LINK / MERGE / UPDATE / REFERENCE proposals. Supply the observed target in `--existing` as `{id,title,source_url,content}`. Both ID and normalized URL must match, and the exact evidence quote must occur in that target's text. Missing/mismatched targets fail closed. The packet preserves the target content hash and evidence offsets. This verifies the observed target text, not permission to write. Any supplied canonical target suppresses new capture previews; no original/canonical document is modified. A live write still requires current revision/authorization checks and human approval.
+
 ## Duplicates and differences
 
 Canonical URL joins YouTube watch/short/live/share variants and Drive/Docs file variants. Original URLs, notebook/source IDs and all batch occurrences remain in the packet. Source-file export time and index scan time are separate; an already-local file is not relabelled as freshly exported. Same URL with different bodies is a conflict requiring review; both bodies are retained. URL-less notes use notebook + note IDs. Content hash ignores export wrapper timestamps. Revision hash also detects annotation/metadata changes.
@@ -57,7 +65,7 @@ Canonical URL joins YouTube watch/short/live/share variants and Drive/Docs file 
 
 Observed master API: `POST /api/dashboard/knowledge` accepts `{kind:"capture",text}`, up to 12,000 JS code units and 32,000 body bytes. The owner-guarded `masa_flow_mind_capture_v1` creates a **private draft self_note in masa_lens**, suitable for an explicitly labelled source-linked interpretation. It does not create an external source, knowledge_sources links, or graph relations.
 
-Eligible new structured candidates contain a size-checked `integration.capturePreview` with this exact request shape. The tool never sends it. Repeated, updated, conflicting, unstructured or existing-matched records do not contain insert previews. Capture is insert-only; updates must use reviewed UPDATE/MERGE/LINK through the canonical owner, not another capture. Full structured data stays in the review packet; source relationships must later be materialized through existing authorized contracts.
+Eligible new structured candidates contain a size-checked `integration.capturePreview` with this exact request shape. The tool never sends it. Repeated, updated, conflicting, unstructured, existing-matched or canonical-targeted records do not contain insert previews. Capture is insert-only; updates must use reviewed UPDATE/MERGE/LINK through the canonical owner, not another capture. Full structured data stays in the review packet; source relationships must later be materialized through existing authorized contracts.
 
 `source_intake_v1` in masa-automation currently consumes Raindrop source IDs/inbox, not arbitrary NotebookLM text. No fictional text payload is emitted for that workflow. No new public API, schema, auth path or UI is introduced.
 

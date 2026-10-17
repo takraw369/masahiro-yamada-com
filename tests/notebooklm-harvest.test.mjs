@@ -109,6 +109,27 @@ test('existing canonical URL match generates LINK/MERGE with no insert preview',
   assert.equal(p.candidates[0].integration.capturePreview,null);
   assert.equal(p.candidates[0].integration.existingMatches[0].id,'actual-knowledge-id');
 });
+const canonicalTarget = {action:'LINK',targetId:'existing-canon',targetUrl:'https://example.org/canon',title:'Existing Canon',section:'Learning',rationale:'The core idea already exists.',evidenceQuote:'Existing learning principle.'};
+const canonicalSnapshot = [{id:'existing-canon',title:'Existing Canon',source_url:'https://example.org/canon',content:'Existing learning principle. More context.'}];
+test('an observed canonical target suppresses new captures and preserves evidence',()=>{
+  const p=build(undefined,{annotations:{'source-1':{...ann,canonicalTarget}},existing:canonicalSnapshot});
+  const c=p.candidates[0];assert.equal(c.integration.operation,'REVIEW_LINK_EXISTING');
+  assert.equal(c.integration.capturePreview,null);assert.equal(c.integration.applied,false);
+  assert.equal(c.canonicalTarget.verification,'target_text_observed_not_write_approved');
+  assert.equal(canonicalSnapshot[0].content.slice(c.canonicalTarget.evidenceStart,c.canonicalTarget.evidenceEnd),canonicalTarget.evidenceQuote);
+});
+test('canonical target identity, URL and source evidence must match the existing snapshot',()=>{
+  const options={annotations:{'source-1':{...ann,canonicalTarget}},existing:canonicalSnapshot};
+  assert.throws(()=>build(undefined,{...options,existing:[]}),/snapshot_required/);
+  assert.throws(()=>build(undefined,{...options,existing:[{...canonicalSnapshot[0],source_url:'https://example.org/other'}]}),/snapshot_required/);
+  assert.throws(()=>build(undefined,{...options,existing:[{...canonicalSnapshot[0],content:'Different document'}]}),/evidence_mismatch/);
+});
+test('canonical plan edits are diffed and never become insert requests',()=>{
+  const first=build(undefined,{annotations:{'source-1':{...ann,canonicalTarget}},existing:canonicalSnapshot});
+  const next=build(undefined,{annotations:{'source-1':{...ann,canonicalTarget:{...canonicalTarget,action:'MERGE'}}},existing:canonicalSnapshot,previous:first});
+  assert.equal(next.counts.update,1);assert.deepEqual(next.candidates[0].delta.changedFields,['canonicalTarget']);
+  assert.equal(next.candidates[0].integration.capturePreview,null);
+});
 test('partial batches never delete absent previous records',()=>{
   const p=buildHarvest([],{previous:build()});
   assert.equal(p.missingPreviousIds.length,1);assert.equal(p.liveWrites,0);

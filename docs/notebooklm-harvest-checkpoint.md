@@ -18,10 +18,11 @@ Related work inspected: merged #205 and #307; open #313 (depends on masa-automat
 - Real source dry-run and private JSON/Markdown output/readback verified. Immediate reimport: 5 unchanged. One annotation change: 1 update and 4 unchanged. No live writes or canonical promotion.
 - A real authorized Google Docs readable export was also tested independently; it is an already-existing Canon, not another harvested notebook or new canonical asset.
 - Existing Knowledge IDs were observed for relation proposals. RLS flags/policies and capture function definition were read. RLS enabled and an owner guard exist; this is not a full negative authorization test. Exact URL lookups for the 5 sources returned no matches in sources/fabric nodes; semantic/Drive-wide duplicate review remains open.
+- Bounded semantic review subsequently inspected 3 existing target texts. The 5 pilot candidates now have concrete LINK 1 / MERGE 2 / REFERENCE 2 proposals, grounded in target quotes and hashes. New capture previews are suppressed for all 5. No target was modified. Other canonical assets were not exhaustively searched.
 
 ## Verification
 
-- 26 focused importer tests PASS (including real CLI dry-run/local output, source fidelity, export-time/scan-time separation, updates, provenance, partial-batch resume and conflict holds).
+- 29 focused importer tests PASS (including real CLI dry-run/local output, source fidelity, export-time/scan-time separation, updates, provenance, partial-batch resume, conflict holds and evidence-checked existing canonical targets).
 - Production build and Worker artifact configuration PASS.
 - Release-delta typecheck PASS: 0 changed-file errors; 214 existing repository Astro errors remain.
 - Production dependency security gate PASS with the repository's existing upstream exception (no dependency changes).

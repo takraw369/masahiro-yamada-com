@@ -138,7 +138,7 @@ function strings(value, name) {
 }
 
 function annotate(doc, annotation) {
-  if (!annotation) return { summary: null, principles: [], statements: [], relations: [], reuse: [], openQuestions: ['要約・思想・関連・転用案の編集確認が必要'], reviewStatus: 'needs_extraction' };
+  if (!annotation) return { summary: null, principles: [], statements: [], relations: [], reuse: [], openQuestions: ['要約・思想・関連・転用案の編集確認が必要'], canonicalTarget: null, reviewStatus: 'needs_extraction' };
   if (secret.test(stable(annotation))) throw new Error('possible_credentials_in_annotation');
   const summary = required(annotation.summary, 'summary');
   const principles = strings(annotation.principles, 'principles');
@@ -162,7 +162,16 @@ function annotate(doc, annotation) {
   }));
   const reuse = (annotation.reuse || []).map(r => ({ area: required(r.area, 'reuse_area'), idea: required(r.idea, 'reuse_idea'), status: 'proposal' }));
   const openQuestions = strings(annotation.openQuestions, 'open_questions');
-  return { summary, principles, statements, relations, reuse, openQuestions, reviewStatus: 'candidate_unreviewed' };
+  let canonicalTarget = null;
+  if (annotation.canonicalTarget) {
+    const t = annotation.canonicalTarget;
+    if (!['LINK', 'MERGE', 'UPDATE', 'REFERENCE'].includes(t.action)) throw new Error('invalid_canonical_target_action');
+    canonicalTarget = { action: t.action, targetId: required(t.targetId, 'target_id'),
+      targetUrl: canonicalUrl(t.targetUrl), title: required(t.title, 'target_title'),
+      section: required(t.section, 'target_section'), rationale: required(t.rationale, 'target_rationale'),
+      evidenceQuote: required(t.evidenceQuote, 'target_evidence_quote') };
+  }
+  return { summary, principles, statements, relations, reuse, openQuestions, canonicalTarget, reviewStatus: 'candidate_unreviewed' };
 }
 
 export function captureText(candidate) {
@@ -177,7 +186,8 @@ export function captureText(candidate) {
     '', 'STATEMENTS', ...candidate.statements.map(s => `[${s.kind}/${s.verification}] ${s.text}\nEvidence: ${s.evidence.quote}`),
     '', 'RELATION CANDIDATES', ...candidate.relations.map(r => `${r.title} (${r.targetId || r.targetUrl || 'unresolved'}): ${r.relation}; ${r.rationale}`),
     '', 'REUSE PROPOSALS', ...candidate.reuse.map(r => `${r.area}: ${r.idea}`),
-    '', 'OPEN QUESTIONS', ...candidate.openQuestions.map(q => `- ${q}`)];
+    '', 'OPEN QUESTIONS', ...candidate.openQuestions.map(q => `- ${q}`),
+    ...(candidate.canonicalTarget ? ['', 'CANONICAL TARGET PROPOSAL', `${candidate.canonicalTarget.action}: ${candidate.canonicalTarget.title} / ${candidate.canonicalTarget.section}`, candidate.canonicalTarget.targetUrl, candidate.canonicalTarget.rationale, `Existing target evidence: ${candidate.canonicalTarget.evidenceQuote}`] : [])];
   return lines.join('\n');
 }
 
@@ -207,11 +217,21 @@ export function buildHarvest(documents, { annotations = {}, previous = null, exi
     const doc = group.find(d => annotations[d.source.sourceId]) || group[0];
     const retained = old?.contentHash === doc.contentHash && old.summary ? {
       summary: old.summary, principles: old.principles, relations: old.relations,
-      reuse: old.reuse, openQuestions: old.openQuestions,
+      reuse: old.reuse, openQuestions: old.openQuestions, canonicalTarget: old.canonicalTarget,
       statements: old.statements.map(s => ({ ...s, quote: s.evidence.quote })),
     } : null;
     const annotation = annotations[id] || annotations[doc.source.sourceId] || annotations[doc.source.url] || retained;
     const fields = annotate(doc, annotation);
+    let canonicalMatch = null;
+    if (fields.canonicalTarget) {
+      const t = fields.canonicalTarget;
+      canonicalMatch = existing.find(e => e.id === t.targetId && e.source_url && canonicalUrl(e.source_url) === t.targetUrl);
+      if (!canonicalMatch || typeof canonicalMatch.content !== 'string') throw new Error('canonical_target_snapshot_required');
+      const content = normal(canonicalMatch.content), start = content.indexOf(t.evidenceQuote);
+      if (start < 0) throw new Error('canonical_target_evidence_mismatch');
+      fields.canonicalTarget = { ...t, verification: 'target_text_observed_not_write_approved',
+        targetContentHash: sha(content), evidenceStart: start, evidenceEnd: start + t.evidenceQuote.length, offsetUnit: 'utf16_code_units' };
+    }
     const occurrenceMap = new Map();
     for (const occurrence of [...(old?.occurrences || []), ...group.map(d => ({ title: d.title, ...d.source, contentHash: d.contentHash }))]) {
       const key = stable([occurrence.notebookId, occurrence.sourceId, occurrence.kind, occurrence.originalUrl]);
@@ -223,17 +243,17 @@ export function buildHarvest(documents, { annotations = {}, previous = null, exi
     const revisionSource = { ...doc.source, exportedAt: null, manifestObservedAt: null };
     const revisionOccurrences = occurrences.map(o => ({ ...o, exportedAt: null, manifestObservedAt: null }));
     candidate.revisionHash = sha(stable({ title: doc.title, source: revisionSource, occurrences: revisionOccurrences, contentHash: doc.contentHash, ...fields }));
-    const matched = existing.filter(e => e.id === id || (e.source_url && doc.source.url && canonicalUrl(e.source_url) === doc.source.url));
+    const matched = existing.filter(e => e === canonicalMatch || e.id === id || (e.source_url && doc.source.url && canonicalUrl(e.source_url) === doc.source.url));
     candidate.delta = { action: conflict ? 'conflict' : !old ? 'create' : old.revisionHash === candidate.revisionHash ? 'unchanged' : 'update',
       previousRevisionHash: old?.revisionHash || null,
       changedFields: old ? [
-        ...['title', 'contentHash', 'summary', 'principles', 'statements', 'relations', 'reuse', 'openQuestions'].filter(k => stable(old[k]) !== stable(candidate[k])),
+        ...['title', 'contentHash', 'summary', 'principles', 'statements', 'relations', 'reuse', 'openQuestions', 'canonicalTarget'].filter(k => stable(old[k]) !== stable(candidate[k])),
         ...(stable({ ...old.source, exportedAt: null, manifestObservedAt: null }) !== stable(revisionSource) ? ['source'] : []),
         ...(stable((old.occurrences || []).map(o => ({ ...o, exportedAt: null, manifestObservedAt: null }))) !== stable(revisionOccurrences) ? ['occurrences'] : []),
       ] : [] };
     candidate.integration = {
       target: '/dashboard/knowledge', canonicalOwner: 'Google Drive / MASA_OS',
-      operation: conflict ? 'HOLD_CONFLICT' : matched.length ? 'LINK_OR_MERGE_EXISTING' : candidate.delta.action === 'unchanged' ? 'NO_CHANGE' : old ? 'REVIEW_UPDATE' : 'REVIEW_CREATE',
+      operation: conflict ? 'HOLD_CONFLICT' : fields.canonicalTarget ? `REVIEW_${fields.canonicalTarget.action}_EXISTING` : matched.length ? 'LINK_OR_MERGE_EXISTING' : candidate.delta.action === 'unchanged' ? 'NO_CHANGE' : old ? 'REVIEW_UPDATE' : 'REVIEW_CREATE',
       existingMatches: matched.map(e => ({ id: e.id, title: e.title || null })),
       humanGate: ['confirm_canonical_target_and_rights', 'review_source_claims_and_annotations', 'verify_owner_rpc_and_rls', 'read_back_after_apply'],
       applied: false,
