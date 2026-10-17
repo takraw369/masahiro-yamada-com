@@ -73,3 +73,132 @@ jobs:
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  shelf-preview-manual:
+    name: Cloudflare isolated Knowledge Shelf Preview (manual)
+    # Never run this on pull_request, push or master. Never deploy to the production route.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/fix/shelf-journey-payment-signal-and-preview-20261014'
+    needs: [test-and-build, secret-scan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Check out approved PR branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install and build
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Preview Cloudflare environment guard
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${CLOUDFLARE_API_TOKEN:-}" || { echo 'Cloudflare repo-level preview credentials missing; no deployment attempted.'; exit 1; }
+          test -n "${CLOUDFLARE_ACCOUNT_ID:-}" || { echo 'Cloudflare account ID missing; no deployment attempted.'; exit 1; }
+          cat > .shelf-preview.wrangler.toml <<'PREVIEW'
+          name = "masahiro-yamada-com"
+          main = "@astrojs/cloudflare/entrypoints/server"
+          compatibility_date = "2024-12-01"
+          compatibility_flags = ["nodejs_compat_v2"]
+          assets = { directory = "./dist", binding = "ASSETS" }
+          workers_dev = false
+          preview_urls = true
+
+          [vars]
+          SITE_NAME = "Knowledge Shelf / isolated preview"
+          PREVIEW_MODE = "read_only_no_real_payments"
+
+          [previews.vars]
+          SITE_NAME = "Knowledge Shelf / isolated preview"
+          PREVIEW_MODE = "read_only_no_real_payments"
+          PREVIEW
+          # Astro's Cloudflare adapter emits a built entrypoint in the generated
+          # deployment config. Wrangler standalone cannot resolve Astro's
+          # package-virtual @astrojs/cloudflare/entrypoints/server main.
+          node --input-type=module <<'RESOLVE_ASTRO_PREVIEW'
+          import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+          import { resolve, dirname } from 'node:path';
+          const redirect = JSON.parse(readFileSync('.wrangler/deploy/config.json', 'utf8'));
+          const artifactConfig = resolve('.wrangler/deploy', redirect.configPath);
+          const built = JSON.parse(readFileSync(artifactConfig, 'utf8'));
+          const actualMain = resolve(dirname(artifactConfig), built.main);
+          const actualAssets = resolve(dirname(artifactConfig), built.assets?.directory || '');
+          if (!existsSync(actualMain)) throw new Error('Built Astro Worker not found, refusing preview');
+          if (!built.assets?.directory || !existsSync(actualAssets)) {
+            throw new Error('Built Astro client assets missing: refuse unstyled Preview');
+          }
+          // Astro emits CSS at /_astro/*.css. Only dist/client contains the
+          // correct public URL root: distributing dist/ instead produces 404s.
+          const { readdirSync } = await import('node:fs');
+          const cssRoot = resolve(actualAssets, '_astro');
+          if (!existsSync(cssRoot) || !readdirSync(cssRoot).some(file => file.endsWith('.css'))) {
+            throw new Error('No public Astro CSS found under generated asset directory');
+          }
+          const configFile = '.shelf-preview.wrangler.toml';
+          const before = readFileSync(configFile, 'utf8');
+          const virtual = 'main = "@astrojs/cloudflare/entrypoints/server"';
+          const incorrectAssets = 'assets = { directory = "./dist", binding = "ASSETS" }';
+          if (!before.includes(virtual) || !before.includes(incorrectAssets)) {
+            throw new Error('Unexpected Preview entrypoint or assets declaration');
+          }
+          const updated = before
+            .replace(virtual, 'main = "' + actualMain + '"')
+            .replace(incorrectAssets, 'assets = { directory = "' + actualAssets + '", binding = "ASSETS" }');
+          writeFileSync(configFile, updated);
+          console.log('Preview uses generated Astro entry and public client asset root; CSS exists');
+          RESOLVE_ASTRO_PREVIEW
+          # Intentional isolation: no production routes, D1, FLOW_RUNNER,
+          # Supabase URL/keys, Stripe secrets, Dashboard secrets or product settings.
+          if grep -Eq '(^|[[:space:]])(routes|route|d1_databases|services|SUPABASE_URL|SUPABASE_PUBLISHABLE_KEY|stripe)\b' .shelf-preview.wrangler.toml; then
+            echo 'Unsafe preview config: refuse to deploy'; exit 1
+          fi
+      - name: Deploy Cloudflare Preview only (never production deploy)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Creating a Cloudflare Worker Preview with isolated bindings only.'
+          npx --yes wrangler@4.135.0 preview --config .shelf-preview.wrangler.toml --worker-name masahiro-yamada-com --name knowledge-shelf-347 --ignore-base-config
+          echo 'Find the Preview URL in the Wrangler output above; confirm its hostname is a Cloudflare Preview URL.'
+          echo 'Do not enter production customer emails, access keys, or real payment credentials on this isolated preview.'
+      - name: Verify public Preview renders HTML and stylesheets
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'PREVIEW_SMOKE'
+          import assert from 'node:assert/strict';
+          const origin = 'https://knowledge-shelf-347-masahiro-yamada-com.takraw501.workers.dev';
+          let stylesheetCount = 0;
+          for (const path of ['/', '/library']) {
+            const res = await fetch(new URL(path, origin), { redirect: 'follow' });
+            assert.equal(res.status, 200, `${path} returned ${res.status}`);
+            const html = await res.text();
+            assert.match(html, /<html\b/i, `${path} did not render HTML`);
+            assert.match(html, path === '/library' ? /MASA KNOWLEDGE SHELF/ : /ACE METHOD/);
+            const cssLinks = [...html.matchAll(/<link\b[^>]*href=["']([^"']+\.css(?:\?[^"']*)?)["'][^>]*>/gi)]
+              .map(match => new URL(match[1], origin))
+              .filter(url => url.origin === origin);
+            for (const link of cssLinks) {
+              const css = await fetch(link);
+              assert.equal(css.status, 200, `CSS not served: ${link.pathname} (${css.status})`);
+              assert.match(css.headers.get('content-type') || '', /text\/css/i, `CSS wrong MIME: ${link.pathname}`);
+              assert.ok((await css.text()).length > 100, `CSS unexpectedly empty: ${link.pathname}`);
+              stylesheetCount++;
+            }
+            console.log(`${path} HTML 200; ${cssLinks.length} local stylesheets passed`);
+          }
+          assert.ok(stylesheetCount > 0, 'No local CSS references found; unstyled Preview is not acceptable');
+          PREVIEW_SMOKE

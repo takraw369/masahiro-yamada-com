@@ -66,6 +66,39 @@ try {
   const toolkitHtml = await (await previewFetch(base + '/library/entry-toolkit')).text();
   assert.match(toolkitHtml, /PREVIEW|先行案内|公開準備中/, 'toolkit must not be misrepresented as a delivered free Quest');
 
+  // Knowledge Shelf purchase-key flow is already on master. These are local,
+  // unconfigured, non-payment Worker smoke checks (no live Stripe or DB writes).
+  for (const path of ['/library/access', '/library/a3-decision-flow/read']) {
+    const res = await previewFetch(base + path);
+    assert.equal(res.status, 200, path);
+    const html = await res.text();
+    assert.match(html, /<html/i, path);
+    assert.ok(!html.includes('PRIVATE_FIXTURE_BODY_ONLY'), path + ' must not render protected text');
+    assert.match(res.headers.get('cache-control') || '', /no-store/, path + ' must not cache private pages');
+    assert.match(res.headers.get('x-robots-tag') || '', /noindex/, path + ' must not be indexed');
+  }
+  const invalidClaim = await previewFetch(base + '/api/library/claim-key', {
+    method: 'POST',
+    headers: { Origin: base, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId: 'fake-session' }),
+  });
+  assert.equal(invalidClaim.status, 202, 'invalid session ID is never accepted as a paid purchase');
+  assert.equal((await invalidClaim.json()).error, 'payment_pending');
+  const invalidUnlock = await previewFetch(base + '/api/library/unlock', {
+    method: 'POST',
+    headers: { Origin: base, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slug: 'a3-decision-flow', key: 'fake-key' }),
+  });
+  assert.equal(invalidUnlock.status, 403, 'invalid buyer key cannot authorize premium access');
+  assert.equal((await invalidUnlock.json()).error, 'invalid_key');
+  const fakePurchase = await previewFetch(base + '/api/library/journey', {
+    method: 'POST',
+    headers: { Origin: base, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event: 'ks_purchase', visitorId: 'fixture-visitor-123456', sessionId: 'fixture-session-123456', path: '/library/a3-decision-flow' }),
+  });
+  assert.equal(fakePurchase.status, 400, 'unverified browser events cannot claim purchases');
+  assert.equal((await fakePurchase.json()).error, 'invalid_event');
+
   // Public runtime CSS must bypass Dashboard auth and actually reach the browser.
   for (const path of ['/assets/dashboard-runtime/tasks.css', '/assets/dashboard-runtime/graph.css']) {
     const res = await previewFetch(base + path, { redirect: 'manual' });

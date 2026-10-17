@@ -159,6 +159,12 @@ export const initKnowledgeJourney = () => {
       void trackKnowledgeJourney('ks_asset_click', { href: href.slice(0, 200), label });
       return;
     }
+    // Clicking the verified Stripe payment destination shows checkout intent,
+    // not payment success. Never send customer data or checkout session IDs.
+    if (target instanceof HTMLAnchorElement && /^https:\/\/buy\.stripe\.com\/[a-zA-Z0-9_-]+$/.test(href)) {
+      void trackKnowledgeJourney('ks_checkout_start', { destination: 'stripe_payment_link' });
+      return;
+    }
     if (target.closest('[data-library-lead]')) return;
     if (href || target instanceof HTMLButtonElement) {
       void trackKnowledgeJourney('ks_cta_click', { href: href.slice(0, 200), label });

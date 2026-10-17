@@ -61,3 +61,18 @@ test('key and hash values never enter URLs; public catalog has no protected body
  const migration=readFileSync(new URL('../migrations/20261011224318_knowledge_shelf_purchase_keys.sql',import.meta.url),'utf8');
  const catalog=migration.split('function public.knowledge_shelf_catalog_v1()')[1].split('$$;')[0];assert.ok(!catalog.includes('body_markdown'));assert.ok(!catalog.includes('source_asset_id'));
 });
+
+
+test('private manuscript base schema is replayable before purchase-key extensions', () => {
+  const baseName = '20261011000000_knowledge_shelf_protected_assets_base.sql';
+  const extensionName = '20261011224318_knowledge_shelf_purchase_keys.sql';
+  assert.ok(baseName < extensionName, 'base table migration must sort before purchase-key extension');
+  const base = readFileSync(new URL('../migrations/' + baseName, import.meta.url), 'utf8');
+  assert.match(base, /create table if not exists public\.knowledge_shelf_protected_assets/i);
+  assert.match(base, /publication_status text not null default 'draft'/);
+  assert.match(base, /enable row level security/);
+  assert.match(base, /revoke all on public\.knowledge_shelf_protected_assets from public, anon, authenticated/i);
+  assert.doesNotMatch(base, /create policy|create or replace function public\.knowledge_shelf_content_read_v1/i);
+  const extension = readFileSync(new URL('../migrations/' + extensionName, import.meta.url), 'utf8');
+  assert.match(extension, /alter table public\.knowledge_shelf_protected_assets/);
+});

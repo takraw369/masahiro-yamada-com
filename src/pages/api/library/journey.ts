@@ -17,7 +17,8 @@ const ALLOWED_EVENTS = new Set([
   'ks_quest_start',
   'ks_quest_clear',
   'ks_checkout_start',
-  'ks_purchase',
+  // Only a signature-verified payment webhook may record actual purchases.
+  // A browser analytics beacon must not be allowed to claim conversion.
 ]);
 
 const RESERVED_META_KEYS = new Set([
