@@ -2,7 +2,7 @@
 // Safe Mac/Linux canary: creates ONLY synthetic Takeout files in an OS temp dir.
 // No private archive discovery, network calls, Eagle writes or source modification.
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, stat } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, stat, statfs } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
@@ -13,10 +13,16 @@ import { startLocalMediaHub } from './server.mjs';
 const at = process.argv.indexOf('--count');
 const count = at < 0 ? 500 : Number(process.argv[at + 1]);
 if (!Number.isSafeInteger(count) || count < 2 || count > 100000) throw new Error('--count must be 2..100000');
+const capacity = await statfs(tmpdir());
+// Two physical files per media plus catalog/journal/metadata space and an OS reserve.
+const estimate = count * (2 * Math.max(4096, capacity.bsize) + 8192) + 768 * 1024 * 1024;
+if (capacity.bavail * capacity.bsize < estimate) throw new Error('Insufficient temp-disk space for this synthetic count; choose a smaller --count. No fixture created.');
 const dir = await mkdtemp(path.join(tmpdir(), 'masa-media-synthetic-'));
+console.error('Synthetic-only fixture: ' + dir);
 const source = path.join(dir, 'Takeout'), outDir = path.join(dir, 'report');
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6n1QAAAAASUVORK5CYII=', 'base64');
 for (let n = 0; n < count; n++) {
+  if (n % 1000 === 0) { const available = await statfs(dir); if (available.bavail * available.bsize < 512 * 1024 * 1024) throw new Error('Synthetic generation stopped to preserve disk space: ' + dir); }
   const folder = ['家族','研究資料','デザイン','大会'][Math.floor(n / 100) % 4];
   const filename = `SYNTHETIC_${String(n).padStart(6,'0')}.png`;
   const parent = path.join(source, folder); await mkdir(parent, { recursive:true });

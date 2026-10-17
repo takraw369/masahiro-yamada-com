@@ -25,7 +25,7 @@ async function main() {
   let result;
   try {
     result = await scanCatalog(folder, { outDir: out, limit: args.includes('--full') ? 0 : 500, resume: args.includes('--resume'), signal: controller.signal,
-      onProgress: s => console.log('[media-hub]', s.phase, s.state, 'scanned:', s.processed, 'reused:', s.reused) });
+      onProgress: s => console.log('[media-hub]', s.phase, s.state, 'discovered:', s.discovered, 'scanned:', s.processed, 'reused:', s.reused) });
   } finally { process.removeListener('SIGINT', cancel); process.removeListener('SIGTERM', cancel); }
   if (result.summary.scan.state === 'cancelled') { process.exitCode = 130; return; }
   if (!result.summary.count) throw new Error('No supported image/video files found; choose the extracted Google Photos folder');

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdtemp, mkdir, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { scanCatalog } from '../scripts/media-hub/scanner.mjs';
 import { MediaCatalog } from '../scripts/media-hub/catalog.mjs';
@@ -135,4 +136,60 @@ test('authenticated SQL viewer is paginated, never serves index/root, and blocks
   const secret = path.join(f.dir,'secret.mp4'); await writeFile(secret,'secret');
   await rm(path.join(f.source,'video.mp4')); await symlink(secret,path.join(f.source,'video.mp4'));
   const denied = await fetch(new URL('media/'+item.id,url)); assert.equal(denied.status,500); assert.ok(!(await denied.text()).includes('secret.mp4'));
+});
+
+test('exact limit is complete when no work remains; cached proof is revalidated after a pause', async t => {
+  const f = await fixture(t);
+  for (const name of ['a.jpg','b.jpg','c.jpg']) await f.file(name, 'aaaa');
+  const first = await f.scan({ limit:2 }); assert.equal(first.summary.confirmedGroups,1);
+  await f.file('a.jpg','bbbb');
+  const resumed = await f.scan({ resume:true, limit:3 });
+  assert.equal(resumed.summary.scan.state,'complete');
+  const db = f.open(resumed); assert.notEqual(db.query({q:'a.jpg'}).items[0].duplicateStatus,'sha256-identical');
+  assert.ok(db.audits().some(r=>r.code==='hash-source-changed'));
+});
+
+test('failed media stays incomplete and can retry; Unicode title normalization and year folders are conservative', async t => {
+  const f=await fixture(t);
+  for(let n=0;n<120;n++) await f.file(`${String(n).padStart(3,'0')}.png`);
+  await f.file('Photos from 2025/test.jpg');
+  await f.file('Photos from 2025/metadata.json',JSON.stringify({title:'Photos from 2025',access:'protected'}));
+  await f.file('e\u0301-long.jpg');
+  await f.file('shortened.json',JSON.stringify({title:'é-long.jpg',description:'normalized title'}));
+  let removed=false;
+  const result=await f.scan({hashMaxBytes:0,onProgress:p=>{ if(!removed && p.processed>=99) { removed=true; unlinkSync(path.join(f.source,'119.png')); } }});
+  const db=f.open(result);
+  assert.equal(result.summary.scan.state,'incomplete');
+  assert.equal(db.query({q:'normalized title'}).total,1);
+  assert.deepEqual(db.query({q:'Photos from'}).items[0].albums,[]);
+  await f.file('119.png');
+  const retry=await f.scan({resume:true});
+  assert.equal(retry.summary.scan.state,'complete');
+  assert.equal(retry.summary.count,122);
+});
+
+test('incremental metadata changes refresh search without losing reviewed tags', async t => {
+  const f=await fixture(t); await f.file('research.jpg'); await f.file('research.jpg.json',JSON.stringify({description:'original search text'}));
+  const db=f.open(await f.scan()); const id=db.query().items[0].id;
+  db.review(id,{tags:['keep-local'],priority:'A'});
+  assert.equal(db.getItem(id).categoryReviewStatus,'suggested');
+  await f.scan(); assert.equal(db.query({q:'keep-local'}).total,1);
+  await f.file('research.jpg.json',JSON.stringify({description:'replacement indexed text'}));
+  await f.scan();
+  assert.equal(db.query({q:'replacement indexed'}).total,1);
+  assert.equal(db.query({q:'original search'}).total,0);
+  assert.equal(db.query({q:'keep-local'}).total,1);
+  assert.equal(db.getItem(id).priority,'A');
+});
+
+test('SQLite auto-rollback on a full catalog preserves original capacity error and committed state', () => {
+  const catalog=new MediaCatalog(':memory:');
+  try {
+    catalog.setSetting('durable','keep');
+    const pages=catalog.db.prepare('PRAGMA page_count').get().page_count;
+    catalog.db.exec('PRAGMA max_page_count='+pages);
+    assert.throws(()=>catalog.transaction(()=>catalog.setSetting('too-large','x'.repeat(1024*1024))),/full/i);
+    assert.equal(catalog.getSetting('durable'),'keep');
+    assert.equal(catalog.getSetting('too-large'),null);
+  } finally {catalog.close();}
 });

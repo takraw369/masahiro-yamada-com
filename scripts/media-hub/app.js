@@ -4,13 +4,29 @@ let offset = 0;
 let total = 0;
 const limit = 48;
 let loadSequence = 0;
-const bytes = n => n >= 1e9 ? (n / 1e9).toFixed(1) + ' GB' : n >= 1e6 ? (n / 1e6).toFixed(1) + ' MB' : (n / 1e3).toFixed(0) + ' KB';
+const bytes = n => n >= 1e9 ? (n / 1e9).toFixed(1) + ' GB' : n >= 1e6 ? (n / 1e6).toFixed(1) + ' MB' : n >= 1e3 ? (n / 1e3).toFixed(0) + ' KB' : n + ' B';
 const add = (parent, tag, value, cls) => { const node = document.createElement(tag); if (cls) node.className = cls; node.textContent = String(value ?? ''); parent.append(node); return node; };
 async function fetchJSON(p) { const res = await fetch(base + p, { cache: 'no-store' }); if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); }
 function showStats(s) {
   const stats = el('stats'); stats.replaceChildren();
   for (const [label, value] of [['総素材', s.count.toLocaleString('ja-JP')], ['画像', s.kinds.photo.toLocaleString('ja-JP')], ['動画', s.kinds.video.toLocaleString('ja-JP')], ['合計', bytes(s.totalBytes)]]) {
     const node = add(stats, 'div', '', 'stat'); add(node, 'strong', value); add(node, 'span', label);
+  }
+  const state = s.scan?.state;
+  const messages = {
+    limited: '試行走査です。全件の走査はまだ完了していません。',
+    cancelled: '走査は中断されています。同じ台帳から再開できます。',
+    failed: '走査に失敗しました。ローカル監査レポートを確認して再開してください。',
+    incomplete: '読み取れなかった場所があります。監査レポートを確認して再開してください。',
+    running: '走査中です。現在の登録件数を表示しています。',
+    complete: '走査完了。'
+  };
+  const status = el('scan-status');
+  if (status) {
+    const audits = (s.auditCounts || []).reduce((n, r) => n + r.count, 0);
+    status.textContent = (messages[state] || '旧形式の台帳です。走査の完了状況は不明です。')
+      + (s.missing ? ' 元ファイル不在: ' + s.missing + '件。' : '')
+      + (audits ? ' メタデータ等の確認事項: ' + audits + '件。' : '');
   }
 }
 function card(item) {
@@ -28,7 +44,8 @@ function card(item) {
   }
   const content = add(article, 'div', '', 'details');
   const tags = add(content, 'div', '', 'tags');
-  add(tags, 'span', item.category === 'UNSORTED' ? '未分類' : item.category, 'tag');
+  add(tags, 'span', (item.categoryReviewStatus === 'reviewed' ? '確認済: ' : '候補: ') + (item.category === 'UNSORTED' ? '未分類' : item.category), 'tag');
+  if (item.priority !== 'UNREVIEWED') add(tags, 'span', '優先度 ' + item.priority, 'tag');
   if (item.duplicateStatus !== 'none') add(tags, 'span', item.duplicateStatus === 'sha256-identical' ? '同一データ確認' : '同サイズ・未確認', 'tag alert');
   add(content, 'h4', item.filename);
   add(content, 'p', item.relativePath, 'path');
@@ -50,7 +67,7 @@ async function load() {
     const data = await fetchJSON('/api/items?' + p);
     if (seq !== loadSequence) return;
     total = data.total; const gal = el('gallery'); gal.replaceChildren();
-    if (!data.items.length) add(gal, 'p', '条件に一致する素材がありません。', 'empty');
+    if (!data.items.length) add(gal, 'p', '一致する素材がありません。検索語や絞り込みを減らしてください。', 'empty');
     else gal.append(...data.items.map(card));
     el('count').textContent = total.toLocaleString('ja-JP') + ' 件';
     el('page').textContent = total ? (offset + 1) + '–' + Math.min(offset + limit, total) + ' / ' + total : '0 / 0';

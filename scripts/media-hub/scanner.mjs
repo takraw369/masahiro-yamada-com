@@ -28,7 +28,7 @@ async function matchSidecar(catalog, rel, run) {
   }
   // Truncated names are accepted only with an exact, unique metadata title in this folder.
   // Duplicate/edited filenames are never inferred from a shared title alone.
-  const rows = catalog.db.prepare('SELECT * FROM sidecars WHERE folder=? AND title=? AND run=? LIMIT 2').all(folder, name, run);
+  const rows = catalog.db.prepare('SELECT * FROM sidecars WHERE folder=? AND title=? AND run=? LIMIT 2').all(folder, name.normalize('NFC'), run);
   if (rows.length === 1 && (!rows[0].used_by || rows[0].used_by === rel)) return { meta: JSON.parse(rows[0].data), path: rows[0].path, status: 'unique-title' };
   return { meta: null, path: null, status: rows.length > 1 ? 'ambiguous' : 'missing' };
 }
@@ -48,7 +48,7 @@ async function outputDirectory(root, outDir) {
 }
 
 export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false, hashMaxBytes = 128 * 1024 * 1024,
-  hashBudgetBytes = 1024 * 1024 * 1024, minFreeBytes = 64 * 1024 * 1024, signal, onProgress = () => {} } = {}) {
+  hashBudgetBytes = 1024 * 1024 * 1024, minFreeBytes = 512 * 1024 * 1024, signal, onProgress = () => {} } = {}) {
   for (const [key, n] of Object.entries({ limit, hashMaxBytes, hashBudgetBytes, minFreeBytes })) if (!Number.isSafeInteger(n) || n < 0) throw new Error('Invalid ' + key);
   const root = await realpath(rootArg);
   if (!(await stat(root)).isDirectory()) throw new Error('Input must be an extracted Takeout directory');
@@ -68,15 +68,17 @@ export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false
     const previous = catalog.getSetting('scan');
     if (resume && !previous) throw new Error('No scan to resume');
     if (resume && previous.state === 'complete') throw new Error('Scan is complete; omit --resume for an incremental rescan');
-    scan = resume ? { ...previous, state: 'running', limit, resumedAt: new Date().toISOString() } : {
-      id: randomUUID(), state: 'running', phase: 'inventory', startedAt: new Date().toISOString(), limit, processed: 0, reused: 0, hashedBytes: 0
+    scan = resume ? { ...previous, discovered: catalog.db.prepare("SELECT count(*) n FROM tasks WHERE type='media'").get().n,
+      state: 'running', phase: previous.state === 'incomplete' ? 'inventory' : previous.phase, limit, resumedAt: new Date().toISOString() } : {
+      id: randomUUID(), state: 'running', phase: 'inventory', startedAt: new Date().toISOString(), limit, discovered: 0, processed: 0, reused: 0, hashedBytes: 0
     };
+    if (resume) catalog.db.exec('UPDATE tasks SET done=0 WHERE done=2');
     if (!resume) catalog.transaction(() => {
       catalog.db.exec("DELETE FROM tasks; DELETE FROM audit; INSERT INTO tasks(path,type) VALUES ('','dir')");
       catalog.db.exec('UPDATE sidecars SET used_by=NULL');
     });
     catalog.setSetting('scan', scan);
-    let budget = hashBudgetBytes, ticks = 0;
+    let budget = hashBudgetBytes, ticks = 0, lastDiscoveryProgress = 0;
     const checkpoint = () => { catalog.setSetting('scan', scan); onProgress({ ...scan }); };
     const diskCheck = async () => {
       const fs = await statfs(dest);
@@ -84,9 +86,9 @@ export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false
     };
     await diskCheck();
     while (!signal?.aborted && scan.phase === 'inventory') {
-      if (limit && scan.processed >= limit) { scan.state = 'limited'; break; }
       const task = catalog.db.prepare("SELECT path,type FROM tasks WHERE done=0 AND type IN ('dir','media') ORDER BY path LIMIT 1").get();
       if (!task) { scan.phase = 'duplicates'; break; }
+      if (limit && scan.processed >= limit) { scan.state = 'limited'; break; }
       if (task.type === 'dir') {
         let directory;
         try {
@@ -97,14 +99,23 @@ export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false
           continue;
         }
         let batch = [];
-        const flush = () => catalog.transaction(() => {
+        const flush = () => {
+          let discovered = scan.discovered;
+          catalog.transaction(() => {
           for (const entry of batch) {
             if (entry.audit) catalog.audit(entry.rel, entry.audit);
-            if (entry.type) catalog.db.prepare('INSERT OR IGNORE INTO tasks(path,type,done) VALUES (?,?,?)').run(entry.rel, entry.type, entry.type === 'sidecar' ? 1 : 0);
+            if (entry.type) {
+              const added = catalog.db.prepare('INSERT OR IGNORE INTO tasks(path,type,done) VALUES (?,?,?)').run(entry.rel, entry.type, entry.type === 'sidecar' ? 1 : 0);
+              if (entry.type === 'media') discovered += added.changes;
+            }
             if (entry.sidecar) catalog.db.prepare('INSERT OR REPLACE INTO sidecars VALUES (?,?,?,?,?,?,?)').run(entry.rel, path.posix.dirname(entry.rel), entry.sidecar.title, entry.fingerprint, JSON.stringify(entry.sidecar), null, scan.id);
           }
           batch = [];
-        });
+          catalog.setSetting('scan', { ...scan, discovered });
+          });
+          scan.discovered = discovered;
+          if (Date.now() - lastDiscoveryProgress >= 1000) { onProgress({ ...scan, phase: 'discovery' }); lastDiscoveryProgress = Date.now(); }
+        };
         for await (const entry of directory) {
           if (signal?.aborted) break;
           const rel = task.path ? task.path + '/' + entry.name : entry.name;
@@ -121,7 +132,7 @@ export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false
                 const unchanged = cached?.fingerprint === fp;
                 const meta = unchanged ? JSON.parse(cached.data) : await readMetadata(root, rel);
                 const timestamp = field => ['string','number'].includes(typeof field?.timestamp) ? { timestamp: String(field.timestamp).slice(0, 40) } : undefined;
-                const sidecar = { title: typeof meta.title === 'string' ? meta.title.slice(0, 1000) : null,
+                const sidecar = { title: typeof meta.title === 'string' ? meta.title.normalize('NFC').slice(0, 1000) : null,
                   description: typeof meta.description === 'string' ? meta.description.slice(0, 1200) : '',
                   photoTakenTime: timestamp(meta.photoTakenTime), creationTime: timestamp(meta.creationTime), url: sourceUrlFromSidecar(meta),
                   album: unchanged ? meta.album : (entry.name === 'metadata.json' && typeof meta.title === 'string' && typeof meta.access === 'string' ? { title: meta.title.slice(0, 240), evidence: 'takeout-album-metadata' } : null) };
@@ -138,29 +149,35 @@ export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false
           const info = await lstat(await safePath(root, task.path));
           if (!info.isFile()) throw new Error('source-changed');
           const fp = fingerprint(info), id = stableId(task.path);
-          const existing = catalog.db.prepare('SELECT fingerprint,hash FROM assets WHERE id=?').get(id);
+          const existing = catalog.db.prepare('SELECT fingerprint,hash,data FROM assets WHERE id=?').get(id);
           const match = await matchSidecar(catalog, task.path, scan.id);
           const ext = path.extname(task.path).toLowerCase();
           const [category, categoryReason] = categorySuggestion(task.path);
           const folder = path.posix.dirname(task.path);
           const albumMeta = catalog.db.prepare('SELECT data FROM sidecars WHERE path=? AND run=?').get(path.posix.join(folder === '.' ? '' : folder, 'metadata.json'), scan.id);
-          const album = albumMeta ? JSON.parse(albumMeta.data).album : null;
+          const exportedAlbum = albumMeta ? JSON.parse(albumMeta.data).album : null;
+          const automaticYear = value => /^(?:photos from )?\d{4}(?:年の写真)?$/i.test(value);
+          const album = exportedAlbum && !automaticYear(path.posix.basename(folder)) && !automaticYear(exportedAlbum.title) ? exportedAlbum : null;
           const sourceUrl = sourceUrlFromSidecar(match.meta);
           const item = { id, relativePath: task.path, filename: path.posix.basename(task.path), kind: VIDEO_EXT.has(ext) ? 'video' : 'photo',
             ext, bytes: info.size, ...dateMetadata(match.meta, info.mtimeMs), category, categoryReason, priority: 'UNREVIEWED',
             description: match.meta?.description || '', sourceFolder: folder, albums: album ? [album] : [],
             metadataStatus: match.status, sourceUrl, sourceUrlStatus: sourceUrl ? 'export-supplied-unverified' : 'unavailable',
             privacy: 'UNREVIEWED', rights: 'UNREVIEWED', useStatus: 'UNREVIEWED', duplicateGroup: null, duplicateStatus: 'none' };
+          const serialized = JSON.stringify(item);
+          const unchanged = existing?.fingerprint === fp && existing.data === serialized;
           const next = { ...scan, processed: scan.processed + 1, reused: scan.reused + (existing?.fingerprint === fp ? 1 : 0) };
           catalog.transaction(() => {
-            catalog.db.prepare(`INSERT INTO assets(id,path,bytes,kind,category,fingerprint,hash,run,data) VALUES (?,?,?,?,?,?,?,?,?)
+            if (unchanged) catalog.db.prepare('UPDATE assets SET run=? WHERE id=?').run(scan.id, id);
+            else catalog.db.prepare(`INSERT INTO assets(id,path,bytes,kind,category,fingerprint,hash,run,data) VALUES (?,?,?,?,?,?,?,?,?)
               ON CONFLICT(id) DO UPDATE SET bytes=excluded.bytes,kind=excluded.kind,category=excluded.category,
               fingerprint=excluded.fingerprint,hash=excluded.hash,run=excluded.run,data=excluded.data,duplicate_status='none',duplicate_group=NULL`)
-              .run(id, task.path, info.size, item.kind, category, fp, existing?.fingerprint === fp ? existing.hash : null, scan.id, JSON.stringify(item));
+              .run(id, task.path, info.size, item.kind, category, fp, existing?.fingerprint === fp ? existing.hash : null, scan.id, serialized);
             if (match.path) catalog.db.prepare('UPDATE sidecars SET used_by=? WHERE path=?').run(task.path, match.path);
             else catalog.audit(task.path, match.status + '-sidecar');
+            if (info.size === 0) catalog.audit(task.path, 'empty-media');
             catalog.db.prepare('UPDATE tasks SET done=1 WHERE path=?').run(task.path);
-            catalog.reindex(id);
+            if (!unchanged) catalog.reindex(id);
             catalog.setSetting('scan', next);
           });
           scan = next;
@@ -183,7 +200,16 @@ export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false
         for (const row of rows) {
           if (signal?.aborted) break;
           cursor = row.id;
-          if (row.hash || !hashMaxBytes || row.bytes > hashMaxBytes || row.bytes > budget) continue;
+          if (row.hash) {
+            try {
+              if (fingerprint(await lstat(await safePath(root, row.path))) !== row.fingerprint) throw new Error('source-changed');
+            } catch (e) {
+              catalog.db.prepare('UPDATE assets SET hash=NULL WHERE id=?').run(row.id);
+              catalog.audit(row.path, 'hash-' + safeError(e));
+            }
+            continue;
+          }
+          if (!hashMaxBytes || row.bytes > hashMaxBytes || row.bytes > budget) continue;
           try {
             const hash = await hashSource(root, row.path, row.fingerprint, signal);
             catalog.db.prepare('UPDATE assets SET hash=? WHERE id=?').run(hash, row.id);
@@ -198,14 +224,14 @@ export async function scanCatalog(rootArg, { outDir, limit = 500, resume = false
         AND bytes NOT IN (SELECT bytes FROM assets WHERE run=? AND hash IS NULL)`).run(scan.id, scan.id);
       if (!signal?.aborted && scan.state !== 'limited') {
         catalog.db.prepare("INSERT OR IGNORE INTO audit SELECT path,'unmatched-sidecar' FROM sidecars WHERE run=? AND used_by IS NULL AND json_extract(data,'$.album') IS NULL").run(scan.id);
-        scan.state = 'complete';
+        scan.state = catalog.db.prepare('SELECT count(*) n FROM tasks WHERE done=2').get().n ? 'incomplete' : 'complete';
       }
     }
     if (signal?.aborted) scan.state = 'cancelled';
     scan.updatedAt = new Date().toISOString(); checkpoint();
     return { filename, summary: catalog.summary() };
   } catch (e) {
-    if (catalog && scan) { scan.state = 'failed'; catalog.setSetting('scan', scan); }
+    if (catalog && scan) { scan.state = 'failed'; try { catalog.setSetting('scan', scan); } catch {} }
     throw e;
   } finally {
     catalog?.close();

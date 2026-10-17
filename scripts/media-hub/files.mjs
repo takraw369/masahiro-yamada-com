@@ -41,9 +41,14 @@ export async function readMetadata(root, rel) {
     if (info.size > 2 * 1024 * 1024) throw new Error('oversized-sidecar');
     // Bounded read even if another process grows the file after stat.
     const buffer = Buffer.alloc(Math.min(info.size + 1, 2 * 1024 * 1024 + 1));
-    const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
-    if (bytesRead > info.size) throw new Error('source-changed');
-    const meta = JSON.parse(buffer.subarray(0, bytesRead).toString('utf8'));
+    let total = 0;
+    while (total < buffer.length) {
+      const { bytesRead } = await handle.read(buffer, total, buffer.length - total, total);
+      if (!bytesRead) break;
+      total += bytesRead;
+    }
+    if (total !== info.size || fingerprint(await handle.stat()) !== fingerprint(info)) throw new Error('source-changed');
+    const meta = JSON.parse(buffer.subarray(0, total).toString('utf8'));
     if (!meta || typeof meta !== 'object' || Array.isArray(meta)) throw new Error('invalid-sidecar');
     return meta;
   } finally { await handle.close(); }

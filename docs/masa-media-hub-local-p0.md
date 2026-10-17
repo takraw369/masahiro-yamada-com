@@ -29,11 +29,11 @@ Ctrl+C or SIGTERM checkpoints the current scan. Continue with the same source an
 node scripts/media-hub/cli.mjs scan "/path/to/Takeout/Google Photos" --out "/path/to/private/report" --resume --limit 0
 ```
 
-`--limit` is the total media count for this scan, not an additional batch size. `--limit 0` intentionally opts into the complete extracted source. Mac picker equivalent: `mac-start.mjs --resume --full`. After a completed scan, omit `--resume` to incrementally rescan: unchanged file fingerprints reuse SHA256; metadata edits are re-read and manual classifications survive. Missing files are retained internally with their reviews, counted as missing after a full completed scan and omitted from normal search. Partial scans do not prove absence.
+`--limit` is the total media count for this scan, not an additional batch size. `--limit 0` intentionally opts into the complete extracted source. Mac picker equivalent: `mac-start.mjs --resume --full`. Unreadable directories/media leave the scan `incomplete`; `--resume` retries failed tasks. A file changed while paused loses its cached duplicate proof. Exact pilot limits are marked complete only when no work remains. After a completed scan, omit `--resume` to incrementally rescan: unchanged file fingerprints reuse SHA256 and unchanged metadata avoids FTS rewrites; metadata edits are re-read and manual classifications survive. Missing files are retained internally with their reviews, counted as missing after a full completed scan and omitted from normal search. Partial scans do not prove absence.
 
 A hard kill/power loss may leave `media-index.sqlite.scan.lock`. After **verifying no scanner is running**, remove only that lock inside the private report directory, then `--resume`. Never remove the catalog or originals for recovery. Do not run concurrent scanners against one catalog. A different source requires a different report directory.
 
-SQLite keeps traversal tasks, metadata and the trigram search index on disk. Discovery batches hold at most 256 records; search returns at most 72 records. A single very large folder is enumerated fully to establish deterministic order and metadata matches before its media is scanned; a 500-item pilot therefore does not promise only 500 sidecar reads. Sidecar reads are capped at 2 MiB. SQLite cache is 8 MiB, database limit approximately 2 GiB, free-space floor 64 MiB; sorting uses disk. These bound application buffers, not a fixed process RSS. Hashing is sequential, 256 KiB stream buffers, at most 128 MiB per file and **1 GiB total per invocation** by default. `--no-hash` or `--hash-budget-mb 256` lowers that work; unverified equal sizes remain candidates. No near-duplicate recognition is claimed.
+SQLite keeps traversal tasks, metadata and the trigram search index on disk. Discovery batches hold at most 256 records; search returns at most 72 records. A single very large folder is enumerated fully to establish deterministic order and metadata matches before its media is scanned; a 500-item pilot therefore does not promise only 500 sidecar reads. Sidecar reads are capped at 2 MiB. SQLite cache is 8 MiB, database limit approximately 2 GiB, free-space floor 512 MiB; sorting uses disk. These bound application buffers, not a fixed process RSS. Hashing is sequential, 256 KiB stream buffers, at most 128 MiB per file and **1 GiB total per invocation** by default. `--no-hash` or `--hash-budget-mb 256` lowers that work; unverified equal sizes remain candidates. No near-duplicate recognition is claimed.
 
 ## Classification and retrieval
 
@@ -80,7 +80,7 @@ No merge, production deploy, original deletion/move, Google Photos changes, exte
 
 ## Eagle connection and preparation (no live writes yet)
 
-Eagle 4.0.0 is installed on the checked Mac; its localhost API was unavailable during initial checks. `eagle-check` calls only the documented [application info](https://api.eagle.cool/application/info) endpoint on `127.0.0.1:41595`. It returns availability/version/platform and strips executable paths and raw errors. There is no browser credential or remote endpoint override. Authentication-required responses stay explicit; credential setup is not guessed.
+Eagle 4.0.0 is installed on the checked Mac; its localhost API remained unavailable even after starting the app in the background. No library contents or settings were read or changed. `eagle-check` calls only the documented [application info](https://api.eagle.cool/application/info) endpoint on `127.0.0.1:41595`. It returns availability/version/platform and strips executable paths and raw errors. There is no browser credential or remote endpoint override. Authentication-required responses stay explicit; credential setup is not guessed.
 
 ```sh
 node scripts/media-hub/cli.mjs eagle-check
@@ -102,3 +102,16 @@ node scripts/media-hub/cli.mjs photos-transition "/path/to/private/report/media-
 ```
 
 These commands only record the user's manual report in the same private database. They do not open links or change Photos. Supported proposal types: add-to-album, favorite, archive, review-metadata; deletion is excluded. `opened` cannot transition directly to `completed`. A nonempty manual confirmation is required, retained as `manual-user-report-only`, never API sync proof. Skipped/error states remain explicit. There is no OAuth transport or claim that the actual remote state was independently verified.
+
+## Verification receipts (2026-10-17)
+
+- Focused media tests: 22/22 on Mac Node 22.17.1 and Node 24.19.0. Repository recommendation remains Node 22.18+.
+- 10K synthetic physical-file/sidecar canary on the first implementation: 52.328 s inventory/resume, 2.72 ms search p95, 145.5 MiB peak RSS, 27.30 MiB catalog; 10K fingerprints reused on rescan.
+- Final 500-item synthetic canary after error-handling fixes: 2.469 s inventory/resume, 1.44 ms p95, 77.8 MiB peak RSS, 1.45 MiB catalog; 500 reused. Timings are machine/fixture specific.
+- **100K physical-file trial did not complete**: host disk filled after 81,535 indexed records (231,206,912-byte catalog). Only generated synthetic fixtures were removed; space recovered to approximately 1.4 GiB. No real originals were touched. Capacity planning had been insufficient. Canary now checks estimated file/block/catalog/reserve requirements before creating any fixture and monitors capacity while generating. A 100K request on this host now rejects before creating files. No 100K completion/performance claim.
+- SQLite automatic rollback on FULL/IOERR is [documented behavior](https://www.sqlite.org/lang_transaction.html). The original capacity error now survives an already-rolled-back transaction, committed records remain intact, and inability to write a failure marker does not mask the original error. A regression test reproduces SQLITE_FULL using an in-memory page limit without filling the host disk.
+- Full local suite: 548/548 PASS using a work-only Playwright adapter to the installed Google Chrome for the existing Pipeline browser test (the system Chromium wrapper is broken); repository tests were not altered for that environment issue.
+- Local production build, release-delta typecheck and isolated Worker smoke passed; full repository typecheck still reports 214 pre-existing errors. Dependency security gate passes with the existing http-cache-semantics exception expiring 2026-10-31.
+- Existing gallery rendered with synthetic data at 390/1440/1728px, text search/empty state verified, no horizontal overflow. Better Design comprehension PASS; spacing: 0 critical / 0 serious / 3 moderate inherited spacing-scale findings. Status distinguishes pilot/cancel/failure/incomplete, inferred category versus explicit category review, and file-mtime fallback. No Dashboard route or public HTTPS preview was created, so no public Dashboard VALID receipt is claimed.
+
+Synthetic screenshots (no real media): [desktop](media-hub/synthetic-1440.png), [mobile](media-hub/synthetic-390.png).

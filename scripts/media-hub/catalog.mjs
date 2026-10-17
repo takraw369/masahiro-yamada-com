@@ -1,7 +1,7 @@
 // Rebuildable local media index; MASA OS remains the knowledge/content canonical.
 // Node 22.18+ bundled SQLite, no server or additional dependency.
 import { DatabaseSync } from 'node:sqlite';
-import { closeSync, constants, lstatSync, mkdirSync, openSync, chmodSync } from 'node:fs';
+import { closeSync, constants, fstatSync, lstatSync, mkdirSync, openSync, chmodSync } from 'node:fs';
 import path from 'node:path';
 import { normalize } from './files.mjs';
 
@@ -19,7 +19,8 @@ export class MediaCatalog {
       if (!parent.isDirectory() || parent.isSymbolicLink()) throw new Error('Catalog directory must not be a symlink');
       chmodSync(path.dirname(filename), 0o700);
       const fd = openSync(filename, constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
-      closeSync(fd);
+      try { if (!fstatSync(fd).isFile() || fstatSync(fd).nlink !== 1) throw new Error('Catalog must be a private regular file, without hard links'); }
+      finally { closeSync(fd); }
       if (!lstatSync(filename).isFile()) throw new Error('Catalog must be a regular file');
       chmodSync(filename, 0o600);
     }
@@ -56,7 +57,11 @@ export class MediaCatalog {
   transaction(fn) {
     this.db.exec('BEGIN IMMEDIATE');
     try { const result = fn(); this.db.exec('COMMIT'); return result; }
-    catch (e) { this.db.exec('ROLLBACK'); throw e; }
+    catch (e) {
+      // SQLITE_FULL/IOERR may already roll back the transaction. Preserve the original error.
+      try { this.db.exec('ROLLBACK'); } catch {}
+      throw e;
+    }
   }
   audit(rel, code) { this.db.prepare('INSERT OR IGNORE INTO audit VALUES (?,?)').run(rel, code); }
   audits({ offset = 0, limit = 100 } = {}) {
@@ -66,9 +71,11 @@ export class MediaCatalog {
     const row = this.db.prepare(`SELECT a.*,r.data review FROM assets a LEFT JOIN reviews r ON r.id=a.id WHERE a.id=?`).get(id);
     if (!row) return null;
     const scan = this.getSetting('scan');
+    const review = row.review ? JSON.parse(row.review) : null;
     return { ...JSON.parse(row.data), available: scan?.state !== 'complete' || scan.id === row.run,
       duplicateStatus: row.duplicate_status, duplicateGroup: row.duplicate_group,
-      ...(row.review ? { ...JSON.parse(row.review), categoryReason: '手動確認', reviewStatus: 'reviewed' } : { reviewStatus: 'suggested' }) };
+      ...(review ? { ...review, ...(review.category ? { categoryReason: '手動確認' } : {}), reviewStatus: 'reviewed' } : { reviewStatus: 'suggested' }),
+      categoryReviewStatus: review?.category ? 'reviewed' : 'suggested' };
   }
   reindex(id) {
     const item = this.getItem(id);
@@ -86,8 +93,8 @@ export class MediaCatalog {
     if (patch.priority !== undefined && !['S','A','B','C','UNREVIEWED'].includes(patch.priority)) throw new Error('Invalid priority');
     if (patch.tags !== undefined && (!Array.isArray(patch.tags) || patch.tags.length > 30 || patch.tags.some(t => typeof t !== 'string' || !t.trim() || t.length > 80))) throw new Error('Invalid tags');
     for (const key of ['project','topic','privacy','rights','useStatus']) if (patch[key] !== undefined && (typeof patch[key] !== 'string' || patch[key].length > 240)) throw new Error('Invalid review text');
-    const previous = parse(this.db.prepare('SELECT data FROM reviews WHERE id=?').get(id)) || {};
     this.transaction(() => {
+      const previous = parse(this.db.prepare('SELECT data FROM reviews WHERE id=?').get(id)) || {};
       this.db.prepare('INSERT OR REPLACE INTO reviews VALUES (?,?)').run(id, JSON.stringify({ ...previous, ...patch, reviewedAt: new Date().toISOString() }));
       this.reindex(id);
     });
@@ -123,15 +130,16 @@ export class MediaCatalog {
     const kinds = { photo: 0, video: 0 };
     for (const r of this.db.prepare('SELECT kind,count(*) n FROM assets a' + active + ' GROUP BY kind').all(...args)) kinds[r.kind] = r.n;
     const totals = this.db.prepare('SELECT count(*) count,coalesce(sum(bytes),0) totalBytes FROM assets a' + active).get(...args);
-    const countGroups = sql => this.db.prepare('SELECT count(*) n FROM (' + sql + ')').get().n;
+    const countGroups = sql => this.db.prepare('SELECT count(*) n FROM (' + sql + ')').get(...args).n;
+    const condition = active ? active + ' AND ' : ' WHERE ';
     return { ...totals, categories, kinds,
-      candidateGroups: countGroups('SELECT bytes FROM assets WHERE bytes>0 GROUP BY bytes HAVING count(*)>1'),
-      confirmedGroups: countGroups("SELECT hash FROM assets WHERE duplicate_status='sha256-identical' GROUP BY hash HAVING count(*)>1"),
-      checkedGroups: countGroups('SELECT bytes FROM assets GROUP BY bytes HAVING count(*)>1 AND count(hash)=count(*)'),
+      candidateGroups: countGroups('SELECT bytes FROM assets a' + condition + 'bytes>0 GROUP BY bytes HAVING count(*)>1'),
+      confirmedGroups: countGroups('SELECT hash FROM assets a' + condition + "duplicate_status='sha256-identical' GROUP BY hash HAVING count(*)>1"),
+      checkedGroups: countGroups('SELECT bytes FROM assets a' + active + ' GROUP BY bytes HAVING count(*)>1 AND count(hash)=count(*)'),
       limited: scan?.state === 'limited', scan,
       auditCounts: this.db.prepare('SELECT code,count(*) count FROM audit GROUP BY code ORDER BY code').all(),
-      reviewed: this.db.prepare('SELECT count(*) n FROM reviews').get().n,
-      selectedSA: this.db.prepare("SELECT count(*) n FROM reviews WHERE json_extract(data,'$.priority') IN ('S','A')").get().n,
+      reviewed: this.db.prepare('SELECT count(*) n FROM reviews r JOIN assets a ON a.id=r.id' + active).get(...args).n,
+      selectedSA: this.db.prepare('SELECT count(*) n FROM reviews r JOIN assets a ON a.id=r.id' + condition + "json_extract(r.data,'$.priority') IN ('S','A')").get(...args).n,
       missing: scan?.state === 'complete' ? this.db.prepare('SELECT count(*) n FROM assets WHERE run<>?').get(scan.id).n : null };
   }
 }

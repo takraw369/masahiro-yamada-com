@@ -19,6 +19,7 @@ export function transitionPhotosAction(catalog, id, state, confirmation = '') {
   if (!allowed[row.state]?.includes(state)) throw new Error('Invalid proposal transition; opening Photos is not completion');
   if (state === 'manually-confirmed' && (typeof confirmation !== 'string' || !confirmation.trim() || confirmation.length > 500)) throw new Error('Explicit manual confirmation required');
   const data = { ...JSON.parse(row.data), updatedAt: new Date().toISOString(), ...(state === 'manually-confirmed' ? { confirmation } : {}) };
-  catalog.db.prepare('UPDATE photos_actions SET state=?,data=? WHERE id=? AND state=?').run(state, JSON.stringify(data), id, row.state);
+  const updated = catalog.db.prepare('UPDATE photos_actions SET state=?,data=? WHERE id=? AND state=?').run(state, JSON.stringify(data), id, row.state);
+  if (updated.changes !== 1) throw new Error('Proposal changed concurrently; reload before confirming');
   return { id, assetId: row.asset_id, state, ...data };
 }

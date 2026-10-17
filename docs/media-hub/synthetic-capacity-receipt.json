@@ -1,0 +1,18 @@
+{
+  "corpus": "synthetic-only",
+  "result": "FAILED_CAPACITY",
+  "scan": {
+    "id": "17f4f648-da6d-45a9-986b-9e33d93e4cf6",
+    "state": "failed",
+    "phase": "inventory",
+    "startedAt": "2026-10-17T01:50:18.287Z",
+    "limit": 0,
+    "processed": 81535,
+    "reused": 0,
+    "hashedBytes": 6800,
+    "updatedAt": "2026-10-17T01:50:52.665Z",
+    "resumedAt": "2026-10-17T01:50:52.678Z"
+  },
+  "indexed": 81535,
+  "catalogBytes": 231206912
+}

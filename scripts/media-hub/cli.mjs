@@ -47,7 +47,7 @@ async function main() {
         outDir: path.resolve(optionValue(args, '--out', './media-hub-private')), limit: integer(args, '--limit', '500'),
         resume: args.includes('--resume'), hashMaxBytes: args.includes('--no-hash') ? 0 : 128 * 1024 * 1024,
         hashBudgetBytes: integer(args, '--hash-budget-mb', '1024') * 1024 * 1024, signal: controller.signal,
-        onProgress: s => console.error(JSON.stringify({ phase: s.phase, state: s.state, processed: s.processed, reused: s.reused, hashedBytes: s.hashedBytes }))
+        onProgress: s => console.error(JSON.stringify({ phase: s.phase, state: s.state, discovered: s.discovered, processed: s.processed, reused: s.reused, hashedBytes: s.hashedBytes }))
       });
       console.log(JSON.stringify(result, null, 2));
       if (result.summary.scan.state === 'cancelled') process.exitCode = 130;

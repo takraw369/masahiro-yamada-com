@@ -45,6 +45,7 @@ test('single reviewed Eagle plans persist idempotently; no file copy or live exe
 test('unverified/transient/altered URLs cannot become Eagle bookmarks', async t => {
   const {catalog,id}=await fixture(t);
   catalog.review(id,{priority:'S',privacy:'PRIVATE',rights:'OWNED'});
+  assert.equal(catalog.getItem(id).categoryReviewStatus,'suggested','priority review must not certify an inferred category');
   await assert.rejects(prepareEagle(catalog,id,{mode:'bookmark'}),/manually verified/);
   for(const verifiedUrl of ['https://lh3.googleusercontent.com/transient','https://photos.google.com/photo/TEST_ONLY?token=bad','https://photos.google.com/photo/different']) await assert.rejects(prepareEagle(catalog,id,{mode:'bookmark',verifiedUrl}),/verified/);
   const plan=await prepareEagle(catalog,id,{mode:'bookmark',verifiedUrl:'https://photos.google.com/photo/TEST_ONLY'});

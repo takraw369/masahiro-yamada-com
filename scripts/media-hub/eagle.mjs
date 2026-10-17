@@ -35,7 +35,7 @@ function verifiedPhotoUrl(value) {
 export async function prepareEagle(catalog, id, { mode = 'local-original', approveLocalCopy = false, verifiedUrl } = {}) {
   const item = catalog.getItem(id);
   if (!item || !item.available) throw new Error('Available media item required');
-  if (item.reviewStatus !== 'reviewed' || item.priority === 'UNREVIEWED' || item.privacy === 'UNREVIEWED' || item.rights === 'UNREVIEWED') throw new Error('Review priority, privacy and rights before Eagle preparation');
+  if (item.reviewStatus !== 'reviewed' || [item.priority,item.privacy,item.rights].some(v => typeof v !== 'string' || !v.trim() || v === 'UNREVIEWED')) throw new Error('Review priority, privacy and rights before Eagle preparation');
   if (!['local-original','bookmark'].includes(mode)) throw new Error('Unsupported handoff mode');
   const root = catalog.getSetting('root');
   const { handle, info, full } = await openSource(root, item.relativePath);
