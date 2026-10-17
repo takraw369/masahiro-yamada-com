@@ -185,3 +185,15 @@ real capital flows before asserting "where money goes".
 Automate daily/weekly significant-change detection using existing
 `masa-automation/workflows/25_investment`, with evidence and alert thresholds,
 without automatically changing positions or placing orders.
+
+
+## PBJ / 出張旅費シミュレーター（2026-10-18｜Draft PR）
+
+- The canonical Web dashboard is `/dashboard/investment#pbj-simulator` under the existing ASSETS / Investment area. Do not mistake a separate Google Sheet or image preview for a Web feature.
+- Scope: interactive quotation and ACE company approval ceiling: default 600万円 quote, 500万円 approved amount, 100万円 pending, daily allowance 10,000円 × 4 days.
+- Simultaneously model a distinct aircraft-owning company, ACE internal rental payments, third-party charter net sales, aircraft operating costs, financing interest, and group-consolidated cash flow.
+- Related-company payment is revenue in the aircraft owner but an internal transfer for the ACE group. Never count it as new external group revenue.
+- Calculations are hypothetical and local to the browser session (React state). No booking, payment, flight operation, travel expense reimbursement, tax filing, or API write is triggered by slider/input changes.
+- Assumptions are illustrative, not verified market quotes. The ceiling is internal expenditure governance, not a tax deduction entitlement. Overages require review and are not automatically charged personally.
+- Human Gate: review and explicit approval before merge, deployment, contracting, aircraft purchase, or travel-policy implementation.
+- Drive references: PBJ strategy document https://docs.google.com/document/d/1xFTmJGltvXFFojFzg-2dsSQRz4_h3_QqvUbRgJsitbg/edit and calculation source https://docs.google.com/spreadsheets/d/1qsnOr4dXBuFqDd3193iZHEDffXg-UUBYShHrljzaF7o/edit.
