@@ -117,7 +117,7 @@ export default function XCommandCenter() {
   }, []);
   useEffect(() => {
     const leaving = (event: BeforeUnloadEvent) => {
-      if (text.trim() && !isXTextDraftSaved(localStorage, text, currentDraft.current)) { event.preventDefault(); event.returnValue = ''; }
+      if (text.trim() && !isXTextDraftSaved(() => localStorage, text, currentDraft.current)) { event.preventDefault(); event.returnValue = ''; }
     };
     window.addEventListener('beforeunload', leaving);
     return () => window.removeEventListener('beforeunload', leaving);

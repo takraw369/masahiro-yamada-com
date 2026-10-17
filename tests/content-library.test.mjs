@@ -23,6 +23,7 @@ test('leaving rechecks the saved row even when same-document deletion emits no s
     assert.equal(isXTextDraftSaved(store, original.text, original), false);
   }
   assert.equal(isXTextDraftSaved({getItem(){throw Error('blocked');}}, original.text, original), false);
+  assert.equal(isXTextDraftSaved(() => {throw new DOMException('Storage disabled','SecurityError');}, original.text, original), false);
 });
 
 test('explicit X save uses the existing library and preserves exact text and unrelated records', () => {

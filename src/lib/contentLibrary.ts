@@ -73,9 +73,9 @@ export function isUnscheduledContentDraft(p: ContentPost) {
 
 // Storage events do not fire in the document that changed the library.
 // Recheck the backing row before leaving, including deletion/blocked storage.
-export function isXTextDraftSaved(storage: Pick<Storage, 'getItem'>, text: string, previous: ContentPost | null): boolean {
+export function isXTextDraftSaved(storage: Pick<Storage, 'getItem'> | (() => Pick<Storage, 'getItem'>), text: string, previous: ContentPost | null): boolean {
   if (!previous || previous.text !== text) return false;
-  try { return same(readContentLibrary(storage).find(p => p.id === previous.id), previous); }
+  try { return same(readContentLibrary(typeof storage === 'function' ? storage() : storage).find(p => p.id === previous.id), previous); }
   catch { return false; }
 }
 

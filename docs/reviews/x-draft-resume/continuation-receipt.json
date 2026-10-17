@@ -11,6 +11,7 @@
     "mocked schedule success marks scheduled, immediate success marks sent",
     "Scheduler pending library excludes the remotely confirmed reservation",
     "same-document deletion without a storage event still warns on navigation",
+    "blocked window.localStorage getter retains beforeunload protection without throwing",
     "mocked API failure keeps editor text and saved draft status",
     "existing Night choice and favorites preserved",
     "account API outage allows local draft saving while publication stays unavailable",
@@ -633,9 +634,9 @@
   "errors": [],
   "mockedRequests": 2,
   "sourceHashes": {
-    "src/components/dashboard/XCommandCenter.tsx": "f944e81c7222feb421f31b89bec56ad57739f8efd2accb30ffe60fff9ae9b12b",
+    "src/components/dashboard/XCommandCenter.tsx": "2ae67047b40ab2af4ae6cd20650f4a98bcd1e7332879b42d6a0257b2d08a99ea",
     "src/components/dashboard/ContentScheduler.tsx": "dfaefd3e89437693b6ed428f0aa0d168517052f5d806e8237e0ee8ebd9e3391b",
-    "src/lib/contentLibrary.ts": "c1e650b8a3ccf4a0cd9c0c9fe1b410f75e54bbf81d876ce52909f47b2bbe78a7"
+    "src/lib/contentLibrary.ts": "4dd6bab1b0ab93e3844d8468cfc99b65b72ecf245eabacc53df35ca8a7cc3a47"
   },
   "spacing": {
     "status": "completed",
