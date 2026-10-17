@@ -4,8 +4,8 @@
 User requested a report to Chat and the next build after #372. Implement explicit saving and safe resumption of X text inside the existing Post editor. Preserve current text, connected account selection and the existing review/publication gate. Draft PR only; no merge, deployment, publication, payment, paid API or new database.
 
 ## Current source of truth
-- Base master `9fc4a23a252eef8365b6c3c8b0b34e2be33973b7`; branch `codex/x-draft-safe-resume`.
-- Previous independent Draft PR #372 remains open at `6b75fea`; CI `38972034997` passed all gates (533 tests). Do not incorporate or duplicate its lesson/Home changes here.
+- Original base `9fc4a23a252eef8365b6c3c8b0b34e2be33973b7`; branch `codex/x-draft-safe-resume`. Live master is now `0a3d1392f5e10a0da700a331704207c46d4406fa` with #372 merged. #376 is still Draft and MERGEABLE; no source files overlap #372. GitHub PR CI tests its merge ref against current master.
+- Previous PR #372 was merged externally into master as `0a3d139` at 2026-10-17 02:39:53 UTC; live state was freshly read before final reporting. Its pre-merge CI `38972034997` passed all gates (533 tests). This agent did not merge it. Do not duplicate its lesson/Home changes here.
 - Active PR list inspected: no X text persistence feature found. Existing X editor is `XCommandCenter.tsx` inside `XOperationsCenter`; publishing handoff remains in `post.astro`. Existing Composer text has no persistence. ContentScheduler uses a browser-local content library; inspect before introducing a new persistence contract.
 - CLAUDE.md / CHECKLIST.md read; existing MASA design tokens and user choices retained. Better Design hierarchy and forms guidance loaded before changes.
 
@@ -27,4 +27,4 @@ Build and dependency security passed. Edited-file typecheck is clean; fixed two 
 Disk filled during a temporary baseline dependency install. Only this task's temporary worktree was removed with Git's worktree removal command, recovering local capacity; original work and data remain intact. Do not recreate an additional full dependency install on this nearly full host.
 
 ## Next smallest action
-Implementation, synthetic evidence and source CI are complete. Screenshots/DOM review bind to `6279135`; the later Scheduler-only recovery-copy change has separate code hashes and CI in the manifest. Update PR #376 with final results and verify documentation-head CI. Send the prepared report to Chat only after the recipient is identified; #372 remains unchanged and unmerged. Physical iPhone Safari remains the next runtime verification; no release is authorized.
+Implementation, synthetic evidence and source CI are complete. Screenshots/DOM review bind to `6279135`; the later Scheduler-only recovery-copy change has separate code hashes and CI in the manifest. Update PR #376 with final results and verify documentation-head CI. Send the prepared report to Chat only after the recipient is identified; #372 is already merged externally; do not perform any release action. Physical iPhone Safari remains the next runtime verification; no release is authorized.

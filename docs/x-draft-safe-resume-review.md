@@ -1,6 +1,6 @@
 # X本文の保存・安全な再開
 
-Draft PR [#376](https://github.com/takraw369/masahiro-yamada-com/pull/376)。Issue #370の次フェーズとして実装。最新master `9fc4a23` を基準にし、未マージの教材/Home改善 [#372](https://github.com/takraw369/masahiro-yamada-com/pull/372)とは独立しています。マージ・デプロイ・実投稿・実予約・LINE送信・課金API実行は行っていません。
+Draft PR [#376](https://github.com/takraw369/masahiro-yamada-com/pull/376)。Issue #370の次フェーズとして実装。着手時のmaster `9fc4a23` を基準に実装しました。最終確認時、教材/Home改善 [#372](https://github.com/takraw369/masahiro-yamada-com/pull/372)は外部操作によりmaster `0a3d139` へマージ済みでした。今回のソースとは変更ファイルが重複せず、#376はMERGEABLEなDraftです。マージ・デプロイ・実投稿・実予約・LINE送信・課金API実行は行っていません。
 
 ## 問題と実装
 
@@ -70,4 +70,4 @@ Better Designのhierarchy/formsと既存規約を参照。文言チェックpass
 - [保存失敗とコピー](reviews/x-draft-resume/save-error-390.png) / [送信前レビュー](reviews/x-draft-resume/review-gate-390.png)
 - [Night](reviews/x-draft-resume/night-390.png) / [接続先API503](reviews/x-draft-resume/offline-draft-390.png)
 
-再開点は [checkpoint](checkpoints/x-draft-safe-resume.md)。前フェーズは独立したDraft PR #372を参照してください。
+再開点は [checkpoint](checkpoints/x-draft-safe-resume.md)。前フェーズはマージ済みのPR #372を参照してください。本番反映の成否はこのPRの検証対象外です。
