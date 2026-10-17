@@ -39,5 +39,24 @@
     "dependencySecurity": "pass",
     "gitleaks": "pass"
   },
-  "environment": "Actual isolated Astro Worker, Chrome 155 through Playwright; synthetic fixtures/auth only; API mutations intercepted; no real publication or deployment"
+  "environment": "Actual isolated Astro Worker, Chrome 155 through Playwright; synthetic fixtures/auth only; API mutations intercepted; no real publication or deployment",
+  "latestCodeRevision": "8290d81849ea0d44bb52def01a98db41231031a8",
+  "latestCodeFiles": {
+    "src/components/dashboard/XCommandCenter.tsx": "bb8ce49118c3be4be2eff78476663f852a634d8a44ca623a630091c975120947",
+    "src/components/dashboard/ContentScheduler.tsx": "409db355da402cc9f8a7c6aa7b1b62a76fd980340b3c39ecf10329dff3be8e3a",
+    "src/lib/contentLibrary.ts": "9b799e8d7931309046c219c9110aeafde561e5e5ab4f76d429dc0ef89d68aebb",
+    "src/styles/x-composer.css": "a8a478ef16d7c4dd4efba1ed1be9cd3d6d72283230c56ee6545e5ca1475ae11c",
+    "tests/content-library.test.mjs": "b8435176c9b852afe834754bd6f05aa53cbd589c54911af5cb565d13cd93a5ee"
+  },
+  "latestCodeCI": {
+    "run": "https://github.com/takraw369/masahiro-yamada-com/actions/runs/38996739532",
+    "testsPassed": 543,
+    "changedFileTypeErrors": 0,
+    "legacyTypeErrors": 212,
+    "build": "pass",
+    "isolatedWorkerSmoke": "pass",
+    "dependencySecurity": "pass",
+    "gitleaks": "pass"
+  },
+  "provenanceNote": "sourceRevision/sourceFiles bind the rendered X screenshots and DOM review. Latest code only adjusts Scheduler-specific conflict recovery instructions and assertions; rendered X UI and default copy are unchanged."
 }

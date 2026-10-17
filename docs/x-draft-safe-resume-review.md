@@ -38,7 +38,9 @@ Better Designのhierarchy/formsと既存規約を参照。文言チェックpass
 
 ## 実行証拠
 
-画面ソース `6279135` の [CI 38996396082](https://github.com/takraw369/masahiro-yamada-com/actions/runs/38996396082) が通過。テスト543件、変更ファイル型チェック、build、隔離Worker smoke、依存セキュリティとgitleaksを実施。変更対象だったSchedulerの既存型エラー2件も修正し、変更ファイルのエラー0、リポジトリ既存エラーは212件です。
+最終コード `8290d81` の [CI 38996739532](https://github.com/takraw369/masahiro-yamada-com/actions/runs/38996739532) が通過。テスト543件、変更ファイル型チェック、build、隔離Worker smoke、依存セキュリティとgitleaksを実施。変更対象だったSchedulerの既存型エラー2件も修正し、変更ファイルのエラー0、リポジトリ既存エラーは212件です。
+
+スクリーンショットとDOMレビューは画面ソース `6279135` に対応します。その後の変更はScheduler専用の競合メッセージとテストのみで、X画面と既定の案内文は同じです。Schedulerでは、その画面で実行できる本文保管・ページ再読込へ案内します。manifestは撮影時と最終コードのハッシュを分けて記録しています。
 
 ローカル関連31テスト・build・型チェック・依存セキュリティも通過。ローカル全体テストは535件通過と既存macOS Chromium CLI失敗1件があり、正式な全体結果はLinux CIを参照します。依存監査の既存例外（http-cache-semantics、2026-10-31期限）は追加・延長していません。
 
