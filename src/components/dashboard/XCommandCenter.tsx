@@ -45,6 +45,7 @@ export default function XCommandCenter() {
   const [draftConflict, setDraftConflict] = useState(false);
   const currentDraft = useRef<ContentPost | null>(null);
   const savedText = useRef('');
+  const savedDraftsPanel = useRef<HTMLDetailsElement>(null);
   const unavailableAccountMessage = '指定されたアカウントは接続一覧にありません。接続を確認してください。本文は保持しています。';
 
   async function loadAccounts() {
@@ -144,6 +145,7 @@ export default function XCommandCenter() {
       if (text && text !== latest.text && !window.confirm('編集中の本文を、保存した下書きに差し替えますか？ 必要ならキャンセルして先に保存・コピーしてください。投稿先と予約日時は変更しません。')) return;
       setReview(null); setText(latest.text); currentDraft.current = latest; savedText.current = latest.text;
       setDraftConflict(false); setDraftNotice('下書きの本文を開きました。投稿先と予約日時は変更していません。');
+      if (savedDraftsPanel.current) savedDraftsPanel.current.open = false;
       draftField.current?.focus();
     } catch (error) { setDraftNotice(contentLibraryError(error)); }
   }
@@ -192,7 +194,7 @@ export default function XCommandCenter() {
         <button type="button" aria-pressed={tab === 'scheduled'} onClick={() => setTab('scheduled')}>予約済み{scheduleState === 'ready' ? ` (${scheduled.length})` : ''}</button>
       </div>
       <div hidden={tab !== 'compose'}>
-        <details className="x-saved-drafts" onToggle={event => { if (event.currentTarget.open) refreshDrafts(); }}>
+        <details className="x-saved-drafts" ref={savedDraftsPanel} onToggle={event => { if (event.currentTarget.open) refreshDrafts(); }}>
           <summary>保存した下書きから再開{!draftReadError && localDrafts.length ? ` (${localDrafts.length}件)` : ''}<span aria-hidden="true">＋</span></summary>
           <div className="x-saved-draft-body">
             <p className="x-muted">このブラウザの投稿ライブラリです。本文だけを開き、投稿先・予約日時は現在の選択を保ちます。</p>
