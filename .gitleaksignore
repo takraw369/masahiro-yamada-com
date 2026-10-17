@@ -1,0 +1,6 @@
+# Exact historical false-positive fingerprints for synthetic UUID requestKey
+# fixtures introduced in the Smart Booking draft branch.
+# No live credentials were committed; no global rule or file path is exempted.
+# Current tests use low-entropy non-secret fixture IDs.
+e087edbcef6c48ee725de5d485b226a6c66c5eb6:tests/smart-booking-webhook.test.mjs:generic-api-key:7
+8557ccbcb5526712247f22d82a96161fcbf078c6:tests/smart-booking-webhook-e2e.test.mjs:generic-api-key:8

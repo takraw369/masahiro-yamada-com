@@ -1,0 +1,117 @@
+---
+import { getSiteStorageEnv } from '../../lib/siteStorage';
+import { bookingEnabled, type BookingPaymentEnv } from '../../lib/smartBookingPayments';
+
+const env = getSiteStorageEnv() as BookingPaymentEnv & { BOOKING_TURNSTILE_SITE_KEY?: string };
+const enabled = bookingEnabled(env) && Boolean(env.BOOKING_TURNSTILE_SITE_KEY);
+const siteKey = env.BOOKING_TURNSTILE_SITE_KEY || '';
+const pendingPayment = Astro.url.searchParams.get('payment') === 'pending';
+const cancelled = Astro.url.searchParams.has('cancelled');
+---
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>セッション予約｜ACE METHOD</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root { color-scheme:light; font-family:system-ui,-apple-system,sans-serif; background:#faf8f5; color:#1f2428 }
+    body { margin:0; } main { margin:auto; max-width:650px; padding:52px 20px 100px }
+    .eyebrow { letter-spacing:.13em; font-size:12px; color:#975f21; font-weight:700 }
+    h1 { font-size:clamp(27px,5vw,44px); letter-spacing:-.03em; line-height:1.25 }
+    p { line-height:1.8; color:#505860 } .panel { background:#fff; border:1px solid #dfd8cf; padding:24px; border-radius:12px }
+    label { display:block; margin:20px 0; font-weight:600; font-size:14px }
+    select { display:block; padding:14px; margin-top:8px; width:100%; font:inherit; border:1px solid #c6beb3; border-radius:8px }
+    button { border:0; background:#995f21; color:white; padding:15px 20px; font-weight:700; border-radius:8px; cursor:pointer; font:inherit }
+    button:disabled { background:#b0a69b; cursor:not-allowed } a { color:#915a19 }
+    .note { padding:15px; background:#f5f1eb; color:#56514a; font-size:13px; line-height:1.8 }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ACE METHOD / PRIVATE SESSION</p>
+    <h1>勝ち筋OS｜90分パフォーマンス実装セッション</h1>
+    <p>料金19,800円（税込）／オンライン90分。ご希望の地域と日時を選択し、お支払い後にGoogleカレンダーでご案内します。</p>
+    {pendingPayment ? (
+      <div class="panel"><p><strong>Stripeから戻りました。予約確定を確認中です。</strong></p>
+      <p>この画面のみでは決済や日程の確定は判断できません。ご案内メールを確認してください。届かない場合は再購入せず、公式LINEまでお問い合わせください。</p>
+      <a href="https://lin.ee/pcAHpTBy">公式LINEで確認する ↗</a></div>
+    ) : cancelled ? (
+      <div class="panel"><p><strong>お申し込みは中断されました。</strong></p>
+      <p>この画面では予約は確定していません。再開はLINEからご相談ください。</p>
+      <a href="https://lin.ee/pcAHpTBy">公式LINEで相談 ↗</a></div>
+    ) : enabled ? (
+      <div class="panel" id="booking-app">
+        <p id="booking-status" role="status">空き時間を照合しています…</p>
+        <form id="booking-form">
+          <label>希望日時
+            <select name="slot" id="session-slot" required disabled>
+              <option value="">空き時間を確認中</option>
+            </select>
+          </label>
+          <label>お住まい・活動エリア（最寄駅の目安）
+            <select name="clientArea" required>
+              <option value="kunitachi">国立・矢川</option>
+              <option value="tachikawa">立川</option>
+              <option value="shinjuku">新宿・渋谷</option>
+              <option value="yokohama">横浜・川崎</option>
+              <option value="other">その他・オンラインのみ</option>
+            </select>
+          </label>
+          <label><input type="checkbox" id="booking-consent" required/> 予約・オンライン会議・案内メールのための情報利用に同意し、<a href="/legal/terms" target="_blank" rel="noopener">利用規約</a>と<a href="/legal/privacy" target="_blank" rel="noopener">個人情報の取扱い</a>を確認しました</label>
+          <div class="cf-turnstile" data-sitekey={siteKey}></div>
+          <button type="submit" id="booking-submit" disabled>決済画面に進む</button>
+        </form>
+        <p class="note">お支払い前に<a href="/legal/refund" target="_blank" rel="noopener">キャンセル・返金規約</a>と<a href="/legal/tokushoho" target="_blank" rel="noopener">特商法表示</a>をご確認ください。</p>
+        <p class="note">選択時点では予約は確定しません。お支払い直前に予定を再照合します。予期せぬ重複や会場条件の不一致がある場合、予約不可となることがあります。</p>
+      </div>
+    ) : (
+      <div class="panel"><p><strong>現在、オンライン予約の自動受付は準備中です。</strong></p>
+      <p>セッション相談は、既存の公式LINEから承っています。施設・交通・決済接続が検証できるまで、未確認の空き枠は販売しません。</p>
+      <a href="https://lin.ee/pcAHpTBy">公式LINEで日程相談する ↗</a></div>
+    )}
+  </main>
+  {enabled && !pendingPayment && !cancelled && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+  <script>
+    const slotSelect = document.querySelector<HTMLSelectElement>('#session-slot');
+    const status = document.querySelector<HTMLElement>('#booking-status');
+    const submit = document.querySelector<HTMLButtonElement>('#booking-submit');
+    const form = document.querySelector<HTMLFormElement>('#booking-form');
+    const slots = new Map<string,string>();
+    if (slotSelect && status && submit && form) {
+      fetch('/api/booking/slots', {cache:'no-store'}).then(async res => {
+        const data = await res.json() as {ok?:boolean;slots?:Array<{start:string;end:string}>};
+        if (!res.ok || !data.ok || !Array.isArray(data.slots)) throw new Error();
+        slotSelect.replaceChildren(new Option('日時を選択してください',''));
+        for (const item of data.slots) {
+          const label = new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(item.start));
+          slotSelect.add(new Option(label + '（90分）', item.start));
+          slots.set(item.start, item.end);
+        }
+        status.textContent = slots.size ? '空き枠候補（Google Calendar確認済み）' : '現在販売可能な日時がありません';
+        slotSelect.disabled = slots.size === 0;
+        submit.disabled = slots.size === 0;
+      }).catch(() => { status.textContent = '予定の確認ができません。LINEからお問い合わせください。'; });
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const start = slotSelect.value;
+        const end = slots.get(start);
+        const token = (document.querySelector<HTMLInputElement>('[name="cf-turnstile-response"]'))?.value || '';
+        const area = (form.querySelector<HTMLSelectElement>('[name=clientArea]'))?.value;
+        if (!start || !end || !token || !area) { status.textContent = '日時を選択し、人間確認を完了してください。'; return; }
+        submit.disabled = true;
+        status.textContent = '最新の予定と決済条件を照合しています…';
+        try {
+          const res = await fetch('/api/booking/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+            start,end,clientArea:area,requestKey:crypto.randomUUID(),turnstileToken:token,
+          })});
+          const data = await res.json() as {ok?:boolean;checkoutUrl?:string;error?:string};
+          if (!res.ok || !data.ok || !data.checkoutUrl || !data.checkoutUrl.startsWith('https://checkout.stripe.com/')) throw new Error(data.error || 'unavailable');
+          window.location.assign(data.checkoutUrl);
+        } catch { status.textContent = 'ご希望の枠は現在確保できません。空き枠を再確認するかLINEでお問い合わせください。'; submit.disabled = false; }
+      });
+    }
+  </script>
+</body>
+</html>
