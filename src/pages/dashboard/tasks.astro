@@ -42,6 +42,26 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     <section id="task-list" class="task-list" aria-live="polite">
       <div class="loading">TASK_BOARD read modelを読み込み中…</div>
     </section>
+
+    <dialog id="task-gpt-dialog" class="task-gpt-dialog" aria-labelledby="task-gpt-title">
+      <div class="gpt-dialog-head">
+        <div><p class="kicker">TASK → CHATGPT</p><h2 id="task-gpt-title">タスクを動かす</h2></div>
+        <button id="task-gpt-close" type="button" aria-label="閉じる">閉じる ×</button>
+      </div>
+      <p id="task-gpt-context" class="gpt-context"></p>
+      <div class="gpt-modes" role="group" aria-label="ChatGPTに依頼するモード">
+        <button type="button" data-gpt-mode="start" aria-pressed="true">今すぐ着手する</button>
+        <button type="button" data-gpt-mode="consult" aria-pressed="false">まず相談する</button>
+      </div>
+      <label class="gpt-prompt-label" for="task-gpt-prompt">ChatGPTに渡す内容（編集できます）</label>
+      <textarea id="task-gpt-prompt" rows="11" spellcheck="false"></textarea>
+      <p id="task-gpt-feedback" class="gpt-feedback" role="status" aria-live="polite">モードを選び、コピーしてChatGPTに貼り付けてください。</p>
+      <div class="gpt-handoff-actions">
+        <button id="task-gpt-copy" type="button">内容をコピー</button>
+        <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">ChatGPTを開く ↗</a>
+      </div>
+      <p class="gpt-privacy">Taskの正本は変更しません。ChatGPTへの送信は貼り付け後に自分で確定。公開・決済・本番変更は別途確認します。</p>
+    </dialog>
   </div>
 </DashboardLayout>
 
@@ -53,6 +73,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   const filters = Array.from(document.querySelectorAll('.filter'));
   let items = [];
   let currentFilter = 'actionable';
+  const taskDialog = document.getElementById('task-gpt-dialog');
+  const taskPrompt = document.getElementById('task-gpt-prompt');
+  const taskFeedback = document.getElementById('task-gpt-feedback');
+  let selectedTask = null;
+  let selectedMode = 'start';
+  let pendingDeepLink = new URLSearchParams(window.location.search).get('task');
 
   const esc = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -98,6 +124,95 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     return item.executionLane === currentFilter;
   }
 
+function buildTaskGptPrompt(item,mode) {
+  const fields = [
+    ['Task ID',item.taskId],
+    ['Project',item.project],
+    ['Task',item.task],
+    ['Priority',item.priority],
+    ['Status',item.status],
+    ['Execution lane',item.executionLane],
+    ['Execution class',item.executionClass],
+    ['Phase',item.phase],
+    ['Due date',item.dueDate],
+    ['Next action',item.nextAction],
+    ['Source revision',item.sourceRevision],
+  ].filter(([,value])=>value!==null && value!==undefined && String(value).trim()!=='')
+    .map(([key,value])=>`${key}: ${String(value)}`);
+  const request = mode === 'consult'
+    ? [
+      '【依頼：相談モード】',
+      'このTaskの目的・現状・詰まりを整理し、前に進むための選択肢と第一推奨を示してください。',
+      '事実・仮説・未確認事項を分け、今できること／次に構築すること／後で可能になることを整理してください。',
+      '最後に、私が選択または回答すべき最重要の一点を提示してください。',
+    ]
+    : [
+      '【依頼：着手モード】',
+      'このTaskを今から進めます。説明だけで止まらず、利用可能な手段で安全かつ可逆な作業を実行してください。',
+      'まず完了条件を簡潔に定義し、現在地を確認して、最も効果の高い次の一手に着手してください。',
+      '不明点は推測で完了扱いにせず、作業に不可欠な質問だけしてください。',
+      '公開・送信・決済・本番変更など取り消しにくい操作は、私の明示的な承認を得てください。',
+    ];
+  return [
+    'MASA OS / Task Flow から引き継いだTaskです。',
+    '以下の値はread modelのスナップショットです。最新の状態や成果物は必要に応じて正本で再確認してください。',
+    '',
+    '【Task context】',
+    ...fields,
+    '',
+    ...request,
+    '',
+    '【返答の形式】',
+    'Purpose → Outcome → Current State → Next Action。実行したことと未実行のことを明確に区別してください。',
+  ].join('\n');
+}
+
+function setTaskGptMode(mode) {
+  if (!selectedTask) return;
+  selectedMode = mode === 'consult' ? 'consult' : 'start';
+  taskPrompt.value = buildTaskGptPrompt(selectedTask,selectedMode);
+  document.querySelectorAll('[data-gpt-mode]').forEach((button)=>{
+    button.setAttribute('aria-pressed',String(button.dataset.gptMode===selectedMode));
+  });
+  taskFeedback.textContent = '内容を確認してコピーし、ChatGPTに貼り付けてください。';
+}
+
+function openTaskForGpt(item) {
+  if (!item || !taskDialog || typeof taskDialog.showModal !== 'function') return;
+  selectedTask = item;
+  document.getElementById('task-gpt-title').textContent = item.task || 'タスクを動かす';
+  document.getElementById('task-gpt-context').textContent = [item.taskId,item.project,item.status].filter(Boolean).join(' · ');
+  setTaskGptMode('start');
+  if (!taskDialog.open) taskDialog.showModal();
+}
+
+async function copyTaskGptPrompt() {
+  const text = taskPrompt.value;
+  if (!text.trim()) return;
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('clipboard-unavailable');
+    await navigator.clipboard.writeText(text);
+    taskFeedback.textContent = 'コピーしました。ChatGPTを開き、貼り付けて送信してください。';
+  } catch {
+    taskPrompt.focus();
+    taskPrompt.select();
+    taskPrompt.setSelectionRange(0,taskPrompt.value.length);
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch {}
+    taskFeedback.textContent = copied
+      ? 'コピーしました。ChatGPTを開き、貼り付けて送信してください。'
+      : '自動コピーできませんでした。選択済みの文章を手動コピーしてください。';
+  }
+}
+
+function openPendingTaskLink() {
+  if (!pendingDeepLink) return;
+  const taskId = pendingDeepLink;
+  pendingDeepLink = null;
+  const task = items.find(item=>item.taskId===taskId);
+  if (task) openTaskForGpt(task);
+}
+
   function render() {
     const shown = items.filter(visible);
     if (!shown.length) {
@@ -111,7 +226,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const next = item.nextAction ? `<p class="next"><b>NEXT</b>${esc(item.nextAction)}</p>` : '';
       const steps = ['TASK','EXECUTE','DELIVERABLE','VALIDATE','RECEIPT']
         .map(step => `<span class="step ${stepState(item, step)}">${step}</span>`).join('<i>→</i>');
-      return `<article class="task-card">
+      return `<article class="task-card" role="button" tabindex="0" data-task-id="${esc(item.taskId || '')}" aria-label="${esc(item.task || 'Task')} をChatGPTで着手または相談">
         <div class="task-top">
           <div class="identity"><span>${esc(item.taskId)}</span><b>${esc(item.priority || '—')}</b><em>${esc(item.status || '—')}</em></div>
           <div class="lane ${lane === 'MASA_GATE' ? 'human' : lane === 'AI_RUN' ? 'ai' : ''}">${esc(lane)} · ${esc(klass)}</div>
@@ -122,6 +237,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         <div class="flow">${steps}</div>
         ${next}
         <footer><span>PHASE · ${esc(item.phase || 'STATE')}</span><span>REV ${esc(item.sourceRevision ?? '—')}</span><span>${esc(item.sourceEditBy || '')}</span></footer>
+        <div class="task-launch-hint" aria-hidden="true">タップしてChatGPTで着手・相談 <span>↗</span></div>
       </article>`;
     }).join('');
   }
@@ -143,6 +259,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const lastSync = summary.lastSourceSyncAt ? formatDate(summary.lastSourceSyncAt) : '未取得';
       syncNote.textContent = `Source sync · ${lastSync} · ${items.length} tasks loaded`;
       render();
+      openPendingTaskLink();
     } catch (error) {
       list.innerHTML = `<div class="error">Task read modelを取得できませんでした。<br/><code>${esc(error instanceof Error ? error.message : error)}</code></div>`;
       syncNote.textContent = 'read model error';
@@ -158,6 +275,24 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     currentFilter = button.dataset.filter || 'actionable';
     render();
   }));
+  list.addEventListener('click', (event) => {
+    const card = event.target.closest('.task-card[data-task-id]');
+    if (!card) return;
+    const task = items.find(item => item.taskId === card.dataset.taskId);
+    if (task) openTaskForGpt(task);
+  });
+  list.addEventListener('keydown', (event) => {
+    if (!['Enter',' '].includes(event.key) || !event.target.matches('.task-card[data-task-id]')) return;
+    event.preventDefault();
+    const task = items.find(item => item.taskId === event.target.dataset.taskId);
+    if (task) openTaskForGpt(task);
+  });
+  document.querySelectorAll('[data-gpt-mode]').forEach((button) => button.addEventListener('click', () => setTaskGptMode(button.dataset.gptMode)));
+  document.getElementById('task-gpt-close').addEventListener('click', () => taskDialog.close());
+  document.getElementById('task-gpt-copy').addEventListener('click', copyTaskGptPrompt);
+  taskDialog.addEventListener('click', (event) => {
+    if (event.target === taskDialog) taskDialog.close();
+  });
   refresh.addEventListener('click', load);
   load();
 </script>
@@ -211,4 +346,36 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   .error { color:#8b4540; }
   @media (max-width:820px) { .summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .task-head,.toolbar { align-items:flex-start; flex-direction:column; } }
   @media (max-width:540px) { .summary-grid { grid-template-columns:1fr 1fr; } .task-top,.task-title { align-items:flex-start; flex-direction:column; } .task-card { padding:15px; } }
+
+  .task-card[role="button"] { cursor:pointer; max-width:100%; min-width:0; }
+  .task-card[role="button"]:hover { border-color:#c6a97f; }
+  .task-card[role="button"]:focus-visible { outline:3px solid #8b7355; outline-offset:3px; }
+  .task-title,.task-title > div,.task-title h2,.next { min-width:0; max-width:100%; overflow-wrap:anywhere; }
+  .task-launch-hint { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:12px; padding:10px 0 0; border-top:1px solid #ece8e2; color:#765327; font-size:.78rem; font-weight:600; }
+  .task-launch-hint span { font-size:1rem; }
+  .task-gpt-dialog { width:min(620px, calc(100vw - 24px)); max-width:100%; max-height:calc(100dvh - 32px); margin:auto; padding:22px; box-sizing:border-box; overflow-y:auto; border:1px solid #c6a97f; background:#fff; color:#20252a; box-shadow:0 24px 70px rgba(0,0,0,.25); }
+  .task-gpt-dialog::backdrop { background:rgba(13,11,8,.76); }
+  .task-gpt-dialog * { box-sizing:border-box; }
+  .gpt-dialog-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .gpt-dialog-head > div { min-width:0; }
+  .gpt-dialog-head h2 { font-size:1.25rem; line-height:1.35; overflow-wrap:anywhere; }
+  #task-gpt-close { flex-shrink:0; min-height:44px; padding:0 12px; border:1px solid #d8d4cd; background:#fff; color:#4f5963; cursor:pointer; }
+  .gpt-context { margin:8px 0 15px; color:#6b6f75; font-size:.76rem; overflow-wrap:anywhere; }
+  .gpt-modes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:15px; }
+  .gpt-modes button { min-width:0; min-height:46px; padding:10px; border:1px solid #d9d1c6; background:#faf8f4; color:#665a4d; font-size:.85rem; cursor:pointer; }
+  .gpt-modes button[aria-pressed="true"] { border-color:#b0905e; color:#583913; background:#f4e8d5; font-weight:700; }
+  .gpt-prompt-label { display:block; color:#615d55; font-size:.77rem; margin-bottom:7px; }
+  #task-gpt-prompt { display:block; width:100%; min-width:0; min-height:210px; padding:12px; border:1px solid #d5d0c9; background:#fff; color:#1c242c; font:inherit; font-size:16px; line-height:1.65; resize:vertical; }
+  #task-gpt-prompt:focus-visible { outline:2px solid #b0905e; outline-offset:2px; }
+  .gpt-feedback { min-height:22px; margin:9px 0 13px; color:#6d655c; font-size:.75rem; line-height:1.6; }
+  .gpt-handoff-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+  .gpt-handoff-actions button,.gpt-handoff-actions a { display:flex; align-items:center; justify-content:center; min-width:0; min-height:48px; padding:10px 12px; text-align:center; text-decoration:none; font:inherit; font-size:.85rem; cursor:pointer; }
+  #task-gpt-copy { border:1px solid #665132; color:#fff; background:#413424; }
+  .gpt-handoff-actions a { border:1px solid #aa8c5d; color:#614115; background:#f2e4cc; }
+  .gpt-privacy { margin-top:12px; font-size:.68rem; color:#6b6f75; line-height:1.65; }
+  @media (max-width:540px) {
+    .task-gpt-dialog { padding:15px; max-height:calc(100dvh - 18px); }
+    .gpt-modes,.gpt-handoff-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .gpt-modes button,.gpt-handoff-actions button,.gpt-handoff-actions a { font-size:.76rem; }
+  }
 </style>
