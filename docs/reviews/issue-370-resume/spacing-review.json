@@ -1,0 +1,942 @@
+{
+  "status": "completed",
+  "score": 85,
+  "summary": {
+    "critical": 0,
+    "serious": 0,
+    "moderate": 3,
+    "total": 3
+  },
+  "findings": [
+    {
+      "ruleId": "spacing/off-scale-value",
+      "state": "after-resume-390",
+      "severity": "moderate",
+      "message": "after-resume-390 uses 4 off-scale spacing values across 5 elements: 10px, 14px, 18px, 19.92px.",
+      "fix": "Replace the measured values with the nearest project spacing token. Active scale: 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128px.",
+      "elementIds": [
+        "summary:nth-of-type(1)@29",
+        "#products-title",
+        "#studio-resume-status",
+        "div:nth-of-type(1)@34",
+        "div:nth-of-type(2)@38"
+      ],
+      "evidence": [
+        {
+          "label": "つづきから · 保存した教材を選ぶ padding top",
+          "value": 10,
+          "unit": "px"
+        },
+        {
+          "label": "つづきから · 保存した教材を選ぶ padding bottom",
+          "value": 10,
+          "unit": "px"
+        },
+        {
+          "label": "育てている教材 margin top",
+          "value": 19.92,
+          "unit": "px"
+        },
+        {
+          "label": "育てている教材 margin bottom",
+          "value": 19.92,
+          "unit": "px"
+        },
+        {
+          "label": "#studio-resume-status margin top",
+          "value": 14,
+          "unit": "px"
+        },
+        {
+          "label": "#studio-resume-status margin bottom",
+          "value": 14,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(1)@34 padding top",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(1)@34 padding bottom",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(2)@38 padding top",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(2)@38 padding bottom",
+          "value": 18,
+          "unit": "px"
+        }
+      ],
+      "id": "spacing-1"
+    },
+    {
+      "ruleId": "spacing/off-scale-value",
+      "state": "after-resume-1440",
+      "severity": "moderate",
+      "message": "after-resume-1440 uses 4 off-scale spacing values across 5 elements: 10px, 14px, 18px, 19.92px.",
+      "fix": "Replace the measured values with the nearest project spacing token. Active scale: 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128px.",
+      "elementIds": [
+        "summary:nth-of-type(1)@105",
+        "#products-title",
+        "#studio-resume-status",
+        "div:nth-of-type(1)@110",
+        "div:nth-of-type(2)@114"
+      ],
+      "evidence": [
+        {
+          "label": "つづきから · 保存した教材を選ぶ padding top",
+          "value": 10,
+          "unit": "px"
+        },
+        {
+          "label": "つづきから · 保存した教材を選ぶ padding bottom",
+          "value": 10,
+          "unit": "px"
+        },
+        {
+          "label": "育てている教材 margin top",
+          "value": 19.92,
+          "unit": "px"
+        },
+        {
+          "label": "育てている教材 margin bottom",
+          "value": 19.92,
+          "unit": "px"
+        },
+        {
+          "label": "#studio-resume-status margin top",
+          "value": 14,
+          "unit": "px"
+        },
+        {
+          "label": "#studio-resume-status margin bottom",
+          "value": 14,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(1)@110 padding top",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(1)@110 padding bottom",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(2)@114 padding top",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(2)@114 padding bottom",
+          "value": 18,
+          "unit": "px"
+        }
+      ],
+      "id": "spacing-2"
+    },
+    {
+      "ruleId": "spacing/off-scale-value",
+      "state": "after-resume-1728",
+      "severity": "moderate",
+      "message": "after-resume-1728 uses 4 off-scale spacing values across 5 elements: 10px, 14px, 18px, 19.92px.",
+      "fix": "Replace the measured values with the nearest project spacing token. Active scale: 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128px.",
+      "elementIds": [
+        "summary:nth-of-type(1)@105",
+        "#products-title",
+        "#studio-resume-status",
+        "div:nth-of-type(1)@110",
+        "div:nth-of-type(2)@114"
+      ],
+      "evidence": [
+        {
+          "label": "つづきから · 保存した教材を選ぶ padding top",
+          "value": 10,
+          "unit": "px"
+        },
+        {
+          "label": "つづきから · 保存した教材を選ぶ padding bottom",
+          "value": 10,
+          "unit": "px"
+        },
+        {
+          "label": "育てている教材 margin top",
+          "value": 19.92,
+          "unit": "px"
+        },
+        {
+          "label": "育てている教材 margin bottom",
+          "value": 19.92,
+          "unit": "px"
+        },
+        {
+          "label": "#studio-resume-status margin top",
+          "value": 14,
+          "unit": "px"
+        },
+        {
+          "label": "#studio-resume-status margin bottom",
+          "value": 14,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(1)@110 padding top",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(1)@110 padding bottom",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(2)@114 padding top",
+          "value": 18,
+          "unit": "px"
+        },
+        {
+          "label": "div:nth-of-type(2)@114 padding bottom",
+          "value": 18,
+          "unit": "px"
+        }
+      ],
+      "id": "spacing-3"
+    }
+  ],
+  "states": [
+    {
+      "name": "after-home-390",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "elements": [
+        {
+          "id": "details:nth-of-type(1)@23",
+          "name": "the group holding “つくる ＋”",
+          "rect": {
+            "x": 14,
+            "y": 193.859375,
+            "width": 362,
+            "height": 52
+          }
+        },
+        {
+          "id": "summary:nth-of-type(1)@24",
+          "label": "つくる ＋",
+          "name": "つくる ＋",
+          "rect": {
+            "x": 14,
+            "y": 193.859375,
+            "width": 362,
+            "height": 52
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@25",
+          "name": "an unnamed text block inside “つくる ＋” (id span:nth-of-type(1)@25)",
+          "rect": {
+            "x": 342,
+            "y": 205.90625,
+            "width": 18,
+            "height": 27.890625
+          }
+        },
+        {
+          "id": "div:nth-of-type(1)@26",
+          "name": "the group holding “Drive素材から投稿をつくる →”",
+          "rect": {
+            "x": 14,
+            "y": 253.859375,
+            "width": 362,
+            "height": 44
+          }
+        },
+        {
+          "id": "a:nth-of-type(1)@27",
+          "label": "Drive素材から投稿をつくる →",
+          "name": "Drive素材から投稿をつくる →",
+          "rect": {
+            "x": 14,
+            "y": 253.859375,
+            "width": 191.53125,
+            "height": 44
+          }
+        },
+        {
+          "id": "nav:nth-of-type(1)@28",
+          "label": "保存した制作を再開する",
+          "name": "保存した制作を再開する",
+          "rect": {
+            "x": 14,
+            "y": 313.859375,
+            "width": 362,
+            "height": 53
+          }
+        },
+        {
+          "id": "a:nth-of-type(1)@29",
+          "label": "つづきから · 教材の下書き →",
+          "name": "つづきから · 教材の下書き →",
+          "rect": {
+            "x": 14,
+            "y": 313.859375,
+            "width": 183.1875,
+            "height": 44
+          }
+        }
+      ]
+    },
+    {
+      "name": "after-home-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "elements": [
+        {
+          "id": "details:nth-of-type(1)@56",
+          "name": "the group holding “つくる ＋”",
+          "rect": {
+            "x": 250,
+            "y": 227.359375,
+            "width": 1160,
+            "height": 52
+          }
+        },
+        {
+          "id": "summary:nth-of-type(1)@57",
+          "label": "つくる ＋",
+          "name": "つくる ＋",
+          "rect": {
+            "x": 250,
+            "y": 227.359375,
+            "width": 1160,
+            "height": 52
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@58",
+          "name": "an unnamed text block inside “つくる ＋” (id span:nth-of-type(1)@58)",
+          "rect": {
+            "x": 1376,
+            "y": 239.40625,
+            "width": 18,
+            "height": 27.890625
+          }
+        },
+        {
+          "id": "div:nth-of-type(1)@59",
+          "name": "the group holding “Drive素材から投稿をつくる →”",
+          "rect": {
+            "x": 250,
+            "y": 287.359375,
+            "width": 1160,
+            "height": 44
+          }
+        },
+        {
+          "id": "a:nth-of-type(1)@60",
+          "label": "Drive素材から投稿をつくる →",
+          "name": "Drive素材から投稿をつくる →",
+          "rect": {
+            "x": 250,
+            "y": 287.359375,
+            "width": 191.53125,
+            "height": 44
+          }
+        },
+        {
+          "id": "nav:nth-of-type(1)@61",
+          "label": "保存した制作を再開する",
+          "name": "保存した制作を再開する",
+          "rect": {
+            "x": 250,
+            "y": 347.359375,
+            "width": 1160,
+            "height": 53
+          }
+        },
+        {
+          "id": "a:nth-of-type(1)@62",
+          "label": "つづきから · 教材の下書き →",
+          "name": "つづきから · 教材の下書き →",
+          "rect": {
+            "x": 250,
+            "y": 347.359375,
+            "width": 183.1875,
+            "height": 44
+          }
+        }
+      ]
+    },
+    {
+      "name": "after-home-1728",
+      "viewport": {
+        "width": 1728,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "elements": [
+        {
+          "id": "details:nth-of-type(1)@56",
+          "name": "the group holding “つくる ＋”",
+          "rect": {
+            "x": 354,
+            "y": 227.359375,
+            "width": 1240,
+            "height": 52
+          }
+        },
+        {
+          "id": "summary:nth-of-type(1)@57",
+          "label": "つくる ＋",
+          "name": "つくる ＋",
+          "rect": {
+            "x": 354,
+            "y": 227.359375,
+            "width": 1240,
+            "height": 52
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@58",
+          "name": "an unnamed text block inside “つくる ＋” (id span:nth-of-type(1)@58)",
+          "rect": {
+            "x": 1560,
+            "y": 239.40625,
+            "width": 18,
+            "height": 27.890625
+          }
+        },
+        {
+          "id": "div:nth-of-type(1)@59",
+          "name": "the group holding “Drive素材から投稿をつくる →”",
+          "rect": {
+            "x": 354,
+            "y": 287.359375,
+            "width": 1240,
+            "height": 44
+          }
+        },
+        {
+          "id": "a:nth-of-type(1)@60",
+          "label": "Drive素材から投稿をつくる →",
+          "name": "Drive素材から投稿をつくる →",
+          "rect": {
+            "x": 354,
+            "y": 287.359375,
+            "width": 191.53125,
+            "height": 44
+          }
+        },
+        {
+          "id": "nav:nth-of-type(1)@61",
+          "label": "保存した制作を再開する",
+          "name": "保存した制作を再開する",
+          "rect": {
+            "x": 354,
+            "y": 347.359375,
+            "width": 1240,
+            "height": 53
+          }
+        },
+        {
+          "id": "a:nth-of-type(1)@62",
+          "label": "つづきから · 教材の下書き →",
+          "name": "つづきから · 教材の下書き →",
+          "rect": {
+            "x": 354,
+            "y": 347.359375,
+            "width": 183.1875,
+            "height": 44
+          }
+        }
+      ]
+    },
+    {
+      "name": "after-resume-390",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "elements": [
+        {
+          "id": "#saved-drafts",
+          "name": "the group holding “つづきから · 保存した教材を選ぶ” and “育てている教材”",
+          "rect": {
+            "x": 14,
+            "y": 100.203125,
+            "width": 362,
+            "height": 395.78125
+          }
+        },
+        {
+          "id": "summary:nth-of-type(1)@29",
+          "label": "つづきから · 保存した教材を選ぶ",
+          "name": "つづきから · 保存した教材を選ぶ",
+          "rect": {
+            "x": 14,
+            "y": 100.203125,
+            "width": 362,
+            "height": 44.796875
+          }
+        },
+        {
+          "id": "section:nth-of-type(1)@30",
+          "name": "the section holding “育てている教材” and “原稿を編集”",
+          "rect": {
+            "x": 14,
+            "y": 164.90625,
+            "width": 362,
+            "height": 331.078125
+          }
+        },
+        {
+          "id": "#products-title",
+          "label": "育てている教材",
+          "name": "育てている教材",
+          "rect": {
+            "x": 14,
+            "y": 164.90625,
+            "width": 362,
+            "height": 37.1875
+          }
+        },
+        {
+          "id": "#studio-resume-status",
+          "name": "an unnamed paragraph inside the section holding “育てている教材” and “原稿を編集” (id #studio-resume-status)",
+          "rect": {
+            "x": 14,
+            "y": 222,
+            "width": 362,
+            "height": 0
+          }
+        },
+        {
+          "id": "#product-list",
+          "name": "the group holding “原稿を編集” and “原稿を編集”",
+          "rect": {
+            "x": 14,
+            "y": 222,
+            "width": 362,
+            "height": 273.984375
+          }
+        },
+        {
+          "id": "div:nth-of-type(1)@34",
+          "name": "the group holding “原稿を編集”",
+          "rect": {
+            "x": 14,
+            "y": 222,
+            "width": 362,
+            "height": 149.390625
+          }
+        },
+        {
+          "id": "strong:nth-of-type(1)@35",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id strong:nth-of-type(1)@35)",
+          "rect": {
+            "x": 14,
+            "y": 240,
+            "width": 221.546875,
+            "height": 49.59375
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@36",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id span:nth-of-type(1)@36)",
+          "rect": {
+            "x": 251.546875,
+            "y": 254.71875,
+            "width": 124.453125,
+            "height": 20.140625
+          }
+        },
+        {
+          "id": "button:nth-of-type(1)@37",
+          "label": "原稿を編集",
+          "name": "原稿を編集",
+          "rect": {
+            "x": 14,
+            "y": 305.59375,
+            "width": 110,
+            "height": 46.796875
+          }
+        },
+        {
+          "id": "div:nth-of-type(2)@38",
+          "name": "the group holding “原稿を編集”",
+          "rect": {
+            "x": 14,
+            "y": 371.390625,
+            "width": 362,
+            "height": 124.59375
+          }
+        },
+        {
+          "id": "strong:nth-of-type(1)@39",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id strong:nth-of-type(1)@39)",
+          "rect": {
+            "x": 14,
+            "y": 389.390625,
+            "width": 221.546875,
+            "height": 24.796875
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@40",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id span:nth-of-type(1)@40)",
+          "rect": {
+            "x": 251.546875,
+            "y": 391.71875,
+            "width": 124.453125,
+            "height": 20.140625
+          }
+        },
+        {
+          "id": "button:nth-of-type(1)@41",
+          "label": "原稿を編集",
+          "name": "原稿を編集",
+          "rect": {
+            "x": 14,
+            "y": 430.1875,
+            "width": 110,
+            "height": 46.796875
+          }
+        }
+      ]
+    },
+    {
+      "name": "after-resume-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "elements": [
+        {
+          "id": "#saved-drafts",
+          "name": "the group holding “つづきから · 保存した教材を選ぶ” and “育てている教材”",
+          "rect": {
+            "x": 250,
+            "y": 100.296875,
+            "width": 1160,
+            "height": 288.796875
+          }
+        },
+        {
+          "id": "summary:nth-of-type(1)@105",
+          "label": "つづきから · 保存した教材を選ぶ",
+          "name": "つづきから · 保存した教材を選ぶ",
+          "rect": {
+            "x": 250,
+            "y": 100.296875,
+            "width": 1160,
+            "height": 44.796875
+          }
+        },
+        {
+          "id": "section:nth-of-type(1)@106",
+          "name": "the section holding “育てている教材” and “原稿を編集”",
+          "rect": {
+            "x": 250,
+            "y": 165,
+            "width": 1160,
+            "height": 224.09375
+          }
+        },
+        {
+          "id": "#products-title",
+          "label": "育てている教材",
+          "name": "育てている教材",
+          "rect": {
+            "x": 250,
+            "y": 165,
+            "width": 1160,
+            "height": 37.1875
+          }
+        },
+        {
+          "id": "#studio-resume-status",
+          "name": "an unnamed paragraph inside the section holding “育てている教材” and “原稿を編集” (id #studio-resume-status)",
+          "rect": {
+            "x": 250,
+            "y": 222.09375,
+            "width": 1160,
+            "height": 0
+          }
+        },
+        {
+          "id": "#product-list",
+          "name": "the group holding “原稿を編集” and “原稿を編集”",
+          "rect": {
+            "x": 250,
+            "y": 222.09375,
+            "width": 1160,
+            "height": 167
+          }
+        },
+        {
+          "id": "div:nth-of-type(1)@110",
+          "name": "the group holding “原稿を編集”",
+          "rect": {
+            "x": 250,
+            "y": 222.09375,
+            "width": 1160,
+            "height": 83.5
+          }
+        },
+        {
+          "id": "strong:nth-of-type(1)@111",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id strong:nth-of-type(1)@111)",
+          "rect": {
+            "x": 250,
+            "y": 250.9375,
+            "width": 894.546875,
+            "height": 24.796875
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@112",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id span:nth-of-type(1)@112)",
+          "rect": {
+            "x": 1160.546875,
+            "y": 253.265625,
+            "width": 124.453125,
+            "height": 20.140625
+          }
+        },
+        {
+          "id": "button:nth-of-type(1)@113",
+          "label": "原稿を編集",
+          "name": "原稿を編集",
+          "rect": {
+            "x": 1301,
+            "y": 240.09375,
+            "width": 109,
+            "height": 46.5
+          }
+        },
+        {
+          "id": "div:nth-of-type(2)@114",
+          "name": "the group holding “原稿を編集”",
+          "rect": {
+            "x": 250,
+            "y": 305.59375,
+            "width": 1160,
+            "height": 83.5
+          }
+        },
+        {
+          "id": "strong:nth-of-type(1)@115",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id strong:nth-of-type(1)@115)",
+          "rect": {
+            "x": 250,
+            "y": 334.4375,
+            "width": 894.546875,
+            "height": 24.796875
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@116",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id span:nth-of-type(1)@116)",
+          "rect": {
+            "x": 1160.546875,
+            "y": 336.765625,
+            "width": 124.453125,
+            "height": 20.140625
+          }
+        },
+        {
+          "id": "button:nth-of-type(1)@117",
+          "label": "原稿を編集",
+          "name": "原稿を編集",
+          "rect": {
+            "x": 1301,
+            "y": 323.59375,
+            "width": 109,
+            "height": 46.5
+          }
+        }
+      ]
+    },
+    {
+      "name": "after-resume-1728",
+      "viewport": {
+        "width": 1728,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "elements": [
+        {
+          "id": "#saved-drafts",
+          "name": "the group holding “つづきから · 保存した教材を選ぶ” and “育てている教材”",
+          "rect": {
+            "x": 394,
+            "y": 100.296875,
+            "width": 1160,
+            "height": 288.796875
+          }
+        },
+        {
+          "id": "summary:nth-of-type(1)@105",
+          "label": "つづきから · 保存した教材を選ぶ",
+          "name": "つづきから · 保存した教材を選ぶ",
+          "rect": {
+            "x": 394,
+            "y": 100.296875,
+            "width": 1160,
+            "height": 44.796875
+          }
+        },
+        {
+          "id": "section:nth-of-type(1)@106",
+          "name": "the section holding “育てている教材” and “原稿を編集”",
+          "rect": {
+            "x": 394,
+            "y": 165,
+            "width": 1160,
+            "height": 224.09375
+          }
+        },
+        {
+          "id": "#products-title",
+          "label": "育てている教材",
+          "name": "育てている教材",
+          "rect": {
+            "x": 394,
+            "y": 165,
+            "width": 1160,
+            "height": 37.1875
+          }
+        },
+        {
+          "id": "#studio-resume-status",
+          "name": "an unnamed paragraph inside the section holding “育てている教材” and “原稿を編集” (id #studio-resume-status)",
+          "rect": {
+            "x": 394,
+            "y": 222.09375,
+            "width": 1160,
+            "height": 0
+          }
+        },
+        {
+          "id": "#product-list",
+          "name": "the group holding “原稿を編集” and “原稿を編集”",
+          "rect": {
+            "x": 394,
+            "y": 222.09375,
+            "width": 1160,
+            "height": 167
+          }
+        },
+        {
+          "id": "div:nth-of-type(1)@110",
+          "name": "the group holding “原稿を編集”",
+          "rect": {
+            "x": 394,
+            "y": 222.09375,
+            "width": 1160,
+            "height": 83.5
+          }
+        },
+        {
+          "id": "strong:nth-of-type(1)@111",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id strong:nth-of-type(1)@111)",
+          "rect": {
+            "x": 394,
+            "y": 250.9375,
+            "width": 894.546875,
+            "height": 24.796875
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@112",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id span:nth-of-type(1)@112)",
+          "rect": {
+            "x": 1304.546875,
+            "y": 253.265625,
+            "width": 124.453125,
+            "height": 20.140625
+          }
+        },
+        {
+          "id": "button:nth-of-type(1)@113",
+          "label": "原稿を編集",
+          "name": "原稿を編集",
+          "rect": {
+            "x": 1445,
+            "y": 240.09375,
+            "width": 109,
+            "height": 46.5
+          }
+        },
+        {
+          "id": "div:nth-of-type(2)@114",
+          "name": "the group holding “原稿を編集”",
+          "rect": {
+            "x": 394,
+            "y": 305.59375,
+            "width": 1160,
+            "height": 83.5
+          }
+        },
+        {
+          "id": "strong:nth-of-type(1)@115",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id strong:nth-of-type(1)@115)",
+          "rect": {
+            "x": 394,
+            "y": 334.4375,
+            "width": 894.546875,
+            "height": 24.796875
+          }
+        },
+        {
+          "id": "span:nth-of-type(1)@116",
+          "name": "an unnamed text block inside the group holding “原稿を編集” (id span:nth-of-type(1)@116)",
+          "rect": {
+            "x": 1304.546875,
+            "y": 336.765625,
+            "width": 124.453125,
+            "height": 20.140625
+          }
+        },
+        {
+          "id": "button:nth-of-type(1)@117",
+          "label": "原稿を編集",
+          "name": "原稿を編集",
+          "rect": {
+            "x": 1445,
+            "y": 323.59375,
+            "width": 109,
+            "height": 46.5
+          }
+        }
+      ]
+    }
+  ],
+  "capturedWidths": [
+    390,
+    1440,
+    1728
+  ],
+  "missingWidths": [],
+  "rubric": [
+    {
+      "id": "review-rules-visual-design",
+      "title": "Visual Design"
+    }
+  ],
+  "rubricStatus": "loaded"
+}

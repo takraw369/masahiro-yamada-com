@@ -1,0 +1,362 @@
+[
+  {
+    "width": 320,
+    "overflow": 0,
+    "fields": [
+      {
+        "name": "title",
+        "size": 16
+      },
+      {
+        "name": "slug",
+        "size": 16
+      },
+      {
+        "name": "audience",
+        "size": 16
+      },
+      {
+        "name": "summary",
+        "size": 16
+      },
+      {
+        "name": "core",
+        "size": 16
+      },
+      {
+        "name": "practice",
+        "size": 16
+      },
+      {
+        "name": "priceYen",
+        "size": 16
+      },
+      {
+        "name": "body",
+        "size": 16
+      }
+    ],
+    "targets": [
+      {
+        "text": "この核から構成を作る",
+        "height": 48.796875
+      },
+      {
+        "text": "洗練用のAI指示をコピー",
+        "height": 46.796875
+      },
+      {
+        "text": "教材の下書きを保存",
+        "height": 48.796875
+      },
+      {
+        "text": "原稿を書き出す",
+        "height": 46.796875
+      },
+      {
+        "text": "新しい教材を作る",
+        "height": 46.796875
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "overflow": 0,
+    "fields": [
+      {
+        "name": "title",
+        "size": 16
+      },
+      {
+        "name": "slug",
+        "size": 16
+      },
+      {
+        "name": "audience",
+        "size": 16
+      },
+      {
+        "name": "summary",
+        "size": 16
+      },
+      {
+        "name": "core",
+        "size": 16
+      },
+      {
+        "name": "practice",
+        "size": 16
+      },
+      {
+        "name": "priceYen",
+        "size": 16
+      },
+      {
+        "name": "body",
+        "size": 16
+      }
+    ],
+    "targets": [
+      {
+        "text": "この核から構成を作る",
+        "height": 48.796875
+      },
+      {
+        "text": "洗練用のAI指示をコピー",
+        "height": 46.796875
+      },
+      {
+        "text": "教材の下書きを保存",
+        "height": 48.796875
+      },
+      {
+        "text": "原稿を書き出す",
+        "height": 46.796875
+      },
+      {
+        "text": "新しい教材を作る",
+        "height": 46.796875
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "overflow": 0,
+    "fields": [
+      {
+        "name": "title",
+        "size": 16
+      },
+      {
+        "name": "slug",
+        "size": 16
+      },
+      {
+        "name": "audience",
+        "size": 16
+      },
+      {
+        "name": "summary",
+        "size": 16
+      },
+      {
+        "name": "core",
+        "size": 16
+      },
+      {
+        "name": "practice",
+        "size": 16
+      },
+      {
+        "name": "priceYen",
+        "size": 16
+      },
+      {
+        "name": "body",
+        "size": 16
+      }
+    ],
+    "targets": [
+      {
+        "text": "この核から構成を作る",
+        "height": 48.796875
+      },
+      {
+        "text": "洗練用のAI指示をコピー",
+        "height": 46.796875
+      },
+      {
+        "text": "教材の下書きを保存",
+        "height": 48.796875
+      },
+      {
+        "text": "原稿を書き出す",
+        "height": 46.796875
+      },
+      {
+        "text": "新しい教材を作る",
+        "height": 46.796875
+      }
+    ]
+  },
+  {
+    "width": 430,
+    "overflow": 0,
+    "fields": [
+      {
+        "name": "title",
+        "size": 16
+      },
+      {
+        "name": "slug",
+        "size": 16
+      },
+      {
+        "name": "audience",
+        "size": 16
+      },
+      {
+        "name": "summary",
+        "size": 16
+      },
+      {
+        "name": "core",
+        "size": 16
+      },
+      {
+        "name": "practice",
+        "size": 16
+      },
+      {
+        "name": "priceYen",
+        "size": 16
+      },
+      {
+        "name": "body",
+        "size": 16
+      }
+    ],
+    "targets": [
+      {
+        "text": "この核から構成を作る",
+        "height": 48.796875
+      },
+      {
+        "text": "洗練用のAI指示をコピー",
+        "height": 46.796875
+      },
+      {
+        "text": "教材の下書きを保存",
+        "height": 48.796875
+      },
+      {
+        "text": "原稿を書き出す",
+        "height": 46.796875
+      },
+      {
+        "text": "新しい教材を作る",
+        "height": 46.796875
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "overflow": 0,
+    "fields": [
+      {
+        "name": "title",
+        "size": 15
+      },
+      {
+        "name": "slug",
+        "size": 15
+      },
+      {
+        "name": "audience",
+        "size": 15
+      },
+      {
+        "name": "summary",
+        "size": 15
+      },
+      {
+        "name": "core",
+        "size": 15
+      },
+      {
+        "name": "practice",
+        "size": 15
+      },
+      {
+        "name": "priceYen",
+        "size": 15
+      },
+      {
+        "name": "body",
+        "size": 15
+      }
+    ],
+    "targets": [
+      {
+        "text": "この核から構成を作る",
+        "height": 48.5
+      },
+      {
+        "text": "洗練用のAI指示をコピー",
+        "height": 48.5
+      },
+      {
+        "text": "教材の下書きを保存",
+        "height": 48.5
+      },
+      {
+        "text": "原稿を書き出す",
+        "height": 48.5
+      },
+      {
+        "text": "新しい教材を作る",
+        "height": 48.5
+      }
+    ]
+  },
+  {
+    "width": 1728,
+    "overflow": 0,
+    "fields": [
+      {
+        "name": "title",
+        "size": 15
+      },
+      {
+        "name": "slug",
+        "size": 15
+      },
+      {
+        "name": "audience",
+        "size": 15
+      },
+      {
+        "name": "summary",
+        "size": 15
+      },
+      {
+        "name": "core",
+        "size": 15
+      },
+      {
+        "name": "practice",
+        "size": 15
+      },
+      {
+        "name": "priceYen",
+        "size": 15
+      },
+      {
+        "name": "body",
+        "size": 15
+      }
+    ],
+    "targets": [
+      {
+        "text": "この核から構成を作る",
+        "height": 48.5
+      },
+      {
+        "text": "洗練用のAI指示をコピー",
+        "height": 48.5
+      },
+      {
+        "text": "教材の下書きを保存",
+        "height": 48.5
+      },
+      {
+        "text": "原稿を書き出す",
+        "height": 48.5
+      },
+      {
+        "text": "新しい教材を作る",
+        "height": 48.5
+      }
+    ]
+  }
+]

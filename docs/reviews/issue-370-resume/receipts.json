@@ -1,0 +1,671 @@
+{
+  "fixture": "synthetic only; no production writes",
+  "measurements": [
+    {
+      "label": "before-home-320",
+      "width": 320,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 14,
+        "y": 241.875,
+        "width": 292,
+        "height": 52,
+        "top": 241.875,
+        "right": 306,
+        "bottom": 293.875,
+        "left": 14
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 241.875
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 301.875
+        },
+        {
+          "text": "教材の下書きを開く →",
+          "height": 44,
+          "y": 353.875
+        }
+      ]
+    },
+    {
+      "label": "before-home-375",
+      "width": 375,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 14,
+        "y": 193.859375,
+        "width": 347,
+        "height": 52,
+        "top": 193.859375,
+        "right": 361,
+        "bottom": 245.859375,
+        "left": 14
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 193.859375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 253.859375
+        },
+        {
+          "text": "教材の下書きを開く →",
+          "height": 44,
+          "y": 305.859375
+        }
+      ]
+    },
+    {
+      "label": "before-home-390",
+      "width": 390,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 14,
+        "y": 193.859375,
+        "width": 362,
+        "height": 52,
+        "top": 193.859375,
+        "right": 376,
+        "bottom": 245.859375,
+        "left": 14
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 193.859375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 253.859375
+        },
+        {
+          "text": "教材の下書きを開く →",
+          "height": 44,
+          "y": 253.859375
+        }
+      ]
+    },
+    {
+      "label": "before-home-430",
+      "width": 430,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 14,
+        "y": 193.859375,
+        "width": 402,
+        "height": 52,
+        "top": 193.859375,
+        "right": 416,
+        "bottom": 245.859375,
+        "left": 14
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 193.859375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 253.859375
+        },
+        {
+          "text": "教材の下書きを開く →",
+          "height": 44,
+          "y": 253.859375
+        }
+      ]
+    },
+    {
+      "label": "before-home-1440",
+      "width": 1440,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 250,
+        "y": 227.359375,
+        "width": 1160,
+        "height": 52,
+        "top": 227.359375,
+        "right": 1410,
+        "bottom": 279.359375,
+        "left": 250
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 227.359375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 287.359375
+        },
+        {
+          "text": "教材の下書きを開く →",
+          "height": 44,
+          "y": 287.359375
+        }
+      ]
+    },
+    {
+      "label": "before-home-1728",
+      "width": 1728,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 354,
+        "y": 227.359375,
+        "width": 1240,
+        "height": 52,
+        "top": 227.359375,
+        "right": 1594,
+        "bottom": 279.359375,
+        "left": 354
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 227.359375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 287.359375
+        },
+        {
+          "text": "教材の下書きを開く →",
+          "height": 44,
+          "y": 287.359375
+        }
+      ]
+    },
+    {
+      "label": "after-home-320",
+      "width": 320,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 14,
+        "y": 241.875,
+        "width": 292,
+        "height": 52,
+        "top": 241.875,
+        "right": 306,
+        "bottom": 293.875,
+        "left": 14
+      },
+      "resume": {
+        "x": 14,
+        "y": 361.875,
+        "width": 183.1875,
+        "height": 44,
+        "top": 361.875,
+        "right": 197.1875,
+        "bottom": 405.875,
+        "left": 14
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 241.875
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 301.875
+        },
+        {
+          "text": "つづきから · 教材の下書き →",
+          "height": 44,
+          "y": 361.875
+        }
+      ]
+    },
+    {
+      "label": "after-home-375",
+      "width": 375,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 14,
+        "y": 193.859375,
+        "width": 347,
+        "height": 52,
+        "top": 193.859375,
+        "right": 361,
+        "bottom": 245.859375,
+        "left": 14
+      },
+      "resume": {
+        "x": 14,
+        "y": 313.859375,
+        "width": 183.1875,
+        "height": 44,
+        "top": 313.859375,
+        "right": 197.1875,
+        "bottom": 357.859375,
+        "left": 14
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 193.859375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 253.859375
+        },
+        {
+          "text": "つづきから · 教材の下書き →",
+          "height": 44,
+          "y": 313.859375
+        }
+      ]
+    },
+    {
+      "label": "after-home-390",
+      "width": 390,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 14,
+        "y": 193.859375,
+        "width": 362,
+        "height": 52,
+        "top": 193.859375,
+        "right": 376,
+        "bottom": 245.859375,
+        "left": 14
+      },
+      "resume": {
+        "x": 14,
+        "y": 313.859375,
+        "width": 183.1875,
+        "height": 44,
+        "top": 313.859375,
+        "right": 197.1875,
+        "bottom": 357.859375,
+        "left": 14
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 193.859375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 253.859375
+        },
+        {
+          "text": "つづきから · 教材の下書き →",
+          "height": 44,
+          "y": 313.859375
+        }
+      ]
+    },
+    {
+      "label": "after-home-430",
+      "width": 430,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 14,
+        "y": 193.859375,
+        "width": 402,
+        "height": 52,
+        "top": 193.859375,
+        "right": 416,
+        "bottom": 245.859375,
+        "left": 14
+      },
+      "resume": {
+        "x": 14,
+        "y": 313.859375,
+        "width": 183.1875,
+        "height": 44,
+        "top": 313.859375,
+        "right": 197.1875,
+        "bottom": 357.859375,
+        "left": 14
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 193.859375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 253.859375
+        },
+        {
+          "text": "つづきから · 教材の下書き →",
+          "height": 44,
+          "y": 313.859375
+        }
+      ]
+    },
+    {
+      "label": "after-home-1440",
+      "width": 1440,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 250,
+        "y": 227.359375,
+        "width": 1160,
+        "height": 52,
+        "top": 227.359375,
+        "right": 1410,
+        "bottom": 279.359375,
+        "left": 250
+      },
+      "resume": {
+        "x": 250,
+        "y": 347.359375,
+        "width": 183.1875,
+        "height": 44,
+        "top": 347.359375,
+        "right": 433.1875,
+        "bottom": 391.359375,
+        "left": 250
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 227.359375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 287.359375
+        },
+        {
+          "text": "つづきから · 教材の下書き →",
+          "height": 44,
+          "y": 347.359375
+        }
+      ]
+    },
+    {
+      "label": "after-home-1728",
+      "width": 1728,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "create": {
+        "x": 354,
+        "y": 227.359375,
+        "width": 1240,
+        "height": 52,
+        "top": 227.359375,
+        "right": 1594,
+        "bottom": 279.359375,
+        "left": 354
+      },
+      "resume": {
+        "x": 354,
+        "y": 347.359375,
+        "width": 183.1875,
+        "height": 44,
+        "top": 347.359375,
+        "right": 537.1875,
+        "bottom": 391.359375,
+        "left": 354
+      },
+      "visibleActions": [
+        {
+          "text": "つくる ＋",
+          "height": 52,
+          "y": 227.359375
+        },
+        {
+          "text": "Drive素材から投稿をつくる →",
+          "height": 44,
+          "y": 287.359375
+        },
+        {
+          "text": "つづきから · 教材の下書き →",
+          "height": 44,
+          "y": 347.359375
+        }
+      ]
+    },
+    {
+      "label": "after-resume-320",
+      "width": 320,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "visibleActions": [
+        {
+          "text": "つづきから · 保存した教材を選ぶ",
+          "height": 44.796875,
+          "y": 99.8125
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.796875,
+          "y": 280.40625
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.796875,
+          "y": 405
+        }
+      ]
+    },
+    {
+      "label": "after-resume-375",
+      "width": 375,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "visibleActions": [
+        {
+          "text": "つづきから · 保存した教材を選ぶ",
+          "height": 44.796875,
+          "y": 100.203125
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.796875,
+          "y": 305.59375
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.796875,
+          "y": 454.984375
+        }
+      ]
+    },
+    {
+      "label": "after-resume-390",
+      "width": 390,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "visibleActions": [
+        {
+          "text": "つづきから · 保存した教材を選ぶ",
+          "height": 44.796875,
+          "y": 100.203125
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.796875,
+          "y": 305.59375
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.796875,
+          "y": 430.1875
+        }
+      ]
+    },
+    {
+      "label": "after-resume-430",
+      "width": 430,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "visibleActions": [
+        {
+          "text": "つづきから · 保存した教材を選ぶ",
+          "height": 44.796875,
+          "y": 100.375
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.796875,
+          "y": 280.96875
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.796875,
+          "y": 405.5625
+        }
+      ]
+    },
+    {
+      "label": "after-resume-1440",
+      "width": 1440,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "visibleActions": [
+        {
+          "text": "つづきから · 保存した教材を選ぶ",
+          "height": 44.796875,
+          "y": 100.296875
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.5,
+          "y": 240.09375
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.5,
+          "y": 323.59375
+        }
+      ]
+    },
+    {
+      "label": "after-resume-1728",
+      "width": 1728,
+      "overflow": 0,
+      "font": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "headingFont": "\"IBM Plex Sans JP\", \"Hiragino Sans\", \"Yu Gothic UI\", \"Yu Gothic\", \"Noto Sans JP\", system-ui, sans-serif",
+      "ibmLoaded": true,
+      "visibleActions": [
+        {
+          "text": "つづきから · 保存した教材を選ぶ",
+          "height": 44.796875,
+          "y": 100.296875
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.5,
+          "y": 240.09375
+        },
+        {
+          "text": "原稿を編集",
+          "height": 46.5,
+          "y": 323.59375
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "label": "before",
+      "task": "saved lesson resume",
+      "taps": 2,
+      "listY": 696.859375,
+      "focused": "create-title"
+    },
+    {
+      "label": "after",
+      "task": "saved lesson resume",
+      "taps": 2,
+      "listY": 246,
+      "focused": "create-title"
+    },
+    {
+      "label": "after",
+      "task": "A source to X draft",
+      "taps": 5,
+      "source": "QA1",
+      "publication": false
+    },
+    {
+      "label": "after",
+      "task": "B source to lesson preview",
+      "source": "QA1",
+      "preview": true
+    },
+    {
+      "label": "after",
+      "task": "C source to product idea brief",
+      "copied": true,
+      "generation": false
+    }
+  ],
+  "errors": []
+}

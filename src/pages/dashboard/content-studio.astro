@@ -1,19 +1,25 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 const intent = Astro.url.searchParams.get('intent');
+const resumeDrafts = Astro.url.searchParams.get('view') === 'drafts';
 const intro = intent === 'post' ? ['素材から、投稿をつくる。', '素材を選び、投稿の下書きへ。本文はX編集画面で整えます。']
   : intent === 'article-video' ? ['素材から、記事・動画へ。', '直接生成は準備中。素材を選び、制作指示をコピーしてCodexへ渡します。']
   : ['素材から、教材・商品へ。', '教材を編集し、プレビューして下書き保存。商品化は制作指示で引き継げます。'];
 ---
 <DashboardLayout title="Knowledge Studio" eyebrow="KNOW → CREATE → SELL">
  <div class="studio-shell">
-  <section class="studio-intro"><div><h1>{intro[0]}</h1><p>{intro[1]}</p></div><div class="studio-intro-links"><a href="#products-title">教材の下書きを開く ↓</a><a href="/library">販売する棚を見る ↗</a><a href="/dashboard/content-flow">発信の流れへ ↗</a></div></section>
+  <section class="studio-intro"><div><h1>{intro[0]}</h1><p>{intro[1]}</p></div><div class="studio-intro-links"><a href="#saved-drafts" id="open-saved-drafts">教材の下書きを開く ↓</a><a href="/library">販売する棚を見る ↗</a><a href="/dashboard/content-flow">発信の流れへ ↗</a></div></section>
   <div class="studio-status" id="studio-status" role="status">元資料を読み込んでいます。</div>
-  <details id="source-picker" open><summary>素材を選ぶ・変更する</summary>
+  <details id="saved-drafts" open={resumeDrafts}>
+   <summary>つづきから · 保存した教材を選ぶ</summary>
+   <section aria-labelledby="products-title"><h2 id="products-title" tabindex="-1">育てている教材</h2><p id="studio-resume-status" class="studio-note" role="status"></p><div id="product-list">保存した教材を読み込んでいます。</div></section>
+  </details>
+  <details id="source-picker" open={!resumeDrafts}><summary>素材を選ぶ・変更する</summary>
   <section aria-labelledby="map-title">
    <div class="studio-section-head"><div><span>01 / DISCOVER</span><h2 id="map-title">どの知識を、いま使う？</h2></div><button type="button" class="studio-secondary" id="refresh-sources">最新の情報へ更新</button></div>
    <div class="studio-toolbar"><label>テーマ・単語<input id="source-query" type="search" placeholder="自信、習慣、FLOW、身体、動けない…"/></label><label>入口テーマ<select id="source-theme"><option value="">すべて</option><option value="FLOW">FLOW・集中</option><option value="ATHLETE">競技・アスリート</option><option value="HEALTH">身体・健康・食</option><option value="EDUCATION">教育・学び</option><option value="RELATION">人間関係・子育て</option><option value="AI">AI・創作</option><option value="PHILOSOPHY">哲学・生き方</option><option value="BUSINESS">事業・意思決定</option></select></label></div>
    <p class="studio-count" id="source-count" aria-live="polite"></p><div class="studio-source-grid" id="source-grid"></div>
+   <p id="studio-source-status" class="studio-note" role="status" hidden></p>
    <button type="button" class="studio-secondary" id="more-sources" hidden>さらに素材を見る</button>
    <details class="studio-concepts"><summary>関連する知識・概念を読む</summary><div id="concept-list"></div></details>
   </section>
@@ -46,7 +52,7 @@ const intro = intent === 'post' ? ['素材から、投稿をつくる。', '素�
    </form><aside class="studio-reader" id="studio-preview" tabindex="-1"><div class="studio-reader-label">READING PREVIEW</div><h3 id="preview-title">読む人の画面</h3><div id="body-preview"><p>原稿を整えると、ここで読み心地を確認できます。</p></div></aside></div>
    </details>
   </section>
-  <section aria-labelledby="products-title"><div class="studio-section-head"><div><span>03 / RELEASE</span><h2 id="products-title">育てている教材</h2></div></div><div id="product-list">保存した教材がここに並びます。</div><div class="studio-release-flow"><span>下書きの確認</span><span>販売条件を決める</span><span>決済 → 鍵 → 教材</span><span>使われた結果で更新</span></div></section>
+  <div class="studio-release-flow"><span>下書きの確認</span><span>販売条件を決める</span><span>決済 → 鍵 → 教材</span><span>使われた結果で更新</span></div>
  </div>
 </DashboardLayout>
 <script>
@@ -57,20 +63,22 @@ const intro = intent === 'post' ? ['素材から、投稿をつくる。', '素�
  type Product={slug:string;title:string;summary:string;body:string;source_asset_id:string|null;version:number;price_jpy:number;status:string};
  type Snapshot={assets:Asset[];knowledge:Concept[];products:Product[];captured_at:string};
  const byId=(id:string)=>document.getElementById(id),form=byId('product-form') as HTMLFormElement,bodyInput=byId('product-body') as HTMLTextAreaElement,queryInput=byId('source-query') as HTMLInputElement,themeInput=byId('source-theme') as HTMLSelectElement;
- let snapshot:Snapshot|null=null,selected:Asset|null=null,currentSlug='',currentVersion:number|null=null,visible=12,loading=false,dirty=false;
+ let snapshot:Snapshot|null=null,selected:Asset|null=null,currentSourceId:string|null=null,currentSlug='',currentVersion:number|null=null,visible=12,loading=false,dirty=false,saving=false,editRevision=0;
  const enterEditor=()=>{const picker=byId('source-picker') as HTMLDetailsElement|null;if(picker)picker.open=false;byId('create-title')?.focus();byId('create')?.scrollIntoView();};
  const node=(tag:string,text?:string,cls?:string)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
  const value=(name:string)=>String(new FormData(form).get(name)||'').trim();
  const setValue=(name:string,text:string)=>{const input=form.elements.namedItem(name);if(input instanceof HTMLInputElement||input instanceof HTMLTextAreaElement)input.value=text;};
  const safeUrl=(url:unknown)=>{try{return typeof url==='string'&&new URL(url).protocol==='https:';}catch{return false;}};
+ const clearSaveStatus=()=>{const message=byId('studio-save-status');if(message){message.textContent='';message.hidden=true;}};
  const status=(text:string,nearId='studio-editor-status')=>{const e=byId('studio-status');if(e)e.textContent=text;const nearby=byId(nearId);if(nearby){nearby.textContent=text;nearby.hidden=false;}};
  function choose(asset:Asset){
-  if(bodyInput.value.trim()&&asset.id!==selected?.id){status('原稿と出典を保持しています。別の教材を作る場合は、保存・書き出しの後に「新しい教材を作る」を選んでください。');return;}
-  selected=asset;drawSelected();
-  if(!dirty&&!bodyInput.value){setValue('title',asset.title.replace(/^(?:C\d+｜|READY｜|EXAMPLE｜|SEED｜)/,'').replace(/\s*[0-9]{4}-[0-9]{2}-[0-9]{2}$/,''));setValue('audience',asset.target||'');setValue('slug','asset-'+asset.id.toLowerCase().replace(/_/g,'-'));}
+  if(saving){status('保存中です。素材の変更は保存結果を確認してから行えます。','studio-source-status');return;}
+  if((dirty||currentSlug||bodyInput.value.trim())&&asset.id!==(selected?.id||currentSourceId)){status('原稿と出典を保持しています。別の教材を作る場合は、保存・書き出しの後に「新しい教材を作る」を選んでください。','studio-source-status');return;}
+  selected=asset;currentSourceId=asset.id;drawSelected();
+  if(!dirty&&!currentSlug&&!bodyInput.value){setValue('title',asset.title.replace(/^(?:C\d+｜|READY｜|EXAMPLE｜|SEED｜)/,'').replace(/\s*[0-9]{4}-[0-9]{2}-[0-9]{2}$/,''));setValue('audience',asset.target||'');setValue('slug','asset-'+asset.id.toLowerCase().replace(/_/g,'-'));}
   drawSources();enterEditor();
  }
- function drawSelected(){const post=byId('source-to-post');if(post)post.hidden=!selected;const brief=byId('copy-creation-brief') as HTMLButtonElement|null;if(brief)brief.disabled=!selected;const video=byId('copy-video-prototype') as HTMLButtonElement|null;if(video)video.disabled=!selected;const panel=byId('selected-source');if(!panel)return;const asset=selected;if(!asset){panel.textContent='まず上から素材を選んでください。';return;}panel.replaceChildren(node('strong',asset.id+' / '+asset.title),node('p',asset.target||'読者はこれから選ぶ'));
+ function drawSelected(){const post=byId('source-to-post');if(post)post.hidden=!selected;const brief=byId('copy-creation-brief') as HTMLButtonElement|null;if(brief)brief.disabled=!selected;const video=byId('copy-video-prototype') as HTMLButtonElement|null;if(video)video.disabled=!selected;const panel=byId('selected-source');if(!panel)return;const asset=selected;if(!asset){panel.textContent=currentSourceId?'保存された出典ID: '+currentSourceId+'。現在の素材一覧にはありません。出典IDを保持して編集できます。':'まず上から素材を選んでください。';return;}panel.replaceChildren(node('strong',asset.id+' / '+asset.title),node('p',asset.target||'読者はこれから選ぶ'));
   if(safeUrl(asset.source_url)){const link=node('a','元資料を開いて確認する ↗') as HTMLAnchorElement;link.href=asset.source_url!;link.target='_blank';link.rel='noopener noreferrer';panel.append(link);}if(asset.rights)panel.append(node('p',asset.rights,'studio-note'));
  }
  function searchable(a:Asset){return [a.id,a.title,a.genre,a.target,a.next,a.project,a.format].join(' ').normalize('NFKC').toLowerCase();}
@@ -82,16 +90,17 @@ const intro = intent === 'post' ? ['素材から、投稿をつくる。', '素�
   for(const a of assets.slice(0,visible)){const button=node('button',undefined,'studio-source') as HTMLButtonElement;button.type='button';button.setAttribute('aria-pressed',String(a.id===selected?.id));button.append(node('span',a.id+' / '+(a.genre||'未分類'),'studio-source-meta'),node('strong',a.title),node('span',a.target||'届けたい相手を決める','studio-source-audience'));button.addEventListener('click',()=>choose(a));grid.append(button);}
   if(!assets.length)grid.append(node('p','この言葉ではまだ素材が見つかりません。テーマを広げるか、元資料の接続を見直します。','studio-note'));const more=byId('more-sources');if(more)more.hidden=assets.length<=visible;
   const concepts=byId('concept-list');if(concepts){concepts.replaceChildren();const matches=snapshot.knowledge.filter(k=>words.every(w=>[k.title,k.domain,k.summary].join(' ').toLowerCase().includes(w))).slice(0,20);
-   for(const k of matches){const d=node('details');d.append(node('summary',k.title),node('p',k.summary),node('p',(k.visibility==='private'?'非公開の制作素材 / ':'')+k.status,'studio-note'));for(const s of k.sources){if(!safeUrl(s.url))continue;const p=node('p'),link=node('a',s.title+' ↗') as HTMLAnchorElement;link.href=s.url;link.target='_blank';link.rel='noopener noreferrer';p.append(link);d.append(p);}const use=node('button','この概念を核に使う','studio-secondary') as HTMLButtonElement;use.type='button';use.addEventListener('click',()=>{setValue('core',k.summary);dirty=true;status('核を原稿の設計欄へ入れました。元資料を確認して整えてください。');});d.append(use);concepts.append(d);}}
+   for(const k of matches){const d=node('details');d.append(node('summary',k.title),node('p',k.summary),node('p',(k.visibility==='private'?'非公開の制作素材 / ':'')+k.status,'studio-note'));for(const s of k.sources){if(!safeUrl(s.url))continue;const p=node('p'),link=node('a',s.title+' ↗') as HTMLAnchorElement;link.href=s.url;link.target='_blank';link.rel='noopener noreferrer';p.append(link);d.append(p);}const use=node('button','この概念を核に使う','studio-secondary') as HTMLButtonElement;use.type='button';use.addEventListener('click',()=>{if(saving){status('保存中です。保存結果を確認してから核を変更してください。');return;}if(value('core')&&value('core')!==k.summary.trim()&&!window.confirm('入力済みの核を、この概念に差し替えますか？ 教材の原稿は保持します。'))return;setValue('core',k.summary);dirty=true;editRevision++;status('核を原稿の設計欄へ入れました。元資料を確認して整えてください。');});d.append(use);concepts.append(d);}}
  }
  function preview(){const title=byId('preview-title'),container=byId('body-preview');if(title)title.textContent=value('title')||'読む人の画面';if(container)container.innerHTML=renderProtectedMarkdown(bodyInput.value)||'<p>原稿を整えると、ここで読み心地を確認できます。</p>';}
- function drawProducts(){const list=byId('product-list');if(!list||!snapshot)return;list.replaceChildren();if(!snapshot.products.length){list.append(node('p','まだ教材の下書きはありません。まず一つの核から組み立てます。','studio-note'));return;}
-  for(const p of snapshot.products){const item=node('div',undefined,'studio-product');item.append(node('strong',p.title),node('span',`${p.status==='live'?'公開中':'下書き'} / v${p.version} / 予定${p.price_jpy.toLocaleString('ja-JP')}円`));const button=node('button','原稿を編集','studio-secondary') as HTMLButtonElement;button.type='button';button.addEventListener('click',()=>{if(dirty){status('編集中の内容を先に保存または書き出してください。原稿を上書きしていません。');return;}currentSlug=p.slug;currentVersion=p.version;selected=snapshot!.assets.find(a=>a.id===p.source_asset_id)||null;setValue('slug',p.slug);setValue('title',p.title);setValue('summary',p.summary);setValue('priceYen',String(p.price_jpy));bodyInput.value=p.body;setValue('audience',selected?.target||'');setValue('core','');setValue('practice','');drawSelected();drawSources();preview();const editor=document.querySelector<HTMLDetailsElement>('.studio-lesson-editor');if(editor)editor.open=true;enterEditor();status('保存済みの原稿を開きました。');});item.append(button);if(p.status==='live'){const link=node('a','販売ページへ ↗') as HTMLAnchorElement;link.href='/library/'+p.slug;item.append(link);}list.append(item);}
+ function drawProducts(){const list=byId('product-list');if(!list||!snapshot)return;list.replaceChildren();if(!snapshot.products.length){list.append(node('p','まだ教材の下書きはありません。まず一つの核から組み立てます。','studio-note'));const start=node('button','素材を選んでつくる','studio-secondary') as HTMLButtonElement;start.type='button';start.addEventListener('click',()=>{const picker=byId('source-picker') as HTMLDetailsElement|null;if(picker)picker.open=true;queryInput.focus();queryInput.scrollIntoView({block:'center'});});list.append(start);return;}
+  for(const p of snapshot.products){const item=node('div',undefined,'studio-product');item.append(node('strong',p.title),node('span',`${p.status==='live'?'公開中':'下書き'} / v${p.version} / 予定${p.price_jpy.toLocaleString('ja-JP')}円`));const button=node('button','原稿を編集','studio-secondary') as HTMLButtonElement;button.type='button';button.addEventListener('click',()=>{if(saving){status('保存中です。保存結果を確認してから別の教材を開いてください。','studio-resume-status');return;}if(dirty){status('編集中の内容を先に保存または書き出してください。原稿を上書きしていません。','studio-resume-status');return;}clearSaveStatus();currentSourceId=p.source_asset_id;currentSlug=p.slug;currentVersion=p.version;selected=snapshot!.assets.find(a=>a.id===p.source_asset_id)||null;setValue('slug',p.slug);setValue('title',p.title);setValue('summary',p.summary);setValue('priceYen',String(p.price_jpy));bodyInput.value=p.body;setValue('audience',selected?.target||'');setValue('core','');setValue('practice','');drawSelected();drawSources();preview();const editor=document.querySelector<HTMLDetailsElement>('.studio-lesson-editor');if(editor)editor.open=true;enterEditor();status('保存済みの原稿を開きました。');});item.append(button);if(p.status==='live'){const link=node('a','販売ページへ ↗') as HTMLAnchorElement;link.href='/library/'+p.slug;item.append(link);}list.append(item);}
  }
- async function refresh(){if(loading)return;loading=true;const button=byId('refresh-sources') as HTMLButtonElement;button.disabled=true;try{const response=await fetch('/api/dashboard/content-studio',{credentials:'same-origin'});const data=await response.json();if(!response.ok||!data.ok)throw new Error('read_failed');snapshot=data.data;drawSources();drawProducts();status('元資料と教材を更新しました。編集中の原稿は保持しています。');}catch{status(snapshot?'更新に接続できません。最後に読み取った情報を表示しています。':'元資料へ接続できません。ログイン状態と接続を確認してください。');}finally{loading=false;button.disabled=false;}}
+ byId('open-saved-drafts')?.addEventListener('click',()=>{const drafts=byId('saved-drafts') as HTMLDetailsElement|null;if(drafts)drafts.open=true;});
+ async function refresh(){if(loading)return;loading=true;const button=byId('refresh-sources') as HTMLButtonElement;button.disabled=true;try{const response=await fetch('/api/dashboard/content-studio',{credentials:'same-origin'});const data=await response.json();if(!response.ok||!data.ok)throw new Error('read_failed');snapshot=data.data;drawSources();drawProducts();const resumeStatus=byId('studio-resume-status');if(resumeStatus)resumeStatus.textContent='';status('元資料と教材を更新しました。編集中の原稿は保持しています。');}catch{status(snapshot?'更新に接続できません。最後に読み取った情報を表示しています。':'元資料へ接続できません。ログイン状態と接続を確認してください。');const list=byId('product-list');if(list&&!snapshot)list.textContent='下書きを取得できませんでした。';const feedback=byId('studio-resume-status');if(feedback){feedback.replaceChildren(node('span',snapshot?'最後に取得した教材です。最新の保存内容を確認するには再試行してください。':'接続を確認して再試行してください。'));const retry=node('button','下書きを再読み込み','studio-secondary') as HTMLButtonElement;retry.type='button';retry.addEventListener('click',refresh);feedback.append(retry);}}finally{loading=false;button.disabled=false;}}
  queryInput.addEventListener('input',()=>{visible=12;drawSources();});themeInput.addEventListener('change',()=>{visible=12;drawSources();});byId('more-sources')?.addEventListener('click',()=>{visible+=12;drawSources();});byId('refresh-sources')?.addEventListener('click',refresh);
  byId('make-outline')?.addEventListener('click',()=>{if(bodyInput.value.trim()){status('原稿が入っています。構成を作り直す場合は、先に保存・書き出しして原稿欄を空にしてください。');return;}const core=value('core'),summary=value('summary');if(!core||!summary){status('読者に届ける変化と、元資料から使う核を先に入れてください。');return;}
-  bodyInput.value=`# ${value('title')||'教材のタイトル'}\n\n## この教材で持ち帰ること\n${summary}\n\n## こんなときに使う\n${value('audience')||'読者の現在地を記入'}\n\n## 核となる考え方\n${core}\n\n## 自分の状況に当てはめる\nいま起きていることを、事実・解釈・選べることに分けて書き出します。\n\n## 今日の小さな実践\n${value('practice')||'今日、一つだけ試す行動を決めます。'}\n\n## 振り返り\n何を試したか。何が起きたか。次は何を変えるか。\n\n## 次の一歩\nこの教材で残った問いを一つ書き、次に試す場面を選びます。`;dirty=true;preview();status('入力した核から構成の下書きを作りました。説明・実例・出典を確認して洗練させてください。');
+  bodyInput.value=`# ${value('title')||'教材のタイトル'}\n\n## この教材で持ち帰ること\n${summary}\n\n## こんなときに使う\n${value('audience')||'読者の現在地を記入'}\n\n## 核となる考え方\n${core}\n\n## 自分の状況に当てはめる\nいま起きていることを、事実・解釈・選べることに分けて書き出します。\n\n## 今日の小さな実践\n${value('practice')||'今日、一つだけ試す行動を決めます。'}\n\n## 振り返り\n何を試したか。何が起きたか。次は何を変えるか。\n\n## 次の一歩\nこの教材で残った問いを一つ書き、次に試す場面を選びます。`;dirty=true;editRevision++;preview();status('入力した核から構成の下書きを作りました。説明・実例・出典を確認して洗練させてください。');
  });
  byId('copy-ai-brief')?.addEventListener('click',async()=>{const prompt=`次の元資料に基づいて教材を洗練してください。対象：${value('audience')}。持ち帰る変化：${value('summary')}。元資料：${selected?.source_url||'下記の核'}。核：${value('core')}。現稿：${bodyInput.value}。事実と提案を分け、未確認の本人経験・科学的効果・成果を創作せず、説明→具体例→実践→振り返りを整えてください。購入者用の本文だけを作り、内部編集メモは含めないでください。`;try{await navigator.clipboard.writeText(prompt);status('洗練用の指示をコピーしました。');}catch{status('コピーできません。ブラウザのクリップボード権限を確認してください。');}});
  byId('source-to-post')?.addEventListener('click',event=>{
@@ -142,15 +151,32 @@ const intro = intent === 'post' ? ['素材から、投稿をつくる。', '素�
   catch{status('指示をコピーできませんでした。ブラウザのクリップボード権限を確認してください。');}
  });
  byId('download-draft')?.addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([bodyInput.value],{type:'text/markdown;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download=(value('slug')||'knowledge-draft')+'.md';link.click();URL.revokeObjectURL(url);});
- byId('new-product')?.addEventListener('click',()=>{if(dirty){status('いまの原稿を先に保存または書き出してください。原稿は保持しています。');return;}form.reset();selected=null;currentSlug='';currentVersion=null;drawSelected();preview();drawSources();status('新しい教材の制作を始められます。');});
- form.addEventListener('input',()=>{dirty=true;preview();});
- form.addEventListener('submit',async event=>{const saveStatus=(text:string)=>status(text,'studio-save-status');event.preventDefault();const button=form.querySelector('button[type="submit"]') as HTMLButtonElement;button.disabled=true;try{const slug=value('slug'),response=await fetch('/api/dashboard/content-studio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,title:value('title'),summary:value('summary'),body:bodyInput.value,priceYen:Number(value('priceYen')),sourceAssetId:selected?.id||null,expectedVersion:slug===currentSlug?currentVersion:null})});const result=await response.json();if(!response.ok||!result.ok){saveStatus(result.error==='version_conflict'?'別の更新があります。原稿を書き出してから最新の保存内容を確認してください。':result.error==='live_product_update_requires_release'?'公開中の教材は、この下書き保存では書き換えません。別の下書きとして整えてから更新します。':'保存に接続できません。原稿はこの画面に保持しています。');return;}currentSlug=slug;currentVersion=result.data.version;dirty=false;await refresh();saveStatus('教材の下書きを保存しました。販売や公開はまだ行っていません。');}catch{saveStatus('保存に接続できません。原稿を書き出して保管できます。');}finally{button.disabled=false;}});
- window.addEventListener('beforeunload',event=>{if(dirty)event.preventDefault();});refresh();
+ byId('new-product')?.addEventListener('click',()=>{if(saving){status('保存中です。保存結果を確認してから新しい教材を作ってください。');return;}if(dirty&&!window.confirm('未保存の編集があります。必要ならキャンセルして保存・書き出してください。編集内容を破棄して新しい教材を作りますか？'))return;form.reset();clearSaveStatus();dirty=false;editRevision++;selected=null;currentSourceId=null;currentSlug='';currentVersion=null;drawSelected();preview();drawSources();status('新しい教材の制作を始められます。');});
+ form.addEventListener('input',()=>{if(!dirty&&!saving)status('未保存の変更があります。','studio-save-status');dirty=true;editRevision++;preview();});
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();if(saving)return;
+  const saveStatus=(text:string)=>status(text,'studio-save-status');
+  const button=form.querySelector('button[type="submit"]') as HTMLButtonElement;
+  const savedRevision=editRevision;
+  const payload={slug:value('slug'),title:value('title'),summary:value('summary'),body:bodyInput.value,priceYen:Number(value('priceYen')),sourceAssetId:selected?.id||currentSourceId,expectedVersion:value('slug')===currentSlug?currentVersion:null};
+  saving=true;button.disabled=true;saveStatus('下書きを保存しています。');
+  try{
+   const response=await fetch('/api/dashboard/content-studio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+   const result=await response.json();
+   if(!response.ok||!result.ok){saveStatus(result.error==='version_conflict'?'別の更新があります。原稿を書き出してから最新の保存内容を確認してください。':result.error==='live_product_update_requires_release'?'公開中の教材は、この下書き保存では書き換えません。別の下書きとして整えてから更新します。':'保存に接続できません。原稿はこの画面に保持しています。');return;}
+   currentSlug=payload.slug;currentVersion=result.data.version;dirty=editRevision!==savedRevision;
+   await refresh();
+   saveStatus(dirty?'送信した下書きは保存されました。その後の編集は未保存です。もう一度保存してください。':'教材の下書きを保存しました。販売や公開はまだ行っていません。');
+  }catch{saveStatus('保存に接続できません。原稿を書き出して保管できます。');}
+  finally{saving=false;button.disabled=false;}
+ });
+ window.addEventListener('beforeunload',event=>{if(dirty||saving)event.preventDefault();});refresh();
 </script>
 <style>
 .studio-lesson-editor>summary{min-height:44px;display:flex;align-items:center;margin-bottom:16px}
 #source-picker>summary{min-height:44px;display:flex;align-items:center;gap:8px}#source-picker[open]>summary{margin-bottom:16px}
-#create,#studio-preview,#products-title{scroll-margin-top:100px}.studio-source-actions{margin-bottom:16px}
+#saved-drafts>summary{min-height:44px;display:flex;align-items:center}#saved-drafts[open]>summary{margin-bottom:16px}#saved-drafts h2{font-size:24px;font-weight:500}#studio-resume-status button{display:block;margin-top:12px}
+#create,#studio-preview,#products-title,#saved-drafts{scroll-margin-top:100px}.studio-source-actions{margin-bottom:16px}
 .studio-source-actions a,.studio-preview-link{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:44px;text-decoration:none;font-size:16px}
 .studio-source-actions a[hidden]{display:none}.studio-source-actions button{font-size:16px}
 .studio-shell :is(a,button,input,textarea,select,summary):focus-visible{outline:3px solid var(--gold-muted);outline-offset:3px}
