@@ -84,3 +84,7 @@ Next Human Gate: confirm rights and canonical target; review claims/interpretati
 Dry-run is default and writes nothing, including receipts. Explicit `--write-local` writes JSON + Markdown into a new directory with mode 700/600. Outputs inside this repository are accepted only under ignored `work/`; symlink parents are resolved first. Manifest path traversal/symlink escapes and recognizable credentials are rejected. This is not a complete PII scanner: never commit source texts, annotations, snapshots or receipts. Git contains synthetic tests only.
 
 Test coverage includes source fidelity, transcript-vs-fact distinction, explicit partial/selective read coverage, duplicate provenance, content conflicts, metadata/annotation changes, skipped exports, partial-batch resume, capture contract limits, no repeat inserts, traversal/symlink rejection and no-write dry-run.
+
+### Continuation: mirror and resume integrity
+
+Identical source bodies at distinct URLs are retained with both provenances and marked `HOLD_DUPLICATE_CONTENT`; insert-only capture previews are suppressed. The check also includes deferred candidates from a partial previous batch. This is an exact normalized-body check, not a semantic duplicate decision. A prior receipt with duplicate candidate IDs or contradictory NotebookLM occurrence aliases now fails before resumption, preventing silent Map overwrite. Preserve the original receipt and resolve its conflicting identities explicitly.

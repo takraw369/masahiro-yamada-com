@@ -214,11 +214,18 @@ export function captureText(candidate) {
 export function buildHarvest(documents, { annotations = {}, previous = null, existing = [], skipped = [] } = {}) {
   if (previous && previous.schema !== SCHEMA) throw new Error('incompatible_previous_receipt');
   if (!Array.isArray(existing)) throw new Error('existing_snapshot_must_be_array');
-  const prior = new Map([...(previous?.deferredCandidates || []), ...(previous?.candidates || [])].map(c => [c.id, c]));
+  const priorRows = [...(previous?.deferredCandidates || []), ...(previous?.candidates || [])];
+  if (priorRows.some(c => !c || typeof c.id !== 'string' || !c.id)
+    || new Set(priorRows.map(c => c.id)).size !== priorRows.length) throw new Error('ambiguous_previous_candidate_identity');
+  const prior = new Map(priorRows.map(c => [c.id, c]));
   const aliases = new Map();
   for (const old of prior.values()) {
     for (const o of old.occurrences || []) {
-      if (o.notebookId && o.sourceId) aliases.set(stable([o.notebookId, o.sourceId, o.kind]), old.id);
+      if (o.notebookId && o.sourceId) {
+        const key = stable([o.notebookId, o.sourceId, o.kind]);
+        if (aliases.has(key) && aliases.get(key) !== old.id) throw new Error('ambiguous_previous_source_identity');
+        aliases.set(key, old.id);
+      }
     }
   }
   const groups = new Map();
@@ -289,6 +296,17 @@ export function buildHarvest(documents, { annotations = {}, previous = null, exi
     if (conflict) candidate.conflictingSources = [...(old?.conflictingSources || []), ...group.map(d => ({ source: d.source, body: d.body, contentHash: d.contentHash }))]
       .filter((d, i, all) => all.findIndex(v => stable(v) === stable(d)) === i);
     candidates.push(candidate);
+  }
+  // A mirror/repost can have another URL. Preserve both provenances, but do
+  // not offer two insert-only captures for identical bodies (including resume).
+  const allCandidates = [...candidates, ...[...prior.values()].filter(c => !groups.has(c.id))];
+  for (const candidate of candidates) {
+    const duplicates = allCandidates.filter(c => c.id !== candidate.id && c.contentHash === candidate.contentHash).map(c => c.id).sort();
+    if (duplicates.length) {
+      candidate.integration.contentDuplicateIds = duplicates;
+      candidate.integration.capturePreview = null;
+      if (candidate.delta.action !== 'conflict') candidate.integration.operation = 'HOLD_DUPLICATE_CONTENT';
+    }
   }
   const counts = { inputDocuments: documents.length, notebooks: new Set(documents.map(d => d.source.notebookId).filter(Boolean)).size,
     uniqueSources: candidates.length, duplicateRegistrations: documents.length - candidates.length,

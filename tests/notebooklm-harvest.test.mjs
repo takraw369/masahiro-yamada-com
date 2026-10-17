@@ -17,6 +17,24 @@ const build = (docs=[doc()], opts={}) => buildHarvest(docs,{annotations:{'source
 function temp(t) {const p=mkdtempSync(join(tmpdir(),'notebooklm-harvest-'));t.after(()=>rmSync(p,{recursive:true,force:true}));return p;}
 function run(args) {return spawnSync(process.execPath,['scripts/notebooklm-harvest.mjs',...args],{cwd:resolve(import.meta.dirname,'..'),encoding:'utf8'});}
 
+test('different URLs with identical source text hold both capture previews and retain provenance',()=>{
+  const mirrored=parseExport(body,{...meta,source_url:'https://example.net/mirror',source_id:'mirror'});
+  const p=build([doc(),mirrored]);
+  assert.equal(p.candidates.length,2);
+  for(const c of p.candidates){assert.equal(c.integration.operation,'HOLD_DUPLICATE_CONTENT');assert.equal(c.integration.capturePreview,null);assert.equal(c.integration.contentDuplicateIds.length,1);}
+  const resumed=build([mirrored],{previous:p});
+  assert.equal(resumed.deferredCandidates.length,1);assert.equal(resumed.candidates[0].integration.operation,'HOLD_DUPLICATE_CONTENT');
+  assert.equal(resumed.candidates[0].source.originalUrl,'https://example.net/mirror');
+});
+test('ambiguous receipt IDs fail before partial resume can overwrite a previous candidate',()=>{
+  const previous=build();previous.deferredCandidates=[previous.candidates[0]];
+  assert.throws(()=>build(undefined,{previous}),/ambiguous_previous_candidate_identity/);
+});
+test('two receipt candidates claiming the same NotebookLM occurrence cannot silently choose a winner',()=>{
+  const previous=build();previous.deferredCandidates=[{...previous.candidates[0],id:'another-id'}];
+  assert.throws(()=>build(undefined,{previous}),/ambiguous_previous_source_identity/);
+});
+
 test('canonical identity joins YouTube variants but keeps originals in provenance',()=>{
   const a='https://youtu.be/abcdefghijk?si=tracking',b='https://www.youtube.com/watch?v=abcdefghijk&list=playlist&t=23';
   assert.equal(canonicalUrl(a),canonicalUrl(b));
