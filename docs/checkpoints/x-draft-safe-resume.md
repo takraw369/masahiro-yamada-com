@@ -10,7 +10,7 @@ User requested a report to Chat and the next build after #372. Implement explici
 - CLAUDE.md / CHECKLIST.md read; existing MASA design tokens and user choices retained. Better Design hierarchy and forms guidance loaded before changes.
 
 ## Reporting dependency
-Chat destination is ambiguous. User was asked asynchronously to choose the exact conversation; no external report sent yet. Candidates include 「Codex指示書作成」 and 「Issue215実装差分整理」. Their titles/contents do not conclusively identify this Dashboard request. Continue implementation independently; never claim delivery without a send receipt.
+Chat destination is ambiguous. User was asked asynchronously to identify the exact conversation; no external report sent yet. Continue implementation independently; never claim delivery without a send receipt. Keep private conversation IDs and contents out of repository artifacts.
 
 ## Implemented decision
 Reuse ContentScheduler's existing `ace-content-lib` array and PostItem schema; no second store, API or database. Added shared `src/lib/contentLibrary.ts` adapter. Composer explicitly saves/restores exact text, keeps current destination/timing and invalidates publication review. Newer changes and malformed/unavailable storage fail closed. Beforeunload protects unsaved text. Scheduler writes now apply only their per-ID delta so stale snapshots cannot erase newly saved Composer/LINE records; same-record conflicts fail instead of overwriting. This is browser-local best-effort concurrency, not a database transaction or device sync.
@@ -18,7 +18,13 @@ Reuse ContentScheduler's existing `ace-content-lib` array and PostItem schema; n
 After a human-confirmed publication/remote scheduling success, only the matching unchanged saved draft is marked sent locally; never run publication as part of save/restore. No real publication is allowed in QA.
 
 ## Verification / open work
-Related 31 tests passed: storage integrity, stale/no-op/deleted records, LINE and concurrent additions, corrupt/blocked storage, review gate, account identity and old publishing handoff. Need real Worker mobile 320/375/390/430 + desktop evidence, full tests/typecheck/build/security and final Draft PR. Physical Safari and public HTTPS Better Design final receipt remain UNVERIFIED; deployment is forbidden.
+Related 31 tests passed: storage integrity, stale/no-op/deleted records, LINE and concurrent additions, corrupt/blocked storage, review gate, account identity and old publishing handoff. Independent Draft PR #376 exists (https://github.com/takraw369/masahiro-yamada-com/pull/376), final source `6279135`. CI `38996396082` passed all gates, 543 tests, edited-file typecheck clean with 212 legacy errors. Read fresh artifact-head CI before resuming.
+
+Final real Worker QA covered 320/375/390/430/1440/1728, zero overflow, 16px input and >=44px controls, save/reload/explicit restore, destination/timing preservation, cancelled replacement, conflict + save-as-new, quota failure + clipboard fallback, unchanged Night/favorites and one intercepted mock send only after review. Also verified review invalidation, local saving during account API503 and beforeunload. Final source folds the draft panel and focuses the editor after restoration; save failure feedback is visible above the action controls. Synthetic receipts/screenshots are under `docs/reviews/x-draft-resume/`. Better Design final copy passed; scoped spacing completed, critical 0 / serious 0 / moderate 4 (existing 6/10px control spacing). Full review: `docs/x-draft-safe-resume-review.md`; hashes in the evidence manifest.
+
+Build and dependency security passed. Edited-file typecheck is clean; fixed two pre-existing ContentScheduler errors, leaving 212 repository legacy errors. Full local tests: 535 pass / 1 existing macOS Chromium launcher failure; Linux CI is the full-suite authority. Physical Safari and public HTTPS Better Design final receipt remain UNVERIFIED; deployment is forbidden.
+
+Disk filled during a temporary baseline dependency install. Only this task's temporary worktree was removed with Git's worktree removal command, recovering local capacity; original work and data remain intact. Do not recreate an additional full dependency install on this nearly full host.
 
 ## Next smallest action
-Run full CI/build and real isolated Worker fixtures; fix findings, create independent Draft PR, then send the Chat report only after the recipient is identified.
+Read final browser receipts and CI, commit synthetic evidence and update PR #376. Send the report to Chat only after the recipient is identified; #372 remains unchanged and unmerged.
