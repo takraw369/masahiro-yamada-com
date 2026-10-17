@@ -1,0 +1,75 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+<DashboardLayout title="MASA Voice Commander" eyebrow="MASA OS · VOICE">
+  <main class="voice-commander">
+    <header class="vc-head">
+      <p class="eyebrow">MASA AGENT OS · IPHONE PILOT</p>
+      <h1>声から、行動へ。</h1>
+      <p class="intro">iPhoneの音声入力から、既存のKnowledge OS・Task Boardにつなぐ。確認なしの保存・公開・送信は行いません。</p>
+    </header>
+
+    <section class="vc-card" aria-label="音声コマンド">
+      <label for="command-text">慧への指示</label>
+      <textarea id="command-text" rows="4" maxlength="2000" spellcheck="true" autocomplete="off" placeholder="例：今日何する？／記録して 競技中の気づきは……／身体と集中について教えて"></textarea>
+      <div class="actions">
+        <button id="listen" type="button" class="mic">🎙 話す</button>
+        <button id="run-command" type="button" class="run">実行内容を確認 →</button>
+      </div>
+      <p class="small">ブラウザ音声認識が使えない場合は、キーボードに表示されるマイク（iPhone標準の音声入力）を利用できます。</p>
+      <p id="voice-state" class="state" role="status" aria-live="polite">起動準備中</p>
+    </section>
+
+    <section class="vc-card" aria-label="アシスタントの回答">
+      <div class="card-head"><h2>慧の回答・確認</h2><span class="review-label">HUMAN GATE</span></div>
+      <div id="assistant-response" class="response" role="region" aria-live="polite" aria-label="回答">ここに確認内容や回答が表示されます。</div>
+      <div id="capture-preview" class="capture-preview" aria-label="保存候補" role="note"></div>
+      <div class="actions">
+        <button id="confirm-save" class="run" type="button" hidden>内容を確認して保存を確定</button>
+        <button id="speak-response" class="secondary" type="button" disabled>🔊 読み上げ</button>
+        <button id="copy-response" class="secondary" type="button" disabled>回答をコピー</button>
+      </div>
+      <a id="next-link" class="next-link" hidden>移動先を確認</a>
+    </section>
+
+    <section class="vc-card guide">
+      <h2>iPhone本体の操作</h2>
+      <p>画面のタップ・スクロール・ホームへ戻る操作は、iOSの「設定 → アクセシビリティ → 音声コントロール」で有効にします。このWeb画面がiPhone全体を直接操作するものではありません。</p>
+      <h2>声で起動するには</h2>
+      <p>iPhone「ショートカット」で「URLを開く」を追加し、このページのURLを設定して「MASA起動」などと名付けます。Siriに「MASA起動」と話しかけると、この画面を開けます。Safariの共有メニューからホーム画面に追加することもできます。</p>
+      <p class="small">この試作品はログイン後に使う個人用画面です。iOSネイティブアプリ、常時待機するウェイクワード、音声クローン、バックグラウンド自動操作は未実装です。</p>
+    </section>
+  </main>
+</DashboardLayout>
+<script is:inline type="module" src="/scripts/masa-voice-commander.mjs"></script>
+<style>
+  .voice-commander{max-width:860px;margin:0 auto;padding:10px 0 70px;display:grid;gap:16px}
+  .vc-head{padding:22px 6px 12px}
+  .eyebrow{font-size:.69rem;letter-spacing:.16em;font-weight:800;color:#bb6812}
+  .vc-head h1{font-size:clamp(2rem,7vw,3rem);letter-spacing:-.045em;margin:14px 0 10px;font-weight:800}
+  .intro{line-height:1.8;color:var(--text-muted);font-size:.93rem;max-width:700px}
+  .vc-card{padding:clamp(16px,4vw,28px);border:1px solid #e5ddd2;border-radius:22px;background:#fff;box-shadow:0 10px 28px rgba(16,24,40,.03);min-width:0}
+  .vc-card label{display:block;font-size:.9rem;font-weight:800;margin-bottom:11px}
+  #command-text{display:block;width:100%;min-height:136px;resize:vertical;border:1px solid #d6d6d2;border-radius:14px;background:#fcfbf9;padding:14px 16px;font:inherit;font-size:16px;color:#1c252b;line-height:1.7}
+  #command-text:focus{outline:3px solid #ee780033;border-color:#ee7800}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:15px}
+  button{font:inherit;min-height:46px;padding:10px 18px;border-radius:13px;cursor:pointer;font-weight:800;font-size:.87rem}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .mic{border:1px solid #e3ba86;color:#814511;background:#fff7ed}
+  .run{border:1px solid #dd6c00;color:#fff;background:#ee7800}
+  .secondary{border:1px solid #ddd7cf;background:#faf8f5;color:#43505d}
+  .small{font-size:.75rem;line-height:1.7;color:#6f7a83;margin-top:12px}
+  .state{font-size:.78rem;color:#92551f;margin-top:12px;min-height:1.4em}
+  .card-head{display:flex;gap:12px;justify-content:space-between;align-items:center}
+  .vc-card h2{font-size:1.16rem;font-weight:800}
+  .review-label{font-size:.64rem;letter-spacing:.08em;border:1px solid #ddb887;padding:6px 9px;border-radius:50px;color:#9c5e1d}
+  .response{margin-top:17px;padding:16px;border-radius:14px;background:#f8f6f2;min-height:95px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;font-size:.89rem}
+  .capture-preview{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.84rem;line-height:1.8}
+  .capture-preview:not(:empty){margin-top:12px;border:1px dashed #df9b59;padding:14px;border-radius:12px}
+  .next-link{display:inline-flex;margin-top:14px;font-weight:800;color:#b65b07;text-decoration:underline}
+  .guide{background:#fffaf4}
+  .guide h2:not(:first-child){margin-top:20px}
+  .guide p{line-height:1.75;margin-top:8px;font-size:.85rem;color:#515b66}
+  [hidden]{display:none!important}
+  @media(max-width:520px){.actions button{flex:1;min-width:120px}.voice-commander{padding-bottom:100px}.card-head{align-items:start;flex-direction:column}}
+</style>
